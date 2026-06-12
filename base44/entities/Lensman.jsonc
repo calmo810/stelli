@@ -1,0 +1,123 @@
+{
+  "name": "Lensman",
+  "type": "object",
+  "properties": {
+    "full_name": {
+      "type": "string",
+      "description": "Full name of the lensman"
+    },
+    "display_name": {
+      "type": "string",
+      "description": "Public display name or initials"
+    },
+    "email": {
+      "type": "string",
+      "description": "Contact email"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Contact phone"
+    },
+    "bio": {
+      "type": "string",
+      "description": "Short bio about why they create"
+    },
+    "neighborhoods": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Neighborhoods where they work"
+    },
+    "specialties": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Specialties like Portraits, Events, Commercial, Music Videos"
+    },
+    "years_experience": {
+      "type": "number",
+      "description": "Years of experience"
+    },
+    "equipment": {
+      "type": "string",
+      "description": "Equipment/gear description"
+    },
+    "portfolio_images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs of portfolio images"
+    },
+    "portfolio_videos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs of portfolio videos"
+    },
+    "rate_half_day": {
+      "type": "number",
+      "description": "Rate for 4-hour shoot"
+    },
+    "rate_full_day": {
+      "type": "number",
+      "description": "Rate for full-day Content Day"
+    },
+    "rate_custom": {
+      "type": "number",
+      "description": "Custom package rate"
+    },
+    "custom_package_description": {
+      "type": "string",
+      "description": "Description of custom package"
+    },
+    "style_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Style tags like portrait, documentary, vibrant, moody"
+    },
+    "avg_rating": {
+      "type": "number",
+      "description": "Average star rating"
+    },
+    "review_count": {
+      "type": "number",
+      "description": "Number of reviews"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "rejected",
+        "suspended"
+      ],
+      "default": "pending",
+      "description": "Vetting status"
+    },
+    "admin_notes": {
+      "type": "string",
+      "description": "Internal notes from vetting"
+    },
+    "blackout_dates": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Dates when lensman is unavailable"
+    },
+    "profile_image": {
+      "type": "string",
+      "description": "Profile image URL"
+    }
+  },
+  "required": [
+    "full_name",
+    "email"
+  ]
+}

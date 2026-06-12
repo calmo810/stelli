@@ -1,0 +1,41 @@
+{
+  "name": "Review",
+  "type": "object",
+  "properties": {
+    "booking_id": {
+      "type": "string",
+      "description": "ID of the related booking"
+    },
+    "lensman_id": {
+      "type": "string",
+      "description": "ID of the reviewed lensman"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Name of the reviewer"
+    },
+    "rating": {
+      "type": "number",
+      "description": "Star rating 1-5"
+    },
+    "comment": {
+      "type": "string",
+      "description": "Written review"
+    },
+    "event_type": {
+      "type": "string",
+      "description": "Type of event for this review"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Photos from the event"
+    }
+  },
+  "required": [
+    "lensman_id",
+    "rating"
+  ]
+}

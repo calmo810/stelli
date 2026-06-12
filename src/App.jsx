@@ -6,7 +6,18 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
-// Add page imports here
+import Layout from './components/shared/Layout';
+import Home from './pages/Home';
+import BrowseLensmen from './pages/BrowseLensmen';
+import LensmanProfile from './pages/LensmanProfile';
+import BookingFlow from './pages/BookingFlow';
+import HowItWorks from './pages/HowItWorks';
+import ForCreators from './pages/ForCreators';
+import CreatorApplication from './pages/CreatorApplication';
+import ClientDashboard from './pages/ClientDashboard';
+import LensmanDashboard from './pages/LensmanDashboard';
+import Messages from './pages/Messages';
+import AdminDashboard from './pages/AdminDashboard';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -34,7 +45,19 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
-      {/* Add your page Route elements here */}
+      <Route element={<Layout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/browse" element={<BrowseLensmen />} />
+        <Route path="/lensman/:id" element={<LensmanProfile />} />
+        <Route path="/book/:lensmanId" element={<BookingFlow />} />
+        <Route path="/how-it-works" element={<HowItWorks />} />
+        <Route path="/for-creators" element={<ForCreators />} />
+        <Route path="/apply" element={<CreatorApplication />} />
+        <Route path="/client-dashboard" element={<ClientDashboard />} />
+        <Route path="/lensman-dashboard" element={<LensmanDashboard />} />
+        <Route path="/messages/:bookingId" element={<Messages />} />
+        <Route path="/admin" element={<AdminDashboard />} />
+      </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

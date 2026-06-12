@@ -1,0 +1,37 @@
+{
+  "name": "Message",
+  "type": "object",
+  "properties": {
+    "booking_id": {
+      "type": "string",
+      "description": "ID of the related booking"
+    },
+    "sender_name": {
+      "type": "string",
+      "description": "Name of the sender"
+    },
+    "sender_role": {
+      "type": "string",
+      "enum": [
+        "client",
+        "lensman"
+      ],
+      "description": "Role of sender"
+    },
+    "content": {
+      "type": "string",
+      "description": "Message text"
+    },
+    "file_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Attached files"
+    }
+  },
+  "required": [
+    "booking_id",
+    "content"
+  ]
+}

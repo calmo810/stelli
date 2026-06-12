@@ -1,0 +1,140 @@
+{
+  "name": "Booking",
+  "type": "object",
+  "properties": {
+    "lensman_id": {
+      "type": "string",
+      "description": "ID of the booked lensman"
+    },
+    "lensman_name": {
+      "type": "string",
+      "description": "Name of the lensman"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Client full name"
+    },
+    "client_email": {
+      "type": "string",
+      "description": "Client email"
+    },
+    "client_phone": {
+      "type": "string",
+      "description": "Client phone"
+    },
+    "event_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Event date"
+    },
+    "event_time": {
+      "type": "string",
+      "description": "Event start time"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "birthday",
+        "dinner",
+        "rooftop",
+        "music_video",
+        "restaurant_launch",
+        "content_day",
+        "proposal",
+        "wedding",
+        "corporate",
+        "custom"
+      ],
+      "description": "Type of event"
+    },
+    "event_description": {
+      "type": "string",
+      "description": "Brief description of the event"
+    },
+    "location": {
+      "type": "string",
+      "description": "Event location/address"
+    },
+    "attendees": {
+      "type": "number",
+      "description": "Number of attendees"
+    },
+    "package_type": {
+      "type": "string",
+      "enum": [
+        "half_day",
+        "full_day",
+        "custom"
+      ],
+      "description": "Selected package"
+    },
+    "add_ons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Add-ons like rush delivery"
+    },
+    "total_price": {
+      "type": "number",
+      "description": "Total booking price"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "confirmed",
+        "in_progress",
+        "awaiting_delivery",
+        "delivered",
+        "completed",
+        "cancelled",
+        "disputed"
+      ],
+      "default": "pending",
+      "description": "Booking status"
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "held",
+        "released",
+        "refunded"
+      ],
+      "default": "pending",
+      "description": "Payment/escrow status"
+    },
+    "delivery_deadline": {
+      "type": "string",
+      "format": "date",
+      "description": "Expected delivery date"
+    },
+    "delivered_files": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs of delivered files"
+    },
+    "delivery_notes": {
+      "type": "string",
+      "description": "Notes from lensman on delivery"
+    },
+    "client_confirmed_delivery": {
+      "type": "boolean",
+      "description": "Whether client confirmed receipt"
+    },
+    "billing_address": {
+      "type": "string",
+      "description": "Client billing address"
+    }
+  },
+  "required": [
+    "lensman_id",
+    "client_name",
+    "client_email",
+    "event_date",
+    "event_type"
+  ]
+}
