@@ -8,12 +8,12 @@ export default function Navbar() {
   const location = useLocation();
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-[#F5F4EF]/95 backdrop-blur-sm border-b border-[#1a2a6c]/8">
       <div className="max-w-[1400px] mx-auto px-8 h-14 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-baseline gap-0.5 select-none">
-          <span className="font-display text-xl font-semibold tracking-tight text-[#1a1a1a]">Stelli</span>
-          <span className="text-[10px] text-gray-400 font-body align-super leading-none">°</span>
+        <Link to="/" className="select-none flex items-center gap-1">
+          <span style={{ fontFamily: "'Pacifico', cursive" }} className="text-2xl text-[#1a2a6c] leading-none">Stelli</span>
+          <span className="text-[#1a2a6c] text-lg leading-none" style={{ fontFamily: "'Pacifico', cursive" }}>✦</span>
         </Link>
 
         {/* Desktop Center Nav */}

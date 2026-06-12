@@ -55,36 +55,43 @@ export default function HeroSection() {
       <div className="absolute top-0 left-0 w-[400px] h-[300px] bg-gradient-to-br from-[#f5e9d0]/40 to-transparent rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative z-10 flex-1 flex flex-col justify-center px-8 md:px-16 lg:px-24 pt-28 pb-16 max-w-[1400px] mx-auto w-full">
-        {/* Breadcrumb label */}
+        {/* Label */}
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="text-xs font-body tracking-[0.2em] text-gray-400 uppercase mb-8 flex items-center gap-3"
+          className="text-[11px] font-body tracking-[0.25em] text-[#1a2a6c]/50 uppercase mb-6 flex items-center gap-3"
         >
-          <span className="inline-block w-6 h-px bg-gray-300" />
-          THE BRIEF · STELLI · 2026
+          <span className="inline-block w-6 h-px bg-[#1a2a6c]/20" />
+          NEW YORK CREATIVE COLLECTIVE · ESTD. 2026
         </motion.p>
 
-        {/* Headline */}
-        <motion.h1
+        {/* Big script headline */}
+        <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="font-display text-[clamp(40px,6vw,72px)] leading-[1.1] text-[#1a1a1a] mb-8 max-w-[700px]"
+          className="mb-6"
         >
-          You're the star —{' '}
-          <em className="italic font-display">we just bring the camera.</em>
-        </motion.h1>
+          <h1
+            style={{ fontFamily: "'Pacifico', cursive" }}
+            className="text-[clamp(52px,7.5vw,96px)] leading-[1.05] text-[#1a2a6c] mb-2"
+          >
+            Stelli<span className="text-[#1a2a6c]/30 ml-2">✦</span>
+          </h1>
+          <p className="font-body text-[13px] tracking-[0.18em] uppercase text-[#1a2a6c]/50 ml-1">
+            For the moments that matter.
+          </p>
+        </motion.div>
 
         {/* Subheadline */}
         <motion.p
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="font-body text-[17px] text-gray-500 max-w-[560px] leading-relaxed mb-12"
+          className="font-body text-[16px] text-gray-500 max-w-[500px] leading-relaxed mb-12"
         >
-          Stelli is the booking platform for New York's best photographers and filmmakers. Pick the moment, book in three minutes, get back content the internet asks about.
+          Book New York's best photographers & filmmakers in minutes. Fixed prices, vetted talent, payment held until delivery.
         </motion.p>
 
         {/* Search Form */}
