@@ -55,7 +55,7 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative min-h-screen bg-[#F5F4EF] flex flex-col overflow-hidden">
+    <section className="relative min-h-screen bg-[#F5F4EF] flex flex-col">
 
       {/* Subtle star decoration */}
       <span className="absolute top-28 right-[10%] text-[#1a2a6c]/15 text-3xl select-none">✦</span>
