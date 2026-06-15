@@ -23,6 +23,7 @@ export default function Navbar() {
           <Link to="/browse" className="text-[13px] font-body text-[#444] hover:text-[#1a2a6c] transition-colors">Book a shoot</Link>
           <Link to="/for-creators" className="text-[13px] font-body text-[#444] hover:text-[#1a2a6c] transition-colors">The Collective</Link>
           <Link to="/how-it-works" className="text-[13px] font-body text-[#444] hover:text-[#1a2a6c] transition-colors">How it works</Link>
+          <Link to="/content-day" className="text-[13px] font-body text-[#444] hover:text-[#1a2a6c] transition-colors">Content Day</Link>
         </div>
 
         {/* Desktop Right */}

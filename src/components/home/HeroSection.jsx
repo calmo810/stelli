@@ -1,63 +1,125 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { ArrowRight, ChevronLeft } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const EVENT_TYPES = [
-  'Birthday', 'Dinner', 'Rooftop Hang', 'Music Video',
-  'Restaurant Opening', 'Content Day', 'Proposal', 'Wedding', 'Corporate', 'Custom',
+const STEPS = [
+  {
+    key: 'moment',
+    label: 'Moment',
+    prompt: "What's the moment?",
+    placeholder: 'e.g. Birthday, Dinner, Content Day…',
+    type: 'dropdown',
+    options: ['Birthday', 'Dinner', 'Rooftop Hang', 'Music Video', 'Restaurant Opening', 'Content Day', 'Proposal', 'Wedding', 'Corporate', 'Custom'],
+  },
+  {
+    key: 'where',
+    label: 'Where',
+    prompt: 'Where in New York?',
+    placeholder: 'Anywhere in NYC',
+    type: 'dropdown',
+    options: ['Anywhere in NYC', 'Williamsburg', 'Bushwick', 'DUMBO', 'Lower East Side', 'Harlem', 'Park Slope', 'Midtown', 'SoHo', 'Astoria'],
+  },
+  {
+    key: 'when',
+    label: 'When',
+    prompt: 'Pick a date',
+    type: 'date',
+  },
+  {
+    key: 'vibe',
+    label: 'Vibe',
+    prompt: 'Choose a vibe',
+    type: 'dropdown',
+    options: ['Moody & dark', 'Bright & airy', 'Documentary', 'Editorial', 'Candid & raw', 'Cinematic'],
+  },
 ];
 
-const NEIGHBORHOODS = [
-  'Anywhere in NYC', 'Williamsburg', 'Bushwick', 'DUMBO',
-  'Lower East Side', 'Harlem', 'Park Slope', 'Midtown', 'SoHo', 'Astoria',
-];
-
-function Dropdown({ options, onSelect, onClose }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [onClose]);
-
+function StepDropdown({ options, onSelect }) {
   return (
-    <div
-      ref={ref}
-      className="absolute top-full left-0 mt-1 w-52 bg-white border border-gray-200 rounded-2xl shadow-xl z-[9999] py-2 overflow-hidden"
+    <motion.div
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 6 }}
+      className="absolute top-full left-0 mt-2 w-52 bg-white border border-gray-200 rounded-2xl shadow-xl z-50 py-2 overflow-hidden"
     >
       {options.map((opt) => (
         <button
           key={opt}
           className="w-full text-left px-4 py-2.5 text-sm font-body text-[#1a1a1a] hover:bg-[#f5f4ef] transition-colors"
-          onMouseDown={(e) => { e.preventDefault(); onSelect(opt); onClose(); }}
+          onMouseDown={(e) => { e.preventDefault(); onSelect(opt); }}
         >
           {opt}
         </button>
       ))}
-    </div>
+    </motion.div>
   );
 }
 
 export default function HeroSection() {
   const navigate = useNavigate();
-  const [moment, setMoment] = useState('');
-  const [when, setWhen] = useState('');
-  const [where, setWhere] = useState('');
-  const [showMomentDropdown, setShowMomentDropdown] = useState(false);
-  const [showWhereDropdown, setShowWhereDropdown] = useState(false);
+  const [step, setStep] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [showDropdown, setShowDropdown] = useState(false);
+  const containerRef = useRef(null);
 
-  const handleSearch = () => {
+  const currentStep = STEPS[step];
+  const isLast = step === STEPS.length - 1;
+  const isComplete = step >= STEPS.length;
+
+  const handleSelect = (value) => {
+    const newAnswers = { ...answers, [currentStep.key]: value };
+    setAnswers(newAnswers);
+    setShowDropdown(false);
+    if (isLast) {
+      doSearch(newAnswers);
+    } else {
+      setStep(s => s + 1);
+    }
+  };
+
+  const handleDateChange = (e) => {
+    if (e.target.value) handleSelect(e.target.value);
+  };
+
+  const doSearch = (a) => {
     const params = new URLSearchParams();
-    if (moment) params.set('event_type', moment.toLowerCase().replace(/ /g, '_'));
-    if (where && where !== 'Anywhere in NYC') params.set('neighborhood', where);
+    const ans = a || answers;
+    if (ans.moment && ans.moment !== 'Custom') {
+      params.set('event_type', ans.moment.toLowerCase().replace(/ /g, '_'));
+    }
+    if (ans.where && ans.where !== 'Anywhere in NYC') {
+      params.set('neighborhood', ans.where);
+    }
     navigate(`/browse?${params.toString()}`);
   };
 
+  const reset = () => {
+    setStep(0);
+    setAnswers({});
+    setShowDropdown(false);
+  };
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!showDropdown) return;
+    const handler = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showDropdown]);
+
+  // Auto-open dropdown for dropdown steps
+  useEffect(() => {
+    if (currentStep?.type === 'dropdown') setShowDropdown(true);
+  }, [step]);
+
   return (
     <section className="relative min-h-screen bg-[#F5F4EF] flex flex-col">
-
-      {/* Subtle star decoration */}
+      {/* Decorative stars */}
       <span className="absolute top-28 right-[10%] text-[#1a2a6c]/15 text-3xl select-none">✦</span>
       <span className="absolute top-[55%] right-[5%] text-[#1a2a6c]/10 text-xl select-none">✦</span>
       <span className="absolute bottom-32 left-[8%] text-[#1a2a6c]/10 text-2xl select-none">✦</span>
@@ -75,7 +137,7 @@ export default function HeroSection() {
           New York Creative Collective — Est. 2026
         </motion.p>
 
-        {/* Logo as headline */}
+        {/* Logo */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -86,7 +148,6 @@ export default function HeroSection() {
             src="https://media.base44.com/images/public/6a2c4e448e7fec52fb6d322a/b178af09a_Screenshot2026-06-14at105757PM.png"
             alt="Stelli"
             className="h-[clamp(80px,12vw,160px)] w-auto object-contain"
-            style={{ imageRendering: 'crisp-edges' }}
           />
         </motion.div>
 
@@ -100,68 +161,169 @@ export default function HeroSection() {
           Book New York's best photographers & filmmakers — fixed prices, vetted talent, payment held until delivery.
         </motion.p>
 
-        {/* Search Form */}
+        {/* Animated Pill Search */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="max-w-[620px]"
+          className="max-w-[640px]"
+          ref={containerRef}
         >
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col sm:flex-row items-stretch divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
-
-            {/* Moment */}
-            <div
-              className="relative flex-1 px-5 py-4 cursor-pointer"
-              onClick={() => { setShowMomentDropdown(!showMomentDropdown); setShowWhereDropdown(false); }}
-            >
-              <p className="text-[10px] font-semibold font-body text-[#1a1a1a] tracking-wider uppercase mb-1">Moment</p>
-              <p className="text-sm font-body text-gray-400 truncate">{moment || 'e.g. Birthday...'}</p>
-              {showMomentDropdown && (
-                <Dropdown
-                  options={EVENT_TYPES}
-                  onSelect={setMoment}
-                  onClose={() => setShowMomentDropdown(false)}
-                />
-              )}
-            </div>
-
-            {/* When */}
-            <div className="flex-1 px-5 py-4">
-              <p className="text-[10px] font-semibold font-body text-[#1a1a1a] tracking-wider uppercase mb-1">When</p>
-              <input
-                type="date"
-                value={when}
-                onChange={(e) => setWhen(e.target.value)}
-                className="text-sm font-body text-gray-400 bg-transparent border-none outline-none w-full cursor-pointer"
-              />
-            </div>
-
-            {/* Where */}
-            <div
-              className="relative flex-1 px-5 py-4 cursor-pointer"
-              onClick={() => { setShowWhereDropdown(!showWhereDropdown); setShowMomentDropdown(false); }}
-            >
-              <p className="text-[10px] font-semibold font-body text-[#1a1a1a] tracking-wider uppercase mb-1">Where</p>
-              <p className="text-sm font-body text-gray-400 truncate">{where || 'Anywhere in NYC'}</p>
-              {showWhereDropdown && (
-                <Dropdown
-                  options={NEIGHBORHOODS}
-                  onSelect={setWhere}
-                  onClose={() => setShowWhereDropdown(false)}
-                />
-              )}
-            </div>
-
-            {/* Button */}
-            <div className="flex items-center px-4 py-3 sm:py-0">
-              <button
-                onClick={handleSearch}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 h-10 rounded-full bg-[#1a2a6c] text-white text-sm font-body font-medium hover:bg-[#22337a] transition-all"
-              >
-                Search <ArrowRight className="w-3.5 h-3.5" />
+          {/* Progress pills */}
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
+            {STEPS.map((s, i) => {
+              const done = i < step || isComplete;
+              const active = i === step && !isComplete;
+              const val = answers[s.key];
+              return (
+                <button
+                  key={s.key}
+                  onClick={() => { if (done) { setStep(i); setShowDropdown(s.type === 'dropdown'); } }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-body font-medium transition-all border ${
+                    active
+                      ? 'bg-[#1a2a6c] text-white border-[#1a2a6c] shadow-md'
+                      : done
+                      ? 'bg-white text-[#1a2a6c] border-[#1a2a6c]/30 cursor-pointer hover:border-[#1a2a6c]/60'
+                      : 'bg-transparent text-[#1a1a1a]/30 border-[#1a1a1a]/10'
+                  }`}
+                >
+                  {done && val ? (
+                    <>
+                      <span className="w-2 h-2 rounded-full bg-green-400 inline-block" />
+                      {val.length > 12 ? val.slice(0, 12) + '…' : val}
+                    </>
+                  ) : (
+                    <>
+                      <span className={`text-[9px] font-semibold ${active ? 'text-white/70' : 'text-[#1a1a1a]/20'}`}>{i + 1}</span>
+                      {s.label}
+                    </>
+                  )}
+                </button>
+              );
+            })}
+            {(step > 0 || Object.keys(answers).length > 0) && (
+              <button onClick={reset} className="text-[11px] font-body text-[#1a1a1a]/30 hover:text-[#1a1a1a]/60 transition-colors px-1">
+                Reset
               </button>
-            </div>
+            )}
           </div>
+
+          {/* Active step card */}
+          <AnimatePresence mode="wait">
+            {!isComplete && (
+              <motion.div
+                key={step}
+                initial={{ opacity: 0, x: 16 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -16 }}
+                transition={{ duration: 0.22 }}
+                className="relative"
+              >
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-visible">
+                  <div className="flex items-center justify-between px-6 py-5">
+                    <div className="flex-1">
+                      <p className="text-[10px] font-body font-semibold tracking-[0.2em] text-[#1a1a1a]/40 uppercase mb-1">
+                        Step {step + 1} of {STEPS.length}
+                      </p>
+                      <AnimatePresence mode="wait">
+                        <motion.p
+                          key={currentStep.key}
+                          initial={{ opacity: 0, y: 4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -4 }}
+                          className="text-lg font-heading font-semibold text-[#1a1a1a]"
+                        >
+                          {currentStep.prompt}
+                        </motion.p>
+                      </AnimatePresence>
+                    </div>
+
+                    <div className="flex items-center gap-2 ml-4">
+                      {step > 0 && (
+                        <button
+                          onClick={() => setStep(s => s - 1)}
+                          className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:border-gray-400 transition-colors"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+                      )}
+                      {currentStep.type === 'dropdown' && (
+                        <button
+                          onClick={() => setShowDropdown(v => !v)}
+                          className="flex items-center gap-2 px-4 h-10 rounded-full bg-[#1a2a6c] text-white text-sm font-body font-medium hover:bg-[#22337a] transition-all"
+                        >
+                          {currentStep.placeholder || 'Choose'} <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      {currentStep.type === 'date' && (
+                        <input
+                          type="date"
+                          onChange={handleDateChange}
+                          className="text-sm font-body text-[#1a1a1a] bg-[#f5f4ef] border border-gray-200 rounded-xl px-4 py-2 outline-none focus:border-[#1a2a6c] cursor-pointer"
+                          autoFocus
+                        />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Skip */}
+                  <div className="px-6 pb-4 -mt-1">
+                    <button
+                      onClick={() => {
+                        if (isLast) doSearch();
+                        else setStep(s => s + 1);
+                      }}
+                      className="text-[11px] font-body text-[#1a1a1a]/35 hover:text-[#1a1a1a]/60 transition-colors"
+                    >
+                      Skip this step →
+                    </button>
+                  </div>
+                </div>
+
+                {/* Dropdown */}
+                <AnimatePresence>
+                  {showDropdown && currentStep.type === 'dropdown' && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 6 }}
+                      className="absolute top-full left-0 mt-2 w-56 bg-white border border-gray-200 rounded-2xl shadow-xl z-50 py-2 overflow-hidden"
+                    >
+                      {currentStep.options.map((opt) => (
+                        <button
+                          key={opt}
+                          className="w-full text-left px-4 py-2.5 text-sm font-body text-[#1a1a1a] hover:bg-[#f5f4ef] transition-colors"
+                          onMouseDown={(e) => { e.preventDefault(); handleSelect(opt); }}
+                        >
+                          {opt}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            )}
+
+            {isComplete && (
+              <motion.div
+                key="done"
+                initial={{ opacity: 0, scale: 0.97 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="bg-white rounded-2xl border border-gray-200 shadow-sm px-6 py-5 flex items-center justify-between"
+              >
+                <div>
+                  <p className="text-sm font-body font-semibold text-[#1a1a1a] mb-0.5">Finding your lensman…</p>
+                  <p className="text-[11px] font-body text-gray-400">Showing results for your moment</p>
+                </div>
+                <button
+                  onClick={() => doSearch()}
+                  className="flex items-center gap-2 px-5 h-10 rounded-full bg-[#1a2a6c] text-white text-sm font-body font-medium hover:bg-[#22337a] transition-all"
+                >
+                  Search <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
 
         {/* Trust pills */}
