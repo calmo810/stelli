@@ -83,7 +83,7 @@ export default function HeroSection() {
           className="mb-4"
         >
           <img
-            src="https://media.base44.com/images/public/6a2c4e448e7fec52fb6d322a/c37fdca4d_Stelli.png"
+            src="https://media.base44.com/images/public/6a2c4e448e7fec52fb6d322a/b178af09a_Screenshot2026-06-14at105757PM.png"
             alt="Stelli"
             className="h-[clamp(80px,12vw,160px)] w-auto object-contain"
             style={{ imageRendering: 'crisp-edges' }}

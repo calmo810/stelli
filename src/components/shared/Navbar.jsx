@@ -12,7 +12,7 @@ export default function Navbar() {
         {/* Logo */}
         <Link to="/" className="select-none flex items-center">
           <img
-            src="https://media.base44.com/images/public/6a2c4e448e7fec52fb6d322a/c37fdca4d_Stelli.png"
+            src="https://media.base44.com/images/public/6a2c4e448e7fec52fb6d322a/b178af09a_Screenshot2026-06-14at105757PM.png"
             alt="Stelli"
             className="h-9 w-auto object-contain"
           />
