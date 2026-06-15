@@ -1,33 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const EVENT_TYPES = [
-  'Birthday',
-  'Dinner',
-  'Rooftop Hang',
-  'Music Video',
-  'Restaurant Opening',
-  'Content Day',
-  'Proposal',
-  'Wedding',
-  'Corporate',
-  'Custom',
+  'Birthday', 'Dinner', 'Rooftop Hang', 'Music Video',
+  'Restaurant Opening', 'Content Day', 'Proposal', 'Wedding', 'Corporate', 'Custom',
 ];
 
 const NEIGHBORHOODS = [
-  'Anywhere in NYC',
-  'Williamsburg',
-  'Bushwick',
-  'DUMBO',
-  'Lower East Side',
-  'Harlem',
-  'Park Slope',
-  'Midtown',
-  'SoHo',
-  'Astoria',
+  'Anywhere in NYC', 'Williamsburg', 'Bushwick', 'DUMBO',
+  'Lower East Side', 'Harlem', 'Park Slope', 'Midtown', 'SoHo', 'Astoria',
 ];
+
+function Dropdown({ options, onSelect, onClose }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [onClose]);
+
+  return (
+    <div
+      ref={ref}
+      className="absolute top-full left-0 mt-1 w-52 bg-white border border-gray-200 rounded-2xl shadow-xl z-[9999] py-2 overflow-hidden"
+    >
+      {options.map((opt) => (
+        <button
+          key={opt}
+          className="w-full text-left px-4 py-2.5 text-sm font-body text-[#1a1a1a] hover:bg-[#f5f4ef] transition-colors"
+          onMouseDown={(e) => { e.preventDefault(); onSelect(opt); onClose(); }}
+        >
+          {opt}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export default function HeroSection() {
   const navigate = useNavigate();
@@ -45,53 +55,49 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative min-h-[85vh] bg-[#F9F8F5] flex flex-col overflow-hidden">
-      {/* Decorative crosses */}
-      <span className="absolute top-24 right-[8%] text-gray-300 text-2xl font-light select-none">+</span>
-      <span className="absolute top-[45%] right-[20%] text-[#c8b98a] text-lg font-light select-none opacity-60">+</span>
-      <span className="absolute bottom-20 right-[6%] text-gray-300 text-xl font-light select-none">+</span>
+    <section className="relative min-h-screen bg-[#F5F4EF] flex flex-col overflow-hidden">
 
-      {/* Subtle warm gradient blob top-left */}
-      <div className="absolute top-0 left-0 w-[400px] h-[300px] bg-gradient-to-br from-[#f5e9d0]/40 to-transparent rounded-full blur-3xl pointer-events-none" />
+      {/* Subtle star decoration */}
+      <span className="absolute top-28 right-[10%] text-[#1a2a6c]/15 text-3xl select-none">✦</span>
+      <span className="absolute top-[55%] right-[5%] text-[#1a2a6c]/10 text-xl select-none">✦</span>
+      <span className="absolute bottom-32 left-[8%] text-[#1a2a6c]/10 text-2xl select-none">✦</span>
 
-      <div className="relative z-10 flex-1 flex flex-col justify-center px-8 md:px-16 lg:px-24 pt-28 pb-16 max-w-[1400px] mx-auto w-full">
-        {/* Label */}
+      <div className="relative z-10 flex-1 flex flex-col justify-center px-8 md:px-16 lg:px-24 pt-24 pb-20 max-w-[1300px] mx-auto w-full">
+
+        {/* Eyebrow */}
         <motion.p
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="text-[11px] font-body tracking-[0.25em] text-[#1a2a6c]/50 uppercase mb-6 flex items-center gap-3"
+          className="text-[10px] font-body tracking-[0.3em] text-[#1a2a6c]/40 uppercase mb-8 flex items-center gap-3"
         >
-          <span className="inline-block w-6 h-px bg-[#1a2a6c]/20" />
-          NEW YORK CREATIVE COLLECTIVE · ESTD. 2026
+          <span className="inline-block w-8 h-px bg-[#1a2a6c]/20" />
+          New York Creative Collective — Est. 2026
         </motion.p>
 
-        {/* Big script headline */}
+        {/* Logo as headline */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="mb-6"
+          transition={{ duration: 0.7, delay: 0.05 }}
+          className="mb-4"
         >
-          <h1
-            style={{ fontFamily: "'Pacifico', cursive" }}
-            className="text-[clamp(52px,7.5vw,96px)] leading-[1.05] text-[#1a2a6c] mb-2"
-          >
-            Stelli<span className="text-[#1a2a6c]/30 ml-2">✦</span>
-          </h1>
-          <p className="font-body text-[13px] tracking-[0.18em] uppercase text-[#1a2a6c]/50 ml-1">
-            For the moments that matter.
-          </p>
+          <img
+            src="https://media.base44.com/images/public/6a2c4e448e7fec52fb6d322a/c37fdca4d_Stelli.png"
+            alt="Stelli"
+            className="h-[clamp(80px,12vw,160px)] w-auto object-contain"
+            style={{ imageRendering: 'crisp-edges' }}
+          />
         </motion.div>
 
-        {/* Subheadline */}
+        {/* Subhead */}
         <motion.p
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="font-body text-[16px] text-gray-500 max-w-[500px] leading-relaxed mb-12"
+          className="font-body text-[15px] text-[#555] max-w-[460px] leading-relaxed mb-10 ml-1"
         >
-          Book New York's best photographers & filmmakers in minutes. Fixed prices, vetted talent, payment held until delivery.
+          Book New York's best photographers & filmmakers — fixed prices, vetted talent, payment held until delivery.
         </motion.p>
 
         {/* Search Form */}
@@ -99,90 +105,76 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
-          className="relative max-w-[640px]"
+          className="max-w-[620px]"
         >
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm flex items-stretch divide-x divide-gray-100 pr-3">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col sm:flex-row items-stretch divide-y sm:divide-y-0 sm:divide-x divide-gray-100">
+
             {/* Moment */}
-            <div className="relative flex-1 px-5 py-4 cursor-pointer" onClick={() => { setShowMomentDropdown(!showMomentDropdown); setShowWhereDropdown(false); }}>
-              <p className="text-[11px] font-semibold font-body text-[#1a1a1a] mb-1">Moment</p>
-              <p className="text-sm font-body text-gray-400 truncate">{moment || 'Restaurant opening...'}</p>
+            <div
+              className="relative flex-1 px-5 py-4 cursor-pointer"
+              onClick={() => { setShowMomentDropdown(!showMomentDropdown); setShowWhereDropdown(false); }}
+            >
+              <p className="text-[10px] font-semibold font-body text-[#1a1a1a] tracking-wider uppercase mb-1">Moment</p>
+              <p className="text-sm font-body text-gray-400 truncate">{moment || 'e.g. Birthday...'}</p>
               {showMomentDropdown && (
-                <div className="absolute top-full left-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg z-50 py-1.5 overflow-hidden">
-                  {EVENT_TYPES.map((type) => (
-                    <button
-                      key={type}
-                      className="w-full text-left px-4 py-2.5 text-sm font-body text-[#1a1a1a] hover:bg-gray-50 transition-colors"
-                      onClick={(e) => { e.stopPropagation(); setMoment(type); setShowMomentDropdown(false); }}
-                    >
-                      {type}
-                    </button>
-                  ))}
-                </div>
+                <Dropdown
+                  options={EVENT_TYPES}
+                  onSelect={setMoment}
+                  onClose={() => setShowMomentDropdown(false)}
+                />
               )}
             </div>
 
             {/* When */}
             <div className="flex-1 px-5 py-4">
-              <p className="text-[11px] font-semibold font-body text-[#1a1a1a] mb-1">When</p>
+              <p className="text-[10px] font-semibold font-body text-[#1a1a1a] tracking-wider uppercase mb-1">When</p>
               <input
                 type="date"
                 value={when}
                 onChange={(e) => setWhen(e.target.value)}
                 className="text-sm font-body text-gray-400 bg-transparent border-none outline-none w-full cursor-pointer"
-                placeholder="Add a night"
               />
             </div>
 
             {/* Where */}
-            <div className="relative flex-1 px-5 py-4 cursor-pointer" onClick={() => { setShowWhereDropdown(!showWhereDropdown); setShowMomentDropdown(false); }}>
-              <p className="text-[11px] font-semibold font-body text-[#1a1a1a] mb-1">Where</p>
+            <div
+              className="relative flex-1 px-5 py-4 cursor-pointer"
+              onClick={() => { setShowWhereDropdown(!showWhereDropdown); setShowMomentDropdown(false); }}
+            >
+              <p className="text-[10px] font-semibold font-body text-[#1a1a1a] tracking-wider uppercase mb-1">Where</p>
               <p className="text-sm font-body text-gray-400 truncate">{where || 'Anywhere in NYC'}</p>
               {showWhereDropdown && (
-                <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg z-50 py-1.5 overflow-hidden">
-                  {NEIGHBORHOODS.map((n) => (
-                    <button
-                      key={n}
-                      className="w-full text-left px-4 py-2.5 text-sm font-body text-[#1a1a1a] hover:bg-gray-50 transition-colors"
-                      onClick={(e) => { e.stopPropagation(); setWhere(n); setShowWhereDropdown(false); }}
-                    >
-                      {n}
-                    </button>
-                  ))}
-                </div>
+                <Dropdown
+                  options={NEIGHBORHOODS}
+                  onSelect={setWhere}
+                  onClose={() => setShowWhereDropdown(false)}
+                />
               )}
             </div>
 
-            {/* Search button */}
-            <div className="flex items-center pl-3">
+            {/* Button */}
+            <div className="flex items-center px-4 py-3 sm:py-0">
               <button
                 onClick={handleSearch}
-                className="w-11 h-11 rounded-full bg-[#1a2a4a] flex items-center justify-center hover:bg-[#243557] hover:scale-105 transition-all duration-150"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 h-10 rounded-full bg-[#1a2a6c] text-white text-sm font-body font-medium hover:bg-[#22337a] transition-all"
               >
-                <Plus className="w-5 h-5 text-white" />
+                Search <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
         </motion.div>
 
-        {/* Trust indicators */}
+        {/* Trust pills */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.45 }}
-          className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-6"
+          transition={{ duration: 0.6, delay: 0.5 }}
+          className="flex flex-wrap gap-3 mt-7 ml-1"
         >
-          {[
-            { bold: 'Vetted', rest: 'creators only' },
-            { bold: 'Fixed', rest: 'upfront prices' },
-            { bold: 'Payment held', rest: 'until delivery' },
-            { bold: 'Contracts', rest: 'built in' },
-          ].map((item, i) => (
-            <React.Fragment key={item.bold}>
-              <span className="text-[13px] font-body text-gray-500">
-                <span className="font-semibold text-[#1a1a1a]">{item.bold}</span> {item.rest}
-              </span>
-              {i < 3 && <span className="hidden sm:inline text-gray-200 text-sm">|</span>}
-            </React.Fragment>
+          {['Vetted creators only', 'Fixed upfront prices', 'Payment held in escrow', 'Contracts built in'].map((label) => (
+            <span key={label} className="text-[11px] font-body text-[#1a2a6c]/60 border border-[#1a2a6c]/15 rounded-full px-3 py-1">
+              {label}
+            </span>
           ))}
         </motion.div>
       </div>
