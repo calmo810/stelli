@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, ArrowRight, Check, Star, Shield, Loader2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Star, Shield, Loader2, Users, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 
@@ -43,7 +43,9 @@ export default function BookingFlow() {
     event_description: '', attendees: '',
     package_type: 'half_day', add_ons: [],
     client_name: '', client_email: '', client_phone: '', billing_address: '',
+    co_bookers: [],
   });
+  const [coBookerInput, setCoBookerInput] = useState('');
 
   const { data: lensman } = useQuery({
     queryKey: ['lensman', lensmanId],
@@ -109,12 +111,20 @@ export default function BookingFlow() {
     });
   };
 
+  const addCoBooker = () => {
+    if (!coBookerInput.trim() || form.co_bookers.includes(coBookerInput.trim())) return;
+    setForm(prev => ({ ...prev, co_bookers: [...prev.co_bookers, coBookerInput.trim()] }));
+    setCoBookerInput('');
+  };
+  const removeCoBooker = (email) => setForm(prev => ({ ...prev, co_bookers: prev.co_bookers.filter(e => e !== email) }));
+
   const canProceed = () => {
     switch (step) {
       case 1: return form.event_date && form.event_type && form.location;
       case 2: return form.package_type;
       case 3: return form.client_name && form.client_email;
-      case 4: return agreed;
+      case 4: return true; // group booking optional
+      case 5: return agreed;
       default: return true;
     }
   };
@@ -158,7 +168,7 @@ export default function BookingFlow() {
 
         {/* Progress */}
         <div className="flex items-center gap-2 mb-10">
-          {[1, 2, 3, 4].map(s => (
+          {[1, 2, 3, 4, 5].map(s => (
             <div key={s} className="flex-1 flex items-center gap-2">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold transition-colors ${
                 step >= s ? 'bg-foreground text-background' : 'bg-border text-muted-foreground'
@@ -278,8 +288,59 @@ export default function BookingFlow() {
               </div>
             )}
 
-            {/* Step 4: Review & Confirm */}
+            {/* Step 4: Group Booking (optional) */}
             {step === 4 && (
+              <div className="bg-card border border-border rounded-2xl p-8">
+                <div className="flex items-center gap-3 mb-2">
+                  <Users className="w-5 h-5 text-muted-foreground" />
+                  <h2 className="font-display text-2xl font-semibold">Co-book with friends</h2>
+                  <span className="text-xs text-muted-foreground border border-border rounded-full px-2 py-0.5 ml-auto">Optional</span>
+                </div>
+                <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
+                  Planning this for someone else? Invite friends to chip in. Each person pays their share — everyone gets access to the final album.
+                </p>
+
+                <div className="flex gap-2 mb-4">
+                  <input
+                    type="email"
+                    placeholder="friend@email.com"
+                    value={coBookerInput}
+                    onChange={e => setCoBookerInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && addCoBooker()}
+                    className="flex-1 h-10 rounded-xl border border-border px-4 text-sm font-body outline-none focus:ring-1 focus:ring-ring"
+                  />
+                  <button onClick={addCoBooker} className="px-4 h-10 rounded-xl bg-foreground text-background text-sm font-body font-medium hover:bg-foreground/90 transition-all">
+                    Add
+                  </button>
+                </div>
+
+                {form.co_bookers.length > 0 && (
+                  <div className="space-y-2 mb-4">
+                    {form.co_bookers.map(email => (
+                      <div key={email} className="flex items-center justify-between py-2 px-4 bg-cream rounded-xl">
+                        <span className="text-sm font-body text-foreground">{email}</span>
+                        <button onClick={() => removeCoBooker(email)} className="text-muted-foreground hover:text-foreground">
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {form.co_bookers.length > 0 && (
+                  <div className="p-4 bg-cream rounded-xl text-sm text-muted-foreground">
+                    <p className="font-medium text-foreground mb-1">Each person pays</p>
+                    <p className="text-2xl font-bold text-foreground">${Math.ceil(totalPrice / (form.co_bookers.length + 1))}</p>
+                    <p className="text-xs mt-1">Split {form.co_bookers.length + 1} ways · ${totalPrice} total</p>
+                  </div>
+                )}
+
+                <p className="text-xs text-muted-foreground mt-4">Everyone you invite will receive a link to pay their share and will get access to the final photo album.</p>
+              </div>
+            )}
+
+            {/* Step 5: Review & Confirm */}
+            {step === 5 && (
               <div className="bg-card border border-border rounded-2xl p-8">
                 <h2 className="font-display text-2xl font-semibold mb-6">Review & Confirm</h2>
 
@@ -339,7 +400,7 @@ export default function BookingFlow() {
               <ArrowLeft className="w-4 h-4 mr-2" /> Back
             </Button>
 
-            {step < 4 ? (
+            {step < 5 ? (
               <Button onClick={() => setStep(s => s + 1)} disabled={!canProceed()} className="rounded-full bg-foreground text-background hover:bg-foreground/90">
                 Continue <ArrowRight className="w-4 h-4 ml-2" />
               </Button>

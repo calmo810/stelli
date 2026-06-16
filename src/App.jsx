@@ -19,6 +19,7 @@ import LensmanDashboard from './pages/LensmanDashboard';
 import Messages from './pages/Messages';
 import AdminDashboard from './pages/AdminDashboard';
 import ContentDay from './pages/ContentDay';
+import MemoryAlbum from './pages/MemoryAlbum';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -59,6 +60,7 @@ const AuthenticatedApp = () => {
         <Route path="/messages/:bookingId" element={<Messages />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/content-day" element={<ContentDay />} />
+        <Route path="/album/:bookingId" element={<MemoryAlbum />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>

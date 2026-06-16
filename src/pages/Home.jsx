@@ -1,8 +1,11 @@
 import React from 'react';
 import HeroSection from '../components/home/HeroSection';
 import MarqueeStrip from '../components/home/MarqueeStrip';
-import HowItWorks from '../components/home/HowItWorks';
+import EditorialProblem from '../components/home/EditorialProblem';
+import EditorialMoments from '../components/home/EditorialMoments';
 import FeaturedWork from '../components/home/FeaturedWork';
+import GroupBookingFeature from '../components/home/GroupBookingFeature';
+import NeighborhoodMap from '../components/home/NeighborhoodMap';
 import Testimonials from '../components/home/Testimonials';
 import CTASection from '../components/home/CTASection';
 
@@ -11,8 +14,11 @@ export default function Home() {
     <div>
       <HeroSection />
       <MarqueeStrip />
-      <HowItWorks />
+      <EditorialProblem />
+      <EditorialMoments />
       <FeaturedWork />
+      <GroupBookingFeature />
+      <NeighborhoodMap />
       <Testimonials />
       <CTASection />
     </div>

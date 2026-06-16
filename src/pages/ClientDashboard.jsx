@@ -73,7 +73,18 @@ export default function ClientDashboard() {
                 )}
               </TabsContent>
               <TabsContent value="past" className="space-y-4">
-                {past.length > 0 ? past.map(b => <BookingCard key={b.id} booking={b} role="client" />) : (
+                {past.length > 0 ? past.map(b => (
+                  <div key={b.id} className="relative">
+                    <BookingCard booking={b} role="client" />
+                    {b.delivered_files?.length > 0 && (
+                      <div className="absolute top-4 right-4">
+                        <Link to={`/album/${b.id}`}>
+                          <Button size="sm" className="rounded-full bg-foreground text-background text-xs">View Album</Button>
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                )) : (
                   <p className="text-center py-16 text-muted-foreground">No past bookings yet</p>
                 )}
               </TabsContent>
