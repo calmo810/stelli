@@ -73,21 +73,26 @@ export default function BrowseLensmen() {
   }, [lensmen, filters]);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-[#0a0a0a]">
       {/* Header */}
-      <div className="bg-cream star-bg py-16 px-6">
-        <div className="max-w-6xl mx-auto text-center">
+      <div className="py-28 px-8 md:px-14">
+        <div className="max-w-6xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <Star className="w-6 h-6 text-gold fill-gold mx-auto mb-4" />
-            <h1 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight mb-3">Browse Lensmen</h1>
-            <p className="text-muted-foreground max-w-lg mx-auto">
-              Handpicked photographers and filmmakers, vetted and ready to capture your moment.
+            <p className="text-[8px] font-body tracking-[0.5em] uppercase mb-6 flex items-center gap-3" style={{ color: 'rgba(242,220,169,0.4)' }}>
+              <span className="w-6 h-px inline-block" style={{ background: 'rgba(242,220,169,0.3)' }} />
+              The Collective
+            </p>
+            <h1 className="font-display font-semibold text-white leading-[0.9] mb-5" style={{ fontSize: 'clamp(36px, 6vw, 80px)' }}>
+              The people<br />behind the lens.
+            </h1>
+            <p className="font-body text-[13px] max-w-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.3)' }}>
+              Vetted photographers and filmmakers. Real people, real moments, fixed prices.
             </p>
           </motion.div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 -mt-6 relative z-10 pb-16">
+      <div className="max-w-6xl mx-auto px-8 md:px-14 pb-24 relative z-10">
         <div className="flex items-center justify-between gap-4 mb-2">
           <div className="flex-1"><SearchFilters filters={filters} onFilterChange={setFilters} /></div>
           <div className="flex items-center gap-1 bg-white border border-border rounded-xl p-1 shrink-0">

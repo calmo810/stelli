@@ -1,67 +1,83 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Star, MapPin } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
+
+const COLOR_WASHES = [
+  'rgba(180,80,10,0.22)',
+  'rgba(10,10,70,0.28)',
+  'rgba(120,10,10,0.22)',
+  'rgba(160,100,0,0.2)',
+];
 
 export default function LensmanCard({ lensman, index = 0 }) {
   const images = lensman.portfolio_images || [];
-  const heroImage = images[0] || 'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=600&h=400&fit=crop';
+  const heroImage = images[0];
+  const wash = COLOR_WASHES[index % COLOR_WASHES.length];
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: index * 0.07, duration: 0.7 }}
     >
-      <Link to={`/lensman/${lensman.id}`} className="block group">
-        <div className="bg-card border border-border rounded-2xl overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
-          {/* Portfolio Preview */}
-          <div className="relative aspect-[4/3] overflow-hidden">
-            <img
-              src={heroImage}
-              alt={lensman.display_name || 'Lensman'}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              loading="lazy"
-            />
-            <div className="absolute top-3 right-3 bg-background/90 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1">
-              <Star className="w-3 h-3 text-gold fill-gold" />
-              <span className="text-xs font-semibold">{lensman.avg_rating?.toFixed(1) || '5.0'}</span>
-              <span className="text-xs text-muted-foreground">({lensman.review_count || 0})</span>
+      <Link to={`/lensman/${lensman.id || lensman.slug}`} className="block group">
+        <div className="relative overflow-hidden bg-[#111]" style={{ borderRadius: 2 }}>
+
+          {/* Portrait image */}
+          <div className="relative overflow-hidden" style={{ height: 'clamp(320px, 40vw, 480px)' }}>
+            {heroImage ? (
+              <>
+                <motion.img
+                  src={heroImage}
+                  alt={lensman.display_name || lensman.full_name}
+                  className="w-full h-full object-cover"
+                  whileHover={{ scale: 1.04 }}
+                  transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+                  loading="lazy"
+                  style={{ filter: 'contrast(1.05) saturate(0.85) brightness(0.8)' }}
+                />
+                <div className="absolute inset-0 pointer-events-none" style={{ background: `linear-gradient(135deg, ${wash} 0%, transparent 70%)` }} />
+                <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(to top, rgba(10,10,10,0.75) 0%, transparent 55%)' }} />
+              </>
+            ) : (
+              <div className="w-full h-full bg-[#0d0d0d] flex items-center justify-center">
+                <p className="text-[8px] font-body tracking-[0.3em] uppercase" style={{ color: 'rgba(255,255,255,0.1)' }}>
+                  Photo placeholder
+                </p>
+              </div>
+            )}
+
+            {/* Contact-sheet frame stamp */}
+            <div className="absolute top-3 left-3 text-[7px] font-body tracking-[0.25em] uppercase pointer-events-none" style={{ color: 'rgba(255,255,255,0.2)' }}>
+              {String(index + 1).padStart(2, '0')} · NYC
             </div>
           </div>
 
-          {/* Info */}
-          <div className="p-5">
-            <div className="flex items-start justify-between mb-2">
-              <h3 className="font-display text-lg font-semibold">{lensman.display_name || lensman.full_name}</h3>
+          {/* Info strip */}
+          <div className="px-5 py-4 flex items-end justify-between">
+            <div>
+              <p className="font-display text-[18px] font-semibold text-white leading-none mb-1">
+                {lensman.display_name || lensman.full_name}
+              </p>
+              <p className="text-[9px] font-body tracking-[0.15em] uppercase" style={{ color: 'rgba(255,255,255,0.2)' }}>
+                {lensman.neighborhoods?.slice(0, 2).join(' · ')}
+              </p>
             </div>
-
-            {lensman.neighborhoods?.length > 0 && (
-              <div className="flex items-center gap-1.5 mb-3">
-                <MapPin className="w-3 h-3 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">{lensman.neighborhoods.slice(0, 2).join(', ')}</span>
-              </div>
-            )}
-
-            {lensman.specialties?.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mb-4">
-                {lensman.specialties.slice(0, 3).map((s, i) => (
-                  <Badge key={i} variant="secondary" className="text-[10px] font-medium px-2 py-0.5 rounded-full">
-                    {s}
-                  </Badge>
-                ))}
-              </div>
-            )}
-
-            <div className="flex items-center justify-between pt-3 border-t border-border">
-              <span className="text-sm font-semibold">
+            <div className="text-right">
+              <p className="font-body text-[12px] font-semibold text-white">
                 ${lensman.rate_half_day || 800}
-                {lensman.rate_full_day && <span className="text-muted-foreground font-normal"> – ${lensman.rate_full_day}</span>}
-                <span className="text-xs text-muted-foreground font-normal">/day</span>
-              </span>
-              <span className="text-xs text-primary font-medium group-hover:underline">View Profile →</span>
+              </p>
+              <p className="text-[9px] font-body" style={{ color: 'rgba(255,255,255,0.2)' }}>from</p>
             </div>
+          </div>
+
+          {/* Hover overlay */}
+          <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center"
+            style={{ background: 'rgba(10,10,10,0.35)' }}>
+            <span className="text-[10px] font-body tracking-[0.15em] uppercase border-b pb-px"
+              style={{ color: '#F2DCA9', borderColor: 'rgba(242,220,169,0.4)' }}>
+              View profile
+            </span>
           </div>
         </div>
       </Link>
