@@ -46,12 +46,12 @@ export default function EditorialProblem() {
               whileInView={{ opacity: 1 }}
               viewport={{ once: true, margin: '-60px' }}
               transition={{ delay: i * 0.08, duration: 0.8 }}
-              className="flex flex-col md:flex-row md:items-baseline md:justify-between border-b border-white/6 py-9 gap-3"
+              className="flex flex-col border-b border-white/6 py-9 gap-3"
             >
               <h2 className="font-display font-semibold text-white leading-none" style={{ fontSize: 'clamp(56px, 8vw, 108px)' }}>
                 {p.word}
               </h2>
-              <p className="font-body text-[12px] text-white/25 leading-relaxed max-w-xs md:text-right">{p.detail}</p>
+              <p className="font-body text-[13px] leading-relaxed max-w-sm" style={{ color: 'rgba(242,220,169,0.65)' }}>{p.detail}</p>
             </motion.div>
           ))}
 
