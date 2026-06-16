@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 const MOMENTS = ['Birthday', 'Dinner', 'Rooftop Hang', 'Music Video', 'Restaurant Opening', 'Content Day', 'Proposal', 'Wedding'];
 const NEIGHBORHOODS = ['Williamsburg', 'Bushwick', 'DUMBO', 'West Village', 'SoHo', 'Chelsea', 'Greenpoint', 'Harlem'];
 
-// Full-bleed editorial hero — image dominates, type overlaid
 export default function HeroSection() {
   const navigate = useNavigate();
   const [momentOpen, setMomentOpen] = useState(false);
@@ -28,92 +27,86 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative min-h-screen bg-[#F5F4EF] overflow-hidden flex flex-col">
-      {/* Full-bleed background image — subtle parallax feel */}
+    <section className="relative min-h-screen bg-[#0a0a0a] overflow-hidden flex flex-col">
+
+      {/* HERO IMAGE — direct flash park shot, blown-out sun, mid-motion people */}
       <motion.div
         initial={{ scale: 1.04 }}
         animate={{ scale: 1 }}
-        transition={{ duration: 2.5, ease: 'easeOut' }}
+        transition={{ duration: 3, ease: 'easeOut' }}
         className="absolute inset-0"
       >
+        {/* Using the Unsplash party/crowd image most similar to the references */}
         <img
-          src="https://images.unsplash.com/photo-1529543544282-ea669407fca3?w=1800&h=1200&fit=crop&q=90"
+          src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1800&h=1200&fit=crop&q=90"
           alt=""
           className="w-full h-full object-cover"
+          style={{ filter: 'contrast(1.08) saturate(0.9)' }}
         />
-        {/* Warm cream vignette — not a gradient, an overlay that keeps the cream palette */}
-        <div className="absolute inset-0 bg-[#F5F4EF]/30" />
-        <div className="absolute bottom-0 left-0 right-0 h-2/3 bg-gradient-to-t from-[#F5F4EF] via-[#F5F4EF]/60 to-transparent" />
-        <div className="absolute top-0 left-0 right-0 h-1/4 bg-gradient-to-b from-[#F5F4EF]/40 to-transparent" />
+        {/* Amber color wash — from-the-room, not a filter */}
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(10,10,10,0.92) 0%, rgba(10,10,10,0.45) 45%, rgba(180,100,20,0.12) 100%)' }} />
+        {/* Film grain */}
+        <div className="absolute inset-0 opacity-[0.35] mix-blend-overlay pointer-events-none"
+          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)' opacity='1'/%3E%3C/svg%3E")`, backgroundSize: '200px 200px' }} />
       </motion.div>
 
-      {/* Top-right film metadata */}
-      <div className="absolute top-20 right-8 md:right-14 text-right pointer-events-none">
-        <p className="text-[8px] font-body tracking-[0.4em] uppercase text-[#1a2a6c]/30">N.Y.C — 2026</p>
-        <p className="text-[8px] font-body tracking-[0.4em] uppercase text-[#1a2a6c]/20 mt-0.5">Vol. 01</p>
+      {/* VOL. overstamp — top right */}
+      <div className="absolute top-20 right-8 md:right-14 text-right pointer-events-none z-10">
+        <p className="text-[8px] font-body tracking-[0.45em] uppercase text-white/20">VOL. 01 — NYC</p>
+        <p className="text-[8px] font-body tracking-[0.3em] uppercase text-white/12 mt-0.5">2026 · EST.</p>
       </div>
 
-      {/* Main content — bottom-anchored editorial layout */}
-      <div className="relative z-10 flex-1 flex flex-col justify-end px-8 md:px-14 pb-16 md:pb-20 max-w-[1400px] mx-auto w-full pt-24">
+      {/* Main content — bottom-anchored, dark base */}
+      <div className="relative z-10 flex-1 flex flex-col justify-end px-8 md:px-14 pb-14 md:pb-18 max-w-[1400px] mx-auto w-full pt-24">
 
         {/* Micro label */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.3, duration: 1 }}
-          className="text-[9px] font-body tracking-[0.5em] uppercase text-[#1a2a6c]/40 mb-8 flex items-center gap-3"
+          transition={{ delay: 0.4, duration: 1 }}
+          className="text-[8px] font-body tracking-[0.5em] uppercase text-white/25 mb-7 flex items-center gap-3"
         >
-          <span className="w-8 h-px bg-[#1a2a6c]/25 inline-block" />
+          <span className="w-6 h-px bg-white/20 inline-block" />
           New York Creative Collective
         </motion.p>
 
-        {/* Cinematic headline */}
+        {/* Headline — large, white, serif over dark photo */}
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 1, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ delay: 0.1, duration: 1.1, ease: [0.16, 1, 0.3, 1] }}
           className="mb-10"
         >
-          <h1 className="font-display font-semibold text-[#1a2a6c] leading-[0.88] tracking-tight" style={{ fontSize: 'clamp(56px, 9vw, 130px)' }}>
+          <h1 className="font-display font-semibold text-white leading-[0.88] tracking-tight" style={{ fontSize: 'clamp(58px, 9.5vw, 136px)' }}>
             Some moments
           </h1>
-          <h1 className="font-display font-semibold text-[#1a2a6c] leading-[0.88] tracking-tight" style={{ fontSize: 'clamp(56px, 9vw, 130px)' }}>
-            only happen{' '}
-            <em className="italic">once.</em>
+          <h1 className="font-display font-semibold text-white leading-[0.88] tracking-tight" style={{ fontSize: 'clamp(58px, 9.5vw, 136px)' }}>
+            only happen <em className="italic">once.</em>
           </h1>
-
-          {/* Handwritten annotation */}
-          <div className="flex items-center gap-3 mt-5 ml-1">
-            <span className="font-display italic text-[#1a2a6c]/35 text-[13px]">keep forever</span>
-            <svg width="80" height="10" viewBox="0 0 80 10" fill="none">
-              <path d="M2 7 Q20 2 40 6 Q60 10 78 4" stroke="#1a2a6c" strokeWidth="0.8" strokeOpacity="0.2" fill="none" strokeLinecap="round"/>
-            </svg>
-          </div>
         </motion.div>
 
-        {/* Minimal search — inline, editorial */}
+        {/* Search pills — minimal, white-outlined on dark */}
         <motion.div
           ref={ref}
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.8 }}
+          transition={{ delay: 0.5, duration: 0.8 }}
           className="flex flex-wrap items-center gap-2"
         >
-          {/* Moment selector */}
           <div className="relative">
             <button
               onClick={() => { setMomentOpen(v => !v); setNeighborhoodOpen(false); }}
-              className={`text-[12px] font-body tracking-[0.05em] px-5 py-2.5 rounded-full border transition-all ${selectedMoment ? 'border-[#1a2a6c] bg-[#1a2a6c] text-white' : 'border-[#1a2a6c]/20 bg-white/60 text-[#1a2a6c] hover:border-[#1a2a6c]/50 backdrop-blur-sm'}`}
+              className={`text-[11px] font-body tracking-[0.06em] px-5 py-2.5 rounded-full border transition-all ${selectedMoment ? 'border-white bg-white text-[#0a0a0a]' : 'border-white/20 bg-white/5 text-white hover:border-white/40 backdrop-blur-sm'}`}
             >
               {selectedMoment || 'What\'s the moment?'}
             </button>
             <AnimatePresence>
               {momentOpen && (
                 <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }}
-                  className="absolute bottom-full mb-2 left-0 w-52 bg-white border border-[#1a2a6c]/8 rounded-2xl shadow-xl z-50 py-2 overflow-hidden">
+                  className="absolute bottom-full mb-2 left-0 w-52 bg-[#111] border border-white/10 rounded-xl z-50 py-2">
                   {MOMENTS.map(m => (
                     <button key={m} onMouseDown={e => { e.preventDefault(); setSelectedMoment(m); setMomentOpen(false); }}
-                      className="w-full text-left px-4 py-2.5 text-[13px] font-body text-[#1a2a6c] hover:bg-[#f5f4ef] transition-colors">
+                      className="w-full text-left px-4 py-2.5 text-[12px] font-body text-white/70 hover:text-white hover:bg-white/5 transition-colors">
                       {m}
                     </button>
                   ))}
@@ -122,21 +115,20 @@ export default function HeroSection() {
             </AnimatePresence>
           </div>
 
-          {/* Neighborhood selector */}
           <div className="relative">
             <button
               onClick={() => { setNeighborhoodOpen(v => !v); setMomentOpen(false); }}
-              className={`text-[12px] font-body tracking-[0.05em] px-5 py-2.5 rounded-full border transition-all ${selectedNeighborhood ? 'border-[#1a2a6c] bg-[#1a2a6c] text-white' : 'border-[#1a2a6c]/20 bg-white/60 text-[#1a2a6c] hover:border-[#1a2a6c]/50 backdrop-blur-sm'}`}
+              className={`text-[11px] font-body tracking-[0.06em] px-5 py-2.5 rounded-full border transition-all ${selectedNeighborhood ? 'border-white bg-white text-[#0a0a0a]' : 'border-white/20 bg-white/5 text-white hover:border-white/40 backdrop-blur-sm'}`}
             >
               {selectedNeighborhood || 'Where in NYC?'}
             </button>
             <AnimatePresence>
               {neighborhoodOpen && (
                 <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }}
-                  className="absolute bottom-full mb-2 left-0 w-48 bg-white border border-[#1a2a6c]/8 rounded-2xl shadow-xl z-50 py-2 overflow-hidden">
+                  className="absolute bottom-full mb-2 left-0 w-48 bg-[#111] border border-white/10 rounded-xl z-50 py-2">
                   {NEIGHBORHOODS.map(n => (
                     <button key={n} onMouseDown={e => { e.preventDefault(); setSelectedNeighborhood(n); setNeighborhoodOpen(false); }}
-                      className="w-full text-left px-4 py-2.5 text-[13px] font-body text-[#1a2a6c] hover:bg-[#f5f4ef] transition-colors">
+                      className="w-full text-left px-4 py-2.5 text-[12px] font-body text-white/70 hover:text-white hover:bg-white/5 transition-colors">
                       {n}
                     </button>
                   ))}
@@ -147,31 +139,28 @@ export default function HeroSection() {
 
           <button
             onClick={handleSearch}
-            className="text-[12px] font-body tracking-[0.06em] uppercase px-6 py-2.5 rounded-full bg-[#1a2a6c] text-white hover:bg-[#22337a] transition-all"
+            className="text-[11px] font-body tracking-[0.06em] uppercase px-6 py-2.5 rounded-full bg-white text-[#0a0a0a] hover:bg-white/90 transition-all font-medium"
           >
             Find your creator
           </button>
 
           {(selectedMoment || selectedNeighborhood) && (
             <button onClick={() => { setSelectedMoment(null); setSelectedNeighborhood(null); }}
-              className="text-[10px] font-body text-[#1a2a6c]/30 hover:text-[#1a2a6c]/60 transition-colors">
+              className="text-[10px] font-body text-white/20 hover:text-white/50 transition-colors">
               Clear
             </button>
           )}
         </motion.div>
 
-        {/* Bottom metadata strip */}
+        {/* Metadata strip */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.8, duration: 1 }}
-          className="flex flex-wrap items-center gap-x-6 gap-y-1 mt-8"
+          transition={{ delay: 0.9, duration: 1 }}
+          className="flex flex-wrap items-center gap-x-5 gap-y-1 mt-8"
         >
-          {['Vetted creators', 'Fixed prices', 'Payment held until delivery'].map((t, i) => (
-            <span key={t} className="text-[9px] font-body tracking-[0.25em] uppercase text-[#1a2a6c]/35 flex items-center gap-2">
-              {i > 0 && <span className="text-[#1a2a6c]/15">·</span>}
-              {t}
-            </span>
+          {['Vetted creators', 'Fixed prices', 'Payment held until delivery'].map((t) => (
+            <span key={t} className="text-[8px] font-body tracking-[0.3em] uppercase text-white/20">{t}</span>
           ))}
         </motion.div>
       </div>
@@ -180,14 +169,13 @@ export default function HeroSection() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1.5, duration: 1 }}
-        className="absolute bottom-6 right-8 md:right-14 flex flex-col items-center gap-2"
+        transition={{ delay: 1.8, duration: 1 }}
+        className="absolute bottom-6 right-8 md:right-14 flex flex-col items-center gap-1.5 z-10"
       >
-        <div className="w-px h-10 bg-[#1a2a6c]/15 relative overflow-hidden rounded-full">
-          <motion.div animate={{ y: ['-100%', '200%'] }} transition={{ duration: 1.4, repeat: Infinity, ease: 'linear' }}
-            className="absolute w-full h-1/2 bg-[#1a2a6c]/40 rounded-full" />
+        <div className="w-px h-10 bg-white/10 relative overflow-hidden rounded-full">
+          <motion.div animate={{ y: ['-100%', '200%'] }} transition={{ duration: 1.6, repeat: Infinity, ease: 'linear' }}
+            className="absolute w-full h-1/2 bg-white/30 rounded-full" />
         </div>
-        <span className="text-[8px] font-body tracking-[0.3em] uppercase text-[#1a2a6c]/25 rotate-90 origin-center" style={{ writingMode: 'vertical-rl' }}>Scroll</span>
       </motion.div>
     </section>
   );

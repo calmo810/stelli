@@ -5,56 +5,62 @@ import { Link } from 'react-router-dom';
 export default function CTASection() {
   return (
     <>
-      {/* Full-bleed dark image */}
-      <section className="relative h-[80vh] overflow-hidden">
+      {/* Full-bleed mid-motion concert image — amber wash */}
+      <section className="relative overflow-hidden" style={{ height: 'clamp(400px, 55vw, 680px)' }}>
         <motion.img
           initial={{ scale: 1.05 }}
           whileInView={{ scale: 1 }}
           viewport={{ once: true }}
-          transition={{ duration: 2, ease: 'easeOut' }}
-          src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1800&h=1000&fit=crop&q=80"
+          transition={{ duration: 2.5, ease: 'easeOut' }}
+          src="https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=1800&h=1000&fit=crop&q=85"
           alt=""
           className="w-full h-full object-cover"
+          style={{ filter: 'contrast(1.06) saturate(0.95)' }}
         />
-        <div className="absolute inset-0 bg-[#1a2a6c]/60" />
-        <div className="absolute inset-0 flex flex-col justify-end px-8 md:px-14 pb-20 max-w-[1400px] mx-auto w-full">
-          <p className="text-[8px] font-body tracking-[0.5em] uppercase text-white/25 mb-8">The Plan</p>
-          <h2 className="font-display font-semibold text-white leading-[0.9] max-w-[800px]" style={{ fontSize: 'clamp(40px, 6vw, 90px)' }}>
+        {/* Amber wash */}
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(10,10,10,0.90) 0%, rgba(10,10,10,0.3) 50%, rgba(160,80,10,0.15) 100%)' }} />
+        {/* Grain */}
+        <div className="absolute inset-0 opacity-25 mix-blend-overlay pointer-events-none"
+          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E")`, backgroundSize: '200px 200px' }} />
+
+        {/* Contact-sheet overstamp */}
+        <div className="absolute top-4 left-6 text-[7px] font-body tracking-[0.3em] uppercase text-white/15">Frame 048 · 35mm</div>
+
+        <div className="absolute inset-0 flex flex-col justify-end px-8 md:px-14 pb-16 max-w-[1400px] mx-auto w-full">
+          <p className="text-[8px] font-body tracking-[0.5em] uppercase text-white/20 mb-6">Every Night</p>
+          <h2 className="font-display font-semibold text-white leading-[0.9]" style={{ fontSize: 'clamp(36px, 5.5vw, 80px)' }}>
             We're not pitching a plan.<br />We're <em>running</em> it.
           </h2>
-          <p className="font-body text-sm text-white/35 mt-6 max-w-xs leading-relaxed">
-            Real shoots, real businesses, real bookings pushed through the platform — so we learn what breaks before we spend a dollar scaling it.
-          </p>
         </div>
       </section>
 
-      {/* Final CTA — minimal, emotional */}
-      <section className="py-36 px-8 md:px-14 bg-[#1a2a6c]">
+      {/* Final CTA — pure black */}
+      <section className="py-32 px-8 md:px-14 bg-[#0a0a0a]">
         <div className="max-w-[1400px] mx-auto text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <img
               src="https://media.base44.com/images/public/6a2c4e448e7fec52fb6d322a/b178af09a_Screenshot2026-06-14at105757PM.png"
               alt="Stelli"
-              className="h-12 w-auto object-contain mx-auto mb-14 opacity-80 brightness-0 invert"
+              className="h-10 w-auto object-contain mx-auto mb-12 opacity-60 brightness-0 invert"
             />
-            <h2 className="font-display font-semibold text-white leading-[0.92] max-w-[700px] mx-auto" style={{ fontSize: 'clamp(40px, 6vw, 88px)' }}>
+            <h2 className="font-display font-semibold text-white leading-[0.9] max-w-[640px] mx-auto" style={{ fontSize: 'clamp(36px, 6vw, 84px)' }}>
               Every moment deserves<br />to be <em>remembered.</em>
             </h2>
-            <p className="font-body text-sm text-white/30 mt-8 max-w-xs mx-auto leading-relaxed">
+            <p className="font-body text-[11px] text-white/20 mt-7 mx-auto leading-relaxed tracking-[0.03em]">
               for the moments that only happen once.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center mt-14">
-              <Link to="/browse" className="px-8 py-3.5 rounded-full bg-white text-[#1a2a6c] text-[11px] font-body tracking-[0.06em] uppercase hover:bg-white/90 transition-all">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center mt-12">
+              <Link to="/browse" className="px-8 py-3 text-[10px] font-body tracking-[0.08em] uppercase bg-white text-[#0a0a0a] rounded-full hover:bg-white/90 transition-all font-medium">
                 Book a shoot
               </Link>
-              <Link to="/apply" className="px-8 py-3.5 rounded-full border border-white/15 text-white text-[11px] font-body tracking-[0.06em] uppercase hover:border-white/35 transition-all">
+              <Link to="/apply" className="px-8 py-3 text-[10px] font-body tracking-[0.08em] uppercase border border-white/10 text-white/50 rounded-full hover:border-white/20 hover:text-white/70 transition-all">
                 Become a creator
               </Link>
             </div>
           </motion.div>
 
-          <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.5 }}
-            className="mt-24 text-[8px] font-body tracking-[0.4em] uppercase text-white/15">
+          <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.4 }}
+            className="mt-20 text-[7px] font-body tracking-[0.45em] uppercase text-white/10">
             N.Y.C — 2026 · Stelli · New York Creative Collective
           </motion.p>
         </div>

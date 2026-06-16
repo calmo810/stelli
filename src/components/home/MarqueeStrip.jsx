@@ -4,12 +4,12 @@ const items = ['Birthdays', 'Dinners', 'Rooftop Hangs', 'Music Videos', 'Restaur
 
 export default function MarqueeStrip() {
   return (
-    <div className="py-3.5 border-y border-[#1a2a6c]/6 overflow-hidden bg-white">
+    <div className="py-3 border-y border-white/5 overflow-hidden bg-[#0a0a0a]">
       <div className="animate-marquee whitespace-nowrap flex items-center">
         {[...items, ...items].map((item, i) => (
           <span key={i} className="inline-flex items-center gap-5 mx-6">
-            <span className="text-[9px] font-body font-normal tracking-[0.35em] uppercase text-[#1a2a6c]/35">{item}</span>
-            <span className="text-[#1a2a6c]/15 text-[8px]">✦</span>
+            <span className="text-[8px] font-body font-normal tracking-[0.4em] uppercase text-white/20">{item}</span>
+            <span className="text-white/8 text-[7px]">✦</span>
           </span>
         ))}
       </div>
