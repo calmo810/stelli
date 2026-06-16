@@ -2,92 +2,69 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
-// Pitch deck slide 10 — "A constellation over New York"
-const NEIGHBORHOODS = [
-  { name: 'West Village', x: 35, y: 28, count: 4 },
-  { name: 'Greenpoint', x: 18, y: 38, count: 2 },
-  { name: 'SoHo', x: 48, y: 50, count: 6 },
-  { name: 'Chelsea', x: 68, y: 32, count: 3 },
-  { name: 'Bushwick', x: 38, y: 68, count: 5, note: 'THE STUDIO +' },
-  { name: 'DUMBO', x: 58, y: 72, count: 3 },
-  { name: 'Williamsburg', x: 82, y: 56, count: 7 },
+const NODES = [
+  { name: 'West Village', x: 32, y: 26 },
+  { name: 'Greenpoint', x: 15, y: 38 },
+  { name: 'SoHo', x: 46, y: 52 },
+  { name: 'Chelsea', x: 67, y: 30, sub: '' },
+  { name: 'Bushwick', x: 35, y: 70, sub: 'THE STUDIO +' },
+  { name: 'DUMBO', x: 57, y: 76 },
+  { name: 'Williamsburg', x: 81, y: 58 },
 ];
-
-const CONNECTIONS = [
-  [0, 1], [0, 2], [2, 3], [3, 6], [1, 4], [4, 5], [5, 6],
-];
+const LINES = [[0,1],[0,2],[2,3],[3,6],[1,4],[4,5],[5,6]];
 
 export default function NeighborhoodMap() {
   const [hovered, setHovered] = useState(null);
 
   return (
-    <section className="py-32 px-8 md:px-16 lg:px-28 bg-[#F5F4EF]">
-      <div className="max-w-[1300px] mx-auto">
-        <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mb-16">
-          <p className="text-[9px] font-body tracking-[0.4em] uppercase text-[#1a2a6c]/35 mb-6">The City</p>
-          <h2 className="font-display text-[clamp(32px,4.5vw,64px)] leading-[0.95] font-semibold text-[#1a2a6c]">
-            A constellation over <em>New York.</em>
-          </h2>
-        </motion.div>
+    <section className="py-28 px-8 md:px-14 bg-[#F5F4EF]">
+      <div className="max-w-[1400px] mx-auto">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16">
+          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+            <p className="text-[8px] font-body tracking-[0.5em] uppercase text-[#1a2a6c]/30 mb-5">The City</p>
+            <h2 className="font-display font-semibold text-[#1a2a6c] leading-[0.92]" style={{ fontSize: 'clamp(32px, 4.5vw, 68px)' }}>
+              A constellation<br />over <em>New York.</em>
+            </h2>
+          </motion.div>
+          <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+            className="font-body text-xs text-[#bbb] max-w-[220px] leading-relaxed md:text-right">
+            We launch dense — a handful of neighborhoods, a tight collective of vetted creators — and let the map fill in, star by star.
+          </motion.p>
+        </div>
 
-        {/* SVG Map */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="relative bg-white rounded-3xl border border-[#1a2a6c]/8 overflow-hidden"
-          style={{ height: 420 }}
-        >
+        {/* Map canvas */}
+        <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.8 }}
+          className="relative bg-white border border-[#1a2a6c]/6 overflow-hidden" style={{ height: 420, borderRadius: '4px' }}>
           <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-            {/* Connection lines */}
-            {CONNECTIONS.map(([a, b], i) => (
-              <line
-                key={i}
-                x1={NEIGHBORHOODS[a].x} y1={NEIGHBORHOODS[a].y}
-                x2={NEIGHBORHOODS[b].x} y2={NEIGHBORHOODS[b].y}
-                stroke="#1a2a6c" strokeOpacity="0.12" strokeWidth="0.3"
-              />
+            {LINES.map(([a, b], i) => (
+              <motion.line key={i} x1={NODES[a].x} y1={NODES[a].y} x2={NODES[b].x} y2={NODES[b].y}
+                stroke="#1a2a6c" strokeOpacity="0.1" strokeWidth="0.25"
+                initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }} viewport={{ once: true }}
+                transition={{ delay: i * 0.1, duration: 0.6 }} />
             ))}
           </svg>
 
-          {/* Nodes */}
-          {NEIGHBORHOODS.map((n, i) => (
-            <motion.div
-              key={n.name}
-              initial={{ opacity: 0, scale: 0 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1, type: 'spring' }}
+          {NODES.map((n, i) => (
+            <motion.div key={n.name} initial={{ opacity: 0, scale: 0 }} whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }} transition={{ delay: i * 0.1, type: 'spring', stiffness: 200 }}
               className="absolute cursor-pointer group"
-              style={{ left: `${n.x}%`, top: `${n.y}%`, transform: 'translate(-50%, -50%)' }}
-              onMouseEnter={() => setHovered(i)}
-              onMouseLeave={() => setHovered(null)}
-            >
-              <div className={`w-2.5 h-2.5 rounded-full bg-[#1a2a6c] border-2 border-white shadow-md transition-all duration-300 ${hovered === i ? 'scale-150 bg-[#c9a84c]' : ''}`} />
-              <div className={`absolute left-4 top-1/2 -translate-y-1/2 whitespace-nowrap transition-all duration-200 ${hovered === i ? 'opacity-100' : 'opacity-80'}`}>
-                <p className="font-display text-[13px] font-semibold text-[#1a2a6c]">{n.name}</p>
-                {n.note && <p className="text-[8px] font-body tracking-[0.2em] uppercase text-[#1a2a6c]/40">{n.note}</p>}
+              style={{ left: `${n.x}%`, top: `${n.y}%`, transform: 'translate(-50%,-50%)' }}
+              onMouseEnter={() => setHovered(i)} onMouseLeave={() => setHovered(null)}>
+              <div className={`w-2 h-2 rounded-full border border-white shadow-sm transition-all duration-300 ${hovered === i ? 'bg-[#c9a84c] scale-150 shadow-md' : 'bg-[#1a2a6c]'}`} />
+              <div className={`absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none transition-opacity duration-200 ${hovered === i ? 'opacity-100' : 'opacity-60'}`}>
+                <p className="font-display text-[13px] font-semibold text-[#1a2a6c] whitespace-nowrap">{n.name}</p>
+                {n.sub && <p className="text-[7px] font-body tracking-[0.25em] uppercase text-[#1a2a6c]/40">{n.sub}</p>}
               </div>
-              {hovered === i && (
-                <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
-                  className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-[#1a2a6c] text-white text-[10px] font-body rounded-full px-2.5 py-1 whitespace-nowrap">
-                  {n.count} creators
-                </motion.div>
-              )}
             </motion.div>
           ))}
+
+          {/* Corner coordinates */}
+          <div className="absolute top-3 left-4 text-[7px] font-body tracking-[0.2em] text-[#1a2a6c]/15">40.7128° N, 74.0060° W</div>
         </motion.div>
 
-        <motion.p initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
-          className="mt-8 font-body text-xs text-[#999] max-w-lg leading-relaxed">
-          We launch dense — a handful of neighborhoods, a tight collective of vetted creators — and let the map fill in, star by star.
-        </motion.p>
-
         <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="mt-8">
-          <Link to="/browse"
-            className="inline-flex items-center gap-2 text-[13px] font-body font-semibold text-[#1a2a6c] border border-[#1a2a6c]/30 rounded-full px-5 py-2 hover:bg-[#1a2a6c] hover:text-white transition-all">
-            Explore the constellation
+          <Link to="/browse" className="text-[11px] font-body tracking-[0.06em] uppercase text-[#1a2a6c] border-b border-[#1a2a6c]/25 pb-px hover:border-[#1a2a6c] transition-all">
+            Explore by neighborhood
           </Link>
         </motion.div>
       </div>

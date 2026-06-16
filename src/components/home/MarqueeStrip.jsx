@@ -1,19 +1,15 @@
 import React from 'react';
 
-const items = [
-  'Birthdays', 'Dinners', 'Rooftop Hangs', 'Music Videos',
-  'Restaurant Launches', 'Content Days', 'Proposals', 'Weddings',
-  'Corporate Events', 'Pop-Ups', 'Album Covers', 'Fragrance Lines',
-];
+const items = ['Birthdays', 'Dinners', 'Rooftop Hangs', 'Music Videos', 'Restaurant Launches', 'Content Days', 'Proposals', 'Weddings', 'Corporate Events', 'Pop-Ups', 'Album Covers'];
 
 export default function MarqueeStrip() {
   return (
-    <div className="py-4 border-y border-[#1a2a6c]/10 overflow-hidden bg-[#1a2a6c]">
+    <div className="py-3.5 border-y border-[#1a2a6c]/6 overflow-hidden bg-white">
       <div className="animate-marquee whitespace-nowrap flex items-center">
         {[...items, ...items].map((item, i) => (
-          <span key={i} className="inline-flex items-center gap-4 mx-8">
-            <span className="text-[11px] font-body font-medium tracking-[0.2em] uppercase text-white/80">{item}</span>
-            <span className="text-white/30 text-xs">✦</span>
+          <span key={i} className="inline-flex items-center gap-5 mx-6">
+            <span className="text-[9px] font-body font-normal tracking-[0.35em] uppercase text-[#1a2a6c]/35">{item}</span>
+            <span className="text-[#1a2a6c]/15 text-[8px]">✦</span>
           </span>
         ))}
       </div>
