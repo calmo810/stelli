@@ -1,57 +1,62 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Star } from 'lucide-react';
 
 export default function Footer() {
   return (
-    <footer className="bg-foreground text-background">
-      <div className="max-w-7xl mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
-          {/* Brand */}
+    <footer className="bg-[#0a0a0a] border-t" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+      <div className="max-w-[1400px] mx-auto px-8 md:px-14 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-16">
           <div className="md:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-              <Star className="w-5 h-5 text-gold fill-gold" />
-              <span className="font-display text-xl font-semibold">Stelli</span>
-            </div>
-            <p className="text-sm text-background/60 leading-relaxed">
-              One time, one moment, perfectly captured. Connecting vetted creators with the moments that matter.
+            <p className="font-display text-[22px] font-semibold text-white mb-3">Stelli</p>
+            <p className="text-[11px] font-body leading-relaxed" style={{ color: 'rgba(255,255,255,0.2)' }}>
+              Some moments only happen once.
             </p>
           </div>
-
-          {/* For Clients */}
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-background/40 mb-4">For Clients</h4>
+            <p className="text-[8px] font-body tracking-[0.4em] uppercase mb-5" style={{ color: 'rgba(255,255,255,0.15)' }}>For clients</p>
             <div className="space-y-3">
-              <Link to="/browse" className="block text-sm text-background/70 hover:text-background transition-colors">Browse Lensmen</Link>
-              <Link to="/how-it-works" className="block text-sm text-background/70 hover:text-background transition-colors">How It Works</Link>
-              <Link to="/browse" className="block text-sm text-background/70 hover:text-background transition-colors">Book a Creator</Link>
+              <Link to="/browse" className="block text-[12px] font-body transition-colors" style={{ color: 'rgba(255,255,255,0.3)' }}
+                onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.7)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}>The Collective</Link>
+              <Link to="/how-it-works" className="block text-[12px] font-body transition-colors" style={{ color: 'rgba(255,255,255,0.3)' }}
+                onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.7)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}>How it works</Link>
+              <Link to="/content-day" className="block text-[12px] font-body transition-colors" style={{ color: 'rgba(255,255,255,0.3)' }}
+                onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.7)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}>Content Day</Link>
             </div>
           </div>
-
-          {/* For Creators */}
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-background/40 mb-4">For Creators</h4>
+            <p className="text-[8px] font-body tracking-[0.4em] uppercase mb-5" style={{ color: 'rgba(255,255,255,0.15)' }}>For creators</p>
             <div className="space-y-3">
-              <Link to="/apply" className="block text-sm text-background/70 hover:text-background transition-colors">Join Stelli</Link>
-              <Link to="/for-creators" className="block text-sm text-background/70 hover:text-background transition-colors">Why Stelli</Link>
-              <Link to="/lensman-dashboard" className="block text-sm text-background/70 hover:text-background transition-colors">Creator Dashboard</Link>
+              <Link to="/apply" className="block text-[12px] font-body transition-colors" style={{ color: 'rgba(255,255,255,0.3)' }}
+                onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.7)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}>Join the collective</Link>
+              <Link to="/for-creators" className="block text-[12px] font-body transition-colors" style={{ color: 'rgba(255,255,255,0.3)' }}
+                onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.7)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}>Why Stelli</Link>
+              <Link to="/lensman-dashboard" className="block text-[12px] font-body transition-colors" style={{ color: 'rgba(255,255,255,0.3)' }}
+                onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.7)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}>Creator dashboard</Link>
             </div>
           </div>
-
-          {/* Company */}
           <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-background/40 mb-4">Company</h4>
+            <p className="text-[8px] font-body tracking-[0.4em] uppercase mb-5" style={{ color: 'rgba(255,255,255,0.15)' }}>Company</p>
             <div className="space-y-3">
-              <Link to="/how-it-works" className="block text-sm text-background/70 hover:text-background transition-colors">About</Link>
-              <a href="mailto:hello@getstelli.com" className="block text-sm text-background/70 hover:text-background transition-colors">Contact</a>
-              <Link to="/how-it-works" className="block text-sm text-background/70 hover:text-background transition-colors">FAQ</Link>
+              <a href="mailto:hello@getstelli.com" className="block text-[12px] font-body transition-colors" style={{ color: 'rgba(255,255,255,0.3)' }}
+                onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.7)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.3)'}>hello@getstelli.com</a>
             </div>
           </div>
         </div>
 
-        <div className="mt-16 pt-8 border-t border-background/10 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-background/40">© {new Date().getFullYear()} Stelli. All rights reserved.</p>
-          <p className="text-xs text-background/40 italic font-display">一期一会 — ichigo ichie</p>
+        <div className="pt-8 border-t flex flex-col md:flex-row items-start md:items-center justify-between gap-4" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
+          <p className="text-[9px] font-body" style={{ color: 'rgba(255,255,255,0.12)' }}>
+            © {new Date().getFullYear()} Stelli · NYC · All rights reserved
+          </p>
+          <p className="text-[9px] font-body italic font-display" style={{ color: 'rgba(242,220,169,0.25)' }}>
+            一期一会 — one time, one meeting
+          </p>
         </div>
       </div>
     </footer>

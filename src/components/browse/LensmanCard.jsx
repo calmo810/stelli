@@ -9,10 +9,18 @@ const COLOR_WASHES = [
   'rgba(160,100,0,0.2)',
 ];
 
+function maskName(fullName) {
+  if (!fullName) return '';
+  const parts = fullName.trim().split(' ');
+  if (parts.length === 1) return parts[0];
+  return `${parts[0]} ${parts[parts.length - 1][0]}.`;
+}
+
 export default function LensmanCard({ lensman, index = 0 }) {
   const images = lensman.portfolio_images || [];
   const heroImage = images[0];
   const wash = COLOR_WASHES[index % COLOR_WASHES.length];
+  const displayName = lensman.display_name || maskName(lensman.full_name);
 
   return (
     <motion.div
@@ -57,7 +65,7 @@ export default function LensmanCard({ lensman, index = 0 }) {
           <div className="px-5 py-4 flex items-end justify-between">
             <div>
               <p className="font-display text-[18px] font-semibold text-white leading-none mb-1">
-                {lensman.display_name || lensman.full_name}
+                {displayName}
               </p>
               <p className="text-[9px] font-body tracking-[0.15em] uppercase" style={{ color: 'rgba(255,255,255,0.2)' }}>
                 {lensman.neighborhoods?.slice(0, 2).join(' · ')}
