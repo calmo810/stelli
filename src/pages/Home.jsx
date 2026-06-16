@@ -8,12 +8,14 @@ import GroupBookingFeature from '../components/home/GroupBookingFeature';
 import NeighborhoodMap from '../components/home/NeighborhoodMap';
 import Testimonials from '../components/home/Testimonials';
 import CTASection from '../components/home/CTASection';
+import PhoneMockup from '../components/home/PhoneMockup';
 
 export default function Home() {
   return (
     <div>
       <HeroSection />
       <MarqueeStrip />
+      <PhoneMockup />
       <EditorialProblem />
       <EditorialMoments />
       <FeaturedWork />
