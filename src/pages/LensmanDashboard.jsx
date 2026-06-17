@@ -2,8 +2,9 @@ import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Star, Calendar, DollarSign, TrendingUp } from 'lucide-react';
+import { Star, Calendar, DollarSign, TrendingUp, UserRound } from 'lucide-react';
 import BookingCard from '../components/dashboard/BookingCard';
+import ProfileEditor from '../components/dashboard/ProfileEditor';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
 
@@ -19,17 +20,18 @@ export default function LensmanDashboard() {
   const totalEarned = completed.reduce((sum, b) => sum + (b.total_price || 0), 0);
 
   return (
-    <div className="min-h-screen bg-cream">
-      <div className="bg-background border-b border-border py-10 px-6">
-        <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen" style={{ background: '#f0ede6' }}>
+      <div className="border-b py-12 px-8 md:px-14" style={{ borderColor: 'rgba(26,39,68,0.1)' }}>
+        <div className="max-w-[1180px] mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <h1 className="font-display text-2xl sm:text-3xl font-semibold mb-2">Creator Dashboard</h1>
-            <p className="text-sm text-muted-foreground">Manage your bookings, deliveries, and earnings.</p>
+            <p className="text-[8px] font-body tracking-[0.5em] uppercase mb-4" style={{ color: 'rgba(26,39,68,0.3)' }}>Creator Home Base</p>
+            <h1 className="font-display text-4xl sm:text-5xl font-semibold mb-3" style={{ color: '#1a2744' }}>Creator Dashboard</h1>
+            <p className="text-sm" style={{ color: 'rgba(26,39,68,0.45)' }}>Manage your bookings and customize the profile link you put in your bio.</p>
           </motion.div>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 py-8">
+      <div className="max-w-[1180px] mx-auto px-8 md:px-14 py-8">
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
@@ -38,24 +40,29 @@ export default function LensmanDashboard() {
             { icon: Star, label: 'Completed', value: completed.length },
             { icon: DollarSign, label: 'Total Earned', value: `$${totalEarned.toLocaleString()}` },
           ].map((stat, i) => (
-            <div key={i} className="bg-card border border-border rounded-2xl p-4 text-center">
-              <stat.icon className="w-4 h-4 text-muted-foreground mx-auto mb-2" />
-              <p className="text-2xl font-bold">{stat.value}</p>
-              <p className="text-xs text-muted-foreground">{stat.label}</p>
+            <div key={i} className="border p-4 text-center" style={{ background: '#ece9e2', borderColor: 'rgba(26,39,68,0.12)' }}>
+              <stat.icon className="w-4 h-4 mx-auto mb-2" style={{ color: 'rgba(26,39,68,0.35)' }} />
+              <p className="text-2xl font-bold" style={{ color: '#1a2744' }}>{stat.value}</p>
+              <p className="text-xs" style={{ color: 'rgba(26,39,68,0.4)' }}>{stat.label}</p>
             </div>
           ))}
         </div>
 
-        <Tabs defaultValue="upcoming" className="space-y-6">
-          <TabsList className="bg-card border border-border rounded-full p-1">
-            <TabsTrigger value="upcoming" className="rounded-full text-xs">Upcoming ({upcoming.length})</TabsTrigger>
-            <TabsTrigger value="delivery" className="rounded-full text-xs">Needs Delivery ({needsDelivery.length})</TabsTrigger>
-            <TabsTrigger value="completed" className="rounded-full text-xs">Completed ({completed.length})</TabsTrigger>
+        <Tabs defaultValue="profile" className="space-y-6">
+          <TabsList className="border rounded-none p-1" style={{ background: '#ece9e2', borderColor: 'rgba(26,39,68,0.12)' }}>
+            <TabsTrigger value="profile" className="rounded-none text-xs"><UserRound className="w-3.5 h-3.5 mr-1.5" /> Profile</TabsTrigger>
+            <TabsTrigger value="upcoming" className="rounded-none text-xs">Upcoming ({upcoming.length})</TabsTrigger>
+            <TabsTrigger value="delivery" className="rounded-none text-xs">Needs Delivery ({needsDelivery.length})</TabsTrigger>
+            <TabsTrigger value="completed" className="rounded-none text-xs">Completed ({completed.length})</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="profile">
+            <ProfileEditor />
+          </TabsContent>
 
           {isLoading ? (
             <div className="space-y-4">
-              {Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-32 rounded-2xl" />)}
+              {Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-32" />)}
             </div>
           ) : (
             <>

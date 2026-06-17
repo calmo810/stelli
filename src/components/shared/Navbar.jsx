@@ -34,6 +34,10 @@ export default function Navbar() {
             style={{ color: 'rgba(26,39,68,0.4)' }}
             onMouseEnter={e => e.currentTarget.style.color = '#1a2744'}
             onMouseLeave={e => e.currentTarget.style.color = 'rgba(26,39,68,0.4)'}>Creators</Link>
+          <Link to="/lensman-dashboard" className="text-[10px] font-body tracking-[0.1em] uppercase transition-colors"
+            style={{ color: 'rgba(26,39,68,0.4)' }}
+            onMouseEnter={e => e.currentTarget.style.color = '#1a2744'}
+            onMouseLeave={e => e.currentTarget.style.color = 'rgba(26,39,68,0.4)'}>Profile</Link>
           <Link to="/how-it-works" className="text-[10px] font-body tracking-[0.1em] uppercase transition-colors"
             style={{ color: 'rgba(26,39,68,0.4)' }}
             onMouseEnter={e => e.currentTarget.style.color = '#1a2744'}

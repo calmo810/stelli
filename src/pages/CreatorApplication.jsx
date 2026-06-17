@@ -51,13 +51,23 @@ export default function CreatorApplication() {
   });
 
   const handleSubmit = () => {
+    const displayName = form.full_name.split(' ')[0] || form.full_name;
+    const slug = form.full_name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     createLensman.mutate({
       ...form,
       years_experience: parseInt(form.years_experience) || 0,
       rate_half_day: parseInt(form.rate_half_day) || 800,
       rate_full_day: parseInt(form.rate_full_day) || 1200,
       rate_custom: parseInt(form.rate_custom) || 0,
-      display_name: form.full_name.split(' ').map(n => n[0]).join(''),
+      display_name: displayName,
+      slug,
+      profile_headline: `Book ${displayName} safely through Stelli.`,
+      profile_tagline: form.specialties.slice(0, 3).join(' · '),
+      booking_cta: 'Book safely through Stelli',
+      featured_quote: '',
+      profile_theme: 'editorial_cream',
+      gallery_style: 'hero_grid',
+      profile_image: form.portfolio_images[0] || '',
       status: 'pending',
       avg_rating: 5.0,
       review_count: 0,

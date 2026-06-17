@@ -59,6 +59,10 @@ export default function LensmanProfile() {
 
   const bookingId = dbLensman?.id || id;
   const displayName = lensman.display_name || lensman.full_name;
+  const publicSlug = lensman.slug || slugifyName(displayName);
+  const headline = lensman.profile_headline || `Book ${displayName} safely through Stelli.`;
+  const tagline = lensman.profile_tagline || lensman.specialties?.slice(0, 3).join(' · ') || '';
+  const bookingCta = lensman.booking_cta || 'Book safely through Stelli';
   const images = lensman.portfolio_images || [];
   const packages = [
     lensman.rate_half_day && { name: 'The Moment', desc: '4-hour shoot · edited gallery · digital delivery', price: lensman.rate_half_day, type: 'half_day' },
@@ -82,6 +86,9 @@ export default function LensmanProfile() {
             <h1 className="font-display font-semibold leading-[0.86]" style={{ fontSize: 'clamp(72px, 13vw, 180px)', color: '#1a2744' }}>
               {displayName}
             </h1>
+            <p className="font-display italic mt-6 max-w-xl" style={{ fontSize: 'clamp(26px, 3.2vw, 48px)', color: 'rgba(26,39,68,0.58)', lineHeight: 1 }}>
+              {headline}
+            </p>
           </motion.div>
 
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25, duration: 0.8 }}>
@@ -89,6 +96,7 @@ export default function LensmanProfile() {
               <BadgeCheck className="w-4 h-4" style={{ color: '#1a2744' }} />
               <span className="text-[9px] font-body tracking-[0.22em] uppercase" style={{ color: 'rgba(26,39,68,0.45)' }}>Verified Stelli Creator</span>
             </div>
+            {tagline && <p className="text-[11px] font-body tracking-[0.18em] uppercase mb-4" style={{ color: 'rgba(26,39,68,0.35)' }}>{tagline}</p>}
             <p className="font-body text-[14px] leading-relaxed mb-6" style={{ color: 'rgba(26,39,68,0.52)' }}>{lensman.bio}</p>
             <div className="flex flex-wrap gap-2 mb-6">
               {lensman.specialties?.map((s, i) => (
@@ -144,13 +152,13 @@ export default function LensmanProfile() {
           <aside className="lg:sticky lg:top-24 border p-7" style={{ background: '#ece9e2', borderColor: 'rgba(26,39,68,0.12)' }}>
             <p className="text-[7px] font-body tracking-[0.4em] uppercase mb-5" style={{ color: 'rgba(26,39,68,0.3)' }}>Bio link</p>
             <p className="font-display text-[28px] font-semibold leading-none mb-2" style={{ color: '#1a2744' }}>{displayName}</p>
-            <p className="text-[11px] font-body mb-6" style={{ color: 'rgba(26,39,68,0.38)' }}>getstelli.com/creators/{lensman.slug || slugifyName(displayName)}</p>
+            <p className="text-[11px] font-body mb-6" style={{ color: 'rgba(26,39,68,0.38)' }}>getstelli.com/creators/{publicSlug}</p>
             <div className="flex items-center gap-2 mb-6 pb-5 border-b" style={{ borderColor: 'rgba(26,39,68,0.1)' }}>
               <Star className="w-4 h-4 fill-current" style={{ color: '#1a2744' }} />
               <span className="text-[12px] font-body" style={{ color: '#1a2744' }}>{lensman.avg_rating?.toFixed(1) || '5.0'}</span>
               <span className="text-[11px] font-body" style={{ color: 'rgba(26,39,68,0.35)' }}>({lensman.review_count || 0} reviews)</span>
             </div>
-            <Link to={`/book/${bookingId}`} className="block w-full text-center py-3.5 rounded-full text-[11px] font-body tracking-[0.08em] uppercase font-semibold" style={{ background: '#1a2744', color: '#f0ede6' }}>Book safely through Stelli</Link>
+            <Link to={`/book/${bookingId}`} className="block w-full text-center py-3.5 rounded-full text-[11px] font-body tracking-[0.08em] uppercase font-semibold" style={{ background: '#1a2744', color: '#f0ede6' }}>{bookingCta}</Link>
             <div className="flex items-start gap-3 mt-5">
               <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" style={{ color: 'rgba(26,39,68,0.45)' }} />
               <p className="text-[11px] font-body leading-relaxed" style={{ color: 'rgba(26,39,68,0.38)' }}>Payment is held before the shoot and released after delivery.</p>

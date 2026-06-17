@@ -8,7 +8,11 @@
     },
     "display_name": {
       "type": "string",
-      "description": "Public display name or initials"
+      "description": "Public display name"
+    },
+    "slug": {
+      "type": "string",
+      "description": "Public profile slug for getstelli.com/creators/slug"
     },
     "email": {
       "type": "string",
@@ -21,6 +25,42 @@
     "bio": {
       "type": "string",
       "description": "Short bio about why they create"
+    },
+    "profile_headline": {
+      "type": "string",
+      "description": "Custom hero headline for public profile"
+    },
+    "profile_tagline": {
+      "type": "string",
+      "description": "Short positioning line shown on the profile"
+    },
+    "booking_cta": {
+      "type": "string",
+      "description": "Custom booking button text"
+    },
+    "featured_quote": {
+      "type": "string",
+      "description": "Short creator quote or profile note"
+    },
+    "profile_theme": {
+      "type": "string",
+      "enum": [
+        "editorial_cream",
+        "night_flash",
+        "clean_portfolio"
+      ],
+      "default": "editorial_cream",
+      "description": "Visual theme for the public profile"
+    },
+    "gallery_style": {
+      "type": "string",
+      "enum": [
+        "ordered_grid",
+        "hero_grid",
+        "contact_sheet"
+      ],
+      "default": "hero_grid",
+      "description": "How portfolio images are arranged"
     },
     "neighborhoods": {
       "type": "array",
