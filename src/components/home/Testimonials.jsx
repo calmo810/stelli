@@ -18,11 +18,11 @@ export default function Testimonials() {
           </h2>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border-t" style={{ borderColor: 'rgba(26,39,68,0.1)' }}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {T.map((t, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
               transition={{ delay: i * 0.08 }}
-              className="px-0 md:px-8 py-10 border-b md:border-b-0 md:border-r first:md:pl-0 last:md:border-r-0"
+              className="px-6 md:px-8 py-10 border glass-panel editorial-card"
               style={{ borderColor: 'rgba(26,39,68,0.1)' }}>
               <p className="font-display text-[16px] italic leading-relaxed mb-8" style={{ color: 'rgba(26,39,68,0.65)' }}>"{t.quote}"</p>
               <div className="border-t pt-4" style={{ borderColor: 'rgba(26,39,68,0.1)' }}>

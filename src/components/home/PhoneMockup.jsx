@@ -51,6 +51,7 @@ export default function PhoneMockup() {
               loop
               muted
               playsInline
+              preload="metadata"
               className="w-full h-full object-cover"
             />
             <div className="absolute inset-0 pointer-events-none"

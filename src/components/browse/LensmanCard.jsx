@@ -22,10 +22,10 @@ export default function LensmanCard({ lensman, index = 0 }) {
 
   return (
     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05, duration: 0.7, ease: [0.16, 1, 0.3, 1] }}>
-      <Link to={`/creators/${slug}`} className="block group border" style={{ borderColor: 'rgba(26,39,68,0.12)', background: '#ece9e2' }}>
+      <Link to={`/creators/${slug}`} className="block group border editorial-card" style={{ borderColor: 'rgba(26,39,68,0.12)', background: '#ece9e2' }}>
         <div className="relative overflow-hidden h-[430px]">
           {heroImage ? (
-            <motion.img src={heroImage} alt={displayName} className="w-full h-full object-cover" whileHover={{ scale: 1.035 }} transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }} loading="lazy" style={{ filter: 'contrast(1.04) saturate(0.85)' }} />
+            <motion.img src={heroImage} alt={displayName} className="w-full h-full object-cover" whileHover={{ scale: 1.035 }} transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }} loading="lazy" decoding="async" sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw" style={{ filter: 'contrast(1.04) saturate(0.85)' }} />
           ) : (
             <div className="w-full h-full flex items-center justify-center" style={{ background: '#ded9cf' }}><p className="text-[8px] font-body tracking-[0.3em] uppercase" style={{ color: 'rgba(26,39,68,0.25)' }}>Portfolio pending</p></div>
           )}

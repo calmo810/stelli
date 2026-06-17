@@ -27,9 +27,9 @@ export default function FeaturedWork() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
           {WORK.map((item, i) => (
             <motion.div key={item.title} initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
-              className="relative overflow-hidden h-[420px] md:h-[520px]">
-              <img src={item.url} alt={item.title} className="w-full h-full object-cover" style={{ filter: 'contrast(1.04) saturate(0.86)' }} />
-              <div className="absolute inset-x-0 bottom-0 p-4 flex justify-between items-end" style={{ background: 'linear-gradient(to top, rgba(26,39,68,0.55), transparent)' }}>
+              className="relative overflow-hidden h-[420px] md:h-[520px] editorial-card">
+              <img src={item.url} alt={item.title} className="w-full h-full object-cover" loading="lazy" decoding="async" sizes="(min-width: 768px) 33vw, 100vw" style={{ filter: 'contrast(1.04) saturate(0.86)' }} />
+              <div className="absolute inset-x-3 bottom-3 p-4 flex justify-between items-end glass-panel" style={{ background: 'linear-gradient(to top, rgba(26,39,68,0.62), rgba(26,39,68,0.18))' }}>
                 <p className="text-[10px] font-body text-white/75">{item.title}</p>
                 <p className="text-[7px] font-body tracking-[0.25em] uppercase text-white/45">{item.meta}</p>
               </div>
