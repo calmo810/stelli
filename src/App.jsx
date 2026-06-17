@@ -51,6 +51,7 @@ const AuthenticatedApp = () => {
         <Route path="/" element={<Home />} />
         <Route path="/browse" element={<BrowseLensmen />} />
         <Route path="/lensman/:id" element={<LensmanProfile />} />
+        <Route path="/creators/:id" element={<LensmanProfile />} />
         <Route path="/book/:lensmanId" element={<BookingFlow />} />
         <Route path="/how-it-works" element={<HowItWorks />} />
         <Route path="/for-creators" element={<ForCreators />} />

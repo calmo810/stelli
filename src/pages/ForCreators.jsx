@@ -1,98 +1,102 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Star, DollarSign, Users, Calendar, Shield, Sparkles, ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { ArrowRight, BadgeCheck, Link as LinkIcon, ShieldCheck } from 'lucide-react';
 
-const benefits = [
-  { icon: DollarSign, title: 'Fair, fixed pay', desc: 'No pay-per-photo nonsense. Day rates that protect your margins and value your time.' },
-  { icon: Users, title: 'Curated clients', desc: "We screen clients too. No last-minute flakers, no scope creep. Real people with real budgets." },
-  { icon: Calendar, title: 'You control your schedule', desc: 'Set your availability, blackout dates, and pricing. Accept only the gigs that excite you.' },
-  { icon: Shield, title: 'Guaranteed payment', desc: 'Money is held in escrow before the shoot. Deliver your files, get paid. Simple as that.' },
-  { icon: Sparkles, title: 'Creative freedom', desc: "We match you with clients who love your style. No one's asking you to shoot something you hate." },
-  { icon: Star, title: 'Build your reputation', desc: 'Ratings and reviews from real clients build your profile. Great work means more bookings.' },
+const pillars = [
+  {
+    icon: LinkIcon,
+    title: 'A profile worth putting in your bio',
+    desc: 'Your Stelli page is your portfolio, booking link, pricing menu, and credibility signal in one clean URL.',
+  },
+  {
+    icon: BadgeCheck,
+    title: 'A collective people want into',
+    desc: 'Selected creators get the Constellation Collective badge, a public profile, and visibility inside the Stelli network.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Book safely, not through DMs',
+    desc: 'Stop chasing clients, getting ghosted, or eating bad checks. Payments are protected before the shoot starts.',
+  },
 ];
 
 export default function ForCreators() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" style={{ background: '#f0ede6' }}>
       {/* Hero */}
-      <section className="bg-cream star-bg py-20 px-6">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-3xl mx-auto text-center">
-          <Star className="w-6 h-6 text-gold fill-gold mx-auto mb-4" />
-          <h1 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight mb-4">
-            Your next paying gig is one click away.
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8">
-            Curated clients, fair pay, creative freedom. Join ~10 handpicked creators per neighborhood.
-          </p>
-          <Link to="/apply">
-            <Button size="lg" className="h-12 px-8 rounded-full bg-foreground text-background hover:bg-foreground/90 group">
-              Apply to Join Stelli <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-            </Button>
-          </Link>
-        </motion.div>
-      </section>
+      <section className="px-8 md:px-14 pt-32 pb-24">
+        <div className="max-w-[1180px] mx-auto grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-16 items-end">
+          <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}>
+            <p className="text-[8px] font-body tracking-[0.5em] uppercase mb-8" style={{ color: 'rgba(26,39,68,0.3)' }}>
+              For Creators
+            </p>
+            <h1 className="font-display font-semibold leading-[0.9] max-w-[820px]" style={{ fontSize: 'clamp(48px, 7vw, 104px)', color: '#1a2744' }}>
+              Your next paying gig is one click away.
+            </h1>
+            <p className="font-body text-[14px] leading-relaxed mt-8 max-w-md" style={{ color: 'rgba(26,39,68,0.48)' }}>
+              Stelli gives photographers and filmmakers a bio link that looks better than a DM — and books safer than one.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 mt-10">
+              <Link to="/apply" className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full text-[10px] font-body tracking-[0.08em] uppercase font-semibold transition-all"
+                style={{ background: '#1a2744', color: '#f0ede6' }}>
+                Apply to join <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+              <Link to="/creators/calvin" className="inline-flex items-center justify-center px-8 py-3.5 rounded-full border text-[10px] font-body tracking-[0.08em] uppercase transition-all"
+                style={{ borderColor: 'rgba(26,39,68,0.2)', color: 'rgba(26,39,68,0.55)' }}>
+                View sample profile
+              </Link>
+            </div>
+          </motion.div>
 
-      {/* Benefits */}
-      <section className="py-24 px-6">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="font-display text-3xl font-semibold text-center mb-16">Why creators choose Stelli</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {benefits.map((b, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.08 }}
-                className="text-center"
-              >
-                <div className="w-12 h-12 rounded-2xl bg-cream-dark flex items-center justify-center mx-auto mb-4">
-                  <b.icon className="w-5 h-5 text-foreground" strokeWidth={1.5} />
-                </div>
-                <h3 className="font-display text-lg font-semibold mb-2">{b.title}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{b.desc}</p>
-              </motion.div>
-            ))}
-          </div>
+          {/* Clean profile-link card */}
+          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.9 }}
+            className="border p-6" style={{ background: '#ece9e2', borderColor: 'rgba(26,39,68,0.12)' }}>
+            <p className="text-[7px] font-body tracking-[0.4em] uppercase mb-5" style={{ color: 'rgba(26,39,68,0.3)' }}>Bio link preview</p>
+            <div className="aspect-[4/5] overflow-hidden mb-5" style={{ background: '#d8d3c8' }}>
+              <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=700&h=900&fit=crop&q=85" alt="Creator profile preview" className="w-full h-full object-cover" style={{ filter: 'contrast(1.04) saturate(0.82)' }} />
+            </div>
+            <p className="font-display font-semibold text-[26px] leading-none" style={{ color: '#1a2744' }}>Calvin</p>
+            <p className="text-[11px] font-body mt-2 mb-5" style={{ color: 'rgba(26,39,68,0.45)' }}>direct flash · nightlife · content days</p>
+            <div className="border-t pt-4 flex items-center justify-between" style={{ borderColor: 'rgba(26,39,68,0.1)' }}>
+              <span className="text-[10px] font-body" style={{ color: 'rgba(26,39,68,0.4)' }}>getstelli.com/creators/calvin</span>
+              <span className="text-[9px] font-body tracking-[0.12em] uppercase" style={{ color: '#1a2744' }}>Book</span>
+            </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* How It Works for Creators */}
-      <section className="py-20 px-6 bg-cream">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="font-display text-3xl font-semibold text-center mb-12">How it works for creators</h2>
-          <div className="space-y-8">
-            {[
-              { step: '01', title: 'Apply with your portfolio', desc: 'Upload 15–20 of your best photos or videos. Tell us about your style and set your rates.' },
-              { step: '02', title: 'Get vetted by our team', desc: "We review your portfolio and check references. We're looking for quality and reliability." },
-              { step: '03', title: 'Start getting bookings', desc: 'Your profile goes live. Clients in your neighborhood find you and book directly.' },
-              { step: '04', title: 'Shoot, deliver, get paid', desc: 'Do what you love. Upload your files after the shoot. Payment releases automatically when the client confirms.' },
-            ].map((s, i) => (
-              <motion.div key={i} initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="flex gap-5">
-                <span className="text-3xl font-display font-bold text-border">{s.step}</span>
-                <div>
-                  <h3 className="font-semibold mb-1">{s.title}</h3>
-                  <p className="text-sm text-muted-foreground">{s.desc}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+      {/* Pillars */}
+      <section className="px-8 md:px-14 pb-24">
+        <div className="max-w-[1180px] mx-auto border-t" style={{ borderColor: 'rgba(26,39,68,0.12)' }}>
+          {pillars.map((p, i) => (
+            <motion.div key={p.title} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.06 }}
+              className="grid grid-cols-1 md:grid-cols-[120px_1fr_1fr] gap-5 py-10 border-b items-start" style={{ borderColor: 'rgba(26,39,68,0.12)' }}>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(26,39,68,0.07)', color: '#1a2744' }}>
+                <p.icon className="w-4 h-4" strokeWidth={1.6} />
+              </div>
+              <h2 className="font-display font-semibold leading-tight" style={{ fontSize: 'clamp(26px, 3vw, 44px)', color: '#1a2744' }}>{p.title}</h2>
+              <p className="font-body text-[13px] leading-relaxed max-w-sm md:pt-2" style={{ color: 'rgba(26,39,68,0.45)' }}>{p.desc}</p>
+            </motion.div>
+          ))}
         </div>
       </section>
 
       {/* CTA */}
-      <section className="py-20 px-6 text-center">
-        <h2 className="font-display text-3xl font-semibold mb-4">Ready to join?</h2>
-        <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-          Applications take about 5 minutes. We review every one within 48 hours.
-        </p>
-        <Link to="/apply">
-          <Button size="lg" className="h-12 px-8 rounded-full bg-foreground text-background hover:bg-foreground/90">
-            Apply Now <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
-        </Link>
+      <section className="px-8 md:px-14 pb-28 text-center">
+        <motion.div initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="max-w-2xl mx-auto">
+          <p className="text-[8px] font-body tracking-[0.5em] uppercase mb-6" style={{ color: 'rgba(26,39,68,0.28)' }}>Selective by design</p>
+          <h2 className="font-display font-semibold leading-[0.92]" style={{ fontSize: 'clamp(34px, 5vw, 68px)', color: '#1a2744' }}>
+            Stop sending clients to your DMs.
+          </h2>
+          <p className="font-body text-[13px] leading-relaxed mt-6 mb-10" style={{ color: 'rgba(26,39,68,0.42)' }}>
+            Send them somewhere that makes you look booked, protected, and worth paying.
+          </p>
+          <Link to="/apply" className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full text-[10px] font-body tracking-[0.08em] uppercase font-semibold transition-all"
+            style={{ background: '#1a2744', color: '#f0ede6' }}>
+            Apply to join Stelli <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </motion.div>
       </section>
     </div>
   );
