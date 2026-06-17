@@ -79,6 +79,24 @@
       "type": "number",
       "description": "Total booking price"
     },
+    "co_bookers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Emails invited to chip in toward the booking"
+    },
+    "co_booker_contribution": {
+      "type": "number",
+      "description": "Suggested amount each co-booker contributes"
+    },
+    "album_access_emails": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Emails invited to access the final album without contributing"
+    },
     "status": {
       "type": "string",
       "enum": [

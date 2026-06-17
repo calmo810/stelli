@@ -65,9 +65,12 @@ export default function BookingFlow() {
     event_description: '', attendees: '',
     package_type: 'half_day', add_ons: [],
     client_name: '', client_email: '', client_phone: '',
-    co_bookers: [],
+    co_bookers: [], co_booker_contribution: 20,
+    album_access_emails: [],
   });
+  const [splitMode, setSplitMode] = useState('contribute');
   const [coBookerInput, setCoBookerInput] = useState('');
+  const [albumEmailInput, setAlbumEmailInput] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [bookingResult, setBookingResult] = useState(null);
 
@@ -108,6 +111,9 @@ export default function BookingFlow() {
     form.add_ons.reduce((sum, id) => sum + (ADDONS.find(a => a.id === id)?.price || 0), 0);
 
   const totalPrice = getProductPrice() + getAddonsPrice();
+  const contributionAmount = Math.min(parseInt(form.co_booker_contribution) || 20, totalPrice);
+  const totalContributed = Math.min(contributionAmount * form.co_bookers.length, totalPrice);
+  const hostPays = Math.max(totalPrice - totalContributed, 0);
 
   const handleSubmit = () => {
     const deliveryDate = new Date(form.event_date);
@@ -128,6 +134,9 @@ export default function BookingFlow() {
       package_type: form.package_type,
       add_ons: form.add_ons,
       total_price: totalPrice,
+      co_bookers: form.co_bookers,
+      co_booker_contribution: contributionAmount,
+      album_access_emails: form.album_access_emails,
       status: 'confirmed',
       payment_status: 'held',
       delivery_deadline: deliveryDate.toISOString().split('T')[0],
@@ -135,9 +144,17 @@ export default function BookingFlow() {
   };
 
   const addCoBooker = () => {
-    if (!coBookerInput.trim() || form.co_bookers.includes(coBookerInput.trim())) return;
-    setForm(prev => ({ ...prev, co_bookers: [...prev.co_bookers, coBookerInput.trim()] }));
+    const email = coBookerInput.trim();
+    if (!email || form.co_bookers.includes(email)) return;
+    setForm(prev => ({ ...prev, co_bookers: [...prev.co_bookers, email] }));
     setCoBookerInput('');
+  };
+
+  const addAlbumGuest = () => {
+    const email = albumEmailInput.trim();
+    if (!email || form.album_access_emails.includes(email)) return;
+    setForm(prev => ({ ...prev, album_access_emails: [...prev.album_access_emails, email] }));
+    setAlbumEmailInput('');
   };
 
   const canProceed = () => {
@@ -391,42 +408,101 @@ export default function BookingFlow() {
                   </Field>
                 </div>
 
-                {/* Co-booking */}
+                {/* Friends + album access */}
                 <div className="mt-8 pt-7 border-t" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
                   <div className="flex items-center justify-between mb-3">
-                    <p className="text-[12px] font-body font-semibold text-white">Splitting with friends?</p>
+                    <p className="text-[12px] font-body font-semibold text-white">Invite friends?</p>
                     <span className="text-[9px] font-body tracking-[0.2em] uppercase" style={{ color: 'rgba(255,255,255,0.2)' }}>Optional</span>
                   </div>
                   <p className="text-[11px] font-body mb-4 leading-relaxed" style={{ color: 'rgba(255,255,255,0.25)' }}>
-                    Invite others to chip in. Each person pays their share and gets access to the final gallery.
+                    Choose whether friends chip in toward the booking, or simply get access to the final album when it is released.
                   </p>
-                  <div className="flex gap-2 mb-3">
-                    <input type="email" placeholder="friend@email.com" value={coBookerInput}
-                      onChange={e => setCoBookerInput(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && addCoBooker()}
-                      className="flex-1 h-10 px-4 text-[12px] font-body bg-transparent border outline-none"
-                      style={{ borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)', borderRadius: 2 }}
-                    />
-                    <button onClick={addCoBooker} className="px-4 h-10 text-[11px] font-body border transition-all"
-                      style={{ borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)', borderRadius: 2 }}>
-                      Add
+
+                  <div className="grid grid-cols-2 gap-2 mb-5">
+                    <button onClick={() => setSplitMode('contribute')} className="px-4 py-3 border text-left transition-all"
+                      style={{ borderColor: splitMode === 'contribute' ? 'rgba(242,220,169,0.4)' : 'rgba(255,255,255,0.08)', background: splitMode === 'contribute' ? 'rgba(242,220,169,0.05)' : 'transparent', borderRadius: 2 }}>
+                      <p className="text-[11px] font-body font-semibold" style={{ color: splitMode === 'contribute' ? '#F2DCA9' : 'rgba(255,255,255,0.45)' }}>Chip in</p>
+                      <p className="text-[9px] font-body mt-1" style={{ color: 'rgba(255,255,255,0.22)' }}>Pay a chosen amount + album access</p>
+                    </button>
+                    <button onClick={() => setSplitMode('album')} className="px-4 py-3 border text-left transition-all"
+                      style={{ borderColor: splitMode === 'album' ? 'rgba(242,220,169,0.4)' : 'rgba(255,255,255,0.08)', background: splitMode === 'album' ? 'rgba(242,220,169,0.05)' : 'transparent', borderRadius: 2 }}>
+                      <p className="text-[11px] font-body font-semibold" style={{ color: splitMode === 'album' ? '#F2DCA9' : 'rgba(255,255,255,0.45)' }}>Album access</p>
+                      <p className="text-[9px] font-body mt-1" style={{ color: 'rgba(255,255,255,0.22)' }}>No payment, just the gallery link</p>
                     </button>
                   </div>
-                  {form.co_bookers.map(email => (
-                    <div key={email} className="flex items-center justify-between py-2 px-4 mb-1.5"
-                      style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 2 }}>
-                      <span className="text-[12px] font-body" style={{ color: 'rgba(255,255,255,0.4)' }}>{email}</span>
-                      <button onClick={() => setForm(prev => ({ ...prev, co_bookers: prev.co_bookers.filter(e => e !== email) }))}>
-                        <X className="w-3 h-3" style={{ color: 'rgba(255,255,255,0.2)' }} />
-                      </button>
-                    </div>
-                  ))}
-                  {form.co_bookers.length > 0 && (
-                    <div className="mt-4 px-4 py-3" style={{ background: 'rgba(242,220,169,0.05)', borderRadius: 2 }}>
-                      <p className="text-[11px] font-body" style={{ color: '#F2DCA9' }}>
-                        Each person pays ${Math.ceil(totalPrice / (form.co_bookers.length + 1))} · split {form.co_bookers.length + 1} ways
-                      </p>
-                    </div>
+
+                  {splitMode === 'contribute' ? (
+                    <>
+                      <div className="mb-5 p-4" style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 2 }}>
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-[10px] font-body tracking-[0.18em] uppercase" style={{ color: 'rgba(255,255,255,0.25)' }}>Each friend chips in</span>
+                          <span className="font-display text-[26px] font-semibold" style={{ color: '#F2DCA9' }}>${contributionAmount}</span>
+                        </div>
+                        <input type="range" min="20" max={Math.max(totalPrice, 20)} step="5" value={contributionAmount}
+                          onChange={e => update('co_booker_contribution', e.target.value)} className="w-full accent-[#F2DCA9]" />
+                        <div className="flex justify-between mt-2 text-[9px] font-body" style={{ color: 'rgba(255,255,255,0.18)' }}>
+                          <span>$20 quick access</span><span>Up to full booking</span>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2 mb-3">
+                        <input type="email" placeholder="friend@email.com" value={coBookerInput}
+                          onChange={e => setCoBookerInput(e.target.value)}
+                          onKeyDown={e => e.key === 'Enter' && addCoBooker()}
+                          className="flex-1 h-10 px-4 text-[12px] font-body bg-transparent border outline-none"
+                          style={{ borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)', borderRadius: 2 }} />
+                        <button onClick={addCoBooker} className="px-4 h-10 text-[11px] font-body border transition-all"
+                          style={{ borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)', borderRadius: 2 }}>Add</button>
+                      </div>
+
+                      {form.co_bookers.map(email => (
+                        <div key={email} className="flex items-center justify-between py-2 px-4 mb-1.5" style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 2 }}>
+                          <span className="text-[12px] font-body" style={{ color: 'rgba(255,255,255,0.4)' }}>{email}</span>
+                          <span className="ml-auto mr-4 text-[11px] font-body" style={{ color: 'rgba(242,220,169,0.65)' }}>${contributionAmount}</span>
+                          <button onClick={() => setForm(prev => ({ ...prev, co_bookers: prev.co_bookers.filter(e => e !== email) }))}>
+                            <X className="w-3 h-3" style={{ color: 'rgba(255,255,255,0.2)' }} />
+                          </button>
+                        </div>
+                      ))}
+
+                      {form.co_bookers.length > 0 && (
+                        <div className="mt-4 px-4 py-3" style={{ background: 'rgba(242,220,169,0.05)', borderRadius: 2 }}>
+                          <p className="text-[11px] font-body" style={{ color: '#F2DCA9' }}>
+                            Friends cover ${totalContributed.toLocaleString()} · you cover ${hostPays.toLocaleString()} · everyone gets album access
+                          </p>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex gap-2 mb-3">
+                        <input type="email" placeholder="friend@email.com" value={albumEmailInput}
+                          onChange={e => setAlbumEmailInput(e.target.value)}
+                          onKeyDown={e => e.key === 'Enter' && addAlbumGuest()}
+                          className="flex-1 h-10 px-4 text-[12px] font-body bg-transparent border outline-none"
+                          style={{ borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.7)', borderRadius: 2 }} />
+                        <button onClick={addAlbumGuest} className="px-4 h-10 text-[11px] font-body border transition-all"
+                          style={{ borderColor: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.4)', borderRadius: 2 }}>Add</button>
+                      </div>
+
+                      {form.album_access_emails.map(email => (
+                        <div key={email} className="flex items-center justify-between py-2 px-4 mb-1.5" style={{ background: 'rgba(255,255,255,0.03)', borderRadius: 2 }}>
+                          <span className="text-[12px] font-body" style={{ color: 'rgba(255,255,255,0.4)' }}>{email}</span>
+                          <span className="ml-auto mr-4 text-[10px] font-body tracking-[0.12em] uppercase" style={{ color: 'rgba(242,220,169,0.5)' }}>Album only</span>
+                          <button onClick={() => setForm(prev => ({ ...prev, album_access_emails: prev.album_access_emails.filter(e => e !== email) }))}>
+                            <X className="w-3 h-3" style={{ color: 'rgba(255,255,255,0.2)' }} />
+                          </button>
+                        </div>
+                      ))}
+
+                      {form.album_access_emails.length > 0 && (
+                        <div className="mt-4 px-4 py-3" style={{ background: 'rgba(242,220,169,0.05)', borderRadius: 2 }}>
+                          <p className="text-[11px] font-body" style={{ color: '#F2DCA9' }}>
+                            {form.album_access_emails.length} friend{form.album_access_emails.length === 1 ? '' : 's'} will get gallery access when photos are released.
+                          </p>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </div>
@@ -447,6 +523,8 @@ export default function BookingFlow() {
                     { label: 'Location', value: form.location },
                     { label: 'Product', value: PRODUCTS.find(p => p.type === form.package_type)?.name },
                     ...(form.add_ons.length ? [{ label: 'Add-ons', value: form.add_ons.map(id => ADDONS.find(a => a.id === id)?.label).join(', ') }] : []),
+                    ...(form.co_bookers.length ? [{ label: 'Friends chipping in', value: `${form.co_bookers.length} × $${contributionAmount}` }] : []),
+                    ...(form.album_access_emails.length ? [{ label: 'Album access', value: `${form.album_access_emails.length} friend${form.album_access_emails.length === 1 ? '' : 's'}` }] : []),
                   ].filter(r => r.value).map((row, i) => (
                     <div key={i} className="flex justify-between py-3.5 border-b text-[12px] font-body"
                       style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
