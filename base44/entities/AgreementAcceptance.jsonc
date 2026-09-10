@@ -1,0 +1,82 @@
+{
+  "name": "AgreementAcceptance",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "ID of the user who accepted the document"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email of the user who accepted the document"
+    },
+    "booking_id": {
+      "type": "string",
+      "description": "Related booking for booking contract acceptances"
+    },
+    "document_type": {
+      "type": "string",
+      "enum": [
+        "terms",
+        "privacy",
+        "booking_contract"
+      ],
+      "description": "Type of legal document accepted"
+    },
+    "document_version": {
+      "type": "string",
+      "description": "Version of the accepted document"
+    },
+    "accepted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when accepted"
+    },
+    "ip_address": {
+      "type": "string",
+      "description": "IP address captured at acceptance"
+    },
+    "user_agent": {
+      "type": "string",
+      "description": "Browser user agent captured at acceptance"
+    }
+  },
+  "required": [
+    "user_id",
+    "document_type",
+    "document_version",
+    "accepted_at"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

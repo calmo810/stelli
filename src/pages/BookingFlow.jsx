@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { ArrowLeft, ArrowRight, Check, Shield, Loader2, Users, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { buildBookingContractPreview } from '@/lib/bookingContract';
 
 const EVENT_TYPES = [
   { value: 'birthday', label: 'Birthday' },
@@ -83,9 +84,14 @@ export default function BookingFlow() {
   });
 
   const createBooking = useMutation({
-    mutationFn: (data) => base44.entities.Booking.create(data),
-    onSuccess: (booking) => {
-      setBookingResult(booking);
+    mutationFn: async (data) => {
+      const booking = await base44.entities.Booking.create(data);
+      const contractResponse = await base44.functions.invoke('generateBookingContract', { bookingId: booking.id });
+      const acceptanceResponse = await base44.functions.invoke('acceptBookingContract', { bookingId: booking.id, party: 'client' });
+      return { booking: acceptanceResponse.data.booking, contract: contractResponse.data.contract };
+    },
+    onSuccess: (result) => {
+      setBookingResult(result);
       setStep(5);
     },
   });
@@ -115,13 +121,21 @@ export default function BookingFlow() {
   const totalContributed = Math.min(contributionAmount * form.co_bookers.length, totalPrice);
   const hostPays = Math.max(totalPrice - totalContributed, 0);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const deliveryDate = new Date(form.event_date);
+    let currentUser = null;
+    try {
+      currentUser = await base44.auth.me();
+    } catch {
+      currentUser = null;
+    }
     deliveryDate.setDate(deliveryDate.getDate() + (form.add_ons.includes('rush') ? 5 : 14));
 
     createBooking.mutate({
       lensman_id: lensmanId,
       lensman_name: lensman?.full_name,
+      client_id: currentUser?.id || '',
+      creator_id: lensmanId,
       client_name: form.client_name,
       client_email: form.client_email,
       client_phone: form.client_phone,
@@ -137,7 +151,7 @@ export default function BookingFlow() {
       co_bookers: form.co_bookers,
       co_booker_contribution: contributionAmount,
       album_access_emails: form.album_access_emails,
-      status: 'confirmed',
+      status: 'pending',
       payment_status: 'held',
       delivery_deadline: deliveryDate.toISOString().split('T')[0],
     });
@@ -167,8 +181,9 @@ export default function BookingFlow() {
 
   const maskedName = lensman ? maskName(lensman.full_name) : '…';
   const displayName = lensman?.display_name || maskedName;
+  const contractPreview = buildBookingContractPreview({ form, lensman, totalPrice });
 
-  const STEPS = ['What', 'When & Where', 'Your info', 'Confirm'];
+  const STEPS = ['What', 'When & Where', 'Your info', 'Agreement'];
 
   // — CONFIRMATION —
   if (step === 5) {
@@ -179,23 +194,23 @@ export default function BookingFlow() {
           <div className="w-12 h-12 border border-white/10 flex items-center justify-center mx-auto mb-8">
             <Check className="w-5 h-5 text-white" />
           </div>
-          <p className="text-[8px] font-body tracking-[0.5em] uppercase mb-5" style={{ color: 'rgba(242,220,169,0.4)' }}>Booking confirmed</p>
+          <p className="text-[8px] font-body tracking-[0.5em] uppercase mb-5" style={{ color: 'rgba(242,220,169,0.4)' }}>Agreement accepted</p>
           <h1 className="font-display font-semibold text-white leading-[0.9] mb-5" style={{ fontSize: 'clamp(32px, 5vw, 56px)' }}>
-            It's yours.<br />Now go be the star.
+          Sent to the creator.<br />Almost yours.
           </h1>
           <p className="font-body text-[13px] leading-relaxed mb-3" style={{ color: 'rgba(255,255,255,0.35)' }}>
             Your shoot is booked for{' '}
             <span className="text-white">{form.event_date && new Date(form.event_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</span>.
           </p>
           <p className="font-body text-[13px] leading-relaxed mb-8" style={{ color: 'rgba(255,255,255,0.35)' }}>
-            Your creator's full name and a direct message thread will unlock now. Your payment is held safe — nothing leaves until your photos do.
+            Your payment is held safely while the creator reviews the same booking agreement. The booking confirms only after both sides accept.
           </p>
 
           {/* Magic-link note */}
           <div className="border border-white/6 p-5 mb-8 text-left" style={{ borderRadius: 2 }}>
             <p className="text-[10px] font-body tracking-[0.2em] uppercase mb-2" style={{ color: 'rgba(242,220,169,0.4)' }}>Check your email</p>
             <p className="text-[12px] font-body leading-relaxed" style={{ color: 'rgba(255,255,255,0.35)' }}>
-              We've sent a sign-in link to <span className="text-white">{form.client_email}</span>. Use it anytime to view your booking, message your creator, and access your gallery — no password needed.
+              A contract record has been created for <span className="text-white">{form.client_email}</span>. You'll receive a copy by email after the creator accepts too.
             </p>
           </div>
 
@@ -251,7 +266,7 @@ export default function BookingFlow() {
             const active = step === s;
             const done = step > s;
             return (
-              <React.Fragment key={s}>
+              <div key={s} className="flex flex-1 items-center last:flex-none">
                 <div className="flex flex-col items-center gap-1">
                   <div className="w-6 h-6 flex items-center justify-center text-[9px] font-body font-semibold transition-all"
                     style={{
@@ -269,7 +284,7 @@ export default function BookingFlow() {
                 {i < STEPS.length - 1 && (
                   <div className="flex-1 h-px mx-1 transition-all" style={{ background: done ? 'rgba(242,220,169,0.3)' : 'rgba(255,255,255,0.05)' }} />
                 )}
-              </React.Fragment>
+              </div>
             );
           })}
         </div>
@@ -511,41 +526,31 @@ export default function BookingFlow() {
             {/* STEP 4: Review + Confirm */}
             {step === 4 && (
               <div>
-                <h3 className="font-display text-white font-semibold mb-8" style={{ fontSize: 'clamp(22px, 3.5vw, 34px)' }}>
-                  Review your booking.
+                <h3 className="font-display text-white font-semibold mb-4" style={{ fontSize: 'clamp(22px, 3.5vw, 34px)' }}>
+                  Review your booking agreement.
                 </h3>
+                <p className="font-body text-[12px] mb-6 leading-relaxed" style={{ color: 'rgba(255,255,255,0.32)' }}>
+                  Your booking will stay pending until both you and the creator accept this agreement.
+                </p>
 
-                <div className="space-y-0 mb-8">
-                  {[
-                    { label: 'Creator', value: displayName },
-                    { label: 'Date', value: form.event_date && new Date(form.event_date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric', year: 'numeric' }) },
-                    { label: 'Event', value: EVENT_TYPES.find(t => t.value === form.event_type)?.label },
-                    { label: 'Location', value: form.location },
-                    { label: 'Product', value: PRODUCTS.find(p => p.type === form.package_type)?.name },
-                    ...(form.add_ons.length ? [{ label: 'Add-ons', value: form.add_ons.map(id => ADDONS.find(a => a.id === id)?.label).join(', ') }] : []),
-                    ...(form.co_bookers.length ? [{ label: 'Friends chipping in', value: `${form.co_bookers.length} × $${contributionAmount}` }] : []),
-                    ...(form.album_access_emails.length ? [{ label: 'Album access', value: `${form.album_access_emails.length} friend${form.album_access_emails.length === 1 ? '' : 's'}` }] : []),
-                  ].filter(r => r.value).map((row, i) => (
-                    <div key={i} className="flex justify-between py-3.5 border-b text-[12px] font-body"
-                      style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-                      <span style={{ color: 'rgba(255,255,255,0.3)' }}>{row.label}</span>
-                      <span className="text-white text-right max-w-[55%]">{row.value}</span>
-                    </div>
+                <div className="max-h-[420px] overflow-y-auto border p-5 mb-6 space-y-3" style={{ borderColor: 'rgba(242,220,169,0.16)', background: 'rgba(255,255,255,0.03)', borderRadius: 2 }}>
+                  {contractPreview.split('\n').filter(Boolean).map((line, i) => (
+                    <p key={i} className="font-body text-[12px] leading-relaxed" style={{ color: i === 0 ? '#F2DCA9' : 'rgba(255,255,255,0.58)' }}>{line}</p>
                   ))}
-                  <div className="flex justify-between py-4 text-[15px] font-body font-semibold">
-                    <span className="text-white">Total</span>
-                    <span style={{ color: '#F2DCA9' }}>${totalPrice.toLocaleString()}</span>
-                  </div>
                 </div>
 
-                {/* Escrow trust statement — plain English */}
-                <div className="flex items-start gap-4 p-5 mb-6"
-                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2 }}>
+                <div className="flex items-start gap-4 p-5 mb-6" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 2 }}>
                   <Shield className="w-4 h-4 flex-shrink-0 mt-0.5" style={{ color: 'rgba(242,220,169,0.5)' }} />
                   <p className="text-[12px] font-body leading-relaxed" style={{ color: 'rgba(255,255,255,0.35)' }}>
                     We hold your payment safely until your photos are delivered. Nothing leaves until the work is done.
                   </p>
                 </div>
+
+                {createBooking.isError && (
+                  <p className="text-[12px] font-body mb-4" style={{ color: '#F2DCA9' }}>
+                    We couldn't save the agreement yet. Please make sure you're signed in and try again.
+                  </p>
+                )}
 
                 <label className="flex items-start gap-3 cursor-pointer">
                   <button onClick={() => setAgreed(!agreed)}
@@ -553,8 +558,8 @@ export default function BookingFlow() {
                     style={{ borderColor: agreed ? '#F2DCA9' : 'rgba(255,255,255,0.2)', background: agreed ? '#F2DCA9' : 'transparent' }}>
                     {agreed && <Check className="w-3 h-3" style={{ color: '#0a0a0a' }} strokeWidth={3} />}
                   </button>
-                  <span className="text-[12px] font-body leading-relaxed" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                    I agree to the terms and understand the cancellation policy.
+                  <span className="text-[12px] font-body leading-relaxed" style={{ color: 'rgba(255,255,255,0.42)' }}>
+                    I agree to this booking agreement and Stelli's <Link to="/terms" className="underline text-white">Terms and Conditions</Link> and <Link to="/privacy" className="underline text-white">Privacy Policy</Link>.
                   </span>
                 </label>
               </div>
@@ -589,7 +594,7 @@ export default function BookingFlow() {
                 borderRadius: 2,
               }}>
               {createBooking.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-              Confirm & pay
+              Accept agreement
             </button>
           )}
         </div>

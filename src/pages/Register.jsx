@@ -4,6 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { UserPlus, Mail, Lock, Loader2 } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import AuthLayout from "@/components/AuthLayout";
@@ -18,12 +19,17 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [showOtp, setShowOtp] = useState(false);
   const [otpCode, setOtpCode] = useState("");
+  const [legalAgreed, setLegalAgreed] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     if (password !== confirmPassword) {
       setError("Passwords do not match");
+      return;
+    }
+    if (!legalAgreed) {
+      setError("Please accept Stelli's Terms and Privacy Policy to continue.");
       return;
     }
     setLoading(true);
@@ -45,6 +51,10 @@ export default function Register() {
       if (result?.access_token) {
         base44.auth.setToken(result.access_token);
       }
+      await Promise.all([
+        base44.functions.invoke('recordAgreementAcceptance', { documentType: 'terms', documentVersion: '2026-09-10' }),
+        base44.functions.invoke('recordAgreementAcceptance', { documentType: 'privacy', documentVersion: '2026-09-10' }),
+      ]);
       window.location.href = "/";
     } catch (err) {
       setError(err.message || "Invalid verification code");
@@ -67,6 +77,11 @@ export default function Register() {
   };
 
   const handleGoogle = () => {
+    if (!legalAgreed) {
+      setError("Please accept Stelli's Terms and Privacy Policy to continue.");
+      return;
+    }
+    localStorage.setItem('stelli_pending_legal_acceptance', 'true');
     base44.auth.loginWithProvider("google", "/");
   };
 
@@ -142,6 +157,7 @@ export default function Register() {
         variant="outline"
         className="w-full h-12 text-sm font-medium mb-6"
         onClick={handleGoogle}
+        disabled={!legalAgreed}
       >
         <GoogleIcon className="w-5 h-5 mr-2" />
         Continue with Google
@@ -212,7 +228,13 @@ export default function Register() {
             />
           </div>
         </div>
-        <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
+        <label className="flex items-start gap-3 rounded-lg border border-border p-3 cursor-pointer">
+          <Checkbox checked={legalAgreed} onCheckedChange={setLegalAgreed} className="mt-0.5" />
+          <span className="text-xs leading-relaxed text-muted-foreground">
+            I agree to Stelli's <Link to="/terms" className="text-primary underline">Terms and Conditions</Link> and <Link to="/privacy" className="text-primary underline">Privacy Policy</Link>.
+          </span>
+        </label>
+        <Button type="submit" className="w-full h-12 font-medium" disabled={loading || !legalAgreed}>
           {loading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />

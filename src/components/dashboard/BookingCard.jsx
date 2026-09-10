@@ -1,12 +1,13 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, MapPin, User, MessageCircle } from 'lucide-react';
+import { Calendar, MapPin, MessageCircle, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
 
 const statusColors = {
   pending: 'bg-amber-100 text-amber-800',
+  awaiting_creator_acceptance: 'bg-amber-100 text-amber-800',
   confirmed: 'bg-blue-100 text-blue-800',
   in_progress: 'bg-purple-100 text-purple-800',
   awaiting_delivery: 'bg-orange-100 text-orange-800',
@@ -49,6 +50,13 @@ export default function BookingCard({ booking, role = 'client' }) {
       <div className="flex items-center justify-between pt-3 border-t border-border">
         <span className="text-sm font-semibold">${booking.total_price || 0}</span>
         <div className="flex gap-2">
+          {booking.contract_id && (
+            <Link to={`/agreements/${booking.contract_id}`}>
+              <Button variant="outline" size="sm" className="h-8 text-xs rounded-full">
+                <FileText className="w-3 h-3 mr-1.5" /> {role === 'lensman' && !booking.creator_contract_accepted ? 'Review Agreement' : 'Agreement'}
+              </Button>
+            </Link>
+          )}
           <Link to={`/messages/${booking.id}`}>
             <Button variant="outline" size="sm" className="h-8 text-xs rounded-full">
               <MessageCircle className="w-3 h-3 mr-1.5" /> Message

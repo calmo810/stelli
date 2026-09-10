@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import MyAgreements from '@/components/dashboard/MyAgreements';
 
 export default function ClientDashboard() {
   const { data: bookings = [], isLoading } = useQuery({
@@ -15,7 +16,7 @@ export default function ClientDashboard() {
     queryFn: () => base44.entities.Booking.list('-created_date'),
   });
 
-  const upcoming = bookings.filter(b => ['pending', 'confirmed', 'in_progress'].includes(b.status));
+  const upcoming = bookings.filter(b => ['pending', 'awaiting_creator_acceptance', 'confirmed', 'in_progress'].includes(b.status));
   const awaiting = bookings.filter(b => b.status === 'awaiting_delivery');
   const past = bookings.filter(b => ['delivered', 'completed'].includes(b.status));
 
@@ -31,6 +32,10 @@ export default function ClientDashboard() {
       </div>
 
       <div className="max-w-5xl mx-auto px-6 py-8">
+        <div className="mb-8">
+          <MyAgreements role="client" />
+        </div>
+
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           {[

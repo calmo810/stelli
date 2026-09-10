@@ -16,6 +16,7 @@ const NEIGHBORHOODS = ['Bushwick', 'Williamsburg', 'Ridgewood', 'Greenpoint', 'B
 export default function CreatorApplication() {
   const [step, setStep] = useState(1);
   const [uploading, setUploading] = useState(false);
+  const [legalAgreed, setLegalAgreed] = useState(false);
   const [form, setForm] = useState({
     full_name: '', email: '', phone: '',
     neighborhoods: [], years_experience: '',
@@ -47,7 +48,16 @@ export default function CreatorApplication() {
 
   const createLensman = useMutation({
     mutationFn: (data) => base44.entities.Lensman.create(data),
-    onSuccess: () => setStep(5),
+    onSuccess: async () => {
+      const authenticated = await base44.auth.isAuthenticated();
+      if (authenticated) {
+        await Promise.all([
+          base44.functions.invoke('recordAgreementAcceptance', { documentType: 'terms', documentVersion: '2026-09-10' }),
+          base44.functions.invoke('recordAgreementAcceptance', { documentType: 'privacy', documentVersion: '2026-09-10' }),
+        ]);
+      }
+      setStep(5);
+    },
   });
 
   const handleSubmit = () => {
@@ -80,7 +90,7 @@ export default function CreatorApplication() {
       case 1: return form.full_name && form.email && form.neighborhoods.length > 0;
       case 2: return form.portfolio_images.length >= 5;
       case 3: return form.bio && form.specialties.length > 0;
-      case 4: return form.rate_half_day;
+      case 4: return form.rate_half_day && legalAgreed;
       default: return true;
     }
   };
@@ -250,6 +260,12 @@ export default function CreatorApplication() {
                     <Input value={form.custom_package_description} onChange={e => update('custom_package_description', e.target.value)} className="rounded-xl" placeholder="e.g. 8-hour wedding" />
                   </div>
                 </div>
+                <label className="flex items-start gap-3 rounded-xl border border-border p-4 cursor-pointer">
+                  <Checkbox checked={legalAgreed} onCheckedChange={setLegalAgreed} className="mt-0.5" />
+                  <span className="text-xs leading-relaxed text-muted-foreground">
+                    I agree to Stelli's <Link to="/terms" className="text-foreground underline">Terms and Conditions</Link> and <Link to="/privacy" className="text-foreground underline">Privacy Policy</Link>.
+                  </span>
+                </label>
               </div>
             )}
           </motion.div>

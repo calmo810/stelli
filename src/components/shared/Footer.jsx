@@ -15,7 +15,7 @@ export default function Footer() {
           {[
             { label: 'For clients', links: [{ to: '/browse', text: 'The Collective' }, { to: '/how-it-works', text: 'How it works' }, { to: '/content-day', text: 'Content Day' }] },
             { label: 'For creators', links: [{ to: '/apply', text: 'Join the collective' }, { to: '/for-creators', text: 'Why Stelli' }, { to: '/lensman-dashboard', text: 'Creator dashboard' }] },
-            { label: 'Company', links: [{ to: null, href: 'mailto:hello@getstelli.com', text: 'hello@getstelli.com' }] },
+            { label: 'Company', links: [{ to: '/terms', text: 'Terms' }, { to: '/privacy', text: 'Privacy' }, { to: null, href: 'mailto:hello@getstelli.com', text: 'hello@getstelli.com' }] },
           ].map(col => (
             <div key={col.label}>
               <p className="text-[8px] font-body tracking-[0.4em] uppercase mb-5" style={{ color: 'rgba(26,39,68,0.25)' }}>{col.label}</p>

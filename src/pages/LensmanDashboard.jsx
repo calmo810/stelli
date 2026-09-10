@@ -7,6 +7,7 @@ import BookingCard from '../components/dashboard/BookingCard';
 import ProfileEditor from '../components/dashboard/ProfileEditor';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
+import MyAgreements from '@/components/dashboard/MyAgreements';
 
 export default function LensmanDashboard() {
   const { data: bookings = [], isLoading } = useQuery({
@@ -14,7 +15,7 @@ export default function LensmanDashboard() {
     queryFn: () => base44.entities.Booking.list('-created_date'),
   });
 
-  const upcoming = bookings.filter(b => ['pending', 'confirmed', 'in_progress'].includes(b.status));
+  const upcoming = bookings.filter(b => ['pending', 'awaiting_creator_acceptance', 'confirmed', 'in_progress'].includes(b.status));
   const needsDelivery = bookings.filter(b => b.status === 'awaiting_delivery');
   const completed = bookings.filter(b => ['delivered', 'completed'].includes(b.status));
   const totalEarned = completed.reduce((sum, b) => sum + (b.total_price || 0), 0);
@@ -32,6 +33,10 @@ export default function LensmanDashboard() {
       </div>
 
       <div className="max-w-[1180px] mx-auto px-8 md:px-14 py-8">
+        <div className="mb-8">
+          <MyAgreements role="lensman" />
+        </div>
+
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[

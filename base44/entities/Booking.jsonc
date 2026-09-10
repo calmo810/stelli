@@ -10,6 +10,46 @@
       "type": "string",
       "description": "Name of the lensman"
     },
+    "client_id": {
+      "type": "string",
+      "description": "Client user ID when available"
+    },
+    "creator_id": {
+      "type": "string",
+      "description": "Creator/lensman ID for contract records"
+    },
+    "contract_id": {
+      "type": "string",
+      "description": "Generated booking contract ID"
+    },
+    "terms_version": {
+      "type": "string",
+      "description": "Terms version active when booking was made"
+    },
+    "privacy_version": {
+      "type": "string",
+      "description": "Privacy version active when booking was made"
+    },
+    "client_contract_accepted": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether client accepted the booking contract"
+    },
+    "creator_contract_accepted": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether creator accepted the booking contract"
+    },
+    "client_contract_accepted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Client booking contract acceptance time"
+    },
+    "creator_contract_accepted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Creator booking contract acceptance time"
+    },
     "client_name": {
       "type": "string",
       "description": "Client full name"
@@ -101,6 +141,7 @@
       "type": "string",
       "enum": [
         "pending",
+        "awaiting_creator_acceptance",
         "confirmed",
         "in_progress",
         "awaiting_delivery",

@@ -4,6 +4,7 @@ import { AnimatePresence } from 'framer-motion';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import PageTransition from './PageTransition';
+import LegalUpdateBanner from '@/components/legal/LegalUpdateBanner';
 
 export default function Layout() {
   const location = useLocation();
@@ -19,6 +20,7 @@ export default function Layout() {
         </AnimatePresence>
       </main>
       <Footer />
+      <LegalUpdateBanner />
     </div>
   );
 }
