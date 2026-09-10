@@ -4,8 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 const editorialLinks = [
   { label: 'The Collective', to: '/browse' },
-  { label: 'For Creators', to: '/for-creators' },
-  { label: 'Apply', to: '/apply' },
+  { label: 'Your Photos', to: '/client-dashboard' },
 ];
 
 export default function Navbar() {
