@@ -6,6 +6,10 @@
       "type": "string",
       "description": "ID of the related booking"
     },
+    "client_id": {
+      "type": "string",
+      "description": "User ID of the client who wrote the review"
+    },
     "lensman_id": {
       "type": "string",
       "description": "ID of the reviewed lensman"
@@ -37,5 +41,21 @@
   "required": [
     "lensman_id",
     "rating"
-  ]
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "data.client_id": "{{user.id}}"
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

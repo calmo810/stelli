@@ -10,9 +10,12 @@ import { motion } from 'framer-motion';
 import MyAgreements from '@/components/dashboard/MyAgreements';
 
 export default function LensmanDashboard() {
+  const { data: user } = useQuery({ queryKey: ['me'], queryFn: () => base44.auth.me() });
+
   const { data: bookings = [], isLoading } = useQuery({
-    queryKey: ['lensman-bookings'],
-    queryFn: () => base44.entities.Booking.list('-created_date'),
+    queryKey: ['lensman-bookings', user?.email],
+    enabled: !!user?.email,
+    queryFn: () => base44.entities.Booking.filter({ lensman_email: user.email }, '-created_date'),
   });
 
   const upcoming = bookings.filter(b => ['pending', 'awaiting_creator_acceptance', 'confirmed', 'in_progress'].includes(b.status));

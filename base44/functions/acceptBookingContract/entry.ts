@@ -20,12 +20,18 @@ export default async function(req) {
     const booking = await base44.asServiceRole.entities.Booking.get(bookingId);
     if (!booking) return Response.json({ error: 'Booking not found' }, { status: 404 });
 
+    const isCreator = party === 'creator';
+    const isClientParty = booking.client_id === user.id || booking.client_email === user.email;
+    const isCreatorParty = !!booking.lensman_email && booking.lensman_email === user.email;
+    if (!(isCreator ? isCreatorParty : isClientParty)) {
+      return Response.json({ error: 'You are not a party to this booking.' }, { status: 403 });
+    }
+
     const contracts = await base44.asServiceRole.entities.BookingContract.filter({ booking_id: bookingId });
     const contract = contracts[0];
     if (!contract) return Response.json({ error: 'Contract not found' }, { status: 404 });
 
     const now = new Date().toISOString();
-    const isCreator = party === 'creator';
     const bookingPatch = isCreator
       ? { creator_contract_accepted: true, creator_contract_accepted_at: now }
       : { client_contract_accepted: true, client_contract_accepted_at: now };
@@ -46,7 +52,7 @@ export default async function(req) {
     const clientAccepted = isCreator ? booking.client_contract_accepted : true;
     const creatorAccepted = isCreator ? true : booking.creator_contract_accepted;
     const nextStatus = clientAccepted && creatorAccepted ? 'confirmed' : 'awaiting_creator_acceptance';
-    const updatedBooking = await base44.asServiceRole.entities.Booking.update(bookingId, { ...bookingPatch, status: nextStatus, payment_status: 'held' });
+    const updatedBooking = await base44.asServiceRole.entities.Booking.update(bookingId, { ...bookingPatch, status: nextStatus });
 
     if (nextStatus === 'confirmed') {
       await sendContractCopies(base44, updatedBooking, { ...contract, ...contractPatch });

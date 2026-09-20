@@ -48,6 +48,8 @@ export default function Messages() {
     if (!message.trim()) return;
     sendMessage.mutate({
       booking_id: bookingId,
+      client_email: booking?.client_email || '',
+      lensman_email: booking?.lensman_email || '',
       sender_name: senderName || 'Anonymous',
       sender_role: senderRole,
       content: message.trim(),

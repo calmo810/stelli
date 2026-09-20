@@ -10,6 +10,10 @@
       "type": "string",
       "description": "Name of the lensman"
     },
+    "lensman_email": {
+      "type": "string",
+      "description": "Email of the booked creator, used to scope access to the booking"
+    },
     "client_id": {
       "type": "string",
       "description": "Client user ID when available"
@@ -195,5 +199,51 @@
     "client_email",
     "event_date",
     "event_type"
-  ]
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.client_id": "{{user.id}}"
+        },
+        {
+          "data.client_email": "{{user.email}}"
+        },
+        {
+          "data.lensman_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "created_by_id": "{{user.id}}"
+    },
+    "update": {
+      "$or": [
+        {
+          "data.client_id": "{{user.id}}"
+        },
+        {
+          "data.client_email": "{{user.email}}"
+        },
+        {
+          "data.lensman_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

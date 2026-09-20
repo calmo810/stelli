@@ -160,6 +160,7 @@ export default function BookingFlow() {
     createBooking.mutate({
       lensman_id: lensmanId,
       lensman_name: lensman?.full_name,
+      lensman_email: lensman?.email || '',
       client_id: currentUser?.id || '',
       creator_id: lensmanId,
       client_name: form.client_name,

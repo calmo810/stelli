@@ -47,8 +47,21 @@ export default function ProfileEditor() {
 
   const saveProfile = useMutation({
     mutationFn: () => base44.entities.Lensman.update(lensman.id, {
-      ...form,
+      display_name: form.display_name,
       slug: slugify(form.slug || form.display_name || lensman.full_name),
+      profile_headline: form.profile_headline,
+      profile_tagline: form.profile_tagline,
+      bio: form.bio,
+      booking_cta: form.booking_cta,
+      featured_quote: form.featured_quote,
+      profile_theme: form.profile_theme,
+      gallery_style: form.gallery_style,
+      profile_image: form.profile_image,
+      portfolio_images: form.portfolio_images || [],
+      specialties: form.specialties || [],
+      neighborhoods: form.neighborhoods || [],
+      style_tags: form.style_tags || [],
+      custom_package_description: form.custom_package_description,
       rate_half_day: parseInt(form.rate_half_day) || 0,
       rate_full_day: parseInt(form.rate_full_day) || 0,
       rate_custom: parseInt(form.rate_custom) || 0,

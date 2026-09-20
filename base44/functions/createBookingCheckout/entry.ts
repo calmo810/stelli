@@ -7,13 +7,35 @@ const PRODUCT_NAMES = {
   custom: 'The Content Day',
 };
 
+const RATE_KEYS = {
+  half_day: 'rate_half_day',
+  full_day: 'rate_full_day',
+  custom: 'rate_custom',
+};
+
+const ADDON_PRICES = {
+  rush: 150,
+  raw: 100,
+  bts: 200,
+};
+
 const PUBLISHED_ORIGIN = 'https://stelli-moment-craft.base44.app';
 
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
-    const { bookingId, origin } = await req.json();
 
+    let user = null;
+    try {
+      user = await base44.auth.me();
+    } catch {
+      user = null;
+    }
+    if (!user) {
+      return Response.json({ error: 'Please sign in to pay for this booking.' }, { status: 401 });
+    }
+
+    const { bookingId, origin } = await req.json();
     if (!bookingId) {
       return Response.json({ error: 'Booking ID is required' }, { status: 400 });
     }
@@ -23,11 +45,30 @@ export default async function (req) {
       return Response.json({ error: 'Booking not found' }, { status: 404 });
     }
 
-    const amount = Math.round((booking.total_price || 0) * 100);
-    if (amount <= 0) {
-      return Response.json({ error: 'This booking has no amount to pay.' }, { status: 400 });
+    const isClient = booking.client_id === user.id || booking.client_email === user.email;
+    if (!isClient) {
+      return Response.json({ error: 'This booking belongs to someone else.' }, { status: 403 });
     }
 
+    // The amount is always rebuilt from the creator's published rates plus the
+    // booking's add-ons — never from a price supplied by the browser.
+    const lensman = await base44.asServiceRole.entities.Lensman.get(booking.lensman_id);
+    const rateKey = RATE_KEYS[booking.package_type];
+    const baseRate = Number(lensman?.[rateKey]) || 0;
+    const addOnTotal = (booking.add_ons || []).reduce(
+      (sum, id) => sum + (ADDON_PRICES[id] || 0),
+      0
+    );
+    const quote = baseRate + addOnTotal;
+
+    if (quote <= 0) {
+      return Response.json(
+        { error: 'This booking has no agreed amount to pay.' },
+        { status: 400 }
+      );
+    }
+
+    const amount = Math.round(quote * 100);
     const base = (origin || PUBLISHED_ORIGIN).replace(/\/$/, '');
     const appId = secrets.get('BASE44_APP_ID') || '';
     const formatName = PRODUCT_NAMES[booking.package_type] || 'Stelli Shoot';
@@ -69,7 +110,10 @@ export default async function (req) {
       );
     }
 
-    return Response.json({ url: session.url, sessionId: session.id });
+    // Store the server-computed quote so the recorded price matches what was charged.
+    await base44.asServiceRole.entities.Booking.update(bookingId, { total_price: quote });
+
+    return Response.json({ url: session.url, sessionId: session.id, amount: quote });
   } catch (error) {
     console.error('createBookingCheckout error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });

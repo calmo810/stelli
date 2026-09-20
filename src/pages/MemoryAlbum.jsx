@@ -14,10 +14,10 @@ export default function MemoryAlbum() {
   const [copied, setCopied] = useState(false);
 
   const { data: booking } = useQuery({
-    queryKey: ['booking', bookingId],
+    queryKey: ['album-booking', bookingId],
     queryFn: async () => {
-      const list = await base44.entities.Booking.filter({ id: bookingId });
-      return list[0];
+      const response = await base44.functions.invoke('getAlbumBooking', { bookingId });
+      return response.data?.booking || null;
     },
   });
 
