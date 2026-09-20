@@ -5,6 +5,7 @@ import Navbar from './Navbar';
 import Footer from './Footer';
 import PageTransition from './PageTransition';
 import LegalUpdateBanner from '@/components/legal/LegalUpdateBanner';
+import RoleGate from '@/components/RoleGate';
 
 export default function Layout() {
   const location = useLocation();
@@ -12,12 +13,14 @@ export default function Layout() {
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       <Navbar />
-      <main className="flex-1 pt-16">
-        <AnimatePresence mode="wait" initial={false}>
-          <PageTransition key={location.pathname}>
-            <Outlet />
-          </PageTransition>
-        </AnimatePresence>
+      <main className={`flex-1 ${location.pathname === '/' ? '' : 'pt-16'}`}>
+        <RoleGate>
+          <AnimatePresence mode="wait" initial={false}>
+            <PageTransition key={location.pathname}>
+              <Outlet />
+            </PageTransition>
+          </AnimatePresence>
+        </RoleGate>
       </main>
       <Footer />
       <LegalUpdateBanner />

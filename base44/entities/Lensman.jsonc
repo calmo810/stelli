@@ -22,6 +22,19 @@
       "type": "string",
       "description": "Contact phone"
     },
+    "market": {
+      "type": "string",
+      "enum": [
+        "NYC",
+        "ELON"
+      ],
+      "default": "NYC",
+      "description": "Market this creator operates in"
+    },
+    "instagram": {
+      "type": "string",
+      "description": "Instagram handle"
+    },
     "bio": {
       "type": "string",
       "description": "Short bio about why they create"
@@ -49,7 +62,7 @@
         "night_flash",
         "clean_portfolio"
       ],
-      "default": "editorial_cream",
+      "default": "night_flash",
       "description": "Visual theme for the public profile"
     },
     "gallery_style": {
@@ -128,6 +141,10 @@
     "review_count": {
       "type": "number",
       "description": "Number of reviews"
+    },
+    "completed_shoots": {
+      "type": "number",
+      "description": "Number of completed shoots"
     },
     "status": {
       "type": "string",

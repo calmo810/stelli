@@ -27,6 +27,12 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import Creators from './pages/Creators';
+import CreatorProfile from './pages/CreatorProfile';
+import Faq from './pages/Faq';
+import Onboarding from './pages/Onboarding';
+import Portal from './pages/Portal';
+import { MarketProvider } from '@/lib/market';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -58,11 +64,15 @@ const AuthenticatedApp = () => {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/onboarding" element={<Onboarding />} />
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
         <Route path="/browse" element={<BrowseLensmen />} />
         <Route path="/lensman/:id" element={<LensmanProfile />} />
-        <Route path="/creators/:id" element={<LensmanProfile />} />
+        <Route path="/creators" element={<Creators />} />
+        <Route path="/creators/:id" element={<CreatorProfile />} />
+        <Route path="/faq" element={<Faq />} />
+        <Route path="/portal" element={<Portal />} />
         <Route path="/book/:lensmanId" element={<BookingFlow />} />
         <Route path="/how-it-works" element={<HowItWorks />} />
         <Route path="/for-creators" element={<ForCreators />} />
@@ -88,10 +98,12 @@ function App() {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
-        <Router>
-          <ScrollToTop />
-          <AuthenticatedApp />
-        </Router>
+        <MarketProvider>
+          <Router>
+            <ScrollToTop />
+            <AuthenticatedApp />
+          </Router>
+        </MarketProvider>
         <Toaster />
       </QueryClientProvider>
     </AuthProvider>

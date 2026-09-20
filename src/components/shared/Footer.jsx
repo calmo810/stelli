@@ -1,47 +1,86 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { Instagram } from 'lucide-react';
+
+const COLUMNS = [
+  {
+    label: 'Stelli',
+    links: [
+      { to: '/creators', text: 'Browse creators' },
+      { to: '/how-it-works', text: 'How it works' },
+      { to: '/faq', text: 'FAQ' },
+    ],
+  },
+  {
+    label: 'Account',
+    links: [
+      { to: '/register?role=client', text: 'Sign up as a client' },
+      { to: '/register?role=creator', text: 'Sign up as a creator' },
+      { to: '/portal', text: 'Your portal' },
+    ],
+  },
+  {
+    label: 'Legal',
+    links: [
+      { to: '/terms', text: 'Terms & Conditions' },
+      { to: '/privacy', text: 'Privacy Policy' },
+    ],
+  },
+];
 
 export default function Footer() {
   return (
-    <footer className="border-t" style={{ background: '#f0ede6', borderColor: 'rgba(26,39,68,0.1)' }}>
-      <div className="max-w-[1400px] mx-auto px-8 md:px-14 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-16">
-          <div className="md:col-span-1">
-            <p className="font-display font-semibold mb-3" style={{ fontSize: 22, color: '#1a2744' }}>Stelli</p>
-            <p className="text-[11px] font-body leading-relaxed" style={{ color: 'rgba(26,39,68,0.4)' }}>
-              Some moments only happen once.
+    <footer className="border-t border-white/10 bg-ink">
+      <div className="max-w-[1500px] mx-auto px-5 md:px-10 py-16">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-14">
+          <div>
+            <p className="font-heading text-3xl font-semibold text-white mb-3">Stelli</p>
+            <p className="font-body text-[12px] leading-relaxed text-white/40 max-w-[220px]">
+              You're the star — we just bring the camera.
             </p>
           </div>
-          {[
-            { label: 'For clients', links: [{ to: '/browse', text: 'The Collective' }, { to: '/how-it-works', text: 'How it works' }, { to: '/content-day', text: 'Content Day' }] },
-            { label: 'For creators', links: [{ to: '/apply', text: 'Join the collective' }, { to: '/for-creators', text: 'Why Stelli' }, { to: '/lensman-dashboard', text: 'Creator dashboard' }] },
-            { label: 'Company', links: [{ to: '/terms', text: 'Terms' }, { to: '/privacy', text: 'Privacy' }, { to: null, href: 'mailto:hello@getstelli.com', text: 'hello@getstelli.com' }] },
-          ].map(col => (
+
+          {COLUMNS.map((col) => (
             <div key={col.label}>
-              <p className="text-[8px] font-body tracking-[0.4em] uppercase mb-5" style={{ color: 'rgba(26,39,68,0.25)' }}>{col.label}</p>
+              <p className="label-mono text-[9px] text-white/30 mb-5">{col.label}</p>
               <div className="space-y-3">
-                {col.links.map(l => l.href ? (
-                  <a key={l.text} href={l.href} className="block text-[12px] font-body transition-colors" style={{ color: 'rgba(26,39,68,0.4)' }}
-                    onMouseEnter={e => e.currentTarget.style.color = '#1a2744'}
-                    onMouseLeave={e => e.currentTarget.style.color = 'rgba(26,39,68,0.4)'}>{l.text}</a>
-                ) : (
-                  <Link key={l.text} to={l.to} className="block text-[12px] font-body transition-colors" style={{ color: 'rgba(26,39,68,0.4)' }}
-                    onMouseEnter={e => e.currentTarget.style.color = '#1a2744'}
-                    onMouseLeave={e => e.currentTarget.style.color = 'rgba(26,39,68,0.4)'}>{l.text}</Link>
+                {col.links.map((l) => (
+                  <Link
+                    key={l.text}
+                    to={l.to}
+                    className="block font-body text-[12px] text-white/45 hover:text-neon-lime transition-colors"
+                  >
+                    {l.text}
+                  </Link>
                 ))}
+                {col.label === 'Stelli' && (
+                  <a
+                    href="mailto:hello@getstelli.com"
+                    className="block font-body text-[12px] text-white/45 hover:text-neon-lime transition-colors"
+                  >
+                    hello@getstelli.com
+                  </a>
+                )}
+                {col.label === 'Legal' && (
+                  <a
+                    href="https://instagram.com/getstelli"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 font-body text-[12px] text-white/45 hover:text-neon-lime transition-colors"
+                  >
+                    <Instagram className="w-3.5 h-3.5" /> Instagram
+                  </a>
+                )}
               </div>
             </div>
           ))}
         </div>
 
-        <div className="pt-8 border-t flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
-          style={{ borderColor: 'rgba(26,39,68,0.08)' }}>
-          <p className="text-[9px] font-body" style={{ color: 'rgba(26,39,68,0.2)' }}>
-            © {new Date().getFullYear()} Stelli · NYC · All rights reserved
+        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <p className="label-mono text-[9px] text-white/25">
+            © {new Date().getFullYear()} Stelli · NYC · Elon, NC
           </p>
-          <p className="text-[9px] font-body italic font-display" style={{ color: 'rgba(26,39,68,0.3)' }}>
-            一期一会 — one time, one meeting
-          </p>
+          <p className="font-hand text-[18px] text-neon-lime/70">一期一会 — one time, one meeting</p>
         </div>
       </div>
     </footer>
