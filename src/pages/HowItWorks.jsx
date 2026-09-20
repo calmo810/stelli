@@ -103,9 +103,9 @@ export default function HowItWorks() {
       <section className="py-16 px-6 bg-foreground text-background text-center">
         <h2 className="font-display text-3xl font-semibold mb-6">Ready to get started?</h2>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link to="/browse">
+          <Link to="/creators">
             <Button size="lg" className="rounded-full bg-background text-foreground hover:bg-background/90">
-              Browse Lensmen <ArrowRight className="w-4 h-4 ml-2" />
+              Browse creators <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </Link>
           <Link to="/apply">

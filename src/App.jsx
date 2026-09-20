@@ -1,15 +1,13 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import Layout from './components/shared/Layout';
 import Home from './pages/Home';
-import BrowseLensmen from './pages/BrowseLensmen';
-import LensmanProfile from './pages/LensmanProfile';
 import BookingFlow from './pages/BookingFlow';
 import HowItWorks from './pages/HowItWorks';
 import ForCreators from './pages/ForCreators';
@@ -34,6 +32,7 @@ import Onboarding from './pages/Onboarding';
 import Portal from './pages/Portal';
 import { MarketProvider } from '@/lib/market';
 import AdminRoute from '@/components/AdminRoute';
+import LegacyRedirect from '@/components/LegacyRedirect';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -68,8 +67,8 @@ const AuthenticatedApp = () => {
       <Route path="/onboarding" element={<Onboarding />} />
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
-        <Route path="/browse" element={<BrowseLensmen />} />
-        <Route path="/lensman/:id" element={<LensmanProfile />} />
+        <Route path="/browse" element={<Navigate to="/creators" replace />} />
+        <Route path="/lensman/:id" element={<LegacyRedirect to="/creators/:id" />} />
         <Route path="/creators" element={<Creators />} />
         <Route path="/creators/:id" element={<CreatorProfile />} />
         <Route path="/faq" element={<Faq />} />
