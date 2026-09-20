@@ -1,6 +1,4 @@
 import React from 'react';
-import BackButton from '@/components/shared/BackButton';
-
 const FAQS = [
   {
     q: 'How does pricing work?',
@@ -35,7 +33,6 @@ const FAQS = [
 export default function Faq() {
   return (
     <div className="min-h-screen bg-ink">
-      <BackButton />
       <section className="max-w-3xl mx-auto px-5 md:px-10 pt-32 pb-24">
         <p className="label-mono text-[9px] text-white/35 mb-5">Stelli · FAQ</p>
         <h1 className="font-heading font-semibold text-white leading-[0.95] mb-6" style={{ fontSize: 'clamp(40px, 7vw, 84px)' }}>

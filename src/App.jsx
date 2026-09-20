@@ -33,6 +33,7 @@ import Faq from './pages/Faq';
 import Onboarding from './pages/Onboarding';
 import Portal from './pages/Portal';
 import { MarketProvider } from '@/lib/market';
+import AdminRoute from '@/components/AdminRoute';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -80,7 +81,7 @@ const AuthenticatedApp = () => {
         <Route path="/client-dashboard" element={<ClientDashboard />} />
         <Route path="/lensman-dashboard" element={<LensmanDashboard />} />
         <Route path="/messages/:bookingId" element={<Messages />} />
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
         <Route path="/content-day" element={<ContentDay />} />
         <Route path="/album/:bookingId" element={<MemoryAlbum />} />
         <Route path="/terms" element={<Terms />} />

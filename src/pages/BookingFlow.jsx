@@ -74,6 +74,8 @@ export default function BookingFlow() {
   const [albumEmailInput, setAlbumEmailInput] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [bookingResult, setBookingResult] = useState(null);
+  const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState('');
 
   const { data: lensman } = useQuery({
     queryKey: ['lensman', lensmanId],
@@ -95,6 +97,30 @@ export default function BookingFlow() {
       setStep(5);
     },
   });
+
+  const handlePayment = async () => {
+    if (window.self !== window.top) {
+      setPayError('Checkout only works in the published app. Open it in a new tab to pay.');
+      return;
+    }
+    setPaying(true);
+    setPayError('');
+    try {
+      const response = await base44.functions.invoke('createBookingCheckout', {
+        bookingId: bookingResult.booking.id,
+        origin: window.location.origin,
+      });
+      if (response.data?.url) {
+        window.location.href = response.data.url;
+      } else {
+        setPayError(response.data?.error || 'Payment could not be started.');
+      }
+    } catch (error) {
+      setPayError(error?.response?.data?.error || 'Payment could not be started.');
+    } finally {
+      setPaying(false);
+    }
+  };
 
   const update = (key, value) => setForm(prev => ({ ...prev, [key]: value }));
 
@@ -152,7 +178,7 @@ export default function BookingFlow() {
       co_booker_contribution: contributionAmount,
       album_access_emails: form.album_access_emails,
       status: 'pending',
-      payment_status: 'held',
+      payment_status: 'pending',
       delivery_deadline: deliveryDate.toISOString().split('T')[0],
     });
   };
@@ -203,7 +229,7 @@ export default function BookingFlow() {
             <span className="text-white">{form.event_date && new Date(form.event_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}</span>.
           </p>
           <p className="font-body text-[13px] leading-relaxed mb-8" style={{ color: 'rgba(255,255,255,0.35)' }}>
-            Your payment is held safely while the creator reviews the same booking agreement. The booking confirms only after both sides accept.
+            Complete payment to hold the date. Your money is held safely and released only after your photos are delivered.
           </p>
 
           {/* Magic-link note */}
@@ -215,9 +241,18 @@ export default function BookingFlow() {
           </div>
 
           <div className="flex flex-col gap-3">
+            <button onClick={handlePayment} disabled={paying}
+              className="w-full py-3.5 text-[11px] font-body tracking-[0.08em] uppercase font-semibold transition-all inline-flex items-center justify-center gap-2"
+              style={{ background: '#F2DCA9', color: '#0a0a0a', borderRadius: 2, opacity: paying ? 0.7 : 1 }}>
+              {paying ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Shield className="w-3.5 h-3.5" />}
+              Pay ${totalPrice.toLocaleString()} to confirm
+            </button>
+            {payError && (
+              <p className="text-[11px] font-body leading-relaxed" style={{ color: '#F2DCA9' }}>{payError}</p>
+            )}
             <Link to="/client-dashboard"
-              className="w-full py-3.5 text-[11px] font-body tracking-[0.08em] uppercase font-semibold text-center transition-all"
-              style={{ background: '#F2DCA9', color: '#0a0a0a', borderRadius: 2 }}>
+              className="w-full py-3.5 text-[11px] font-body tracking-[0.08em] uppercase text-center border border-white/8 transition-all"
+              style={{ color: 'rgba(255,255,255,0.5)', borderRadius: 2 }}>
               View your booking
             </Link>
             <Link to="/"
