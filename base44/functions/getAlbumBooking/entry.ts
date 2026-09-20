@@ -1,8 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 
 /**
- * Public read for a shareable memory album. Returns only the fields the
- * album needs — never the client's contact details, price, or booking status.
+ * Public read for a shareable memory album. Returns only what the album
+ * shows — never the client's contact details, price, or booking status.
  */
 export default async function (req) {
   try {
@@ -24,7 +24,8 @@ export default async function (req) {
         event_type: booking.event_type,
         event_date: booking.event_date,
         lensman_name: booking.lensman_name,
-        delivered_files: booking.delivered_files || [],
+        delivery_link: booking.delivery_link || '',
+        delivered_at: booking.delivered_at || '',
       },
     });
   } catch (error) {

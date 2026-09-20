@@ -45,7 +45,7 @@ export default function BrowseLensmen() {
               Creators worth<br />putting in your calendar.
             </h1>
             <p className="font-body text-[13px] max-w-sm leading-relaxed" style={{ color: 'rgba(26,39,68,0.45)' }}>
-              Vetted photographers and filmmakers with public Stelli profiles, fixed products, and protected bookings.
+              Vetted photographers and filmmakers with public Stelli profiles, private quotes, and protected bookings.
             </p>
           </motion.div>
         </div>

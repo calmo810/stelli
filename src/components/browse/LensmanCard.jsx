@@ -44,8 +44,7 @@ export default function LensmanCard({ lensman, index = 0 }) {
               <p className="text-[10px] font-body" style={{ color: 'rgba(26,39,68,0.4)' }}>{lensman.neighborhoods?.slice(0, 2).join(' · ')}</p>
             </div>
             <div className="text-right shrink-0">
-              <p className="font-display text-[22px] font-semibold" style={{ color: '#1a2744' }}>${lensman.rate_half_day || 800}</p>
-              <p className="text-[9px] font-body" style={{ color: 'rgba(26,39,68,0.3)' }}>from</p>
+              <p className="text-[9px] font-body tracking-[0.12em] uppercase" style={{ color: 'rgba(26,39,68,0.35)' }}>Private quote</p>
             </div>
           </div>
 

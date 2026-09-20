@@ -45,7 +45,7 @@ export default function ConstellationMap({ lensmen, activeFilter }) {
                   <div className="border p-4" style={{ background: '#f0ede6', borderColor: 'rgba(26,39,68,0.16)', boxShadow: '0 18px 42px rgba(26,39,68,0.12)' }}>
                     <p className="font-display text-[22px] font-semibold leading-none text-center" style={{ color: '#1a2744' }}>{lensman.display_name || lensman.full_name}</p>
                     <p className="text-[9px] font-body tracking-[0.16em] uppercase text-center mt-2" style={{ color: 'rgba(26,39,68,0.35)' }}>{lensman.neighborhoods?.slice(0, 2).join(' · ')}</p>
-                    <p className="text-[10px] font-body text-center mt-4" style={{ color: 'rgba(26,39,68,0.45)' }}>from ${lensman.rate_half_day || 800}</p>
+                    <p className="text-[10px] font-body text-center mt-4" style={{ color: 'rgba(26,39,68,0.45)' }}>Private quote on request</p>
                   </div>
                 </motion.div>
               )}

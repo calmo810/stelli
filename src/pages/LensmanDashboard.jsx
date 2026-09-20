@@ -1,15 +1,22 @@
 import React from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Star, Calendar, DollarSign, TrendingUp, UserRound } from 'lucide-react';
+import { Star, Calendar, Inbox, Link2, UserRound } from 'lucide-react';
 import BookingCard from '../components/dashboard/BookingCard';
+import QuoteForm from '../components/dashboard/QuoteForm';
+import DeliveryForm from '../components/dashboard/DeliveryForm';
 import ProfileEditor from '../components/dashboard/ProfileEditor';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
 import MyAgreements from '@/components/dashboard/MyAgreements';
 
+const UPCOMING = ['quoted', 'quote_accepted'];
+const DELIVERIES = ['confirmed', 'in_progress', 'awaiting_delivery'];
+const COMPLETED = ['delivered', 'completed'];
+
 export default function LensmanDashboard() {
+  const queryClient = useQueryClient();
   const { data: user } = useQuery({ queryKey: ['me'], queryFn: () => base44.auth.me() });
 
   const { data: bookings = [], isLoading } = useQuery({
@@ -18,10 +25,12 @@ export default function LensmanDashboard() {
     queryFn: () => base44.entities.Booking.filter({ lensman_email: user.email }, '-created_date'),
   });
 
-  const upcoming = bookings.filter(b => ['pending', 'awaiting_creator_acceptance', 'confirmed', 'in_progress'].includes(b.status));
-  const needsDelivery = bookings.filter(b => b.status === 'awaiting_delivery');
-  const completed = bookings.filter(b => ['delivered', 'completed'].includes(b.status));
-  const totalEarned = completed.reduce((sum, b) => sum + (b.total_price || 0), 0);
+  const refresh = () => queryClient.invalidateQueries({ queryKey: ['lensman-bookings'] });
+
+  const requests = bookings.filter(b => b.status === 'requested');
+  const upcoming = bookings.filter(b => UPCOMING.includes(b.status));
+  const deliveries = bookings.filter(b => DELIVERIES.includes(b.status));
+  const completed = bookings.filter(b => COMPLETED.includes(b.status));
 
   return (
     <div className="min-h-screen" style={{ background: '#f0ede6' }}>
@@ -30,7 +39,7 @@ export default function LensmanDashboard() {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <p className="text-[8px] font-body tracking-[0.5em] uppercase mb-4" style={{ color: 'rgba(26,39,68,0.3)' }}>Creator Home Base</p>
             <h1 className="font-display text-4xl sm:text-5xl font-semibold mb-3" style={{ color: '#1a2744' }}>Creator Dashboard</h1>
-            <p className="text-sm" style={{ color: 'rgba(26,39,68,0.45)' }}>Manage your bookings and customize the profile link you put in your bio.</p>
+            <p className="text-sm" style={{ color: 'rgba(26,39,68,0.45)' }}>Answer requests with a private quote, then deliver the gallery link.</p>
           </motion.div>
         </div>
       </div>
@@ -40,13 +49,12 @@ export default function LensmanDashboard() {
           <MyAgreements role="lensman" />
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
+            { icon: Inbox, label: 'New Requests', value: requests.length },
             { icon: Calendar, label: 'Upcoming', value: upcoming.length },
-            { icon: TrendingUp, label: 'Needs Delivery', value: needsDelivery.length },
+            { icon: Link2, label: 'To Deliver', value: deliveries.length },
             { icon: Star, label: 'Completed', value: completed.length },
-            { icon: DollarSign, label: 'Total Earned', value: `$${totalEarned.toLocaleString()}` },
           ].map((stat, i) => (
             <div key={i} className="border p-4 text-center" style={{ background: '#ece9e2', borderColor: 'rgba(26,39,68,0.12)' }}>
               <stat.icon className="w-4 h-4 mx-auto mb-2" style={{ color: 'rgba(26,39,68,0.35)' }} />
@@ -56,12 +64,13 @@ export default function LensmanDashboard() {
           ))}
         </div>
 
-        <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="border rounded-none p-1" style={{ background: '#ece9e2', borderColor: 'rgba(26,39,68,0.12)' }}>
-            <TabsTrigger value="profile" className="rounded-none text-xs"><UserRound className="w-3.5 h-3.5 mr-1.5" /> Profile</TabsTrigger>
+        <Tabs defaultValue="requests" className="space-y-6">
+          <TabsList className="border rounded-none p-1 flex-wrap h-auto" style={{ background: '#ece9e2', borderColor: 'rgba(26,39,68,0.12)' }}>
+            <TabsTrigger value="requests" className="rounded-none text-xs">Requests ({requests.length})</TabsTrigger>
             <TabsTrigger value="upcoming" className="rounded-none text-xs">Upcoming ({upcoming.length})</TabsTrigger>
-            <TabsTrigger value="delivery" className="rounded-none text-xs">Needs Delivery ({needsDelivery.length})</TabsTrigger>
+            <TabsTrigger value="deliveries" className="rounded-none text-xs">Deliveries ({deliveries.length})</TabsTrigger>
             <TabsTrigger value="completed" className="rounded-none text-xs">Completed ({completed.length})</TabsTrigger>
+            <TabsTrigger value="profile" className="rounded-none text-xs"><UserRound className="w-3.5 h-3.5 mr-1.5" /> Profile</TabsTrigger>
           </TabsList>
 
           <TabsContent value="profile">
@@ -74,19 +83,34 @@ export default function LensmanDashboard() {
             </div>
           ) : (
             <>
-              <TabsContent value="upcoming" className="space-y-4">
-                {upcoming.length > 0 ? upcoming.map(b => <BookingCard key={b.id} booking={b} role="lensman" />) : (
-                  <p className="text-center py-16 text-muted-foreground">No upcoming bookings yet. Hang tight — clients are discovering your profile!</p>
+              <TabsContent value="requests" className="space-y-4">
+                {requests.length > 0 ? requests.map(b => (
+                  <div key={b.id} className="space-y-3">
+                    <BookingCard booking={b} role="lensman" />
+                    <QuoteForm booking={b} onSent={refresh} />
+                  </div>
+                )) : (
+                  <p className="text-center py-16 text-muted-foreground">No new requests right now.</p>
                 )}
               </TabsContent>
-              <TabsContent value="delivery" className="space-y-4">
-                {needsDelivery.length > 0 ? needsDelivery.map(b => <BookingCard key={b.id} booking={b} role="lensman" />) : (
-                  <p className="text-center py-16 text-muted-foreground">No pending deliveries</p>
+              <TabsContent value="upcoming" className="space-y-4">
+                {upcoming.length > 0 ? upcoming.map(b => <BookingCard key={b.id} booking={b} role="lensman" />) : (
+                  <p className="text-center py-16 text-muted-foreground">No quoted bookings yet.</p>
+                )}
+              </TabsContent>
+              <TabsContent value="deliveries" className="space-y-4">
+                {deliveries.length > 0 ? deliveries.map(b => (
+                  <div key={b.id} className="space-y-3">
+                    <BookingCard booking={b} role="lensman" />
+                    <DeliveryForm booking={b} onDelivered={refresh} />
+                  </div>
+                )) : (
+                  <p className="text-center py-16 text-muted-foreground">Nothing waiting on delivery.</p>
                 )}
               </TabsContent>
               <TabsContent value="completed" className="space-y-4">
                 {completed.length > 0 ? completed.map(b => <BookingCard key={b.id} booking={b} role="lensman" />) : (
-                  <p className="text-center py-16 text-muted-foreground">No completed bookings yet</p>
+                  <p className="text-center py-16 text-muted-foreground">No completed bookings yet.</p>
                 )}
               </TabsContent>
             </>

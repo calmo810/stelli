@@ -7,17 +7,17 @@ import { motion } from 'framer-motion';
 const steps = [
   { icon: Camera, title: 'Tell us about your moment', desc: 'Birthday, content day, music video — pick your event type and date. We match you with creators who specialize in exactly that.' },
   { icon: Users, title: 'Browse vetted creators', desc: "Every lensman on Stelli is handpicked and reviewed. Browse portfolios, check reviews, and find someone whose style matches your vision." },
-  { icon: CreditCard, title: 'Book with confidence', desc: "Choose your package, pick add-ons, and pay securely. Your money is held safely in escrow — we don't release it until you're happy." },
+  { icon: CreditCard, title: 'Accept a private quote', desc: "Your creator replies with a quote built for your actual brief. Accept it to lock the date and pay securely — your money is held in escrow until you're happy." },
   { icon: MessageCircle, title: 'Coordinate with your creator', desc: 'Chat directly with your lensman before the shoot. Share shot lists, venue details, and any creative ideas.' },
   { icon: Image, title: 'Get your files', desc: 'Edited photos and video delivered within 14 days (or 5 days with rush delivery). Download everything from your dashboard.' },
 ];
 
 const faqs = [
-  { q: 'How does payment work?', a: "When you book, your payment is held in escrow. We only release it to the creator after you've confirmed you received your files and everything looks great." },
+  { q: 'How does payment work?', a: "Send a request, get a private quote, and pay only when you accept it. Your payment is held in escrow, and we only release it to the creator after you've received your files." },
   { q: 'What if I need to cancel?', a: "Cancellations made more than 48 hours before the shoot get a full refund. Within 48 hours, a 50% fee applies. We know plans change — we'll always try to work with you." },
   { q: 'How are creators vetted?', a: "Every lensman goes through a portfolio review, reference check, and test shoot before being approved. We keep ~10 creators per neighborhood to maintain quality." },
   { q: 'How long until I get my photos?', a: "Standard delivery is 14 days after your shoot. Need them sooner? Add rush delivery for 5-day turnaround." },
-  { q: "What's a Content Day?", a: 'A full-day shoot designed for businesses and brands. You get 60+ edited photos and social media content for $1,000–$1,200. Perfect for restaurants, product lines, and personal brands.' },
+  { q: "What's a Content Day?", a: 'A full-day shoot designed for businesses and brands. You get 60+ edited photos and social media content in one afternoon. Perfect for restaurants, product lines, and personal brands — request one and your creator quotes the day.' },
   { q: 'Can I request specific shots?', a: "Absolutely. Once your booking is confirmed, you can share a shot list, mood board, or reference images directly with your creator via our messaging system." },
 ];
 

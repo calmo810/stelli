@@ -10,14 +10,14 @@ const PROFILES = {
   calvin: {
     slug: 'calvin', full_name: 'Calvin Monfried', display_name: 'Calvin',
     bio: 'Downtown New York. Direct flash, available light, real people mid-motion. I shoot the night the way it actually felt — not the way it looked on the way in.',
-    neighborhoods: ['Williamsburg', 'LES', 'Bushwick'], specialties: ['Birthdays', 'Music Videos', 'Events', 'Content Days'], style_tags: ['direct flash', 'documentary', 'candid', 'night'], years_experience: 6, avg_rating: 5.0, review_count: 24, rate_half_day: 800, rate_full_day: 1400,
+    neighborhoods: ['Williamsburg', 'LES', 'Bushwick'], specialties: ['Birthdays', 'Music Videos', 'Events', 'Content Days'], style_tags: ['direct flash', 'documentary', 'candid', 'night'], years_experience: 6, avg_rating: 5.0, review_count: 24,
     portfolio_images: ['https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=900&h=1100&fit=crop&q=88','https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=900&h=1100&fit=crop&q=88','https://images.unsplash.com/photo-1524593166156-312f362cada0?w=900&h=1100&fit=crop&q=88','https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=900&h=1100&fit=crop&q=88','https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=900&h=1100&fit=crop&q=88','https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=900&h=1100&fit=crop&q=88'],
     profile_image: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=900&h=1100&fit=crop&q=88',
   },
   wyatt: {
     slug: 'wyatt', full_name: 'Wyatt Trundle', display_name: 'Wyatt',
     bio: 'I move between film and digital depending on the light. Portraits, parties, content. I show up early and leave when it gets good.',
-    neighborhoods: ['West Village', 'SoHo', 'DUMBO', 'Chelsea'], specialties: ['Portraits', 'Content Days', 'Restaurant Launches', 'Proposals'], style_tags: ['film', 'editorial', 'portrait', 'day'], years_experience: 4, avg_rating: 4.9, review_count: 17, rate_half_day: 750, rate_full_day: 1300,
+    neighborhoods: ['West Village', 'SoHo', 'DUMBO', 'Chelsea'], specialties: ['Portraits', 'Content Days', 'Restaurant Launches', 'Proposals'], style_tags: ['film', 'editorial', 'portrait', 'day'], years_experience: 4, avg_rating: 4.9, review_count: 17,
     portfolio_images: ['https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=900&h=1100&fit=crop&q=88','https://images.unsplash.com/photo-1524593166156-312f362cada0?w=900&h=1100&fit=crop&q=88','https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=900&h=1100&fit=crop&q=88','https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=900&h=1100&fit=crop&q=88','https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=900&h=1100&fit=crop&q=88','https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=900&h=1100&fit=crop&q=88'],
     profile_image: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=900&h=1100&fit=crop&q=88',
   },
@@ -65,10 +65,10 @@ export default function LensmanProfile() {
   const bookingCta = lensman.booking_cta || 'Book safely through Stelli';
   const images = lensman.portfolio_images || [];
   const packages = [
-    lensman.rate_half_day && { name: 'The Moment', desc: '4-hour shoot · edited gallery · digital delivery', price: lensman.rate_half_day, type: 'half_day' },
-    lensman.rate_full_day && { name: 'The Full Day', desc: '8-hour shoot · photo + video package', price: lensman.rate_full_day, type: 'full_day' },
-    lensman.rate_custom && { name: 'Custom', desc: lensman.custom_package_description || 'Built around your brief', price: lensman.rate_custom, type: 'custom' },
-  ].filter(Boolean);
+    { name: 'The Candid', desc: 'A short, fast shoot · edited gallery · digital delivery', type: 'half_day' },
+    { name: 'The Event Film', desc: 'Full event coverage · stills and motion, start to finish', type: 'full_day' },
+    { name: 'The Content Day', desc: lensman.custom_package_description || 'A full day, built for volume', type: 'custom' },
+  ];
 
   return (
     <div className="min-h-screen" style={{ background: '#f0ede6' }}>
@@ -134,8 +134,7 @@ export default function LensmanProfile() {
                     <p className="text-[12px] font-body mt-1" style={{ color: 'rgba(26,39,68,0.4)' }}>{pkg.desc}</p>
                   </div>
                   <div className="text-right shrink-0">
-                    <p className="font-display text-[24px] font-semibold" style={{ color: '#1a2744' }}>${pkg.price}</p>
-                    <Link to={`/book/${bookingId}?package=${pkg.type}`} className="text-[9px] font-body tracking-[0.1em] uppercase border-b pb-px" style={{ color: 'rgba(26,39,68,0.45)', borderColor: 'rgba(26,39,68,0.2)' }}>Book this →</Link>
+                    <Link to={`/book/${bookingId}?package=${pkg.type}`} className="text-[9px] font-body tracking-[0.1em] uppercase border-b pb-px" style={{ color: 'rgba(26,39,68,0.45)', borderColor: 'rgba(26,39,68,0.2)' }}>Request this →</Link>
                   </div>
                 </div>
               ))}

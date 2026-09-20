@@ -53,8 +53,6 @@ function ApplicationCard({ lensman, onApprove, onReject }) {
 
       <div className="flex items-center gap-4 text-xs text-muted-foreground mb-4">
         <span>{lensman.years_experience || 0} years experience</span>
-        <span>${lensman.rate_half_day || 0}/half day</span>
-        <span>${lensman.rate_full_day || 0}/full day</span>
         <span>{lensman.portfolio_images?.length || 0} photos</span>
       </div>
 

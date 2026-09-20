@@ -1,11 +1,14 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, MapPin, MessageCircle, FileText } from 'lucide-react';
+import { Calendar, MapPin, MessageCircle, FileText, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
 
 const statusColors = {
+  requested: 'bg-amber-100 text-amber-800',
+  quoted: 'bg-sky-100 text-sky-800',
+  quote_accepted: 'bg-indigo-100 text-indigo-800',
   pending: 'bg-amber-100 text-amber-800',
   awaiting_creator_acceptance: 'bg-amber-100 text-amber-800',
   confirmed: 'bg-blue-100 text-blue-800',
@@ -18,7 +21,7 @@ const statusColors = {
 };
 
 export default function BookingCard({ booking, role = 'client' }) {
-  const status = booking.status || 'pending';
+  const status = booking.status || 'requested';
   const displayDate = booking.event_date ? format(new Date(booking.event_date + 'T12:00:00'), 'MMM d, yyyy') : 'TBD';
 
   return (
@@ -45,15 +48,20 @@ export default function BookingCard({ booking, role = 'client' }) {
             <MapPin className="w-3 h-3" /> {booking.location}
           </div>
         )}
+        {booking.delivery_link && (
+          <a href={booking.delivery_link} target="_blank" rel="noreferrer"
+            className="flex items-center gap-2 text-xs font-medium text-foreground">
+            <ExternalLink className="w-3 h-3" /> Open delivered gallery
+          </a>
+        )}
       </div>
 
       <div className="flex items-center justify-between pt-3 border-t border-border">
-        <span className="text-sm font-semibold">${booking.total_price || 0}</span>
         <div className="flex gap-2">
           {booking.contract_id && (
             <Link to={`/agreements/${booking.contract_id}`}>
               <Button variant="outline" size="sm" className="h-8 text-xs rounded-full">
-                <FileText className="w-3 h-3 mr-1.5" /> {role === 'lensman' && !booking.creator_contract_accepted ? 'Review Agreement' : 'Agreement'}
+                <FileText className="w-3 h-3 mr-1.5" /> Agreement
               </Button>
             </Link>
           )}

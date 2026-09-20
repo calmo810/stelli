@@ -1,16 +1,22 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Star, Calendar, Clock } from 'lucide-react';
 import BookingCard from '../components/dashboard/BookingCard';
+import QuotePanel from '../components/dashboard/QuotePanel';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import MyAgreements from '@/components/dashboard/MyAgreements';
 
+const UPCOMING = ['requested', 'quoted', 'quote_accepted', 'confirmed', 'in_progress'];
+const AWAITING = ['awaiting_delivery'];
+const PAST = ['delivered', 'completed'];
+
 export default function ClientDashboard() {
+  const queryClient = useQueryClient();
   const { data: user } = useQuery({ queryKey: ['me'], queryFn: () => base44.auth.me() });
 
   const { data: bookings = [], isLoading } = useQuery({
@@ -19,9 +25,23 @@ export default function ClientDashboard() {
     queryFn: () => base44.entities.Booking.filter({ client_email: user.email }, '-created_date'),
   });
 
-  const upcoming = bookings.filter(b => ['pending', 'awaiting_creator_acceptance', 'confirmed', 'in_progress'].includes(b.status));
-  const awaiting = bookings.filter(b => b.status === 'awaiting_delivery');
-  const past = bookings.filter(b => ['delivered', 'completed'].includes(b.status));
+  const { data: quotes = [] } = useQuery({
+    queryKey: ['client-quotes'],
+    queryFn: () => base44.entities.Quote.list('-created_date'),
+  });
+
+  const quoteFor = (bookingId) =>
+    quotes.find(q => q.booking_id === bookingId && q.status === 'sent');
+
+  const refresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['client-bookings'] });
+    queryClient.invalidateQueries({ queryKey: ['client-quotes'] });
+  };
+
+  const upcoming = bookings.filter(b => UPCOMING.includes(b.status));
+  const awaiting = bookings.filter(b => AWAITING.includes(b.status));
+  const past = bookings.filter(b => PAST.includes(b.status));
+  const openQuotes = bookings.filter(b => quoteFor(b.id)).length;
 
   return (
     <div className="min-h-screen bg-cream">
@@ -29,7 +49,7 @@ export default function ClientDashboard() {
         <div className="max-w-5xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <h1 className="font-display text-2xl sm:text-3xl font-semibold mb-2">Your Dashboard</h1>
-            <p className="text-sm text-muted-foreground">Manage your bookings, messages, and deliveries.</p>
+            <p className="text-sm text-muted-foreground">Manage your requests, quotes, and deliveries.</p>
           </motion.div>
         </div>
       </div>
@@ -39,12 +59,11 @@ export default function ClientDashboard() {
           <MyAgreements role="client" />
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           {[
             { icon: Calendar, label: 'Upcoming', value: upcoming.length },
-            { icon: Clock, label: 'Awaiting Delivery', value: awaiting.length },
-            { icon: Star, label: 'Completed', value: past.length },
+            { icon: Clock, label: 'Quotes to review', value: openQuotes },
+            { icon: Star, label: 'Delivered', value: past.length },
           ].map((stat, i) => (
             <div key={i} className="bg-card border border-border rounded-2xl p-4 text-center">
               <stat.icon className="w-4 h-4 text-muted-foreground mx-auto mb-2" />
@@ -58,7 +77,7 @@ export default function ClientDashboard() {
           <TabsList className="bg-card border border-border rounded-full p-1">
             <TabsTrigger value="upcoming" className="rounded-full text-xs">Upcoming ({upcoming.length})</TabsTrigger>
             <TabsTrigger value="awaiting" className="rounded-full text-xs">Awaiting ({awaiting.length})</TabsTrigger>
-            <TabsTrigger value="past" className="rounded-full text-xs">Past ({past.length})</TabsTrigger>
+            <TabsTrigger value="past" className="rounded-full text-xs">Delivered ({past.length})</TabsTrigger>
           </TabsList>
 
           {isLoading ? (
@@ -68,10 +87,17 @@ export default function ClientDashboard() {
           ) : (
             <>
               <TabsContent value="upcoming" className="space-y-4">
-                {upcoming.length > 0 ? upcoming.map(b => <BookingCard key={b.id} booking={b} role="client" />) : (
+                {upcoming.length > 0 ? upcoming.map(b => (
+                  <div key={b.id} className="space-y-3">
+                    <BookingCard booking={b} role="client" />
+                    {quoteFor(b.id) && (
+                      <QuotePanel quote={quoteFor(b.id)} booking={b} onAccepted={refresh} />
+                    )}
+                  </div>
+                )) : (
                   <div className="text-center py-16">
-                    <p className="text-muted-foreground mb-4">No upcoming bookings</p>
-                    <Link to="/browse"><Button className="rounded-full bg-foreground text-background">Browse Lensmen</Button></Link>
+                    <p className="text-muted-foreground mb-4">No requests yet</p>
+                    <Link to="/creators"><Button className="rounded-full bg-foreground text-background">Browse creators</Button></Link>
                   </div>
                 )}
               </TabsContent>
@@ -84,16 +110,16 @@ export default function ClientDashboard() {
                 {past.length > 0 ? past.map(b => (
                   <div key={b.id} className="relative">
                     <BookingCard booking={b} role="client" />
-                    {b.delivered_files?.length > 0 && (
+                    {b.delivery_link && (
                       <div className="absolute top-4 right-4">
                         <Link to={`/album/${b.id}`}>
-                          <Button size="sm" className="rounded-full bg-foreground text-background text-xs">View Album</Button>
+                          <Button size="sm" className="rounded-full bg-foreground text-background text-xs">Memory album</Button>
                         </Link>
                       </div>
                     )}
                   </div>
                 )) : (
-                  <p className="text-center py-16 text-muted-foreground">No past bookings yet</p>
+                  <p className="text-center py-16 text-muted-foreground">Nothing delivered yet</p>
                 )}
               </TabsContent>
             </>

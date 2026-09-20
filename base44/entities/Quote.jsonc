@@ -1,0 +1,117 @@
+{
+  "name": "Quote",
+  "type": "object",
+  "properties": {
+    "booking_id": {
+      "type": "string",
+      "description": "Booking this quote answers"
+    },
+    "creator_id": {
+      "type": "string",
+      "description": "Creator who sent the quote"
+    },
+    "client_email": {
+      "type": "string",
+      "description": "Client email, used to scope access to the quote"
+    },
+    "creator_email": {
+      "type": "string",
+      "description": "Creator email, used to scope access to the quote"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Quoted total in USD"
+    },
+    "message": {
+      "type": "string",
+      "description": "Note from the creator to the client"
+    },
+    "included_edits": {
+      "type": "number",
+      "default": 30,
+      "description": "Edited photos included in the quote"
+    },
+    "add_ons": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Named line items included in the quote"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the quote stops being valid"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "sent",
+        "accepted",
+        "declined",
+        "expired"
+      ],
+      "default": "sent",
+      "description": "Quote state"
+    }
+  },
+  "required": [
+    "booking_id",
+    "creator_id",
+    "amount"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.client_email": "{{user.email}}"
+        },
+        {
+          "data.creator_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "data.creator_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.creator_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

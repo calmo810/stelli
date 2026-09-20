@@ -1,5 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { secrets } from 'base44:runtime';
+import { notifyBoth } from '../../shared/notify.ts';
+import { PRODUCT_NAMES } from '../../shared/bookingContract.ts';
 
 function parseSignatureHeader(header) {
   const parsed = { timestamp: null, signatures: [] };
@@ -59,9 +61,22 @@ export default async function (req) {
       const bookingId = session?.metadata?.booking_id;
 
       if (bookingId) {
-        await base44.asServiceRole.entities.Booking.update(bookingId, {
-          payment_status: 'held',
-        });
+        const booking = await base44.asServiceRole.entities.Booking.get(bookingId);
+
+        if (booking) {
+          await base44.asServiceRole.entities.Booking.update(bookingId, {
+            payment_status: 'held',
+            status: 'confirmed',
+          });
+
+          const formatName = PRODUCT_NAMES[booking.package_type] || 'your shoot';
+          await notifyBoth(
+            base44,
+            [booking.client_email, booking.lensman_email],
+            `Payment held · ${formatName}`,
+            `Payment of $${(booking.total_price || 0).toLocaleString()} is now held in escrow.\n\nShoot date: ${booking.event_date}\n\nThe money is released to the creator after delivery.`
+          );
+        }
       }
     }
 
