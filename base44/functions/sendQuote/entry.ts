@@ -1,6 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { notifyBoth } from '../../shared/notify.ts';
-import { PRODUCT_NAMES } from '../../shared/bookingContract.ts';
 
 export default async function (req) {
   try {
@@ -43,11 +42,9 @@ export default async function (req) {
       total_price: quote.amount,
     });
 
-    const formatName = PRODUCT_NAMES[booking.package_type] || 'your shoot';
     const lines = [
       `Your quote from ${booking.lensman_name || 'your creator'} is ready.`,
       '',
-      `Format: ${formatName}`,
       `Shoot date: ${booking.event_date}`,
       `Amount: $${quote.amount.toLocaleString()}`,
       `Edited photos included: ${quote.included_edits}`,
@@ -65,7 +62,7 @@ export default async function (req) {
     await notifyBoth(
       base44,
       [booking.client_email, booking.lensman_email],
-      `Your Stelli quote · ${formatName}`,
+      'Your Stelli quote',
       lines.join('\n')
     );
 

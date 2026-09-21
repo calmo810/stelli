@@ -1,8 +1,4 @@
-export const PRODUCT_NAMES = {
-  half_day: 'The Candid',
-  full_day: 'The Event Film',
-  custom: 'The Content Day',
-};
+export const BOOKING_LABEL = 'Stelli booking';
 
 export function addBusinessDays(dateString, days) {
   if (!dateString) return null;
@@ -17,7 +13,6 @@ export function addBusinessDays(dateString, days) {
 }
 
 export function buildContractText({ booking, lensman, amount, includedEdits, addOns }) {
-  const formatName = PRODUCT_NAMES[booking.package_type] || 'Stelli Shoot';
   const uneditedDeadline = addBusinessDays(booking.event_date, 3) || 'Pending shoot date';
   const editedDeadline = addBusinessDays(booking.event_date, 10) || 'Pending shoot date';
   const creatorName = lensman?.full_name || booking.lensman_name || 'Creator';
@@ -26,7 +21,7 @@ export function buildContractText({ booking, lensman, amount, includedEdits, add
 
 Client: ${booking.client_name || 'Client'}
 Creator: ${creatorName}
-Format: ${formatName}
+Booking: ${BOOKING_LABEL}
 Shoot date: ${booking.event_date || 'Pending'}
 Shoot time: ${booking.event_time || 'To be coordinated'}
 Shoot location: ${booking.location || 'To be coordinated'}
@@ -69,7 +64,7 @@ export async function createContractForBooking(base44, { booking, quote, lensman
     creator_id: booking.lensman_id,
     creator_email: lensman?.email || booking.lensman_email || '',
     creator_name: lensman?.full_name || booking.lensman_name || 'Creator',
-    format_name: PRODUCT_NAMES[booking.package_type] || 'Stelli Shoot',
+    format_name: BOOKING_LABEL,
     shoot_date: booking.event_date,
     shoot_time: booking.event_time || '',
     shoot_location: booking.location || '',

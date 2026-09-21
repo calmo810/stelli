@@ -31,7 +31,7 @@ Each confirmed booking is a direct contract between the client and the creator. 
 
 3. Booking and paying
 
-Creators set their own price for each format (The Candid, The Event Film, The Content Day). The price shown at checkout is final and includes the creator's fee, add-ons, and Stelli's client service fee.
+Creators quote their own price for each booking. The price shown at checkout is final and includes the creator's fee, add-ons, and Stelli's client service fee.
 
 A booking is confirmed when the client's payment goes through and the creator accepts. Contact details are shared only after confirmation, and only to coordinate the shoot.
 
@@ -47,11 +47,11 @@ Changes to a confirmed booking need the creator's approval through the platform.
 
 Unedited files: the creator uploads the full unedited set within 3 business days of the shoot. These are for selection only — clients may not publish or share them.
 
-Selection: the client picks the photos to be edited within 3 business days. Each format includes 30 edited photos unless the format page says otherwise. If the client doesn't choose in time, the creator picks, and the edit clock starts then.
+Selection: the client picks the photos to be edited within 3 business days. Each booking includes 30 edited photos unless the quote says otherwise. If the client doesn't choose in time, the creator picks, and the edit clock starts then.
 
 Extra edits: photos beyond the included 30 are an add-on at the creator's listed rate, paid through Stelli before the work starts.
 
-Edited files: delivered within 7 days of the client's selection. Video formats may have longer windows, shown on the format page.
+Edited files: delivered within 7 days of the client's selection. Video bookings may have longer windows, shown on the format page.
 
 Revisions: one free round — a single list of reasonable tweaks (color, crop, exposure, minor retouching) sent within 5 days of delivery. Re-editing different photos, changing the overall style, or late requests aren't included. Additional rounds are paid at the creator's rate.
 
@@ -101,7 +101,7 @@ Be respectful and professional. Stelli may immediately suspend or remove anyone 
 
 No sexually explicit shoots. Shoots involving minors require a parent or guardian present the entire time.
 
-Creators must show up on time with working gear suited to the format and do the job with reasonable professional skill. Clients must provide safe, reasonable access to the location and follow any venue rules.
+Creators must show up on time with working gear suited to the booking and do the job with reasonable professional skill. Clients must provide safe, reasonable access to the location and follow any venue rules.
 
 9. Reports, ratings, and removal
 
@@ -177,7 +177,7 @@ This Privacy Policy explains how Stelli [LLC/Inc.] ("Stelli," "we," "us") collec
 
 Account information: name, email address, phone number, and password. Creators also provide a bio, portfolio links, social media handles, the formats they offer, and their prices.
 
-Booking information: the format, date, time, shoot location address, price, add-ons, and any notes you enter when booking. A shoot address is something you type in — we never collect it from your device.
+Booking information: the date, time, shoot location address, price, add-ons, and any notes you enter when booking. A shoot address is something you type in — we never collect it from your device.
 
 Messages and communications: messages sent between Clients and Creators through the Platform, and any emails you send to Stelli.
 

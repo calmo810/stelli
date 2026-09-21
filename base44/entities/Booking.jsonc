@@ -69,55 +69,27 @@
     "event_date": {
       "type": "string",
       "format": "date",
-      "description": "Event date"
+      "description": "Requested shoot date"
     },
     "event_time": {
       "type": "string",
-      "description": "Event start time"
+      "description": "Requested start time"
     },
     "event_type": {
       "type": "string",
-      "enum": [
-        "birthday",
-        "dinner",
-        "rooftop",
-        "music_video",
-        "restaurant_launch",
-        "content_day",
-        "proposal",
-        "wedding",
-        "corporate",
-        "custom"
-      ],
-      "description": "Type of event"
+      "description": "Legacy event type from earlier bookings"
     },
     "event_description": {
       "type": "string",
-      "description": "Brief describing what the client wants captured"
+      "description": "Anything the client wants the creator to know"
     },
     "location": {
       "type": "string",
-      "description": "Event location/address"
+      "description": "Shoot location/address"
     },
     "attendees": {
       "type": "number",
       "description": "Number of attendees"
-    },
-    "package_type": {
-      "type": "string",
-      "enum": [
-        "half_day",
-        "full_day",
-        "custom"
-      ],
-      "description": "Requested format"
-    },
-    "add_ons": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "description": "Add-ons requested by the client"
     },
     "total_price": {
       "type": "number",
@@ -198,8 +170,7 @@
     "lensman_id",
     "client_name",
     "client_email",
-    "event_date",
-    "event_type"
+    "event_date"
   ],
   "rls": {
     "read": {

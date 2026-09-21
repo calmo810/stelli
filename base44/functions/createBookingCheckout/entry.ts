@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { secrets } from 'base44:runtime';
-import { PRODUCT_NAMES } from '../../shared/bookingContract.ts';
+import { BOOKING_LABEL } from '../../shared/bookingContract.ts';
 
 const PUBLISHED_ORIGIN = 'https://stelli-moment-craft.base44.app';
 
@@ -49,8 +49,7 @@ export default async function (req) {
     const amount = Math.round(Number(quote.amount) * 100);
     const base = (origin || PUBLISHED_ORIGIN).replace(/\/$/, '');
     const appId = secrets.get('BASE44_APP_ID') || '';
-    const formatName = PRODUCT_NAMES[booking.package_type] || 'Stelli Shoot';
-    const eventLabel = (booking.event_type || 'shoot').replace(/_/g, ' ');
+    const eventLabel = booking.event_description || 'Shoot';
 
     const body = new URLSearchParams();
     body.set('mode', 'payment');
@@ -60,7 +59,7 @@ export default async function (req) {
     body.set('line_items[0][quantity]', '1');
     body.set('line_items[0][price_data][currency]', 'usd');
     body.set('line_items[0][price_data][unit_amount]', String(amount));
-    body.set('line_items[0][price_data][product_data][name]', formatName);
+    body.set('line_items[0][price_data][product_data][name]', BOOKING_LABEL);
     body.set('line_items[0][price_data][product_data][description]', `${eventLabel} on ${booking.event_date || 'TBC'}`);
     body.set('metadata[base44_app_id]', appId);
     body.set('metadata[booking_id]', bookingId);

@@ -28,7 +28,7 @@ export default function BookingCard({ booking, role = 'client' }) {
     <div className="bg-card border border-border rounded-2xl p-5 hover:shadow-sm transition-shadow">
       <div className="flex items-start justify-between mb-3">
         <div>
-          <h3 className="font-semibold text-sm capitalize">{booking.event_type?.replace(/_/g, ' ') || 'Event'}</h3>
+          <h3 className="font-semibold text-sm capitalize">{booking.event_type?.replace(/_/g, ' ') || 'Booking'}</h3>
           <p className="text-xs text-muted-foreground mt-0.5">
             {role === 'client' ? booking.lensman_name : booking.client_name}
           </p>

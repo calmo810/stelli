@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { notifyBoth } from '../../shared/notify.ts';
-import { createContractForBooking, PRODUCT_NAMES } from '../../shared/bookingContract.ts';
+import { createContractForBooking } from '../../shared/bookingContract.ts';
 
 export default async function (req) {
   try {
@@ -44,11 +44,10 @@ export default async function (req) {
       client_accepted_at: new Date().toISOString(),
     });
 
-    const formatName = PRODUCT_NAMES[booking.package_type] || 'your shoot';
     await notifyBoth(
       base44,
       [booking.client_email, booking.lensman_email],
-      `Quote accepted · ${formatName}`,
+      'Quote accepted',
       `The quote for $${(quote.amount || 0).toLocaleString()} was accepted.\n\nShoot date: ${booking.event_date}\n\nThe booking agreement is now on file. The client can pay to lock the date, and payment stays held until delivery.`
     );
 

@@ -111,22 +111,6 @@
       },
       "description": "URLs of portfolio videos"
     },
-    "rate_half_day": {
-      "type": "number",
-      "description": "Rate for 4-hour shoot"
-    },
-    "rate_full_day": {
-      "type": "number",
-      "description": "Rate for full-day Content Day"
-    },
-    "rate_custom": {
-      "type": "number",
-      "description": "Custom package rate"
-    },
-    "custom_package_description": {
-      "type": "string",
-      "description": "Description of custom package"
-    },
     "style_tags": {
       "type": "array",
       "items": {

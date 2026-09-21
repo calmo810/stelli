@@ -10,8 +10,7 @@ function slugify(value = '') {
 
 const emptyProfile = {
   display_name: '', slug: '', profile_headline: '', profile_tagline: '', bio: '', booking_cta: '', featured_quote: '',
-  profile_theme: 'editorial_cream', gallery_style: 'hero_grid', profile_image: '', portfolio_images: [], specialties: [], neighborhoods: [],
-  rate_half_day: '', rate_full_day: '', rate_custom: '', custom_package_description: '', style_tags: [],
+  profile_theme: 'editorial_cream', gallery_style: 'hero_grid', profile_image: '', portfolio_images: [], specialties: [], neighborhoods: [], style_tags: [],
 };
 
 export default function ProfileEditor() {
@@ -61,10 +60,6 @@ export default function ProfileEditor() {
       specialties: form.specialties || [],
       neighborhoods: form.neighborhoods || [],
       style_tags: form.style_tags || [],
-      custom_package_description: form.custom_package_description,
-      rate_half_day: parseInt(form.rate_half_day) || 0,
-      rate_full_day: parseInt(form.rate_full_day) || 0,
-      rate_custom: parseInt(form.rate_custom) || 0,
     }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['my-lensman-profile'] }),
   });
@@ -150,16 +145,6 @@ export default function ProfileEditor() {
               </div>
             </div>
           </div>
-        </section>
-
-        <section className="border p-6" style={{ background: '#ece9e2', borderColor: 'rgba(26,39,68,0.12)' }}>
-          <h3 className="font-display text-2xl font-semibold mb-5" style={{ color: '#1a2744' }}>Booking products</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Field label="Half day"><input type="number" value={form.rate_half_day || ''} onChange={e => update('rate_half_day', e.target.value)} /></Field>
-            <Field label="Full day"><input type="number" value={form.rate_full_day || ''} onChange={e => update('rate_full_day', e.target.value)} /></Field>
-            <Field label="Custom"><input type="number" value={form.rate_custom || ''} onChange={e => update('rate_custom', e.target.value)} /></Field>
-          </div>
-          <Field label="Custom package description"><input value={form.custom_package_description || ''} onChange={e => update('custom_package_description', e.target.value)} /></Field>
         </section>
       </div>
 

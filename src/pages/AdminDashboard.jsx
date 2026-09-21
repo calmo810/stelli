@@ -216,7 +216,7 @@ export default function AdminDashboard() {
                 <div key={b.id} className={`${CARD} p-5 flex items-center justify-between gap-4`} style={SURFACE}>
                   <div>
                     <h3 className="font-heading text-[18px] font-semibold text-white capitalize leading-tight">
-                      {b.event_type?.replace(/_/g, ' ')}
+                      {b.event_type?.replace(/_/g, ' ') || 'Booking'}
                     </h3>
                     <p className="label-mono text-[9px] text-white/40 mt-2">
                       {b.client_name} → {b.lensman_name} · {b.event_date}

@@ -21,8 +21,7 @@ export default function CreatorApplication() {
     full_name: '', email: '', phone: '',
     neighborhoods: [], years_experience: '',
     portfolio_images: [], bio: '', specialties: [],
-    equipment: '', rate_half_day: '', rate_full_day: '', rate_custom: '',
-    custom_package_description: '',
+    equipment: '',
     blackout_dates: [],
   });
 
@@ -66,9 +65,6 @@ export default function CreatorApplication() {
     createLensman.mutate({
       ...form,
       years_experience: parseInt(form.years_experience) || 0,
-      rate_half_day: parseInt(form.rate_half_day) || 800,
-      rate_full_day: parseInt(form.rate_full_day) || 1200,
-      rate_custom: parseInt(form.rate_custom) || 0,
       display_name: displayName,
       slug,
       profile_headline: `Book ${displayName} safely through Stelli.`,
@@ -90,7 +86,7 @@ export default function CreatorApplication() {
       case 1: return form.full_name && form.email && form.neighborhoods.length > 0;
       case 2: return form.portfolio_images.length >= 5;
       case 3: return form.bio && form.specialties.length > 0;
-      case 4: return form.rate_half_day && legalAgreed;
+      case 4: return legalAgreed;
       default: return true;
     }
   };
@@ -229,37 +225,8 @@ export default function CreatorApplication() {
 
             {step === 4 && (
               <div className="bg-card border border-border rounded-2xl p-8 space-y-5">
-                <h2 className="font-display text-xl font-semibold">Pricing</h2>
-                <p className="text-sm text-muted-foreground">Set your day rates. You can always change these later.</p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm mb-1.5 block">Half Day Rate (4 hours) *</Label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                      <Input type="number" value={form.rate_half_day} onChange={e => update('rate_half_day', e.target.value)} className="rounded-xl pl-7" placeholder="800" />
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="text-sm mb-1.5 block">Full Day Rate (8 hours)</Label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                      <Input type="number" value={form.rate_full_day} onChange={e => update('rate_full_day', e.target.value)} className="rounded-xl pl-7" placeholder="1200" />
-                    </div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm mb-1.5 block">Custom Package Rate</Label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">$</span>
-                      <Input type="number" value={form.rate_custom} onChange={e => update('rate_custom', e.target.value)} className="rounded-xl pl-7" placeholder="2000" />
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="text-sm mb-1.5 block">Custom Package Description</Label>
-                    <Input value={form.custom_package_description} onChange={e => update('custom_package_description', e.target.value)} className="rounded-xl" placeholder="e.g. 8-hour wedding" />
-                  </div>
-                </div>
+                <h2 className="font-display text-xl font-semibold">Almost done</h2>
+                <p className="text-sm text-muted-foreground">You'll quote each booking yourself once clients start sending dates.</p>
                 <label className="flex items-start gap-3 rounded-xl border border-border p-4 cursor-pointer">
                   <Checkbox checked={legalAgreed} onCheckedChange={setLegalAgreed} className="mt-0.5" />
                   <span className="text-xs leading-relaxed text-muted-foreground">

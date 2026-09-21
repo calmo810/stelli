@@ -16,7 +16,6 @@ import ClientDashboard from './pages/ClientDashboard';
 import LensmanDashboard from './pages/LensmanDashboard';
 import Messages from './pages/Messages';
 import AdminDashboard from './pages/AdminDashboard';
-import ContentDay from './pages/ContentDay';
 import MemoryAlbum from './pages/MemoryAlbum';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
@@ -81,7 +80,6 @@ const AuthenticatedApp = () => {
         <Route path="/lensman-dashboard" element={<LensmanDashboard />} />
         <Route path="/messages/:bookingId" element={<Messages />} />
         <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-        <Route path="/content-day" element={<ContentDay />} />
         <Route path="/album/:bookingId" element={<MemoryAlbum />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />

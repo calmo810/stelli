@@ -7,7 +7,7 @@ export const MARKETS = [
     id: 'NYC',
     label: 'New York City',
     short: 'NYC',
-    blurb: 'Events, editorial, content days.',
+    blurb: 'Events, editorial, anything.',
   },
   {
     id: 'ELON',

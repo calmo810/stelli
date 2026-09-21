@@ -5,8 +5,8 @@ const FAQS = [
     a: 'Every shoot is quoted privately by the creator once you send a request. You will never see a price tag on a profile — creators price the actual work, not a template.',
   },
   {
-    q: 'Is "The Candid" a good first shoot?',
-    a: 'The Candid is built to be an easy yes — a short, fast shoot that gets you real photos without committing a whole day.',
+    q: 'What can I book?',
+    a: "Anything a photographer or filmmaker can shoot. Send a date, tell them what you're planning, and they'll quote it.",
   },
   {
     q: 'When does my creator get paid?',
