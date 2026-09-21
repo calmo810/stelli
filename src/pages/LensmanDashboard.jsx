@@ -1,6 +1,5 @@
 import React from 'react';
-import { base44 } from '@/api/base44Client';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Star, Calendar, Inbox, Link2, UserRound } from 'lucide-react';
 import BookingCard from '../components/dashboard/BookingCard';
@@ -10,27 +9,20 @@ import ProfileEditor from '../components/dashboard/ProfileEditor';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
 import MyAgreements from '@/components/dashboard/MyAgreements';
-
-const UPCOMING = ['quoted', 'quote_accepted'];
-const DELIVERIES = ['confirmed', 'in_progress', 'awaiting_delivery'];
-const COMPLETED = ['delivered', 'completed'];
+import { CREATOR_BOOKING_STATUSES } from '@/features/bookings/booking.constants';
+import { useCreatorBookings, useCurrentUser } from '@/features/bookings/booking.queries';
 
 export default function LensmanDashboard() {
   const queryClient = useQueryClient();
-  const { data: user } = useQuery({ queryKey: ['me'], queryFn: () => base44.auth.me() });
-
-  const { data: bookings = [], isLoading } = useQuery({
-    queryKey: ['lensman-bookings', user?.email],
-    enabled: !!user?.email,
-    queryFn: () => base44.entities.Booking.filter({ lensman_email: user.email }, '-created_date'),
-  });
+  const { data: user } = useCurrentUser();
+  const { data: bookings = [], isLoading } = useCreatorBookings(user?.email);
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['lensman-bookings'] });
 
-  const requests = bookings.filter(b => b.status === 'requested');
-  const upcoming = bookings.filter(b => UPCOMING.includes(b.status));
-  const deliveries = bookings.filter(b => DELIVERIES.includes(b.status));
-  const completed = bookings.filter(b => COMPLETED.includes(b.status));
+  const requests = bookings.filter(b => CREATOR_BOOKING_STATUSES.requests.includes(b.status));
+  const upcoming = bookings.filter(b => CREATOR_BOOKING_STATUSES.upcoming.includes(b.status));
+  const deliveries = bookings.filter(b => CREATOR_BOOKING_STATUSES.deliveries.includes(b.status));
+  const completed = bookings.filter(b => CREATOR_BOOKING_STATUSES.completed.includes(b.status));
 
   return (
     <div className="min-h-screen" style={{ background: '#f0ede6' }}>

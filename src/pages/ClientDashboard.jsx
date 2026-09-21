@@ -1,6 +1,5 @@
 import React from 'react';
-import { base44 } from '@/api/base44Client';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Star, Calendar, Clock } from 'lucide-react';
 import BookingCard from '../components/dashboard/BookingCard';
@@ -10,25 +9,14 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import MyAgreements from '@/components/dashboard/MyAgreements';
-
-const UPCOMING = ['requested', 'quoted', 'quote_accepted', 'confirmed', 'in_progress'];
-const AWAITING = ['awaiting_delivery'];
-const PAST = ['delivered', 'completed'];
+import { CLIENT_BOOKING_STATUSES } from '@/features/bookings/booking.constants';
+import { useClientBookings, useCurrentUser, useQuotes } from '@/features/bookings/booking.queries';
 
 export default function ClientDashboard() {
   const queryClient = useQueryClient();
-  const { data: user } = useQuery({ queryKey: ['me'], queryFn: () => base44.auth.me() });
-
-  const { data: bookings = [], isLoading } = useQuery({
-    queryKey: ['client-bookings', user?.email],
-    enabled: !!user?.email,
-    queryFn: () => base44.entities.Booking.filter({ client_email: user.email }, '-created_date'),
-  });
-
-  const { data: quotes = [] } = useQuery({
-    queryKey: ['client-quotes'],
-    queryFn: () => base44.entities.Quote.list('-created_date'),
-  });
+  const { data: user } = useCurrentUser();
+  const { data: bookings = [], isLoading } = useClientBookings(user?.email);
+  const { data: quotes = [] } = useQuotes();
 
   const quoteFor = (bookingId) =>
     quotes.find(q => q.booking_id === bookingId && q.status === 'sent');
@@ -38,9 +26,9 @@ export default function ClientDashboard() {
     queryClient.invalidateQueries({ queryKey: ['client-quotes'] });
   };
 
-  const upcoming = bookings.filter(b => UPCOMING.includes(b.status));
-  const awaiting = bookings.filter(b => AWAITING.includes(b.status));
-  const past = bookings.filter(b => PAST.includes(b.status));
+  const upcoming = bookings.filter(b => CLIENT_BOOKING_STATUSES.upcoming.includes(b.status));
+  const awaiting = bookings.filter(b => CLIENT_BOOKING_STATUSES.awaitingDelivery.includes(b.status));
+  const past = bookings.filter(b => CLIENT_BOOKING_STATUSES.past.includes(b.status));
   const openQuotes = bookings.filter(b => quoteFor(b.id)).length;
 
   return (
