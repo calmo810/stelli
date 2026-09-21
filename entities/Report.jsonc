@@ -1,0 +1,31 @@
+{
+  "name": "Report",
+  "type": "object",
+  "properties": {
+    "reporter_id": { "type": "string", "description": "Account that filed the report" },
+    "reporter_email": { "type": "string", "description": "Email of the reporter" },
+    "reported_lensman_id": { "type": "string", "description": "Creator profile being reported, if any" },
+    "reported_email": { "type": "string", "description": "Email of the person being reported, if any" },
+    "booking_id": { "type": "string", "description": "Related booking, if any" },
+    "reason": {
+      "type": "string",
+      "enum": ["no_show", "off_platform_booking", "late_delivery", "behavior", "photos_misused", "other"],
+      "description": "Why the report was filed"
+    },
+    "details": { "type": "string", "description": "What happened, in the reporter's words" },
+    "status": {
+      "type": "string",
+      "enum": ["open", "reviewing", "resolved", "dismissed"],
+      "default": "open",
+      "description": "Where the report stands"
+    },
+    "admin_notes": { "type": "string", "description": "Internal notes from the founders" }
+  },
+  "required": ["reason", "details"],
+  "rls": {
+    "read": { "user_condition": { "role": "admin" } },
+    "create": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}

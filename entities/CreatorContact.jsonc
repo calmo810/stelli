@@ -1,0 +1,22 @@
+{
+  "name": "CreatorContact",
+  "type": "object",
+  "properties": {
+    "lensman_id": { "type": "string", "description": "Creator profile this contact belongs to" },
+    "user_id": { "type": "string", "description": "Account ID of the creator" },
+    "email": { "type": "string", "description": "Creator contact email. Never shown publicly." },
+    "phone": { "type": "string", "description": "Creator contact phone. Never shown publicly." }
+  },
+  "required": ["lensman_id", "email"],
+  "rls": {
+    "read": {
+      "$or": [
+        { "data.user_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "create": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}

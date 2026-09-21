@@ -1,0 +1,157 @@
+{
+  "name": "BookingContract",
+  "type": "object",
+  "properties": {
+    "booking_id": {
+      "type": "string",
+      "description": "Related booking ID"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "Client user ID"
+    },
+    "client_email": {
+      "type": "string",
+      "description": "Client email"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Client name"
+    },
+    "creator_id": {
+      "type": "string",
+      "description": "Creator/lensman ID"
+    },
+    "creator_email": {
+      "type": "string",
+      "description": "Creator email"
+    },
+    "creator_name": {
+      "type": "string",
+      "description": "Creator name"
+    },
+    "format_name": {
+      "type": "string",
+      "description": "Booked format/package name"
+    },
+    "shoot_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Shoot date"
+    },
+    "shoot_time": {
+      "type": "string",
+      "description": "Shoot start time"
+    },
+    "shoot_location": {
+      "type": "string",
+      "description": "Shoot location"
+    },
+    "creator_fee": {
+      "type": "number",
+      "description": "Creator fee"
+    },
+    "add_ons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Booking add-ons"
+    },
+    "total_paid": {
+      "type": "number",
+      "description": "Total paid by client"
+    },
+    "included_edited_photos": {
+      "type": "number",
+      "default": 30,
+      "description": "Included edited photos"
+    },
+    "unedited_delivery_deadline": {
+      "type": "string",
+      "format": "date",
+      "description": "Deadline for unedited delivery"
+    },
+    "edited_delivery_deadline": {
+      "type": "string",
+      "format": "date",
+      "description": "Deadline for edited delivery"
+    },
+    "contract_text": {
+      "type": "string",
+      "description": "Rendered agreement text"
+    },
+    "terms_version": {
+      "type": "string",
+      "description": "Terms version active for this booking"
+    },
+    "privacy_version": {
+      "type": "string",
+      "description": "Privacy version active for this booking"
+    },
+    "version": {
+      "type": "string",
+      "description": "Contract template version"
+    },
+    "client_accepted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Client acceptance timestamp"
+    },
+    "creator_accepted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Creator acceptance timestamp"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Contract creation timestamp"
+    }
+  },
+  "required": [
+    "booking_id",
+    "client_email",
+    "creator_id",
+    "format_name",
+    "shoot_date",
+    "contract_text",
+    "version",
+    "created_at"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.client_id": "{{user.id}}"
+        },
+        {
+          "data.client_email": "{{user.email}}"
+        },
+        {
+          "data.creator_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

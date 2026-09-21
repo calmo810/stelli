@@ -1,0 +1,142 @@
+{
+  "name": "Lensman",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Account ID of the creator who owns this profile"
+    },
+    "full_name": {
+      "type": "string",
+      "description": "Full name of the creator"
+    },
+    "display_name": {
+      "type": "string",
+      "description": "Public display name"
+    },
+    "slug": {
+      "type": "string",
+      "description": "Public profile slug for getstelli.com/creators/slug"
+    },
+    "market": {
+      "type": "string",
+      "enum": ["NYC", "ELON"],
+      "default": "NYC",
+      "description": "Market this creator operates in"
+    },
+    "instagram": {
+      "type": "string",
+      "description": "Instagram handle"
+    },
+    "bio": {
+      "type": "string",
+      "description": "Short bio about why they create"
+    },
+    "profile_headline": {
+      "type": "string",
+      "description": "Custom hero headline for public profile"
+    },
+    "profile_tagline": {
+      "type": "string",
+      "description": "Short positioning line shown on the profile"
+    },
+    "booking_cta": {
+      "type": "string",
+      "description": "Custom booking button text"
+    },
+    "featured_quote": {
+      "type": "string",
+      "description": "Short creator quote or profile note"
+    },
+    "gallery_style": {
+      "type": "string",
+      "enum": ["ordered_grid", "hero_grid", "contact_sheet"],
+      "default": "hero_grid",
+      "description": "How portfolio images are arranged"
+    },
+    "neighborhoods": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Neighborhoods where they work"
+    },
+    "specialties": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Specialties like Portraits, Events, Commercial, Music Videos"
+    },
+    "years_experience": {
+      "type": "number",
+      "description": "Years of experience"
+    },
+    "equipment": {
+      "type": "string",
+      "description": "Equipment/gear description"
+    },
+    "portfolio_images": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "URLs of portfolio images"
+    },
+    "portfolio_videos": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "URLs of portfolio videos"
+    },
+    "style_tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Style tags like portrait, documentary, vibrant, moody"
+    },
+    "avg_rating": {
+      "type": "number",
+      "description": "Average star rating. Stays empty until the first real review."
+    },
+    "review_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of reviews"
+    },
+    "completed_shoots": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of completed shoots"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "approved", "rejected", "suspended"],
+      "default": "pending",
+      "description": "Vetting status. Only admins can change this."
+    },
+    "is_shadow_banned": {
+      "type": "boolean",
+      "default": false,
+      "description": "Hidden from public lists but the account still works"
+    },
+    "admin_notes": {
+      "type": "string",
+      "description": "Internal notes from vetting"
+    },
+    "blackout_dates": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Dates when the creator is unavailable"
+    },
+    "profile_image": {
+      "type": "string",
+      "description": "Profile image URL"
+    }
+  },
+  "required": ["full_name"],
+  "rls": {
+    "read": {
+      "$or": [
+        { "data.status": "approved" },
+        { "data.user_id": "{{user.id}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "create": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}

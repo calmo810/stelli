@@ -1,0 +1,33 @@
+{
+  "name": "Message",
+  "type": "object",
+  "properties": {
+    "booking_id": { "type": "string", "description": "Booking this message belongs to" },
+    "sender_id": { "type": "string", "description": "Account ID of the sender, set by the server" },
+    "sender_name": { "type": "string", "description": "Name of the sender, set by the server" },
+    "sender_role": { "type": "string", "enum": ["client", "creator"], "description": "Which side sent it, set by the server" },
+    "client_email": { "type": "string", "description": "Client on this booking, for access rules" },
+    "creator_email": { "type": "string", "description": "Creator on this booking, for access rules" },
+    "content": { "type": "string", "description": "Message text" },
+    "kind": {
+      "type": "string",
+      "enum": ["text", "quote", "system"],
+      "default": "text",
+      "description": "Plain message, a quote card, or a status update from Stelli"
+    },
+    "quote_id": { "type": "string", "description": "Quote shown in this message when kind is quote" }
+  },
+  "required": ["booking_id", "content"],
+  "rls": {
+    "read": {
+      "$or": [
+        { "data.client_email": "{{user.email}}" },
+        { "data.creator_email": "{{user.email}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "create": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}

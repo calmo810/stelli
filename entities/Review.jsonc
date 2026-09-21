@@ -1,0 +1,24 @@
+{
+  "name": "Review",
+  "type": "object",
+  "properties": {
+    "booking_id": { "type": "string", "description": "Completed booking this review is for" },
+    "lensman_id": { "type": "string", "description": "Creator being reviewed" },
+    "client_id": { "type": "string", "description": "Client account that left the review" },
+    "client_name": { "type": "string", "description": "Name shown on the review" },
+    "rating": { "type": "number", "description": "Star rating 1-5" },
+    "comment": { "type": "string", "description": "Written review" },
+    "photos": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Photos the client chose to share"
+    }
+  },
+  "required": ["booking_id", "lensman_id", "rating"],
+  "rls": {
+    "read": {},
+    "create": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}

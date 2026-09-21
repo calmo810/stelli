@@ -1,0 +1,39 @@
+{
+  "name": "Quote",
+  "type": "object",
+  "properties": {
+    "booking_id": { "type": "string", "description": "Booking this quote belongs to" },
+    "lensman_id": { "type": "string", "description": "Creator profile that sent the quote" },
+    "creator_id": { "type": "string", "description": "Creator account ID" },
+    "creator_email": { "type": "string", "description": "Creator email, for access rules" },
+    "client_id": { "type": "string", "description": "Client account ID" },
+    "client_email": { "type": "string", "description": "Client email, for access rules" },
+    "amount": { "type": "number", "description": "Total price quoted to the client, in dollars" },
+    "message": { "type": "string", "description": "What the quote covers, in the creator's words" },
+    "included_edited_photos": { "type": "number", "default": 30, "description": "Edited photos included" },
+    "expires_at": { "type": "string", "format": "date-time", "description": "When the quote stops being valid" },
+    "status": {
+      "type": "string",
+      "enum": ["sent", "accepted", "declined", "expired", "withdrawn"],
+      "default": "sent",
+      "description": "Quote status. Only the server sets this."
+    },
+    "sent_at": { "type": "string", "format": "date-time", "description": "When the quote was sent" },
+    "responded_at": { "type": "string", "format": "date-time", "description": "When the client responded" }
+  },
+  "required": ["booking_id", "amount", "sent_at"],
+  "rls": {
+    "read": {
+      "$or": [
+        { "data.client_id": "{{user.id}}" },
+        { "data.client_email": "{{user.email}}" },
+        { "data.creator_id": "{{user.id}}" },
+        { "data.creator_email": "{{user.email}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "create": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}

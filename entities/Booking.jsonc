@@ -1,0 +1,70 @@
+{
+  "name": "Booking",
+  "type": "object",
+  "properties": {
+    "lensman_id": { "type": "string", "description": "ID of the booked creator profile" },
+    "lensman_name": { "type": "string", "description": "Name of the creator" },
+    "creator_id": { "type": "string", "description": "Account ID of the creator" },
+    "creator_email": { "type": "string", "description": "Creator email, set by the server so access rules can match it" },
+    "client_id": { "type": "string", "description": "Client account ID" },
+    "client_name": { "type": "string", "description": "Client full name" },
+    "client_email": { "type": "string", "description": "Client email" },
+    "client_phone": { "type": "string", "description": "Client phone" },
+    "event_date": { "type": "string", "format": "date", "description": "Shoot date" },
+    "event_time": { "type": "string", "description": "Shoot start time" },
+    "location": { "type": "string", "description": "Shoot location" },
+    "note": { "type": "string", "description": "Anything the client wanted the creator to know up front" },
+    "album_access_emails": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Emails invited to view the final album"
+    },
+    "quote_id": { "type": "string", "description": "Accepted quote" },
+    "total_price": { "type": "number", "description": "Accepted quote amount. Only the server sets this." },
+    "contract_id": { "type": "string", "description": "Generated booking contract ID" },
+    "terms_version": { "type": "string", "description": "Terms version active when booking was made" },
+    "privacy_version": { "type": "string", "description": "Privacy version active when booking was made" },
+    "client_contract_accepted": { "type": "boolean", "default": false, "description": "Whether the client accepted the booking contract" },
+    "creator_contract_accepted": { "type": "boolean", "default": false, "description": "Whether the creator accepted the booking contract" },
+    "client_contract_accepted_at": { "type": "string", "format": "date-time", "description": "Client acceptance time" },
+    "creator_contract_accepted_at": { "type": "string", "format": "date-time", "description": "Creator acceptance time" },
+    "status": {
+      "type": "string",
+      "enum": ["requested", "quoted", "confirmed", "delivered", "completed", "cancelled", "disputed"],
+      "default": "requested",
+      "description": "Booking status. Only the server sets this."
+    },
+    "payment_status": {
+      "type": "string",
+      "enum": ["pending", "held", "released", "refunded"],
+      "default": "pending",
+      "description": "Payment status. Only the Stripe webhook and admins set this."
+    },
+    "delivery_link": { "type": "string", "description": "Gallery link the creator pastes in (Pixieset, Dropbox, etc.)" },
+    "delivery_notes": { "type": "string", "description": "Notes from the creator on delivery" },
+    "delivered_at": { "type": "string", "format": "date-time", "description": "When the creator marked it delivered" },
+    "client_confirmed_delivery": { "type": "boolean", "default": false, "description": "Whether the client confirmed receipt" },
+    "completed_at": { "type": "string", "format": "date-time", "description": "When the booking was completed" },
+    "cancelled_at": { "type": "string", "format": "date-time", "description": "When the booking was cancelled" },
+    "cancelled_by": { "type": "string", "enum": ["client", "creator", "stelli"], "description": "Who cancelled" },
+    "cancellation_reason": { "type": "string", "description": "Reason given for cancelling" },
+    "client_last_read_at": { "type": "string", "format": "date-time", "description": "Last time the client opened the message thread" },
+    "creator_last_read_at": { "type": "string", "format": "date-time", "description": "Last time the creator opened the message thread" },
+    "reviewed": { "type": "boolean", "default": false, "description": "Whether the client has left a review" }
+  },
+  "required": ["lensman_id", "client_email", "event_date"],
+  "rls": {
+    "read": {
+      "$or": [
+        { "data.client_id": "{{user.id}}" },
+        { "data.client_email": "{{user.email}}" },
+        { "data.creator_id": "{{user.id}}" },
+        { "data.creator_email": "{{user.email}}" },
+        { "user_condition": { "role": "admin" } }
+      ]
+    },
+    "create": { "user_condition": { "role": "admin" } },
+    "update": { "user_condition": { "role": "admin" } },
+    "delete": { "user_condition": { "role": "admin" } }
+  }
+}
