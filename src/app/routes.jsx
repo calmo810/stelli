@@ -25,8 +25,8 @@ import CreatorProfile from '@/pages/CreatorProfile';
 import Faq from '@/pages/Faq';
 import Onboarding from '@/pages/Onboarding';
 import Portal from '@/pages/Portal';
-import { AdminRoute } from '@/components/AdminRoute';
-import { UserNotRegisteredError } from '@/components/UserNotRegisteredError';
+import AdminRoute from '@/components/AdminRoute';
+import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import { useAuth } from '@/lib/AuthContext';
 
 export default function AppRoutes() {
