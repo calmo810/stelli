@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { resolveCreatorOwner } from '../../../shared/creatorOwner.ts';
 
 export default async function (req) {
   try {
@@ -14,14 +15,15 @@ export default async function (req) {
       return Response.json({ error: 'That creator is not taking bookings right now.' }, { status: 404 });
     }
 
-    const contacts = await base44.asServiceRole.entities.CreatorContact.filter({ lensman_id: lensmanId });
-    const creatorEmail = contacts[0]?.email || '';
+    // File the request against the account that owns this creator profile.
+    const owner = await resolveCreatorOwner(base44, lensman);
 
     const booking = await base44.asServiceRole.entities.Booking.create({
       lensman_id: lensmanId,
       lensman_name: lensman.display_name || lensman.full_name,
-      creator_id: lensman.user_id || '',
-      creator_email: creatorEmail,
+      lensman_email: owner.ownerEmail,
+      creator_id: owner.ownerId,
+      creator_email: owner.ownerEmail,
       client_id: user.id,
       client_name: (clientName || user.full_name || '').trim(),
       client_email: user.email,
@@ -42,16 +44,17 @@ export default async function (req) {
         sender_name: booking.client_name || 'Client',
         sender_role: 'client',
         client_email: booking.client_email,
-        creator_email: creatorEmail,
+        lensman_email: owner.ownerEmail,
+        creator_email: owner.ownerEmail,
         content: note.trim(),
         kind: 'text',
       });
     }
 
-    if (creatorEmail) {
+    if (owner.ownerEmail) {
       const firstName = (booking.client_name || 'Someone').split(' ')[0];
       await base44.asServiceRole.integrations.Core.SendEmail({
-        to: creatorEmail,
+        to: owner.ownerEmail,
         subject: `New Stelli request for ${eventDate}`,
         body: `${firstName} wants to book you on ${eventDate}${location ? ` in ${location}` : ''}.\n\n${note ? `They said: ${note}\n\n` : ''}Open Stelli to work out the details and send your quote.`,
       });

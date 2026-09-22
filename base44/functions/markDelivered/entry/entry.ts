@@ -30,6 +30,7 @@ export default async function (req) {
       sender_name: 'Stelli',
       sender_role: 'creator',
       client_email: booking.client_email,
+      lensman_email: booking.lensman_email || booking.creator_email || '',
       creator_email: booking.creator_email || '',
       content: 'Your photos have been delivered. Open your gallery, then confirm you got everything so the creator gets paid.',
       kind: 'system',

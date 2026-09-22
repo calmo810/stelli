@@ -43,6 +43,7 @@ export default async function (req) {
       sender_name: 'Stelli',
       sender_role: isClient ? 'client' : 'creator',
       client_email: booking.client_email,
+      lensman_email: booking.lensman_email || booking.creator_email || '',
       creator_email: booking.creator_email || '',
       content: `Booking cancelled by the ${isClient ? 'client' : 'creator'}.${reason ? ` Reason: ${reason}.` : ''} ${refundNote} A founder will handle any money movement by hand.`,
       kind: 'system',

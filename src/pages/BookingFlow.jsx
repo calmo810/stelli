@@ -9,9 +9,26 @@ import BookingSummary from '@/components/dashboard/BookingSummary';
 const LIME = 'hsl(var(--neon-lime))';
 const INK = 'hsl(var(--ink))';
 
-function getBookingDraft(lensmanId) {
+const EMPTY_FORM = {
+  event_date: '',
+  event_time: '',
+  location: '',
+  event_type: '',
+  client_name: '',
+  client_email: '',
+  client_phone: '',
+  event_description: '',
+};
+
+// Drafts belong to the account that typed them, so a shared browser never
+// restores one person's details into someone else's request.
+function draftKey(lensmanId, viewerKey) {
+  return `stelli_booking_draft_${lensmanId}_${viewerKey}`;
+}
+
+function getBookingDraft(lensmanId, viewerKey) {
   try {
-    return JSON.parse(localStorage.getItem(`stelli_booking_draft_${lensmanId}`) || '{}');
+    return JSON.parse(localStorage.getItem(draftKey(lensmanId, viewerKey)) || '{}');
   } catch {
     return {};
   }
@@ -35,17 +52,8 @@ function Field({ label, optional, children }) {
 export default function BookingFlow() {
   const { lensmanId } = useParams();
   const [sent, setSent] = useState(null);
-  const [form, setForm] = useState(() => ({
-    event_date: '',
-    event_time: '',
-    location: '',
-    event_type: '',
-    client_name: '',
-    client_email: '',
-    client_phone: '',
-    event_description: '',
-    ...getBookingDraft(lensmanId).form,
-  }));
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [draftReady, setDraftReady] = useState(false);
 
   const { data: creator } = useQuery({
     queryKey: ['booking-creator', lensmanId],
@@ -55,7 +63,7 @@ export default function BookingFlow() {
     },
   });
 
-  const { data: user } = useQuery({
+  const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['booking-user'],
     queryFn: async () => {
       try {
@@ -67,21 +75,27 @@ export default function BookingFlow() {
     retry: false,
   });
 
-  useEffect(() => {
-    if (!user) return;
-    setForm(prev => ({
-      ...prev,
-      client_name: prev.client_name || user.profile_name || user.full_name || '',
-      client_email: prev.client_email || user.email || '',
-    }));
-  }, [user]);
+  const viewerKey = user?.id || 'guest';
 
   useEffect(() => {
-    localStorage.setItem(`stelli_booking_draft_${lensmanId}`, JSON.stringify({
+    if (userLoading) return;
+    const saved = getBookingDraft(lensmanId, viewerKey).form || {};
+    setForm({
+      ...EMPTY_FORM,
+      ...saved,
+      client_name: saved.client_name || user?.profile_name || user?.full_name || '',
+      client_email: saved.client_email || user?.email || '',
+    });
+    setDraftReady(true);
+  }, [userLoading, viewerKey, lensmanId]);
+
+  useEffect(() => {
+    if (!draftReady) return;
+    localStorage.setItem(draftKey(lensmanId, viewerKey), JSON.stringify({
       form,
       currentStep: 'request',
     }));
-  }, [form, lensmanId]);
+  }, [form, lensmanId, viewerKey, draftReady]);
 
   const update = (key, value) => setForm(prev => ({ ...prev, [key]: value }));
 
@@ -101,7 +115,7 @@ export default function BookingFlow() {
       return response.data;
     },
     onSuccess: (data) => {
-      localStorage.removeItem(`stelli_booking_draft_${lensmanId}`);
+      localStorage.removeItem(draftKey(lensmanId, viewerKey));
       setSent(data?.booking || null);
     },
   });

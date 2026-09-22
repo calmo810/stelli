@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { notifyBoth } from '../../shared/notify.ts';
+import { resolveCreatorOwner } from '../../shared/creatorOwner.ts';
 
 export default async function (req) {
   try {
@@ -36,10 +37,16 @@ export default async function (req) {
       return Response.json({ error: 'Creator not found.' }, { status: 404 });
     }
 
+    // File the request against the account that owns this creator profile,
+    // not the contact email typed on the public profile.
+    const owner = await resolveCreatorOwner(base44, lensman);
+
     const booking = await base44.asServiceRole.entities.Booking.create({
       lensman_id: lensmanId,
       lensman_name: lensman.full_name,
-      lensman_email: lensman.email || '',
+      lensman_email: owner.ownerEmail,
+      creator_id: owner.ownerId,
+      creator_email: owner.ownerEmail,
       client_id: user?.id || '',
       client_name: clientName,
       client_email: clientEmail,
@@ -57,7 +64,7 @@ export default async function (req) {
 
     await notifyBoth(
       base44,
-      [lensman.email],
+      [owner.ownerEmail],
       `New request from ${clientFirst} for ${eventDate}`,
       `New request from ${clientFirst} for ${eventDate}. Reply in Stelli to work out the details and send your quote.`
     );

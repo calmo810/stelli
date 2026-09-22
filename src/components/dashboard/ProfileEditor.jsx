@@ -20,10 +20,10 @@ export default function ProfileEditor() {
 
   const { data: user } = useQuery({ queryKey: ['me'], queryFn: () => base44.auth.me() });
   const { data: lensman, isLoading } = useQuery({
-    queryKey: ['my-lensman-profile', user?.email],
-    enabled: !!user?.email,
+    queryKey: ['my-lensman-profile', user?.id],
+    enabled: !!user?.id,
     queryFn: async () => {
-      const list = await base44.entities.Lensman.filter({ email: user.email });
+      const list = await base44.entities.Lensman.filter({ user_id: user.id });
       return list[0] || null;
     },
   });

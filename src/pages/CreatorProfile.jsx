@@ -5,9 +5,9 @@ import { useParams, Link } from 'react-router-dom';
 import { Star, Lock, ArrowLeft } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-function hasBookingDraft(creatorId) {
+function hasBookingDraft(creatorId, viewerKey) {
   try {
-    const draft = JSON.parse(localStorage.getItem(`stelli_booking_draft_${creatorId}`) || '{}');
+    const draft = JSON.parse(localStorage.getItem(`stelli_booking_draft_${creatorId}_${viewerKey}`) || '{}');
     return Object.values(draft.form || {}).some(Boolean);
   } catch {
     return false;
@@ -23,6 +23,18 @@ export default function CreatorProfile() {
       const list = await base44.entities.Lensman.filter({ id });
       return list[0];
     },
+  });
+
+  const { data: viewer } = useQuery({
+    queryKey: ['draft-viewer'],
+    queryFn: async () => {
+      try {
+        return await base44.auth.me();
+      } catch {
+        return null;
+      }
+    },
+    retry: false,
   });
 
   if (isLoading) {
@@ -47,7 +59,7 @@ export default function CreatorProfile() {
 
   const images = creator.portfolio_images || [];
   const city = creator.neighborhoods?.[0] || creator.market || 'NYC';
-  const hasDraft = hasBookingDraft(creator.id);
+  const hasDraft = hasBookingDraft(creator.id, viewer?.id || 'guest');
 
   return (
     <div className="min-h-screen bg-ink">

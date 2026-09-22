@@ -12,7 +12,7 @@
     },
     "lensman_email": {
       "type": "string",
-      "description": "Email of the booked creator, used to scope access to the booking"
+      "description": "Email of the account that owns the booked creator profile"
     },
     "client_id": {
       "type": "string",
@@ -20,7 +20,11 @@
     },
     "creator_id": {
       "type": "string",
-      "description": "Creator/lensman ID for contract records"
+      "description": "User ID of the account that owns the booked creator profile"
+    },
+    "creator_email": {
+      "type": "string",
+      "description": "Email of the account that owns the booked creator profile"
     },
     "contract_id": {
       "type": "string",
@@ -185,6 +189,9 @@
           "data.lensman_email": "{{user.email}}"
         },
         {
+          "data.creator_id": "{{user.id}}"
+        },
+        {
           "user_condition": {
             "role": "admin"
           }
@@ -204,6 +211,9 @@
         },
         {
           "data.lensman_email": "{{user.email}}"
+        },
+        {
+          "data.creator_id": "{{user.id}}"
         },
         {
           "user_condition": {

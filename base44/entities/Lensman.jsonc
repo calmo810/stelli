@@ -2,6 +2,10 @@
   "name": "Lensman",
   "type": "object",
   "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Account that owns this creator profile, set when the creator applies"
+    },
     "full_name": {
       "type": "string",
       "description": "Full name of the lensman"
@@ -16,7 +20,7 @@
     },
     "email": {
       "type": "string",
-      "description": "Contact email"
+      "description": "Contact email shown on the profile (display only, never used for access)"
     },
     "phone": {
       "type": "string",
@@ -168,7 +172,7 @@
           "data.status": "approved"
         },
         {
-          "data.email": "{{user.email}}"
+          "data.user_id": "{{user.id}}"
         },
         {
           "user_condition": {
@@ -180,7 +184,7 @@
     "update": {
       "$or": [
         {
-          "data.email": "{{user.email}}"
+          "data.user_id": "{{user.id}}"
         },
         {
           "user_condition": {

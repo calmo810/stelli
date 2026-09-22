@@ -46,7 +46,16 @@ export default function CreatorApplication() {
   };
 
   const createLensman = useMutation({
-    mutationFn: (data) => base44.entities.Lensman.create(data),
+    mutationFn: async (data) => {
+      const user = await base44.auth.me();
+      if (!user) {
+        base44.auth.redirectToLogin('/apply');
+        throw new Error('Please sign in to apply.');
+      }
+      // The profile belongs to the account that applied — this is what
+      // requests and notifications resolve against.
+      return base44.entities.Lensman.create({ ...data, user_id: user.id });
+    },
     onSuccess: async () => {
       const authenticated = await base44.auth.isAuthenticated();
       if (authenticated) {

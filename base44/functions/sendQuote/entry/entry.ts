@@ -51,6 +51,7 @@ export default async function (req) {
       sender_name: booking.lensman_name || user.full_name || 'Creator',
       sender_role: 'creator',
       client_email: booking.client_email,
+      lensman_email: booking.lensman_email || booking.creator_email || user.email,
       creator_email: booking.creator_email || user.email,
       content: (message || '').trim() || 'Here is your quote.',
       kind: 'quote',

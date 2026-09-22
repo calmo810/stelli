@@ -25,6 +25,7 @@ export default async function (req) {
       sender_name: (isClient ? booking.client_name : booking.lensman_name) || user.full_name || 'Someone',
       sender_role: isClient ? 'client' : 'creator',
       client_email: booking.client_email,
+      lensman_email: booking.lensman_email || booking.creator_email || '',
       creator_email: booking.creator_email || '',
       content: content.trim().slice(0, 4000),
       kind: 'text',
