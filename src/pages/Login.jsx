@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,16 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    base44.auth.isAuthenticated()
+      .then((ok) => {
+        if (active && ok) window.location.replace('/portal');
+      })
+      .catch(() => {});
+    return () => { active = false; };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

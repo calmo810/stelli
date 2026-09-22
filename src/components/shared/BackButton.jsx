@@ -1,12 +1,19 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 
 export default function BackButton() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleBack = () => {
-    if (window.history.length > 1) navigate(-1);
+    const portalPath = ['/portal', '/client-dashboard', '/lensman-dashboard'].includes(location.pathname)
+      || location.pathname.startsWith('/messages')
+      || location.pathname.startsWith('/album')
+      || location.pathname.startsWith('/agreements');
+
+    if (portalPath) navigate('/', { replace: true });
+    else if (window.history.length > 1) navigate(-1);
     else navigate('/');
   };
 

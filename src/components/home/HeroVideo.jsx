@@ -6,7 +6,8 @@ import { useMarket } from '@/lib/market';
 // Paste the uploaded hero video URL (stelli-hero.mp4) between the quotes.
 const HERO_VIDEO_URL = '';
 // Held final frame + fallback still (bright daylight, Manhattan).
-const HERO_POSTER = 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&w=2000&q=80';
+const NYC_HERO_POSTER = 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&w=2000&q=80';
+const ELON_HERO_POSTER = 'https://commons.wikimedia.org/wiki/Special:FilePath/Alamance_Building,_Elon_University.jpg';
 
 const rise = {
   hidden: { opacity: 0, y: 16 },
@@ -19,6 +20,7 @@ const rise = {
 
 export default function HeroVideo() {
   const { activeMarket } = useMarket();
+  const poster = activeMarket.id === 'ELON' ? ELON_HERO_POSTER : NYC_HERO_POSTER;
   const [revealed, setRevealed] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
 
@@ -26,7 +28,8 @@ export default function HeroVideo() {
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const small = window.innerWidth < 640;
 
-    if (!HERO_VIDEO_URL || reduced || small) {
+    if (!HERO_VIDEO_URL || reduced || small || activeMarket.id === 'ELON') {
+      setShowVideo(false);
       setRevealed(true);
       return;
     }
@@ -34,17 +37,17 @@ export default function HeroVideo() {
     setShowVideo(true);
     const safety = setTimeout(() => setRevealed(true), 14000);
     return () => clearTimeout(safety);
-  }, []);
+  }, [activeMarket.id]);
 
   return (
     <section className="relative w-full overflow-hidden bg-ink" style={{ height: '100svh', minHeight: 580 }}>
-      <img src={HERO_POSTER} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      <img src={poster} alt={activeMarket.id === 'ELON' ? 'Elon University campus' : ''} className="absolute inset-0 w-full h-full object-cover" />
 
       {showVideo && (
         <video
           className="absolute inset-0 w-full h-full object-cover"
           src={HERO_VIDEO_URL}
-          poster={HERO_POSTER}
+          poster={poster}
           autoPlay
           muted
           playsInline

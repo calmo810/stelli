@@ -42,6 +42,16 @@ export default function Register() {
   const [accountType, setAccountType] = useState(initialAccountType);
 
   useEffect(() => {
+    let active = true;
+    base44.auth.isAuthenticated()
+      .then((ok) => {
+        if (active && ok) window.location.replace('/portal');
+      })
+      .catch(() => {});
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem(REGISTER_DRAFT_KEY, JSON.stringify({
       email,
       accountType,
@@ -85,6 +95,7 @@ export default function Register() {
         base44.auth.setToken(result.access_token);
       }
       await base44.auth.updateMe({ account_type: accountType });
+      localStorage.setItem('stelli_next_step_prompt', accountType);
       try {
         await Promise.all([
           base44.functions.invoke('recordAgreementAcceptance', { documentType: 'terms', documentVersion: '2026-09-10' }),
@@ -125,6 +136,7 @@ export default function Register() {
       return;
     }
     localStorage.setItem('stelli_pending_account_type', accountType);
+    localStorage.setItem('stelli_next_step_prompt', accountType);
     localStorage.setItem('stelli_pending_legal_acceptance', 'true');
     base44.auth.loginWithProvider("google", "/portal");
   };

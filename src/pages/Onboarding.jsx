@@ -58,6 +58,7 @@ export default function Onboarding() {
           : {}),
       });
       localStorage.removeItem(ONBOARDING_DRAFT_KEY);
+      localStorage.setItem('stelli_next_step_prompt', role);
       navigate('/portal', { replace: true });
     } catch (err) {
       setError(err?.message || 'We could not save your details. Please try again.');
