@@ -15,6 +15,7 @@ import CreatorApplication from './pages/CreatorApplication';
 import ClientDashboard from './pages/ClientDashboard';
 import LensmanDashboard from './pages/LensmanDashboard';
 import Messages from './pages/Messages';
+import MessagesInbox from './pages/MessagesInbox';
 import AdminDashboard from './pages/AdminDashboard';
 import MemoryAlbum from './pages/MemoryAlbum';
 import Terms from './pages/Terms';
@@ -78,6 +79,7 @@ const AuthenticatedApp = () => {
         <Route path="/apply" element={<CreatorApplication />} />
         <Route path="/client-dashboard" element={<ClientDashboard />} />
         <Route path="/lensman-dashboard" element={<LensmanDashboard />} />
+        <Route path="/portal/messages" element={<MessagesInbox />} />
         <Route path="/messages/:bookingId" element={<Messages />} />
         <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
         <Route path="/album/:bookingId" element={<MemoryAlbum />} />

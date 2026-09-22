@@ -1,7 +1,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, MapPin, MessageCircle, FileText, ExternalLink } from 'lucide-react';
+import { Calendar, MapPin, MessageCircle, FileText, ExternalLink, StickyNote, Tag } from 'lucide-react';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
 
@@ -46,6 +46,14 @@ export default function BookingCard({ booking, role = 'client' }) {
         {booking.location && (
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <MapPin className="w-3 h-3" /> {booking.location}
+          </div>
+        )}
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Tag className="w-3 h-3" /> {booking.total_price ? `$${Number(booking.total_price).toLocaleString()}` : 'Private quote pending'}
+        </div>
+        {booking.event_description && (
+          <div className="flex items-start gap-2 text-xs text-muted-foreground">
+            <StickyNote className="w-3 h-3 mt-0.5 shrink-0" /> <span>{booking.event_description}</span>
           </div>
         )}
         {booking.delivery_link && (

@@ -2,7 +2,7 @@ import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Star, Calendar, Inbox, Link2, UserRound } from 'lucide-react';
+import { Star, Calendar, Inbox, Link2, UserRound, MessageCircle } from 'lucide-react';
 import BookingCard from '../components/dashboard/BookingCard';
 import QuoteForm from '../components/dashboard/QuoteForm';
 import DeliveryForm from '../components/dashboard/DeliveryForm';
@@ -10,6 +10,7 @@ import ProfileEditor from '../components/dashboard/ProfileEditor';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
 import MyAgreements from '@/components/dashboard/MyAgreements';
+import { Link } from 'react-router-dom';
 
 const UPCOMING = ['quoted', 'quote_accepted'];
 const DELIVERIES = ['confirmed', 'in_progress', 'awaiting_delivery'];
@@ -40,6 +41,9 @@ export default function LensmanDashboard() {
             <p className="text-[8px] font-body tracking-[0.5em] uppercase mb-4" style={{ color: 'rgba(26,39,68,0.3)' }}>Creator Home Base</p>
             <h1 className="font-display text-4xl sm:text-5xl font-semibold mb-3" style={{ color: '#1a2744' }}>Creator Dashboard</h1>
             <p className="text-sm" style={{ color: 'rgba(26,39,68,0.45)' }}>Answer requests with a private quote, then deliver the gallery link.</p>
+            <Link to="/portal/messages" className="inline-flex items-center gap-2 mt-5 rounded-full border px-4 py-2 text-xs font-medium transition-colors" style={{ borderColor: 'rgba(26,39,68,0.14)', color: '#1a2744' }}>
+              <MessageCircle className="w-4 h-4" /> Messages
+            </Link>
           </motion.div>
         </div>
       </div>

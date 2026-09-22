@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Send, Loader2 } from 'lucide-react';
+import { Send, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 
@@ -38,7 +38,6 @@ export default function Messages() {
 
   const senderRole = user?.account_type === 'creator' || booking?.lensman_email === user?.email ? 'lensman' : 'client';
   const senderName = user?.profile_name || user?.full_name || user?.email || (senderRole === 'lensman' ? booking?.lensman_name : booking?.client_name) || 'Stelli user';
-  const backTo = senderRole === 'lensman' ? '/lensman-dashboard' : '/client-dashboard';
 
   const sendMessage = useMutation({
     mutationFn: (data) => base44.entities.Message.create(data),
@@ -66,12 +65,9 @@ export default function Messages() {
 
   return (
     <div className="min-h-screen flex flex-col bg-cream">
-      <div className="bg-background border-b border-border px-6 py-4 flex items-center gap-4">
-        <Link to={backTo} className="text-muted-foreground hover:text-foreground">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <div>
-          <h1 className="font-semibold text-sm">
+      <div className="bg-background border-b border-border pl-36 md:pl-44 pr-6 py-5 flex items-center gap-4">
+        <div className="min-w-0">
+          <h1 className="font-semibold text-sm truncate">
             {booking?.event_type?.replace(/_/g, ' ') || 'Booking'} — {booking?.lensman_name || 'Creator'}
           </h1>
           <p className="text-xs text-muted-foreground">

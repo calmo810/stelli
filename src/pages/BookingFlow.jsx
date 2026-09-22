@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import BookingSummary from '@/components/dashboard/BookingSummary';
 
 const LIME = 'hsl(var(--neon-lime))';
 const INK = 'hsl(var(--ink))';
@@ -38,6 +39,7 @@ export default function BookingFlow() {
     event_date: '',
     event_time: '',
     location: '',
+    event_type: '',
     client_name: '',
     client_email: '',
     client_phone: '',
@@ -90,6 +92,7 @@ export default function BookingFlow() {
         eventDate: form.event_date,
         eventTime: form.event_time,
         location: form.location,
+        eventType: form.event_type,
         clientName: form.client_name,
         clientEmail: form.client_email,
         clientPhone: form.client_phone,
@@ -124,7 +127,7 @@ export default function BookingFlow() {
 
           <aside className="lg:sticky lg:top-24">
             <Link
-              to={`/creators/${creator.slug || creator.id}`}
+              to={`/creators/${creator.id}`}
               className="inline-flex items-center gap-2 label-mono text-[10px] text-white/35 hover:text-neon-lime transition-colors mb-6 lg:mb-8"
             >
               <ArrowLeft className="w-3.5 h-3.5" /> Back to profile
@@ -156,9 +159,10 @@ export default function BookingFlow() {
                 >
                   Sent.
                 </h2>
-                <p className="font-body text-[15px] leading-relaxed text-white/55 mb-9 max-w-md">
+                <p className="font-body text-[15px] leading-relaxed text-white/55 mb-7 max-w-md">
                   {firstName} will message you to work out the details, then send a quote.
                 </p>
+                <BookingSummary booking={sent} className="mb-8" />
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Link
                     to={`/messages/${sent.id}`}
@@ -214,6 +218,16 @@ export default function BookingFlow() {
                       placeholder="Neighborhood or address"
                       value={form.location}
                       onChange={e => update('location', e.target.value)}
+                      className={fieldClass}
+                    />
+                  </Field>
+
+                  <Field label="Shoot type" optional>
+                    <input
+                      type="text"
+                      placeholder="Portraits, birthday dinner, brand content"
+                      value={form.event_type}
+                      onChange={e => update('event_type', e.target.value)}
                       className={fieldClass}
                     />
                   </Field>

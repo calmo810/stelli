@@ -5,6 +5,15 @@ import { useParams, Link } from 'react-router-dom';
 import { Star, Lock, ArrowLeft } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
+function hasBookingDraft(creatorId) {
+  try {
+    const draft = JSON.parse(localStorage.getItem(`stelli_booking_draft_${creatorId}`) || '{}');
+    return Object.values(draft.form || {}).some(Boolean);
+  } catch {
+    return false;
+  }
+}
+
 export default function CreatorProfile() {
   const { id } = useParams();
 
@@ -38,6 +47,7 @@ export default function CreatorProfile() {
 
   const images = creator.portfolio_images || [];
   const city = creator.neighborhoods?.[0] || creator.market || 'NYC';
+  const hasDraft = hasBookingDraft(creator.id);
 
   return (
     <div className="min-h-screen bg-ink">
@@ -85,8 +95,13 @@ export default function CreatorProfile() {
               className="block w-full text-center label-mono text-[11px] font-semibold px-6 py-4 transition-transform duration-300 hover:-translate-y-0.5"
               style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }}
             >
-              Request this creator
+              {hasDraft ? 'Return to booking request' : 'Request this creator'}
             </Link>
+            {hasDraft && (
+              <p className="font-body text-[11px] leading-relaxed text-white/35 mt-3 text-center">
+                Your in-progress request is saved.
+              </p>
+            )}
 
             <div className="mt-7 pt-6 border-t border-white/10 flex items-start gap-3">
               <Lock className="w-4 h-4 shrink-0 mt-0.5 text-white/30" />

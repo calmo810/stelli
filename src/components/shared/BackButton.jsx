@@ -12,7 +12,8 @@ export default function BackButton() {
       || location.pathname.startsWith('/album')
       || location.pathname.startsWith('/agreements');
 
-    if (portalPath) navigate('/', { replace: true });
+    if (location.pathname.startsWith('/messages')) navigate('/portal', { replace: true });
+    else if (portalPath) navigate('/', { replace: true });
     else if (window.history.length > 1) navigate(-1);
     else navigate('/');
   };

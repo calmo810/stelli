@@ -2,7 +2,7 @@ import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Star, Calendar, Clock } from 'lucide-react';
+import { Star, Calendar, Clock, MessageCircle } from 'lucide-react';
 import BookingCard from '../components/dashboard/BookingCard';
 import QuotePanel from '../components/dashboard/QuotePanel';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -50,6 +50,9 @@ export default function ClientDashboard() {
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <h1 className="font-display text-2xl sm:text-3xl font-semibold mb-2">Your Dashboard</h1>
             <p className="text-sm text-muted-foreground">Manage your requests, quotes, and deliveries.</p>
+            <Link to="/portal/messages" className="inline-flex items-center gap-2 mt-5 rounded-full border border-border px-4 py-2 text-xs font-medium hover:bg-card transition-colors">
+              <MessageCircle className="w-4 h-4" /> Messages
+            </Link>
           </motion.div>
         </div>
       </div>
