@@ -59,6 +59,57 @@
       "type": "string",
       "description": "Short creator quote or profile note"
     },
+    "one_liner": {
+      "type": "string",
+      "description": "Short personality line shown under the creator's name (max 80 characters)"
+    },
+    "prompt_question": {
+      "type": "string",
+      "description": "One of the six fixed profile prompts"
+    },
+    "prompt_answer": {
+      "type": "string",
+      "description": "The creator's answer to their chosen prompt (max 200 characters)"
+    },
+    "dont_shoot": {
+      "type": "string",
+      "description": "Optional line about what the creator does not shoot (max 120 characters)"
+    },
+    "accent_color": {
+      "type": "string",
+      "enum": [
+        "lime",
+        "cyan",
+        "magenta"
+      ],
+      "default": "lime",
+      "description": "Brand accent used for this profile's highlights only"
+    },
+    "cover_image": {
+      "type": "string",
+      "description": "Portfolio image used as the public profile header"
+    },
+    "cover_focal_point": {
+      "type": "object",
+      "description": "Focal point the cover crops around, as x/y percentages",
+      "properties": {
+        "x": {
+          "type": "number",
+          "default": 50
+        },
+        "y": {
+          "type": "number",
+          "default": 50
+        }
+      }
+    },
+    "pinned_images": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Ordered list of up to three portfolio images shown larger on the public profile"
+    },
     "profile_theme": {
       "type": "string",
       "enum": [
@@ -120,7 +171,7 @@
       "items": {
         "type": "string"
       },
-      "description": "Style tags like portrait, documentary, vibrant, moody"
+      "description": "Up to three style tags from the fixed market list"
     },
     "avg_rating": {
       "type": "number",

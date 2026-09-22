@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -18,6 +18,17 @@ const COMPLETED = ['delivered', 'completed'];
 
 export default function LensmanDashboard() {
   const queryClient = useQueryClient();
+  const [tab, setTab] = useState('requests');
+  const editorGuard = useRef(null);
+
+  // Switching away from the profile tab goes through the editor's unsaved-changes guard.
+  const changeTab = (next) => {
+    if (tab === 'profile' && editorGuard.current) {
+      editorGuard.current.requestLeave(() => setTab(next));
+      return;
+    }
+    setTab(next);
+  };
   const { data: user } = useQuery({ queryKey: ['me'], queryFn: () => base44.auth.me() });
 
   const { data: bookings = [], isLoading } = useQuery({
@@ -68,7 +79,7 @@ export default function LensmanDashboard() {
           ))}
         </div>
 
-        <Tabs defaultValue="requests" className="space-y-6">
+        <Tabs value={tab} onValueChange={changeTab} className="space-y-6">
           <TabsList className="border rounded-none p-1 flex-wrap h-auto" style={{ background: '#ece9e2', borderColor: 'rgba(26,39,68,0.12)' }}>
             <TabsTrigger value="requests" className="rounded-none text-xs">Requests ({requests.length})</TabsTrigger>
             <TabsTrigger value="upcoming" className="rounded-none text-xs">Upcoming ({upcoming.length})</TabsTrigger>
@@ -78,7 +89,7 @@ export default function LensmanDashboard() {
           </TabsList>
 
           <TabsContent value="profile">
-            <ProfileEditor />
+            <ProfileEditor guardRef={editorGuard} />
           </TabsContent>
 
           {isLoading ? (
