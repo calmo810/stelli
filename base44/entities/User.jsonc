@@ -1,4 +1,6 @@
 {
+  "name": "User",
+  "type": "object",
   "properties": {
     "role": {
       "type": "string",
@@ -7,11 +9,39 @@
         "admin",
         "user"
       ]
+    },
+    "account_type": {
+      "type": "string",
+      "enum": [
+        "client",
+        "creator"
+      ],
+      "description": "Fixed Stelli account type used for portal and chat routing"
+    },
+    "profile_name": {
+      "type": "string",
+      "description": "Display name collected during Stelli onboarding"
+    },
+    "market": {
+      "type": "string",
+      "description": "Preferred Stelli market"
+    },
+    "age_confirmed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the user confirmed they are 18 or older"
+    },
+    "specialty": {
+      "type": "string",
+      "description": "Creator specialty collected during onboarding"
+    },
+    "instagram": {
+      "type": "string",
+      "description": "Creator Instagram handle collected during onboarding"
+    },
+    "bio": {
+      "type": "string",
+      "description": "Creator bio collected during onboarding"
     }
-  },
-  "required": [
-    "role"
-  ],
-  "name": "User",
-  "type": "object"
+  }
 }

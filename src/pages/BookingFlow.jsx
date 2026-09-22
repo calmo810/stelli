@@ -8,6 +8,14 @@ import { motion } from 'framer-motion';
 const LIME = 'hsl(var(--neon-lime))';
 const INK = 'hsl(var(--ink))';
 
+function getBookingDraft(lensmanId) {
+  try {
+    return JSON.parse(localStorage.getItem(`stelli_booking_draft_${lensmanId}`) || '{}');
+  } catch {
+    return {};
+  }
+}
+
 const fieldClass =
   'w-full border border-white/10 bg-white/[0.03] px-4 py-3 font-body text-[14px] text-white outline-none transition-colors placeholder:text-white/25 focus:border-neon-lime focus:ring-1 focus:ring-neon-lime';
 
@@ -26,7 +34,7 @@ function Field({ label, optional, children }) {
 export default function BookingFlow() {
   const { lensmanId } = useParams();
   const [sent, setSent] = useState(null);
-  const [form, setForm] = useState({
+  const [form, setForm] = useState(() => ({
     event_date: '',
     event_time: '',
     location: '',
@@ -34,7 +42,8 @@ export default function BookingFlow() {
     client_email: '',
     client_phone: '',
     event_description: '',
-  });
+    ...getBookingDraft(lensmanId).form,
+  }));
 
   const { data: creator } = useQuery({
     queryKey: ['booking-creator', lensmanId],
@@ -60,10 +69,17 @@ export default function BookingFlow() {
     if (!user) return;
     setForm(prev => ({
       ...prev,
-      client_name: prev.client_name || user.full_name || '',
+      client_name: prev.client_name || user.profile_name || user.full_name || '',
       client_email: prev.client_email || user.email || '',
     }));
   }, [user]);
+
+  useEffect(() => {
+    localStorage.setItem(`stelli_booking_draft_${lensmanId}`, JSON.stringify({
+      form,
+      currentStep: 'request',
+    }));
+  }, [form, lensmanId]);
 
   const update = (key, value) => setForm(prev => ({ ...prev, [key]: value }));
 
@@ -81,7 +97,10 @@ export default function BookingFlow() {
       });
       return response.data;
     },
-    onSuccess: (data) => setSent(data?.booking || null),
+    onSuccess: (data) => {
+      localStorage.removeItem(`stelli_booking_draft_${lensmanId}`);
+      setSent(data?.booking || null);
+    },
   });
 
   if (!creator) {

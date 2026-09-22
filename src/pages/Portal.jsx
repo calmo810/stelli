@@ -10,7 +10,12 @@ export default function Portal() {
     let active = true;
     (async () => {
       try {
-        const user = await base44.auth.me();
+        let user = await base44.auth.me();
+        const pendingRole = localStorage.getItem('stelli_pending_account_type');
+        if (!user?.account_type && ['client', 'creator'].includes(pendingRole)) {
+          user = await base44.auth.updateMe({ account_type: pendingRole });
+          localStorage.removeItem('stelli_pending_account_type');
+        }
         if (!active) return;
         if (user?.account_type === 'creator') navigate('/lensman-dashboard', { replace: true });
         else if (user?.account_type === 'client') navigate('/client-dashboard', { replace: true });

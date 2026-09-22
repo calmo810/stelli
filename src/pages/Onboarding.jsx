@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { Check, Loader2 } from 'lucide-react';
@@ -10,18 +10,32 @@ const ROLES = [
 ];
 
 const inputClass = 'w-full bg-surface-2 border border-white/12 px-4 py-3 font-body text-[13px] text-white placeholder:text-white/25 outline-none focus:border-neon-lime transition-colors';
+const ONBOARDING_DRAFT_KEY = 'stelli_onboarding_draft';
+
+function getOnboardingDraft() {
+  try {
+    return JSON.parse(localStorage.getItem(ONBOARDING_DRAFT_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
 
 export default function Onboarding() {
   const navigate = useNavigate();
   const { market, setMarket } = useMarket();
 
-  const [role, setRole] = useState('');
-  const [form, setForm] = useState({ full_name: '', specialty: '', instagram: '', bio: '' });
-  const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const draft = getOnboardingDraft();
+  const [role, setRole] = useState(draft.role || '');
+  const [form, setForm] = useState(draft.form || { full_name: '', specialty: '', instagram: '', bio: '' });
+  const [ageConfirmed, setAgeConfirmed] = useState(Boolean(draft.ageConfirmed));
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
   const update = (k, v) => setForm((p) => ({ ...p, [k]: v }));
+
+  useEffect(() => {
+    localStorage.setItem(ONBOARDING_DRAFT_KEY, JSON.stringify({ role, form, ageConfirmed }));
+  }, [role, form, ageConfirmed]);
 
   const canSubmit =
     role &&
@@ -36,13 +50,14 @@ export default function Onboarding() {
     try {
       await base44.auth.updateMe({
         account_type: role,
-        full_name: form.full_name.trim(),
+        profile_name: form.full_name.trim(),
         market,
         age_confirmed: true,
         ...(role === 'creator'
           ? { specialty: form.specialty.trim(), instagram: form.instagram.trim(), bio: form.bio.trim() }
           : {}),
       });
+      localStorage.removeItem(ONBOARDING_DRAFT_KEY);
       navigate('/portal', { replace: true });
     } catch (err) {
       setError(err?.message || 'We could not save your details. Please try again.');

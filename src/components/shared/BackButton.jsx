@@ -13,7 +13,7 @@ export default function BackButton() {
   return (
     <button
       onClick={handleBack}
-      className="fixed top-20 left-4 md:left-8 z-40 inline-flex items-center gap-2 px-4 py-2.5 label-mono text-[10px] bg-ink/85 backdrop-blur border border-white/15 text-white/70 hover:text-neon-lime hover:border-neon-lime/50 transition-colors"
+      className="fixed top-20 left-4 md:left-8 z-[55] inline-flex items-center gap-2 px-4 py-2.5 label-mono text-[10px] bg-ink/90 backdrop-blur border border-white/15 text-white/70 hover:text-neon-lime hover:border-neon-lime/50 transition-colors shadow-lg"
       style={{ borderRadius: 4 }}
       aria-label="Go back"
     >

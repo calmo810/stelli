@@ -1,13 +1,17 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { X } from 'lucide-react';
+import { X, LogOut } from 'lucide-react';
 import { useMarket, MARKETS } from '@/lib/market';
+import { useAuth } from '@/lib/AuthContext';
 
-const LINKS = [
+const PUBLIC_LINKS = [
   { label: 'Sign up as a Client', to: '/register?role=client', accent: 'lime' },
   { label: 'Sign up as a Creator', to: '/register?role=creator', accent: 'cyan' },
   { label: 'Log in', to: '/login' },
+];
+
+const SHARED_LINKS = [
   { label: 'Browse creators', to: '/creators' },
   { label: 'How it works', to: '/how-it-works' },
   { label: 'FAQ', to: '/faq' },
@@ -17,6 +21,7 @@ const LINKS = [
 
 export default function MenuOverlay({ onClose }) {
   const { market, setMarket } = useMarket();
+  const { isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -33,6 +38,15 @@ export default function MenuOverlay({ onClose }) {
     onClose();
     navigate(to);
   };
+
+  const handleLogout = () => {
+    onClose();
+    logout('/');
+  };
+
+  const links = isAuthenticated
+    ? [{ label: 'Portal', to: '/portal', accent: 'lime' }, ...SHARED_LINKS]
+    : [...PUBLIC_LINKS, ...SHARED_LINKS];
 
   return (
     <motion.div
@@ -51,7 +65,7 @@ export default function MenuOverlay({ onClose }) {
         </div>
 
         <nav className="flex-1 flex flex-col justify-center py-10 max-w-4xl">
-          {LINKS.map((link, i) => (
+          {links.map((link, i) => (
             <motion.div
               key={link.to}
               initial={{ opacity: 0, y: 16 }}
@@ -67,6 +81,22 @@ export default function MenuOverlay({ onClose }) {
               </button>
             </motion.div>
           ))}
+          {isAuthenticated && (
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: 'easeOut', delay: 0.05 + links.length * 0.04 }}
+            >
+              <button
+                onClick={handleLogout}
+                className="group flex items-center gap-3 w-full text-left font-heading font-semibold text-white/75 transition-colors duration-300 hover:text-neon-lime py-2"
+                style={{ fontSize: 'clamp(26px, 4.4vw, 52px)', lineHeight: 1.15 }}
+              >
+                <LogOut className="w-7 h-7" />
+                Log out
+              </button>
+            </motion.div>
+          )}
         </nav>
 
         <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">

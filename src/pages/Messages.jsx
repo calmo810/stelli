@@ -4,17 +4,21 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Send, Paperclip, Loader2 } from 'lucide-react';
+import { ArrowLeft, Send, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 
 export default function Messages() {
   const { bookingId } = useParams();
   const [message, setMessage] = useState('');
-  const [senderName, setSenderName] = useState('');
-  const [senderRole, setSenderRole] = useState('client');
   const bottomRef = useRef(null);
   const queryClient = useQueryClient();
+
+  const { data: user } = useQuery({
+    queryKey: ['message-user'],
+    queryFn: () => base44.auth.me(),
+    retry: false,
+  });
 
   const { data: booking } = useQuery({
     queryKey: ['booking', bookingId],
@@ -31,6 +35,10 @@ export default function Messages() {
     enabled: !!bookingId,
     refetchInterval: 5000,
   });
+
+  const senderRole = user?.account_type === 'creator' || booking?.lensman_email === user?.email ? 'lensman' : 'client';
+  const senderName = user?.profile_name || user?.full_name || user?.email || (senderRole === 'lensman' ? booking?.lensman_name : booking?.client_name) || 'Stelli user';
+  const backTo = senderRole === 'lensman' ? '/lensman-dashboard' : '/client-dashboard';
 
   const sendMessage = useMutation({
     mutationFn: (data) => base44.entities.Message.create(data),
@@ -50,7 +58,7 @@ export default function Messages() {
       booking_id: bookingId,
       client_email: booking?.client_email || '',
       lensman_email: booking?.lensman_email || '',
-      sender_name: senderName || 'Anonymous',
+      sender_name: senderName,
       sender_role: senderRole,
       content: message.trim(),
     });
@@ -58,9 +66,8 @@ export default function Messages() {
 
   return (
     <div className="min-h-screen flex flex-col bg-cream">
-      {/* Header */}
       <div className="bg-background border-b border-border px-6 py-4 flex items-center gap-4">
-        <Link to="/client-dashboard" className="text-muted-foreground hover:text-foreground">
+        <Link to={backTo} className="text-muted-foreground hover:text-foreground">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
@@ -73,30 +80,12 @@ export default function Messages() {
         </div>
       </div>
 
-      {/* Identity selector */}
-      <div className="bg-background/50 border-b border-border px-6 py-2 flex items-center gap-3">
-        <Input
-          placeholder="Your name"
-          value={senderName}
-          onChange={e => setSenderName(e.target.value)}
-          className="h-8 text-xs rounded-full w-40"
-        />
-        <div className="flex gap-1">
-          {['client', 'lensman'].map(role => (
-            <button
-              key={role}
-              onClick={() => setSenderRole(role)}
-              className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                senderRole === role ? 'bg-foreground text-background' : 'bg-muted text-muted-foreground'
-              }`}
-            >
-              {role === 'client' ? 'Client' : 'Creator'}
-            </button>
-          ))}
-        </div>
+      <div className="bg-background/50 border-b border-border px-6 py-2">
+        <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          Messaging as {senderRole === 'lensman' ? 'Creator' : 'Client'}
+        </p>
       </div>
 
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
         {isLoading ? (
           <div className="flex justify-center py-10">
@@ -134,7 +123,6 @@ export default function Messages() {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
       <div className="bg-background border-t border-border px-6 py-4">
         <div className="max-w-3xl mx-auto flex gap-2">
           <Input

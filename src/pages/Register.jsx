@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
@@ -11,21 +11,54 @@ import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { toast } from "@/components/ui/use-toast";
 
+const REGISTER_DRAFT_KEY = 'stelli_register_draft';
+const VALID_ACCOUNT_TYPES = ['client', 'creator'];
+
+function getRegisterDraft() {
+  try {
+    return JSON.parse(localStorage.getItem(REGISTER_DRAFT_KEY) || '{}');
+  } catch {
+    return {};
+  }
+}
+
+function initialAccountType() {
+  const requested = new URLSearchParams(window.location.search).get('role');
+  if (VALID_ACCOUNT_TYPES.includes(requested)) return requested;
+  const draft = getRegisterDraft();
+  return VALID_ACCOUNT_TYPES.includes(draft.accountType) ? draft.accountType : '';
+}
+
 export default function Register() {
-  const [email, setEmail] = useState("");
+  const draft = getRegisterDraft();
+  const [email, setEmail] = useState(draft.email || "");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showOtp, setShowOtp] = useState(false);
+  const [showOtp, setShowOtp] = useState(draft.step === 'otp');
   const [otpCode, setOtpCode] = useState("");
-  const [legalAgreed, setLegalAgreed] = useState(false);
+  const [legalAgreed, setLegalAgreed] = useState(Boolean(draft.legalAgreed));
+  const [accountType, setAccountType] = useState(initialAccountType);
+
+  useEffect(() => {
+    localStorage.setItem(REGISTER_DRAFT_KEY, JSON.stringify({
+      email,
+      accountType,
+      legalAgreed,
+      step: showOtp ? 'otp' : 'details',
+    }));
+  }, [email, accountType, legalAgreed, showOtp]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     if (password !== confirmPassword) {
       setError("Passwords do not match");
+      return;
+    }
+    if (!accountType) {
+      setError("Choose whether this is a client or creator account.");
       return;
     }
     if (!legalAgreed) {
@@ -51,11 +84,17 @@ export default function Register() {
       if (result?.access_token) {
         base44.auth.setToken(result.access_token);
       }
-      await Promise.all([
-        base44.functions.invoke('recordAgreementAcceptance', { documentType: 'terms', documentVersion: '2026-09-10' }),
-        base44.functions.invoke('recordAgreementAcceptance', { documentType: 'privacy', documentVersion: '2026-09-10' }),
-      ]);
-      window.location.href = "/";
+      await base44.auth.updateMe({ account_type: accountType });
+      try {
+        await Promise.all([
+          base44.functions.invoke('recordAgreementAcceptance', { documentType: 'terms', documentVersion: '2026-09-10' }),
+          base44.functions.invoke('recordAgreementAcceptance', { documentType: 'privacy', documentVersion: '2026-09-10' }),
+        ]);
+      } catch {
+        localStorage.setItem('stelli_pending_legal_acceptance', 'true');
+      }
+      localStorage.removeItem(REGISTER_DRAFT_KEY);
+      window.location.href = "/portal";
     } catch (err) {
       setError(err.message || "Invalid verification code");
     } finally {
@@ -77,12 +116,17 @@ export default function Register() {
   };
 
   const handleGoogle = () => {
+    if (!accountType) {
+      setError("Choose whether this is a client or creator account.");
+      return;
+    }
     if (!legalAgreed) {
       setError("Please accept Stelli's Terms and Privacy Policy to continue.");
       return;
     }
+    localStorage.setItem('stelli_pending_account_type', accountType);
     localStorage.setItem('stelli_pending_legal_acceptance', 'true');
-    base44.auth.loginWithProvider("google", "/");
+    base44.auth.loginWithProvider("google", "/portal");
   };
 
   if (showOtp) {
@@ -143,7 +187,7 @@ export default function Register() {
     <AuthLayout
       icon={UserPlus}
       title="Create your account"
-      subtitle="Sign up to get started"
+      subtitle="Pick a role once, then Stelli routes you to the right portal"
       footer={
         <>
           Already have an account?{" "}
@@ -153,11 +197,27 @@ export default function Register() {
         </>
       }
     >
+      <div className="grid grid-cols-2 gap-3 mb-5">
+        {[
+          { id: 'client', label: 'Client' },
+          { id: 'creator', label: 'Creator' },
+        ].map((option) => (
+          <button
+            key={option.id}
+            type="button"
+            onClick={() => setAccountType(option.id)}
+            className={`h-11 rounded-md border text-xs font-semibold transition-colors ${accountType === option.id ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-transparent text-muted-foreground hover:text-foreground'}`}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+
       <Button
         variant="outline"
         className="w-full h-12 text-sm font-medium mb-6"
         onClick={handleGoogle}
-        disabled={!legalAgreed}
+        disabled={!legalAgreed || !accountType}
       >
         <GoogleIcon className="w-5 h-5 mr-2" />
         Continue with Google
@@ -234,7 +294,7 @@ export default function Register() {
             I agree to Stelli's <Link to="/terms" className="text-primary underline">Terms and Conditions</Link> and <Link to="/privacy" className="text-primary underline">Privacy Policy</Link>.
           </span>
         </label>
-        <Button type="submit" className="w-full h-12 font-medium" disabled={loading || !legalAgreed}>
+        <Button type="submit" className="w-full h-12 font-medium" disabled={loading || !legalAgreed || !accountType}>
           {loading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
