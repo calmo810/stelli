@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Loader2, Shield, Clock } from 'lucide-react';
+import { clientTotal, SERVICE_FEE_RATE } from '@/lib/threadPricing';
 
 export default function QuotePanel({ quote, booking }) {
   const [busy, setBusy] = useState(false);
@@ -62,6 +63,10 @@ export default function QuotePanel({ quote, booking }) {
         {(quote.add_ons || []).map((addOn, i) => (
           <p key={i}>{addOn.name}{addOn.price ? ` · +$${addOn.price}` : ''}</p>
         ))}
+        <p>Service fee · {Math.round(SERVICE_FEE_RATE * 100)}% · ${(clientTotal(quote.amount) - quote.amount).toLocaleString()}</p>
+        <p className="font-semibold" style={{ color: 'rgba(26,39,68,0.75)' }}>
+          Total charged ${clientTotal(quote.amount).toLocaleString()}
+        </p>
       </div>
 
       {quote.message && (
@@ -74,7 +79,7 @@ export default function QuotePanel({ quote, booking }) {
         className="w-full flex items-center justify-center gap-2 py-3 rounded-full text-[10px] font-body tracking-[0.08em] uppercase font-semibold disabled:opacity-50"
         style={{ background: '#1a2744', color: '#f0ede6' }}>
         {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Shield className="w-3.5 h-3.5" />}
-        Accept & pay ${(quote.amount || 0).toLocaleString()}
+        Accept & pay ${clientTotal(quote.amount).toLocaleString()}
       </button>
 
       <p className="text-[10px] font-body mt-3" style={{ color: 'rgba(26,39,68,0.4)' }}>

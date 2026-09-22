@@ -1,5 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
-import { notifyBoth } from '../../shared/notify.ts';
+import { notifyThread } from '../../shared/notify.ts';
+import { viewerRole, recordFirstReply, creatorEmail } from '../../shared/bookingAccess.ts';
+
+/** Quotes stay valid for 72 hours unless the creator picks otherwise. */
+const EXPIRY_HOURS = { '24h': 24, '72h': 72, '7d': 168 };
 
 export default async function (req) {
   try {
@@ -7,7 +11,7 @@ export default async function (req) {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { bookingId, amount, message, includedEdits, addOns, expiresAt } = await req.json();
+    const { bookingId, amount, message, includedEdits, addOns, expiry } = await req.json();
     if (!bookingId || !amount) {
       return Response.json({ error: 'A booking and an amount are required.' }, { status: 400 });
     }
@@ -15,10 +19,22 @@ export default async function (req) {
     const booking = await base44.asServiceRole.entities.Booking.get(bookingId);
     if (!booking) return Response.json({ error: 'Booking not found' }, { status: 404 });
 
-    const isCreator = !!booking.lensman_email && booking.lensman_email === user.email;
-    if (!isCreator && user.role !== 'admin') {
+    const role = viewerRole(booking, user);
+    if (role !== 'lensman' && user.role !== 'admin') {
       return Response.json({ error: 'Only the booked creator can quote this request.' }, { status: 403 });
     }
+
+    // Payouts come before quoting — the money has to have somewhere to land.
+    const lensman = await base44.asServiceRole.entities.Lensman.get(booking.lensman_id).catch(() => null);
+    if (lensman && !lensman.payouts_enabled && user.role !== 'admin') {
+      return Response.json(
+        { error: 'Set up payouts to send your first quote.', needsPayouts: true },
+        { status: 403 }
+      );
+    }
+
+    const hours = EXPIRY_HOURS[expiry] || EXPIRY_HOURS['72h'];
+    const expiresAt = new Date(Date.now() + hours * 3600000).toISOString();
 
     const cleanAddOns = (addOns || [])
       .filter((addOn) => addOn && addOn.name)
@@ -28,12 +44,12 @@ export default async function (req) {
       booking_id: bookingId,
       creator_id: booking.lensman_id,
       client_email: booking.client_email,
-      creator_email: booking.lensman_email || user.email,
+      creator_email: creatorEmail(booking),
       amount: Number(amount) || 0,
       message: message || '',
       included_edits: Number(includedEdits) || 30,
       add_ons: cleanAddOns,
-      expires_at: expiresAt || '',
+      expires_at: expiresAt,
       status: 'sent',
     });
 
@@ -41,6 +57,8 @@ export default async function (req) {
       status: 'quoted',
       total_price: quote.amount,
     });
+
+    await recordFirstReply(base44, booking);
 
     const lines = [
       `Your quote from ${booking.lensman_name || 'your creator'} is ready.`,
@@ -51,20 +69,19 @@ export default async function (req) {
       cleanAddOns.length
         ? `Add-ons: ${cleanAddOns.map((a) => `${a.name} (+$${a.price})`).join(', ')}`
         : '',
-      quote.expires_at
-        ? `Expires: ${new Date(quote.expires_at).toLocaleDateString('en-US')}`
-        : '',
+      `Expires: ${new Date(expiresAt).toLocaleDateString('en-US')}`,
       message ? `\nNote from your creator: ${message}` : '',
       '',
-      'Accept it in your Stelli dashboard to lock the date and pay.',
+      'Accept it in your Stelli messages to lock the date and pay.',
     ].filter(Boolean);
 
-    await notifyBoth(
-      base44,
-      [booking.client_email, booking.lensman_email],
-      'Your Stelli quote',
-      lines.join('\n')
-    );
+    await notifyThread(base44, booking, {
+      to: booking.client_email,
+      role: 'client',
+      sinceIso: quote.created_date || new Date().toISOString(),
+      subject: 'Your Stelli quote',
+      body: lines.join('\n'),
+    });
 
     return Response.json({ quote });
   } catch (error) {

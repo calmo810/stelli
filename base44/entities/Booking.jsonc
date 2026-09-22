@@ -97,7 +97,15 @@
     },
     "total_price": {
       "type": "number",
-      "description": "Agreed amount, set from the accepted quote"
+      "description": "Agreed quote amount, set from the accepted quote"
+    },
+    "fee_amount": {
+      "type": "number",
+      "description": "Stelli service fee charged to the client on top of the quote"
+    },
+    "creator_payout": {
+      "type": "number",
+      "description": "Amount transferred to the creator when the hold is released"
     },
     "co_bookers": {
       "type": "array",
@@ -143,19 +151,86 @@
       "default": "pending",
       "description": "Payment/escrow status"
     },
+    "paid_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the client's card was charged"
+    },
+    "completed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the booking closed out"
+    },
+    "stripe_payment_intent_id": {
+      "type": "string",
+      "description": "Stripe payment intent for the client charge"
+    },
+    "stripe_charge_id": {
+      "type": "string",
+      "description": "Stripe charge held on Stelli's balance"
+    },
+    "transfer_group": {
+      "type": "string",
+      "description": "Shared by the charge and the later payout so the money is traceable"
+    },
+    "stripe_transfer_id": {
+      "type": "string",
+      "description": "Stripe transfer that paid the creator out"
+    },
+    "released_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the held funds were released to the creator"
+    },
+    "released_by": {
+      "type": "string",
+      "enum": [
+        "auto",
+        "founder"
+      ],
+      "description": "Whether the payout was automatic or decided by a founder"
+    },
+    "refund_amount": {
+      "type": "number",
+      "description": "Amount refunded to the client out of the held funds"
+    },
+    "refunded_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the client refund was issued"
+    },
+    "needs_payout_setup": {
+      "type": "boolean",
+      "default": false,
+      "description": "Funds are held because the creator has no connected account yet"
+    },
     "delivery_deadline": {
       "type": "string",
       "format": "date",
       "description": "Expected delivery date"
     },
+    "unedited_link": {
+      "type": "string",
+      "description": "Link to the unedited set, posted before the final edits"
+    },
+    "unedited_delivered_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the creator posted the unedited set"
+    },
     "delivery_link": {
       "type": "string",
-      "description": "URL to the delivered gallery, pasted by the creator"
+      "description": "URL to the final edited gallery, pasted by the creator"
     },
     "delivered_at": {
       "type": "string",
       "format": "date-time",
-      "description": "When the creator marked the gallery delivered"
+      "description": "When the creator marked the final edits delivered"
+    },
+    "release_due_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the 48 hour window closes and the payout releases"
     },
     "delivery_notes": {
       "type": "string",
@@ -164,6 +239,66 @@
     "client_confirmed_delivery": {
       "type": "boolean",
       "description": "Whether client confirmed receipt"
+    },
+    "problem_reported_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the client reported a problem with the delivery"
+    },
+    "problem_note": {
+      "type": "string",
+      "description": "What the client said was wrong"
+    },
+    "flagged_for_review": {
+      "type": "boolean",
+      "default": false,
+      "description": "Funds are frozen and a founder must decide release or refund"
+    },
+    "flag_reason": {
+      "type": "string",
+      "description": "Why the booking is sitting in the founder queue"
+    },
+    "client_last_read_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the client last opened this thread"
+    },
+    "creator_last_read_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the creator last opened this thread"
+    },
+    "client_notified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last email sent to the client about this thread"
+    },
+    "creator_notified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last email sent to the creator about this thread"
+    },
+    "first_reply_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the creator first replied to this request"
+    },
+    "cancelled_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the booking was cancelled"
+    },
+    "cancelled_by": {
+      "type": "string",
+      "enum": [
+        "client",
+        "creator"
+      ],
+      "description": "Which side cancelled"
+    },
+    "cancellation_reason": {
+      "type": "string",
+      "description": "Reason given for the cancellation"
     },
     "billing_address": {
       "type": "string",

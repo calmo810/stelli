@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { notifyBoth } from '../../shared/notify.ts';
 import { createContractForBooking } from '../../shared/bookingContract.ts';
+import { viewerRole } from '../../shared/bookingAccess.ts';
 
 export default async function (req) {
   try {
@@ -17,21 +18,23 @@ export default async function (req) {
     const booking = await base44.asServiceRole.entities.Booking.get(quote.booking_id);
     if (!booking) return Response.json({ error: 'Booking not found' }, { status: 404 });
 
-    const isClient = booking.client_id === user.id || booking.client_email === user.email;
-    if (!isClient && user.role !== 'admin') {
+    if (viewerRole(booking, user) !== 'client' && user.role !== 'admin') {
       return Response.json({ error: 'Only the client on this booking can accept the quote.' }, { status: 403 });
     }
 
+    if (quote.status === 'accepted') {
+      return Response.json({ quote, alreadyAccepted: true });
+    }
     if (quote.status !== 'sent') {
       return Response.json({ error: `This quote was already ${quote.status}.` }, { status: 409 });
     }
 
     if (quote.expires_at && new Date(quote.expires_at) < new Date()) {
       await base44.asServiceRole.entities.Quote.update(quote.id, { status: 'expired' });
-      return Response.json({ error: 'This quote has expired. Ask your creator for a new one.' }, { status: 409 });
+      return Response.json({ error: 'This quote expired. Ask your creator for a new one.' }, { status: 409 });
     }
 
-    const lensman = await base44.asServiceRole.entities.Lensman.get(booking.lensman_id);
+    const lensman = await base44.asServiceRole.entities.Lensman.get(booking.lensman_id).catch(() => null);
 
     await base44.asServiceRole.entities.Quote.update(quote.id, { status: 'accepted' });
     await base44.asServiceRole.entities.Booking.update(booking.id, {
@@ -46,9 +49,9 @@ export default async function (req) {
 
     await notifyBoth(
       base44,
-      [booking.client_email, booking.lensman_email],
+      [booking.creator_email || booking.lensman_email],
       'Quote accepted',
-      `The quote for $${(quote.amount || 0).toLocaleString()} was accepted.\n\nShoot date: ${booking.event_date}\n\nThe booking agreement is now on file. The client can pay to lock the date, and payment stays held until delivery.`
+      `The quote for $${(quote.amount || 0).toLocaleString()} was accepted.\n\nShoot date: ${booking.event_date}\n\nThe client can pay to lock the date. Payment stays held by Stelli until delivery.`
     );
 
     return Response.json({ quote: { ...quote, status: 'accepted' }, contract });

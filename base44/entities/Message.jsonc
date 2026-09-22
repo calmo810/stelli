@@ -30,6 +30,15 @@
       "type": "string",
       "description": "Message text"
     },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "chat",
+        "system"
+      ],
+      "default": "chat",
+      "description": "Chat bubble or a system notice rendered as a quiet card"
+    },
     "file_urls": {
       "type": "array",
       "items": {

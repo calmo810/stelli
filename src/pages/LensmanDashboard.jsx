@@ -1,8 +1,8 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Star, Calendar, Inbox, Link2, UserRound, MessageCircle } from 'lucide-react';
+import { Star, Calendar, Inbox, Link2, UserRound, MessageCircle, Wallet, Loader2 } from 'lucide-react';
 import BookingCard from '../components/dashboard/BookingCard';
 import QuoteForm from '../components/dashboard/QuoteForm';
 import DeliveryForm from '../components/dashboard/DeliveryForm';
@@ -30,6 +30,36 @@ export default function LensmanDashboard() {
     setTab(next);
   };
   const { data: user } = useQuery({ queryKey: ['me'], queryFn: () => base44.auth.me() });
+
+  const { data: myProfile, refetch: refetchProfile } = useQuery({
+    queryKey: ['my-lensman-profile', user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => {
+      const list = await base44.entities.Lensman.filter({ user_id: user.id });
+      return list[0] || null;
+    },
+  });
+
+  const [payoutBusy, setPayoutBusy] = useState(false);
+
+  // Stripe sends the creator back here once onboarding finishes.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('payouts') !== 'done') return;
+    base44.functions
+      .invoke('startPayoutSetup', { action: 'status' })
+      .then(() => refetchProfile())
+      .catch(() => {});
+  }, [refetchProfile]);
+
+  const setupPayouts = async () => {
+    setPayoutBusy(true);
+    try {
+      const response = await base44.functions.invoke('startPayoutSetup', { origin: window.location.origin });
+      if (response.data?.url) window.location.href = response.data.url;
+    } finally {
+      setPayoutBusy(false);
+    }
+  };
 
   const { data: bookings = [], isLoading } = useQuery({
     queryKey: ['lensman-bookings', user?.email],
@@ -60,6 +90,26 @@ export default function LensmanDashboard() {
       </div>
 
       <div className="max-w-[1180px] mx-auto px-8 md:px-14 py-8">
+        {myProfile && !myProfile.payouts_enabled && (
+          <div className="mb-8 border p-5 flex flex-wrap items-center justify-between gap-4" style={{ borderColor: 'rgba(26,39,68,0.16)', background: '#ece9e2' }}>
+            <div>
+              <p className="text-[8px] font-body tracking-[0.4em] uppercase mb-2" style={{ color: 'rgba(26,39,68,0.35)' }}>Payouts</p>
+              <p className="text-sm" style={{ color: 'rgba(26,39,68,0.6)' }}>
+                Set up payouts to send your first quote — takes about 5 minutes with Stripe.
+              </p>
+            </div>
+            <button
+              onClick={setupPayouts}
+              disabled={payoutBusy}
+              className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold disabled:opacity-50"
+              style={{ background: '#1a2744', color: '#f0ede6' }}
+            >
+              {payoutBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wallet className="w-3.5 h-3.5" />}
+              Set up payouts
+            </button>
+          </div>
+        )}
+
         <div className="mb-8">
           <MyAgreements role="lensman" />
         </div>

@@ -129,6 +129,12 @@ export default function AdminDashboard() {
     updateLensman.mutate({ id: lensman.id, data: { status: 'rejected', admin_notes: notes } });
   };
 
+  const decidePayout = useMutation({
+    mutationFn: ({ bookingId, action }) => base44.functions.invoke('releasePayout', { bookingId, action }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-bookings'] }),
+  });
+
+  const flagged = bookings.filter(b => b.flagged_for_review);
   const pending = lensmen.filter(l => l.status === 'pending');
   const approved = lensmen.filter(l => l.status === 'approved');
   const totalRevenue = bookings.filter(b => b.status === 'completed').reduce((sum, b) => sum + (b.total_price || 0), 0);
@@ -175,6 +181,9 @@ export default function AdminDashboard() {
             </TabsTrigger>
             <TabsTrigger value="bookings" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-lime data-[state=active]:text-ink">
               Bookings ({bookings.length})
+            </TabsTrigger>
+            <TabsTrigger value="flagged" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-magenta data-[state=active]:text-ink">
+              Held funds ({flagged.length})
             </TabsTrigger>
           </TabsList>
 
@@ -230,6 +239,58 @@ export default function AdminDashboard() {
               ))
             ) : (
               <p className="font-body text-[13px] text-center py-20 text-white/35">No bookings yet</p>
+            )}
+          </TabsContent>
+
+          <TabsContent value="flagged" className="space-y-4">
+            {flagged.length > 0 ? (
+              flagged.map(b => (
+                <div key={b.id} className={`${CARD} p-6`} style={SURFACE}>
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div>
+                      <h3 className="font-heading text-[20px] font-semibold text-white leading-tight">
+                        {b.client_name} → {b.lensman_name}
+                      </h3>
+                      <p className="label-mono text-[9px] text-white/40 mt-2">
+                        {b.event_date} · held ${Number(b.total_price || 0).toLocaleString()} · creator gets ${Number(b.creator_payout || 0).toLocaleString()}
+                      </p>
+                    </div>
+                    <Pill tone="magenta">{b.payment_status}</Pill>
+                  </div>
+
+                  {b.flag_reason && (
+                    <p className="font-body text-[13px] leading-relaxed text-white/55 mb-5">{b.flag_reason}</p>
+                  )}
+
+                  {b.problem_note && (
+                    <p className="font-body text-[13px] leading-relaxed text-white/70 border-l-2 pl-4 mb-5" style={{ borderColor: 'hsl(var(--neon-magenta) / 0.5)' }}>
+                      {b.problem_note}
+                    </p>
+                  )}
+
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => decidePayout.mutate({ bookingId: b.id, action: 'release' })}
+                      disabled={decidePayout.isPending}
+                      className="flex-1 label-mono text-[10px] font-semibold"
+                      style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }}
+                    >
+                      Release to creator
+                    </Button>
+                    <Button
+                      onClick={() => decidePayout.mutate({ bookingId: b.id, action: 'refund' })}
+                      disabled={decidePayout.isPending}
+                      variant="outline"
+                      className="flex-1 label-mono text-[10px] border-white/15 text-white/60 bg-transparent hover:bg-white/5 hover:text-white"
+                      style={{ borderRadius: 4 }}
+                    >
+                      Refund the client
+                    </Button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="font-body text-[13px] text-center py-20 text-white/35">Nothing needs a decision.</p>
             )}
           </TabsContent>
         </Tabs>

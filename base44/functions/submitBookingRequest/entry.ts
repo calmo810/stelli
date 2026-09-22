@@ -6,30 +6,16 @@ export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
 
-    let user = null;
-    try {
-      user = await base44.auth.me();
-    } catch {
-      user = null;
+    const user = await base44.auth.me();
+    if (!user) {
+      return Response.json({ error: 'Please sign in to send this request.' }, { status: 401 });
     }
 
-    const {
-      lensmanId,
-      eventDate,
-      eventTime,
-      location,
-      eventType,
-      clientName,
-      clientEmail,
-      clientPhone,
-      brief,
-    } = await req.json();
+    const { lensmanId, eventDate, eventTime, location, eventType, brief, clientName } =
+      await req.json();
 
-    if (!lensmanId || !eventDate || !clientName || !clientEmail || !clientPhone) {
-      return Response.json(
-        { error: 'Date, name, email and phone are required.' },
-        { status: 400 }
-      );
+    if (!lensmanId || !eventDate || !brief || !brief.trim()) {
+      return Response.json({ error: 'A date and what you are planning are required.' }, { status: 400 });
     }
 
     const lensman = await base44.asServiceRole.entities.Lensman.get(lensmanId);
@@ -41,26 +27,28 @@ export default async function (req) {
     // not the contact email typed on the public profile.
     const owner = await resolveCreatorOwner(base44, lensman);
 
+    const name = (clientName || user.full_name || '').trim() || user.email;
+
     const booking = await base44.asServiceRole.entities.Booking.create({
       lensman_id: lensmanId,
-      lensman_name: lensman.full_name,
+      lensman_name: lensman.display_name || lensman.full_name,
       lensman_email: owner.ownerEmail,
       creator_id: owner.ownerId,
       creator_email: owner.ownerEmail,
-      client_id: user?.id || '',
-      client_name: clientName,
-      client_email: clientEmail,
-      client_phone: clientPhone,
+      client_id: user.id,
+      client_name: name,
+      client_email: user.email,
       event_date: eventDate,
       event_time: eventTime || '',
       event_type: eventType || 'Custom shoot',
       location: location || '',
-      event_description: brief || '',
+      event_description: brief.trim().slice(0, 2000),
       status: 'requested',
       payment_status: 'pending',
+      client_last_read_at: new Date().toISOString(),
     });
 
-    const clientFirst = String(clientName).trim().split(' ')[0];
+    const clientFirst = name.split(' ')[0];
 
     await notifyBoth(
       base44,
@@ -68,6 +56,10 @@ export default async function (req) {
       `New request from ${clientFirst} for ${eventDate}`,
       `New request from ${clientFirst} for ${eventDate}. Reply in Stelli to work out the details and send your quote.`
     );
+
+    await base44.asServiceRole.entities.Booking.update(booking.id, {
+      creator_notified_at: new Date().toISOString(),
+    });
 
     return Response.json({ booking });
   } catch (error) {
