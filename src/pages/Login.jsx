@@ -7,6 +7,11 @@ import { Label } from "@/components/ui/label";
 import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
+import { safeReturnTo } from "@/lib/authReturnTo";
+
+// Honor ?returnTo= (used by the MCP consent flow), else the app's portal.
+const afterAuth = () =>
+  new URLSearchParams(window.location.search).get("returnTo") ? safeReturnTo() : "/portal";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -18,7 +23,7 @@ export default function Login() {
     let active = true;
     base44.auth.isAuthenticated()
       .then((ok) => {
-        if (active && ok) window.location.replace('/portal');
+        if (active && ok) window.location.replace(afterAuth());
       })
       .catch(() => {});
     return () => { active = false; };
@@ -30,7 +35,7 @@ export default function Login() {
     setLoading(true);
     try {
       await base44.auth.loginViaEmailPassword(email, password);
-      window.location.href = "/portal";
+      window.location.href = afterAuth();
     } catch (err) {
       setError(err.message || "Invalid email or password");
     } finally {
@@ -39,7 +44,7 @@ export default function Login() {
   };
 
   const handleGoogle = () => {
-    base44.auth.loginWithProvider("google", "/portal");
+    base44.auth.loginWithProvider("google", afterAuth());
   };
 
   return (

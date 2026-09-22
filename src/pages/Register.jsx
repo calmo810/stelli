@@ -10,6 +10,11 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { toast } from "@/components/ui/use-toast";
+import { safeReturnTo } from "@/lib/authReturnTo";
+
+// Honor ?returnTo= (used by the MCP consent flow), else the app's portal.
+const afterAuth = () =>
+  new URLSearchParams(window.location.search).get("returnTo") ? safeReturnTo() : "/portal";
 
 const REGISTER_DRAFT_KEY = 'stelli_register_draft';
 const VALID_ACCOUNT_TYPES = ['client', 'creator'];
@@ -45,7 +50,7 @@ export default function Register() {
     let active = true;
     base44.auth.isAuthenticated()
       .then((ok) => {
-        if (active && ok) window.location.replace('/portal');
+        if (active && ok) window.location.replace(afterAuth());
       })
       .catch(() => {});
     return () => { active = false; };
@@ -105,7 +110,7 @@ export default function Register() {
         localStorage.setItem('stelli_pending_legal_acceptance', 'true');
       }
       localStorage.removeItem(REGISTER_DRAFT_KEY);
-      window.location.href = "/portal";
+      window.location.href = afterAuth();
     } catch (err) {
       setError(err.message || "Invalid verification code");
     } finally {
@@ -138,7 +143,7 @@ export default function Register() {
     localStorage.setItem('stelli_pending_account_type', accountType);
     localStorage.setItem('stelli_next_step_prompt', accountType);
     localStorage.setItem('stelli_pending_legal_acceptance', 'true');
-    base44.auth.loginWithProvider("google", "/portal");
+    base44.auth.loginWithProvider("google", afterAuth());
   };
 
   if (showOtp) {
