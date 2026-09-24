@@ -1,0 +1,73 @@
+{
+  "name": "CreatorContact",
+  "type": "object",
+  "properties": {
+    "lensman_id": {
+      "type": "string",
+      "description": "The creator profile this private record belongs to"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Account that owns the creator profile"
+    },
+    "full_name": {
+      "type": "string",
+      "description": "The creator's real name. Never shown to clients."
+    },
+    "email": {
+      "type": "string",
+      "description": "Contact email for booking updates. Not the login email."
+    },
+    "phone": {
+      "type": "string",
+      "description": "Contact phone"
+    },
+    "instagram": {
+      "type": "string",
+      "description": "Instagram handle, kept for Stelli's records only"
+    },
+    "admin_notes": {
+      "type": "string",
+      "description": "Internal notes from vetting"
+    },
+    "review_note": {
+      "type": "string",
+      "description": "Why the creator is under review"
+    }
+  },
+  "required": [
+    "lensman_id",
+    "user_id",
+    "full_name",
+    "email"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

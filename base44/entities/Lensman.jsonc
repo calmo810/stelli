@@ -6,25 +6,13 @@
       "type": "string",
       "description": "Account that owns this creator profile, set when the creator applies"
     },
-    "full_name": {
-      "type": "string",
-      "description": "Full name of the lensman"
-    },
     "display_name": {
       "type": "string",
-      "description": "Public display name"
+      "description": "Public display name. The only name clients ever see."
     },
     "slug": {
       "type": "string",
-      "description": "Public profile slug for getstelli.com/creators/slug"
-    },
-    "email": {
-      "type": "string",
-      "description": "Contact email shown on the profile (display only, never used for access)"
-    },
-    "phone": {
-      "type": "string",
-      "description": "Contact phone"
+      "description": "Public profile link, generated from the display name"
     },
     "market": {
       "type": "string",
@@ -32,32 +20,28 @@
         "NYC",
         "ELON"
       ],
-      "default": "NYC",
+      "default": "ELON",
       "description": "Market this creator operates in"
-    },
-    "instagram": {
-      "type": "string",
-      "description": "Instagram handle"
     },
     "bio": {
       "type": "string",
-      "description": "Short bio about why they create"
+      "description": "How they shoot and what it is like to work with them"
     },
     "profile_headline": {
       "type": "string",
-      "description": "Custom hero headline for public profile"
+      "description": "Generated hero headline for the public profile"
     },
     "profile_tagline": {
       "type": "string",
-      "description": "Short positioning line shown on the profile"
+      "description": "Generated from their first three specialties"
     },
     "booking_cta": {
       "type": "string",
-      "description": "Custom booking button text"
+      "description": "Generated booking button text"
     },
     "featured_quote": {
       "type": "string",
-      "description": "Short creator quote or profile note"
+      "description": "Retired. No longer collected or shown."
     },
     "one_liner": {
       "type": "string",
@@ -113,7 +97,6 @@
     "profile_theme": {
       "type": "string",
       "enum": [
-        "editorial_cream",
         "night_flash",
         "clean_portfolio"
       ],
@@ -135,7 +118,7 @@
       "items": {
         "type": "string"
       },
-      "description": "Neighborhoods where they work"
+      "description": "Campus spots (Elon) or neighborhoods (NYC) where they shoot"
     },
     "specialties": {
       "type": "array",
@@ -150,14 +133,14 @@
     },
     "equipment": {
       "type": "string",
-      "description": "Equipment/gear description"
+      "description": "Camera, lenses and lighting, kept short"
     },
     "portfolio_images": {
       "type": "array",
       "items": {
         "type": "string"
       },
-      "description": "URLs of portfolio images"
+      "description": "URLs of portfolio images, in the creator's chosen order"
     },
     "portfolio_videos": {
       "type": "array",
@@ -205,10 +188,6 @@
       "format": "date-time",
       "description": "When the creator confirmed they are 18 or older"
     },
-    "admin_notes": {
-      "type": "string",
-      "description": "Internal notes from vetting"
-    },
     "blackout_dates": {
       "type": "array",
       "items": {
@@ -246,19 +225,16 @@
       "type": "boolean",
       "default": false,
       "description": "Flagged by a founder after a cancellation or no-show"
-    },
-    "review_note": {
-      "type": "string",
-      "description": "Why the creator is under review"
     }
   },
   "required": [
-    "full_name",
-    "email"
+    "display_name"
   ],
   "rls": {
     "create": {
-      "created_by_id": "{{user.id}}"
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "read": {
       "$or": [
@@ -276,16 +252,9 @@
       ]
     },
     "update": {
-      "$or": [
-        {
-          "data.user_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "delete": {
       "user_condition": {

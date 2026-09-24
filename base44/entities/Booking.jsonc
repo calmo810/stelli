@@ -8,7 +8,7 @@
     },
     "lensman_name": {
       "type": "string",
-      "description": "Name of the lensman"
+      "description": "Display name of the lensman"
     },
     "lensman_email": {
       "type": "string",
@@ -97,7 +97,7 @@
     },
     "total_price": {
       "type": "number",
-      "description": "Agreed quote amount, set from the accepted quote"
+      "description": "Quote plus the add-ons the client ticked"
     },
     "fee_amount": {
       "type": "number",
@@ -106,6 +106,21 @@
     "creator_payout": {
       "type": "number",
       "description": "Amount transferred to the creator when the hold is released"
+    },
+    "picked_add_ons": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "The add-ons the client ticked when accepting the quote"
     },
     "co_bookers": {
       "type": "array",
@@ -318,13 +333,16 @@
           "data.client_id": "{{user.id}}"
         },
         {
+          "data.creator_id": "{{user.id}}"
+        },
+        {
           "data.client_email": "{{user.email}}"
         },
         {
           "data.lensman_email": "{{user.email}}"
         },
         {
-          "data.creator_id": "{{user.id}}"
+          "data.creator_email": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -334,28 +352,14 @@
       ]
     },
     "create": {
-      "created_by_id": "{{user.id}}"
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "update": {
-      "$or": [
-        {
-          "data.client_id": "{{user.id}}"
-        },
-        {
-          "data.client_email": "{{user.email}}"
-        },
-        {
-          "data.lensman_email": "{{user.email}}"
-        },
-        {
-          "data.creator_id": "{{user.id}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "delete": {
       "user_condition": {
