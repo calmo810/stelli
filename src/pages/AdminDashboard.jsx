@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Star, Users, Calendar, DollarSign, Check, X } from 'lucide-react';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Star, Users, Calendar, DollarSign } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import RatingDisplay from '@/components/RatingDisplay';
 
 const SURFACE = { background: 'hsl(var(--surface))', borderRadius: 4 };
 const CARD = 'border border-white/10';
@@ -24,89 +24,10 @@ function Pill({ children, tone = 'cyan' }) {
   );
 }
 
-function ApplicationCard({ lensman, onApprove, onReject }) {
-  const [notes, setNotes] = useState('');
-
-  return (
-    <div className={`${CARD} p-6`} style={SURFACE}>
-      <div className="flex items-start justify-between gap-4 mb-4">
-        <div>
-          <h3 className="font-heading text-[22px] font-semibold text-white leading-tight">{lensman.full_name}</h3>
-          <p className="label-mono text-[9px] text-white/40 mt-2">
-            {lensman.email} · {lensman.neighborhoods?.join(', ')}
-          </p>
-        </div>
-        <Pill>Pending review</Pill>
-      </div>
-
-      {lensman.bio && (
-        <p className="font-body text-[13px] leading-relaxed text-white/50 mb-4">{lensman.bio}</p>
-      )}
-
-      {lensman.specialties?.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-4">
-          {lensman.specialties.map((s, i) => (
-            <span key={i} className="label-mono text-[9px] px-2.5 py-1.5 border border-white/10 text-white/50" style={{ borderRadius: 3 }}>
-              {s}
-            </span>
-          ))}
-        </div>
-      )}
-
-      {lensman.portfolio_images?.length > 0 && (
-        <div className="grid grid-cols-4 gap-1.5 mb-4 overflow-hidden" style={{ borderRadius: 4 }}>
-          {lensman.portfolio_images.slice(0, 4).map((img, i) => (
-            <Dialog key={i}>
-              <DialogTrigger asChild>
-                <div className="aspect-square cursor-pointer hover:opacity-80 transition-opacity">
-                  <img src={img} alt="" className="w-full h-full object-cover" />
-                </div>
-              </DialogTrigger>
-              <DialogContent className="max-w-3xl p-0 bg-black border-none">
-                <img src={img} alt="" className="w-full max-h-[80vh] object-contain" />
-              </DialogContent>
-            </Dialog>
-          ))}
-        </div>
-      )}
-
-      <div className="flex items-center gap-5 label-mono text-[9px] text-white/35 mb-4">
-        <span>{lensman.years_experience || 0} years experience</span>
-        <span>{lensman.portfolio_images?.length || 0} photos</span>
-      </div>
-
-      <Textarea
-        placeholder="Internal notes (optional)..."
-        value={notes}
-        onChange={e => setNotes(e.target.value)}
-        className="rounded-none bg-transparent border-white/10 text-white text-sm min-h-[60px] mb-4 placeholder:text-white/25"
-      />
-
-      <div className="flex gap-2">
-        <Button
-          onClick={() => onApprove(lensman, notes)}
-          className="flex-1 label-mono text-[10px] font-semibold hover:opacity-90"
-          style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }}
-        >
-          <Check className="w-3.5 h-3.5 mr-1.5" /> Approve
-        </Button>
-        <Button
-          onClick={() => onReject(lensman, notes)}
-          variant="outline"
-          className="flex-1 label-mono text-[10px] border-white/15 text-white/60 bg-transparent hover:bg-white/5 hover:text-white"
-          style={{ borderRadius: 4 }}
-        >
-          <X className="w-3.5 h-3.5 mr-1.5" /> Reject
-        </Button>
-      </div>
-    </div>
-  );
-}
-
 export default function AdminDashboard() {
   const queryClient = useQueryClient();
 
-  const { data: lensmen = [], isLoading: loadingLensmen } = useQuery({
+  const { data: lensmen = [] } = useQuery({
     queryKey: ['admin-lensmen'],
     queryFn: () => base44.entities.Lensman.list('-created_date'),
   });
@@ -115,19 +36,6 @@ export default function AdminDashboard() {
     queryKey: ['admin-bookings'],
     queryFn: () => base44.entities.Booking.list('-created_date'),
   });
-
-  const updateLensman = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Lensman.update(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-lensmen'] }),
-  });
-
-  const handleApprove = (lensman, notes) => {
-    updateLensman.mutate({ id: lensman.id, data: { status: 'approved', admin_notes: notes } });
-  };
-
-  const handleReject = (lensman, notes) => {
-    updateLensman.mutate({ id: lensman.id, data: { status: 'rejected', admin_notes: notes } });
-  };
 
   const decidePayout = useMutation({
     mutationFn: ({ bookingId, action }) => base44.functions.invoke('releasePayout', { bookingId, action }),
@@ -156,6 +64,22 @@ export default function AdminDashboard() {
               Admin
             </h1>
             <p className="font-body text-[13px] text-white/45">Review applications, manage lensmen, track bookings.</p>
+
+            <nav className="flex flex-wrap items-center gap-3 mt-7">
+              <Link
+                to="/admin/applications"
+                className="inline-flex items-center gap-2.5 label-mono text-[10px] font-semibold px-5 py-3"
+                style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }}
+              >
+                Applications
+                <span
+                  className="label-mono text-[9px] font-semibold px-2 py-0.5"
+                  style={{ background: 'hsl(var(--ink) / 0.85)', color: 'hsl(var(--neon-lime))', borderRadius: 999 }}
+                >
+                  {pending.length}
+                </span>
+              </Link>
+            </nav>
           </motion.div>
         </div>
       </div>
@@ -171,11 +95,8 @@ export default function AdminDashboard() {
           ))}
         </div>
 
-        <Tabs defaultValue="applications">
+        <Tabs defaultValue="lensmen">
           <TabsList className="bg-transparent border border-white/10 rounded-none p-1 mb-8 h-auto flex-wrap">
-            <TabsTrigger value="applications" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-lime data-[state=active]:text-ink">
-              Applications ({pending.length})
-            </TabsTrigger>
             <TabsTrigger value="lensmen" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-lime data-[state=active]:text-ink">
               Active lensmen ({approved.length})
             </TabsTrigger>
@@ -187,16 +108,6 @@ export default function AdminDashboard() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="applications" className="space-y-4">
-            {loadingLensmen ? (
-              Array(2).fill(0).map((_, i) => <Skeleton key={i} className="h-48" />)
-            ) : pending.length > 0 ? (
-              pending.map(l => <ApplicationCard key={l.id} lensman={l} onApprove={handleApprove} onReject={handleReject} />)
-            ) : (
-              <p className="font-body text-[13px] text-center py-20 text-white/35">No pending applications</p>
-            )}
-          </TabsContent>
-
           <TabsContent value="lensmen" className="space-y-3">
             {approved.map(l => (
               <div key={l.id} className={`${CARD} p-5 flex items-center justify-between gap-4`} style={SURFACE}>
@@ -207,11 +118,10 @@ export default function AdminDashboard() {
                   </p>
                 </div>
                 <div className="flex items-center gap-5 shrink-0">
-                  <span className="flex items-center gap-1.5">
-                    <Star className="w-3.5 h-3.5" style={{ color: 'hsl(var(--neon-magenta))' }} fill="hsl(var(--neon-magenta))" />
-                    <span className="font-body text-[12px] text-white/75">{l.avg_rating?.toFixed(1) || '5.0'}</span>
-                  </span>
-                  <span className="label-mono text-[9px] text-white/35">{l.review_count || 0} reviews</span>
+                  <RatingDisplay rating={l.avg_rating} reviewCount={l.review_count} />
+                  {l.review_count > 0 && (
+                    <span className="label-mono text-[9px] text-white/35">{l.review_count} reviews</span>
+                  )}
                 </div>
               </div>
             ))}

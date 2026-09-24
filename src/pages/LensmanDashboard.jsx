@@ -1,12 +1,15 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Star, Calendar, Inbox, Link2, UserRound, MessageCircle, Wallet, Loader2 } from 'lucide-react';
+import { Star, Calendar, Inbox, Link2, UserRound, MessageCircle, Pencil } from 'lucide-react';
 import BookingCard from '../components/dashboard/BookingCard';
 import QuoteForm from '../components/dashboard/QuoteForm';
 import DeliveryForm from '../components/dashboard/DeliveryForm';
 import ProfileEditor from '../components/dashboard/ProfileEditor';
+import PayoutSetup from '../components/dashboard/PayoutSetup';
+import PendingBanner from '../components/dashboard/PendingBanner';
+import AgeConfirmGate from '../components/dashboard/AgeConfirmGate';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
 import MyAgreements from '@/components/dashboard/MyAgreements';
@@ -40,27 +43,6 @@ export default function LensmanDashboard() {
     },
   });
 
-  const [payoutBusy, setPayoutBusy] = useState(false);
-
-  // Stripe sends the creator back here once onboarding finishes.
-  useEffect(() => {
-    if (new URLSearchParams(window.location.search).get('payouts') !== 'done') return;
-    base44.functions
-      .invoke('startPayoutSetup', { action: 'status' })
-      .then(() => refetchProfile())
-      .catch(() => {});
-  }, [refetchProfile]);
-
-  const setupPayouts = async () => {
-    setPayoutBusy(true);
-    try {
-      const response = await base44.functions.invoke('startPayoutSetup', { origin: window.location.origin });
-      if (response.data?.url) window.location.href = response.data.url;
-    } finally {
-      setPayoutBusy(false);
-    }
-  };
-
   const { data: bookings = [], isLoading } = useQuery({
     queryKey: ['lensman-bookings', user?.email],
     enabled: !!user?.email,
@@ -68,6 +50,11 @@ export default function LensmanDashboard() {
   });
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['lensman-bookings'] });
+
+  // Creators who joined before the 18+ check existed confirm it once, here.
+  if (myProfile && !myProfile.age_confirmed) {
+    return <AgeConfirmGate profile={myProfile} onConfirmed={refetchProfile} />;
+  }
 
   const requests = bookings.filter(b => b.status === 'requested');
   const upcoming = bookings.filter(b => UPCOMING.includes(b.status));
@@ -90,25 +77,26 @@ export default function LensmanDashboard() {
       </div>
 
       <div className="max-w-[1180px] mx-auto px-8 md:px-14 py-8">
-        {myProfile && !myProfile.payouts_enabled && (
-          <div className="mb-8 border p-5 flex flex-wrap items-center justify-between gap-4" style={{ borderColor: 'rgba(26,39,68,0.16)', background: '#ece9e2' }}>
-            <div>
-              <p className="text-[8px] font-body tracking-[0.4em] uppercase mb-2" style={{ color: 'rgba(26,39,68,0.35)' }}>Payouts</p>
-              <p className="text-sm" style={{ color: 'rgba(26,39,68,0.6)' }}>
-                Set up payouts to send your first quote — takes about 5 minutes with Stripe.
-              </p>
-            </div>
+        {myProfile && (
+          <div className="mb-6">
             <button
-              onClick={setupPayouts}
-              disabled={payoutBusy}
-              className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold disabled:opacity-50"
-              style={{ background: '#1a2744', color: '#f0ede6' }}
+              onClick={() => changeTab('profile')}
+              className="w-full lg:w-[440px] inline-flex items-center justify-center gap-2.5 px-8 font-body font-semibold text-[15px] transition-transform duration-300 hover:-translate-y-0.5"
+              style={{ background: '#2AE8F8', color: '#0a0f1e', minHeight: 64, borderRadius: 4 }}
             >
-              {payoutBusy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wallet className="w-3.5 h-3.5" />}
-              Set up payouts
+              <Pencil className="w-4 h-4" /> Edit your profile
             </button>
+            <div className="mt-3">
+              <Link to={`/creators/${myProfile.id}`} className="text-[11px] underline underline-offset-4" style={{ color: 'rgba(26,39,68,0.45)' }}>
+                Preview my profile.
+              </Link>
+            </div>
           </div>
         )}
+
+        {myProfile?.status === 'pending' && <PendingBanner />}
+
+        {myProfile && <PayoutSetup profile={myProfile} onRefresh={refetchProfile} />}
 
         <div className="mb-8">
           <MyAgreements role="lensman" />

@@ -2,7 +2,7 @@ import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Star } from 'lucide-react';
+import RatingDisplay from '@/components/RatingDisplay';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMarket, filterByMarket } from '@/lib/market';
 
@@ -69,9 +69,10 @@ export default function TopRatedRail() {
                     {(c.neighborhoods?.[0] || activeMarket.short)} · {c.specialties?.[0] || 'Photography'}
                   </p>
                   <div className="flex items-center gap-1.5 mt-3">
-                    <Star className="w-3.5 h-3.5" style={{ color: 'hsl(var(--neon-magenta))' }} fill="hsl(var(--neon-magenta))" />
-                    <span className="font-body text-[12px] text-white/70">{(c.avg_rating || 0).toFixed(1)}</span>
-                    <span className="font-body text-[11px] text-white/30">({c.review_count || 0})</span>
+                    <RatingDisplay rating={c.avg_rating} reviewCount={c.review_count} />
+                    {c.review_count > 0 && (
+                      <span className="font-body text-[11px] text-white/30">({c.review_count})</span>
+                    )}
                   </div>
                 </div>
               </Link>

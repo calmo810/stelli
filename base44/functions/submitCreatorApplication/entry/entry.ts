@@ -1,8 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
-
-function slugify(value = '') {
-  return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-}
+import { slugify, displayNameFrom } from '../../../shared/creatorApplication.ts';
 
 export default async function (req) {
   try {
@@ -17,7 +14,7 @@ export default async function (req) {
     const existing = await base44.asServiceRole.entities.Lensman.filter({ user_id: user.id });
     if (existing.length) return Response.json({ lensman: existing[0], alreadyApplied: true });
 
-    const displayName = (body.displayName || fullName.split(' ')[0] || fullName).trim();
+    const displayName = displayNameFrom(fullName, body.displayName);
     let slug = slugify(body.slug || fullName);
     const taken = await base44.asServiceRole.entities.Lensman.filter({ slug });
     if (taken.length) slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;

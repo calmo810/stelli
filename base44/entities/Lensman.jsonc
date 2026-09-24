@@ -196,6 +196,16 @@
       "default": "pending",
       "description": "Vetting status"
     },
+    "age_confirmed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the creator confirmed they are 18 or older"
+    },
+    "age_confirmed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the creator confirmed they are 18 or older"
+    },
     "admin_notes": {
       "type": "string",
       "description": "Internal notes from vetting"

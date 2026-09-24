@@ -117,7 +117,7 @@ export default function BookingFlow() {
             await base44.auth.loginViaEmailPassword(account.email.trim(), account.password);
             const booking = await fileRequest();
             localStorage.removeItem(draftKey(lensmanId, viewerKey));
-            navigate(`/messages/${booking.id}?sent=1`);
+            navigate(`/request-sent/${booking.id}`);
             return;
           }
           try {
@@ -139,7 +139,7 @@ export default function BookingFlow() {
 
       const booking = await fileRequest();
       localStorage.removeItem(draftKey(lensmanId, viewerKey));
-      navigate(`/messages/${booking.id}?sent=1`);
+      navigate(`/request-sent/${booking.id}`);
     } catch (e) {
       setError(e?.response?.data?.error || e?.message || 'We could not send your request. Please try again.');
     } finally {

@@ -2,6 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight, BadgeCheck, Link as LinkIcon, ShieldCheck } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
 
 const pillars = [
   {
@@ -22,6 +24,17 @@ const pillars = [
 ];
 
 export default function ForCreators() {
+  // The sample profile is a real, approved creator — never a hardcoded name.
+  const { data: sample } = useQuery({
+    queryKey: ['for-creators-sample'],
+    queryFn: async () => {
+      const list = await base44.entities.Lensman.filter({ status: 'approved' }, '-created_date', 1);
+      return list[0] || null;
+    },
+  });
+
+  const sampleName = sample?.display_name || sample?.full_name || 'A Stelli creator';
+
   return (
     <div className="min-h-screen" style={{ background: '#f0ede6' }}>
       {/* Hero */}
@@ -42,10 +55,12 @@ export default function ForCreators() {
                 style={{ background: '#1a2744', color: '#f0ede6' }}>
                 Apply to join <ArrowRight className="w-3.5 h-3.5" />
               </Link>
-              <Link to="/creators/calvin" className="inline-flex items-center justify-center px-8 py-3.5 rounded-full border text-[10px] font-body tracking-[0.08em] uppercase transition-all"
-                style={{ borderColor: 'rgba(26,39,68,0.2)', color: 'rgba(26,39,68,0.55)' }}>
-                View sample profile
-              </Link>
+              {sample && (
+                <Link to={`/creators/${sample.id}`} className="inline-flex items-center justify-center px-8 py-3.5 rounded-full border text-[10px] font-body tracking-[0.08em] uppercase transition-all"
+                  style={{ borderColor: 'rgba(26,39,68,0.2)', color: 'rgba(26,39,68,0.55)' }}>
+                  View sample profile
+                </Link>
+              )}
             </div>
           </motion.div>
 
@@ -54,12 +69,19 @@ export default function ForCreators() {
             className="border p-6" style={{ background: '#ece9e2', borderColor: 'rgba(26,39,68,0.12)' }}>
             <p className="text-[7px] font-body tracking-[0.4em] uppercase mb-5" style={{ color: 'rgba(26,39,68,0.3)' }}>Bio link preview</p>
             <div className="aspect-[4/5] overflow-hidden mb-5" style={{ background: '#d8d3c8' }}>
-              <img src="https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=700&h=900&fit=crop&q=85" alt="Creator profile preview" className="w-full h-full object-cover" style={{ filter: 'contrast(1.04) saturate(0.82)' }} />
+              <img
+                src={sample?.profile_image || sample?.portfolio_images?.[0] || 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=700&h=900&fit=crop&q=85'}
+                alt="Creator profile preview"
+                className="w-full h-full object-cover"
+                style={{ filter: 'contrast(1.04) saturate(0.82)' }}
+              />
             </div>
-            <p className="font-display font-semibold text-[26px] leading-none" style={{ color: '#1a2744' }}>Calvin</p>
-            <p className="text-[11px] font-body mt-2 mb-5" style={{ color: 'rgba(26,39,68,0.45)' }}>direct flash · nightlife · content days</p>
+            <p className="font-display font-semibold text-[26px] leading-none" style={{ color: '#1a2744' }}>{sampleName}</p>
+            <p className="text-[11px] font-body mt-2 mb-5" style={{ color: 'rgba(26,39,68,0.45)' }}>
+              {sample?.profile_tagline || sample?.specialties?.slice(0, 3).join(' · ') || 'direct flash · nightlife · content days'}
+            </p>
             <div className="border-t pt-4 flex items-center justify-between" style={{ borderColor: 'rgba(26,39,68,0.1)' }}>
-              <span className="text-[10px] font-body" style={{ color: 'rgba(26,39,68,0.4)' }}>getstelli.com/creators/calvin</span>
+              <span className="text-[10px] font-body" style={{ color: 'rgba(26,39,68,0.4)' }}>getstelli.com/creators/{sample?.slug || ''}</span>
               <span className="text-[9px] font-body tracking-[0.12em] uppercase" style={{ color: '#1a2744' }}>Book</span>
             </div>
           </motion.div>

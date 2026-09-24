@@ -34,7 +34,20 @@ export default async function (req) {
           payouts_onboarded_at: enabled ? new Date().toISOString() : lensman.payouts_onboarded_at,
         });
       }
-      return Response.json({ payoutsEnabled: enabled });
+      return Response.json({ payoutsEnabled: enabled, hasAccount: true });
+    }
+
+    // The Express dashboard is where a creator manages their own bank and tax
+    // details — Stelli never stores any of it.
+    if (action === 'dashboard') {
+      if (!lensman.stripe_account_id || !lensman.payouts_enabled) {
+        return Response.json({ error: 'Payouts are not active yet.' }, { status: 400 });
+      }
+      const link = await stripePost(
+        `accounts/${lensman.stripe_account_id}/login_links`,
+        new URLSearchParams()
+      );
+      return Response.json({ url: link.url });
     }
 
     let accountId = lensman.stripe_account_id;

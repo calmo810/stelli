@@ -17,6 +17,7 @@ export default function CreatorApplication() {
   const [step, setStep] = useState(1);
   const [uploading, setUploading] = useState(false);
   const [legalAgreed, setLegalAgreed] = useState(false);
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [form, setForm] = useState({
     full_name: '', email: '', phone: '',
     neighborhoods: [], years_experience: '',
@@ -52,9 +53,10 @@ export default function CreatorApplication() {
         base44.auth.redirectToLogin('/apply');
         throw new Error('Please sign in to apply.');
       }
-      // The profile belongs to the account that applied — this is what
-      // requests and notifications resolve against.
-      return base44.entities.Lensman.create({ ...data, user_id: user.id });
+      // The backend files the profile against the applying account and tells
+      // the founders a review is waiting.
+      const response = await base44.functions.invoke('applyAsCreator', data);
+      return response.data;
     },
     onSuccess: async () => {
       const authenticated = await base44.auth.isAuthenticated();
@@ -72,21 +74,18 @@ export default function CreatorApplication() {
     const displayName = form.full_name.split(' ')[0] || form.full_name;
     const slug = form.full_name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     createLensman.mutate({
-      ...form,
-      years_experience: parseInt(form.years_experience) || 0,
-      display_name: displayName,
+      fullName: form.full_name,
+      email: form.email,
+      phone: form.phone,
+      neighborhoods: form.neighborhoods,
+      specialties: form.specialties,
+      bio: form.bio,
+      equipment: form.equipment,
+      yearsExperience: parseInt(form.years_experience) || 0,
+      portfolioImages: form.portfolio_images,
+      blackoutDates: form.blackout_dates,
+      displayName,
       slug,
-      profile_headline: `Book ${displayName} safely through Stelli.`,
-      profile_tagline: form.specialties.slice(0, 3).join(' · '),
-      booking_cta: 'Book safely through Stelli',
-      featured_quote: '',
-      profile_theme: 'editorial_cream',
-      gallery_style: 'hero_grid',
-      profile_image: form.portfolio_images[0] || '',
-      status: 'pending',
-      avg_rating: 5.0,
-      review_count: 0,
-      style_tags: [],
     });
   };
 
@@ -95,7 +94,7 @@ export default function CreatorApplication() {
       case 1: return form.full_name && form.email && form.neighborhoods.length > 0;
       case 2: return form.portfolio_images.length >= 5;
       case 3: return form.bio && form.specialties.length > 0;
-      case 4: return legalAgreed;
+      case 4: return legalAgreed && ageConfirmed;
       default: return true;
     }
   };
@@ -107,12 +106,12 @@ export default function CreatorApplication() {
           <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
             <Check className="w-8 h-8 text-green-600" />
           </div>
-          <h1 className="font-display text-3xl font-semibold mb-3">Application submitted!</h1>
+          <h1 className="font-display text-3xl font-semibold mb-3">Your profile is under review.</h1>
           <p className="text-muted-foreground mb-8">
-            We'll review your portfolio and get back to you within 48 hours. Keep an eye on your email.
+            We look at every creator ourselves and we'll be in touch soon. Keep building your profile in the meantime. It goes live the moment you're approved.
           </p>
-          <Link to="/">
-            <Button className="rounded-full bg-foreground text-background">Back to Home</Button>
+          <Link to="/lensman-dashboard">
+            <Button className="rounded-full bg-foreground text-background">Go to my dashboard</Button>
           </Link>
         </motion.div>
       </div>
@@ -241,6 +240,10 @@ export default function CreatorApplication() {
                   <span className="text-xs leading-relaxed text-muted-foreground">
                     I agree to Stelli's <Link to="/terms" className="text-foreground underline">Terms and Conditions</Link> and <Link to="/privacy" className="text-foreground underline">Privacy Policy</Link>.
                   </span>
+                </label>
+                <label className="flex items-start gap-3 rounded-xl border border-border p-4 cursor-pointer">
+                  <Checkbox checked={ageConfirmed} onCheckedChange={setAgeConfirmed} className="mt-0.5" />
+                  <span className="text-xs leading-relaxed text-muted-foreground">I'm 18 or older.</span>
                 </label>
               </div>
             )}
