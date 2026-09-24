@@ -13,6 +13,22 @@ function escapeHtml(value = '') {
 }
 
 /**
+ * Serialises a value for a <script> block. JSON.stringify alone is not enough:
+ * it leaves `</script>` intact, which closes the element and lets anything
+ * after it run as markup.
+ */
+function jsonForScript(value = '') {
+  return JSON.stringify(String(value))
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026');
+}
+
+// A profile link is either a record ID or a slug — nothing else belongs in the
+// redirect target.
+const ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
+
+/**
  * Share endpoint for curator profiles.
  *
  * Social platforms never run JavaScript, so a client-rendered profile page can
@@ -32,6 +48,12 @@ export default async function (req) {
       } catch {
         id = '';
       }
+    }
+
+    // Anything that is not a plain ID or slug is dropped rather than echoed.
+    if (id && !ID_PATTERN.test(id)) {
+      console.warn('shareProfile rejected malformed id');
+      id = '';
     }
 
     let lensman = null;
@@ -77,7 +99,7 @@ export default async function (req) {
 </head>
 <body>
 <p>Taking you to <a href="${escapeHtml(target)}" style="color:#c4f82a">${escapeHtml(name)} on Stelli</a>…</p>
-<script>window.location.replace(${JSON.stringify(target)});</script>
+<script>window.location.replace(${jsonForScript(target)});</script>
 </body>
 </html>`;
 

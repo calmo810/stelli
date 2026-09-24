@@ -33,6 +33,10 @@
     "review_note": {
       "type": "string",
       "description": "Why the creator is under review"
+    },
+    "status_notified": {
+      "type": "string",
+      "description": "The status this creator was last emailed about, so each decision sends one email only"
     }
   },
   "required": [
