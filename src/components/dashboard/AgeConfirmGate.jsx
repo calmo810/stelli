@@ -4,9 +4,10 @@ import { Check, Loader2 } from 'lucide-react';
 
 /**
  * Creators who applied before the 18+ check existed confirm it here, once,
- * before their dashboard opens.
+ * before their dashboard opens. The confirmation goes through the backend —
+ * the browser never writes to the creator record.
  */
-export default function AgeConfirmGate({ profile, onConfirmed }) {
+export default function AgeConfirmGate({ onConfirmed }) {
   const [agreed, setAgreed] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -15,10 +16,7 @@ export default function AgeConfirmGate({ profile, onConfirmed }) {
     setSaving(true);
     setError('');
     try {
-      await base44.entities.Lensman.update(profile.id, {
-        age_confirmed: true,
-        age_confirmed_at: new Date().toISOString(),
-      });
+      await base44.functions.invoke('confirmAge', {});
       await onConfirmed();
     } catch (e) {
       setError('We could not save that. Please try again.');
@@ -28,15 +26,11 @@ export default function AgeConfirmGate({ profile, onConfirmed }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 py-24" style={{ background: '#f0ede6' }}>
-      <div className="max-w-lg w-full border p-8" style={{ borderColor: 'rgba(26,39,68,0.16)' }}>
-        <p className="text-[8px] font-body tracking-[0.4em] uppercase mb-4" style={{ color: 'rgba(26,39,68,0.35)' }}>
-          Before you continue
-        </p>
-        <h1 className="font-display text-3xl font-semibold mb-3" style={{ color: '#1a2744' }}>
-          One quick confirmation.
-        </h1>
-        <p className="text-sm mb-8" style={{ color: 'rgba(26,39,68,0.5)' }}>
+    <div className="min-h-screen flex items-center justify-center px-6 py-24" style={{ background: '#0a0f1e' }}>
+      <div className="max-w-lg w-full border p-8" style={{ borderColor: 'rgba(255,255,255,0.12)', borderRadius: 4 }}>
+        <p className="label-mono text-[9px] text-white/35 mb-4">Before you continue</p>
+        <h1 className="font-heading text-3xl font-semibold mb-3 text-white">One quick confirmation.</h1>
+        <p className="font-body text-sm mb-8 text-white/50">
           Stelli is for adults. Confirm you are 18 or older and your dashboard opens right up.
         </p>
 
@@ -45,22 +39,22 @@ export default function AgeConfirmGate({ profile, onConfirmed }) {
             className="w-4 h-4 border flex items-center justify-center shrink-0 mt-0.5"
             style={{
               borderRadius: 3,
-              borderColor: agreed ? '#1a2744' : 'rgba(26,39,68,0.3)',
-              background: agreed ? '#1a2744' : 'transparent',
+              borderColor: agreed ? '#2AE8F8' : 'rgba(255,255,255,0.3)',
+              background: agreed ? '#2AE8F8' : 'transparent',
             }}
           >
-            {agreed && <Check className="w-3 h-3" strokeWidth={3} style={{ color: '#f0ede6' }} />}
+            {agreed && <Check className="w-3 h-3" strokeWidth={3} style={{ color: '#0a0f1e' }} />}
           </span>
-          <span className="text-sm" style={{ color: 'rgba(26,39,68,0.65)' }}>I'm 18 or older.</span>
+          <span className="font-body text-sm text-white/70">I'm 18 or older.</span>
         </button>
 
-        {error && <p className="text-xs mb-4" style={{ color: '#b91c4b' }}>{error}</p>}
+        {error && <p className="font-body text-xs mb-4" style={{ color: 'hsl(var(--neon-magenta))' }}>{error}</p>}
 
         <button
           onClick={confirm}
           disabled={!agreed || saving}
-          className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-xs font-semibold disabled:opacity-40"
-          style={{ background: '#1a2744', color: '#f0ede6' }}
+          className="inline-flex items-center gap-2 px-6 py-3 label-mono text-[10px] font-semibold disabled:opacity-40"
+          style={{ background: '#2AE8F8', color: '#0a0f1e', borderRadius: 4 }}
         >
           {saving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
           Confirm and continue

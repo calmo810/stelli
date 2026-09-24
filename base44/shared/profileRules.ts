@@ -19,7 +19,7 @@ export const NYC_TAGS = ['flash', 'film', 'nightlife', 'editorial', 'portraits',
 export const ELON_TAGS = ['grad', 'portraits', 'outdoor', 'campus', 'couples', 'film', 'bright', 'events'];
 export const ALL_STYLE_TAGS = Array.from(new Set([...NYC_TAGS, ...ELON_TAGS]));
 
-export const LIMITS = { one_liner: 80, prompt_answer: 200, dont_shoot: 120 };
+export const LIMITS = { one_liner: 80, prompt_answer: 200, dont_shoot: 120, bio: 400 };
 export const ACCENTS = ['lime', 'cyan', 'magenta'];
 
 export const CONTACT_MESSAGE =

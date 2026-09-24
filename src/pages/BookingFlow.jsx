@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { displayNameOf } from '@/lib/profilePresets';
 
 const LIME = 'hsl(var(--neon-lime))';
 const INK = 'hsl(var(--ink))';
@@ -162,7 +163,7 @@ export default function BookingFlow() {
     );
   }
 
-  const firstName = (creator.display_name || creator.full_name || '').split(' ')[0];
+  const firstName = displayNameOf(creator).split(' ')[0];
   const heroImage = creator.portfolio_images?.[0] || creator.profile_image;
   const canSend = form.event_date && form.event_description.trim() && (user || stage === 'otp' || account.first_name);
 
@@ -177,15 +178,15 @@ export default function BookingFlow() {
 
             {heroImage && (
               <div className="overflow-hidden h-[190px] lg:h-[520px] mb-6" style={{ borderRadius: 4 }}>
-                <img src={heroImage} alt={creator.full_name} className="w-full h-full object-cover" />
+                <img src={heroImage} alt={displayNameOf(creator)} className="w-full h-full object-cover" />
               </div>
             )}
 
             <h1 className="font-heading font-semibold text-white leading-[0.95] mb-4" style={{ fontSize: 'clamp(30px, 5vw, 58px)' }}>
-              {creator.full_name}
+              {displayNameOf(creator)}
             </h1>
             <p className="label-mono text-[10px]" style={{ color: 'hsl(var(--neon-cyan))' }}>
-              {creator.market || 'NYC'} · {creator.specialties?.join(' / ') || 'Photography'}
+              {creator.market || 'ELON'} · {creator.specialties?.join(' / ') || 'Photography'}
             </p>
           </aside>
 

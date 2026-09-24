@@ -7,14 +7,22 @@ import { clientTotal, SERVICE_FEE_RATE } from '@/lib/threadPricing';
 export default function QuoteCard({ quote, booking, role, onChanged }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [picked, setPicked] = useState([]);
 
   const expired = quote.expires_at && new Date(quote.expires_at) < new Date();
   const dead = expired || ['declined', 'expired'].includes(quote.status);
   const accepted = quote.status === 'accepted';
   const paid = ['held', 'released'].includes(booking?.payment_status);
 
+  const offered = quote.add_ons || [];
+  const chosen = offered.filter((addOn) => picked.includes(addOn.name));
   const price = Number(quote.amount || 0);
-  const fee = Math.round(price * SERVICE_FEE_RATE * 100) / 100;
+  const subtotal =
+    Math.round((price + chosen.reduce((sum, a) => sum + (Number(a.price) || 0), 0)) * 100) / 100;
+  const fee = Math.round((clientTotal(subtotal) - subtotal) * 100) / 100;
+
+  const toggle = (name) =>
+    setPicked((prev) => (prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]));
 
   const acceptAndPay = async () => {
     if (window.self !== window.top) {
@@ -24,7 +32,10 @@ export default function QuoteCard({ quote, booking, role, onChanged }) {
     setBusy(true);
     setError('');
     try {
-      const accepted = await base44.functions.invoke('acceptQuote', { quoteId: quote.id });
+      const accepted = await base44.functions.invoke('acceptQuote', {
+        quoteId: quote.id,
+        pickedAddOns: chosen,
+      });
       if (accepted.data?.error) {
         setError(accepted.data.error);
         return;
@@ -64,13 +75,48 @@ export default function QuoteCard({ quote, booking, role, onChanged }) {
 
       <div className="space-y-1.5 mb-4">
         <p className="font-body text-[13px] text-white/60">{quote.included_edits || 30} edited photos</p>
-        {(quote.add_ons || []).map((addOn, i) => (
-          <p key={i} className="font-body text-[13px] text-white/60">
-            {addOn.name}
-            {addOn.price ? ` · +$${addOn.price}` : ''}
-          </p>
-        ))}
       </div>
+
+      {role === 'client' && !dead && !paid && offered.length > 0 && (
+        <div className="mb-4">
+          <p className="label-mono text-[9px] text-white/35 mb-3">Add-ons</p>
+          <div className="space-y-2">
+            {offered.map((addOn) => {
+              const active = picked.includes(addOn.name);
+              return (
+                <button
+                  key={addOn.name}
+                  type="button"
+                  onClick={() => toggle(addOn.name)}
+                  aria-pressed={active}
+                  className="w-full flex items-center justify-between gap-3 px-4 py-3 border text-left transition-colors"
+                  style={{
+                    borderRadius: 4,
+                    borderColor: active ? 'hsl(var(--neon-lime))' : 'rgba(255,255,255,0.12)',
+                    background: active ? 'hsl(var(--neon-lime) / 0.08)' : 'transparent',
+                  }}
+                >
+                  <span className="font-body text-[13px] text-white/75">{addOn.name}</span>
+                  <span className="label-mono text-[10px] text-white/60">
+                    {addOn.price ? `+$${Number(addOn.price).toLocaleString()}` : 'Included'}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {role !== 'client' && offered.length > 0 && (
+        <div className="space-y-1.5 mb-4">
+          {offered.map((addOn, i) => (
+            <p key={i} className="font-body text-[13px] text-white/60">
+              {addOn.name}
+              {addOn.price ? ` · +$${addOn.price}` : ''}
+            </p>
+          ))}
+        </div>
+      )}
 
       {quote.message && (
         <p className="font-body text-[14px] leading-relaxed italic text-white/55 mb-5 border-l-2 pl-4" style={{ borderColor: 'rgba(255,255,255,0.12)' }}>
@@ -99,10 +145,12 @@ export default function QuoteCard({ quote, booking, role, onChanged }) {
                 style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }}
               >
                 {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Lock className="w-3.5 h-3.5" />}
-                {accepted ? `Pay $${clientTotal(price).toLocaleString()}` : `Accept & pay $${clientTotal(price).toLocaleString()}`}
+                {accepted
+                  ? `Pay $${clientTotal(subtotal).toLocaleString()}`
+                  : `Accept & pay $${clientTotal(subtotal).toLocaleString()}`}
               </button>
               <p className="label-mono text-[9px] text-white/30 mt-3">
-                Total charged ${clientTotal(price).toLocaleString()} · held until delivery
+                Total charged ${clientTotal(subtotal).toLocaleString()} · held until delivery
               </p>
             </>
           )}

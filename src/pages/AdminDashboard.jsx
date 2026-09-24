@@ -93,7 +93,7 @@ export default function AdminDashboard() {
             {approved.map(l => (
               <div key={l.id} className={`${CARD} p-5 flex items-center justify-between gap-4`} style={SURFACE}>
                 <div>
-                  <h3 className="font-heading text-[18px] font-semibold text-white leading-tight">{l.full_name}</h3>
+                  <h3 className="font-heading text-[18px] font-semibold text-white leading-tight">{l.display_name || 'Stelli creator'}</h3>
                   <p className="label-mono text-[9px] text-white/40 mt-2">
                     {l.neighborhoods?.join(', ')} · {l.specialties?.slice(0, 2).join(', ')}
                   </p>

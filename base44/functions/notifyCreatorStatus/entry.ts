@@ -7,6 +7,9 @@ const PUBLISHED_ORIGIN = 'https://getstelli.base44.app';
  * Emails a creator when a founder changes their status in the Base44 dashboard.
  * Called by the "Creator Status Emails" workflow on the Lensman entity.
  * Only `status` is read — `under_review` is reserved for flagging and never touched.
+ *
+ * Contact details live in CreatorContact, so this reads that record for the
+ * address to write to.
  */
 export default async function (req) {
   try {
@@ -22,19 +25,28 @@ export default async function (req) {
       return Response.json({ error: 'Creator not found.' }, { status: 404 });
     }
 
+    const contacts = await base44.asServiceRole.entities.CreatorContact.filter({
+      lensman_id: lensman.id,
+    });
+    const email = contacts[0]?.email || '';
+    if (!email) {
+      return Response.json({ error: 'No contact email on file for this creator.' }, { status: 404 });
+    }
+
     const status = new_status || lensman.status;
+    const profileUrl = `${PUBLISHED_ORIGIN}/creators/${lensman.slug || lensman.id}`;
 
     if (status === 'approved') {
       await sendEmail(
         base44,
-        lensman.email,
+        email,
         "You're live on Stelli.",
-        `Your profile is approved and live. Clients can now find you and send booking requests.\n\n${PUBLISHED_ORIGIN}/creators/${lensman.id}`
+        `Your profile is approved and live. Clients can now find you and send booking requests.\n\n${profileUrl}`
       );
     } else if (status === 'rejected') {
       await sendEmail(
         base44,
-        lensman.email,
+        email,
         'About your Stelli application.',
         "Thanks for applying to Stelli. We're not able to approve your profile right now."
       );
@@ -43,7 +55,7 @@ export default async function (req) {
       return Response.json({ sent: false, status });
     }
 
-    console.log(`Status email sent to ${lensman.email} for status "${status}".`);
+    console.log(`Status email sent for status "${status}".`);
     return Response.json({ sent: true, status });
   } catch (error) {
     console.error('notifyCreatorStatus error:', error.message);

@@ -6,7 +6,7 @@ import RatingDisplay from '@/components/RatingDisplay';
 import { Skeleton } from '@/components/ui/skeleton';
 import MarketSwitcher from '@/components/shared/MarketSwitcher';
 import { useMarket, filterByMarket } from '@/lib/market';
-import { tagsForMarket } from '@/lib/profilePresets';
+import { tagsForMarket, displayNameOf } from '@/lib/profilePresets';
 
 export default function Creators() {
   const { market, activeMarket } = useMarket();
@@ -99,14 +99,14 @@ export default function Creators() {
             {results.map((c, i) => (
               <Link
                 key={c.id}
-                to={`/creators/${c.id}`}
+                to={`/creators/${c.slug || c.id}`}
                 className="group border border-white/10 overflow-hidden transition-colors duration-300 hover:border-white/30"
                 style={{ background: 'hsl(var(--surface))', borderRadius: 4 }}
               >
                 <div className="relative h-[320px] overflow-hidden">
                   <img
                     src={c.profile_image || c.portfolio_images?.[0] || 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=900&q=80'}
-                    alt={c.full_name}
+                    alt={displayNameOf(c)}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
                   />
                   {selectedTags.length === 0 && i < 3 && (
@@ -119,7 +119,7 @@ export default function Creators() {
                   )}
                 </div>
                 <div className="p-5">
-                  <p className="font-heading text-[22px] font-semibold text-white leading-tight">{c.full_name}</p>
+                  <p className="font-heading text-[22px] font-semibold text-white leading-tight">{displayNameOf(c)}</p>
                   <p className="label-mono text-[9px] text-white/40 mt-2">
                     {(c.neighborhoods?.[0] || activeMarket.short)} · {c.specialties?.slice(0, 2).join(' / ') || 'Photography'}
                   </p>

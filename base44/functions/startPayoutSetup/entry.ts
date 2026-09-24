@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { secrets } from 'base44:runtime';
 import { stripeGet, stripePost } from '../../shared/stripe.ts';
 import { releaseWaitingPayouts } from '../../shared/payouts.ts';
+import { loadCreatorContact } from '../../shared/creatorOwner.ts';
 
 const PUBLISHED_ORIGIN = 'https://getstelli.base44.app';
 
@@ -82,8 +83,12 @@ export default async function (req) {
 
     let accountId = lensman.stripe_account_id;
 
+    // Real name, email and phone are private, so they come from the
+    // CreatorContact record with full privileges.
+    const contact = await loadCreatorContact(base44, lensman.id);
+
     if (!accountId) {
-      const { first, last } = splitName(lensman.full_name);
+      const { first, last } = splitName(contact?.full_name);
       const params = new URLSearchParams();
       params.set('type', 'express');
       params.set('country', 'US');
@@ -91,11 +96,11 @@ export default async function (req) {
       // Creators never take payments themselves, so transfers is all they need.
       params.set('capabilities[transfers][requested]', 'true');
       // Everything Stelli already knows, so they type as little as possible.
-      params.set('email', lensman.email || user.email || '');
+      params.set('email', contact?.email || user.email || '');
       if (first) params.set('individual[first_name]', first);
       if (last) params.set('individual[last_name]', last);
-      if (lensman.phone) params.set('individual[phone]', lensman.phone);
-      params.set('business_profile[url]', `${PUBLISHED_ORIGIN}/creators/${lensman.id}`);
+      if (contact?.phone) params.set('individual[phone]', contact.phone);
+      params.set('business_profile[url]', `${PUBLISHED_ORIGIN}/creators/${lensman.slug || lensman.id}`);
       params.set('business_profile[mcc]', PHOTOGRAPHY_MCC);
       params.set('business_profile[product_description]', PRODUCT_DESCRIPTION);
       params.set('metadata[base44_app_id]', secrets.get('BASE44_APP_ID') || '');

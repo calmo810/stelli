@@ -32,6 +32,8 @@ import CreatorProfile from './pages/CreatorProfile';
 import Faq from './pages/Faq';
 import Onboarding from './pages/Onboarding';
 import Portal from './pages/Portal';
+import EditProfile from './pages/EditProfile';
+import AccountSettings from './pages/AccountSettings';
 import { MarketProvider } from '@/lib/market';
 import AdminRoute from '@/components/AdminRoute';
 import LegacyRedirect from '@/components/LegacyRedirect';
@@ -83,6 +85,8 @@ const AuthenticatedApp = () => {
         <Route path="/apply" element={<CreatorApplication />} />
         <Route path="/client-dashboard" element={<ClientDashboard />} />
         <Route path="/lensman-dashboard" element={<LensmanDashboard />} />
+        <Route path="/edit-profile" element={<EditProfile />} />
+        <Route path="/account-settings" element={<AccountSettings />} />
         <Route path="/portal/messages" element={<MessagesInbox />} />
         <Route path="/messages/:bookingId" element={<Messages />} />
         <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />

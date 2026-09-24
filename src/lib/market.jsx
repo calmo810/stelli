@@ -4,16 +4,16 @@ const STORAGE_KEY = 'stelli.market';
 
 export const MARKETS = [
   {
-    id: 'NYC',
-    label: 'New York City',
-    short: 'NYC',
-    blurb: 'Events, editorial, anything.',
-  },
-  {
     id: 'ELON',
     label: 'Elon, NC',
     short: 'ELON',
     blurb: 'Elon University senior portraits and campus shoots.',
+  },
+  {
+    id: 'NYC',
+    label: 'New York City',
+    short: 'NYC',
+    blurb: 'Events, editorial, anything.',
   },
 ];
 
@@ -21,9 +21,9 @@ const MarketContext = createContext(null);
 
 export function MarketProvider({ children }) {
   const [market, setMarket] = useState(() => {
-    if (typeof window === 'undefined') return 'NYC';
+    if (typeof window === 'undefined') return 'ELON';
     const stored = window.localStorage.getItem(STORAGE_KEY);
-    return stored === 'ELON' ? 'ELON' : 'NYC';
+    return stored === 'NYC' ? 'NYC' : 'ELON';
   });
 
   useEffect(() => {

@@ -44,8 +44,8 @@ export default function ClientDashboard() {
   const openQuotes = bookings.filter(b => quoteFor(b.id)).length;
 
   return (
-    <div className="min-h-screen bg-cream">
-      <div className="bg-background border-b border-border py-10 px-6">
+    <div className="min-h-screen bg-ink">
+      <div className="border-b border-white/10 py-10 px-6">
         <div className="max-w-5xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <h1 className="font-display text-2xl sm:text-3xl font-semibold mb-2">Your Dashboard</h1>
@@ -128,6 +128,12 @@ export default function ClientDashboard() {
             </>
           )}
         </Tabs>
+
+        <div className="mt-12 pt-8 border-t border-white/10 text-center">
+          <Link to="/account-settings" className="font-body text-[12px] text-white/45 hover:text-white underline underline-offset-4">
+            Account settings.
+          </Link>
+        </div>
       </div>
     </div>
   );

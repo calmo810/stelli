@@ -2,9 +2,9 @@
  * Resolves which account owns a creator profile.
  *
  * Ownership is the account that applied to join Stelli (Lensman.user_id),
- * never the contact email typed on the public profile — that field is
- * display-only. Requests, quotes, deliveries and notifications all run
- * through this so a creator always sees their own work.
+ * never a contact email typed on a profile — those are private now. Requests,
+ * quotes, deliveries and notifications all run through this so a creator
+ * always sees their own work.
  */
 export async function resolveCreatorOwner(base44, lensman) {
   if (!lensman) return { ownerId: '', ownerEmail: '' };
@@ -13,10 +13,36 @@ export async function resolveCreatorOwner(base44, lensman) {
   let ownerEmail = ownerId ? await lookupUserEmail(base44, ownerId) : '';
 
   // Profiles that have not been linked to an account yet fall back to the
-  // contact email so nothing is silently dropped.
-  if (!ownerEmail) ownerEmail = lensman.email || '';
+  // private contact email so nothing is silently dropped.
+  if (!ownerEmail) ownerEmail = await lookupContactEmail(base44, lensman.id);
 
   return { ownerId, ownerEmail };
+}
+
+/** The creator's private contact email, from the admin-only record. */
+export async function lookupContactEmail(base44, lensmanId) {
+  try {
+    const contacts = await base44.asServiceRole.entities.CreatorContact.filter({
+      lensman_id: lensmanId,
+    });
+    return contacts[0]?.email || '';
+  } catch (error) {
+    console.error('Contact lookup failed for', lensmanId, '-', error.message);
+    return '';
+  }
+}
+
+/** The creator's private contact record, with full name and contact details. */
+export async function loadCreatorContact(base44, lensmanId) {
+  try {
+    const contacts = await base44.asServiceRole.entities.CreatorContact.filter({
+      lensman_id: lensmanId,
+    });
+    return contacts[0] || null;
+  } catch (error) {
+    console.error('Contact record lookup failed for', lensmanId, '-', error.message);
+    return null;
+  }
 }
 
 async function lookupUserEmail(base44, userId) {

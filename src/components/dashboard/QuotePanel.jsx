@@ -3,13 +3,25 @@ import { base44 } from '@/api/base44Client';
 import { Loader2, Shield, Clock } from 'lucide-react';
 import { clientTotal, SERVICE_FEE_RATE } from '@/lib/threadPricing';
 
+/** The client picks which add-ons they want, then pays for the whole lot. */
 export default function QuotePanel({ quote, booking }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [picked, setPicked] = useState([]);
+
+  const offered = quote.add_ons || [];
+  const chosen = offered.filter((addOn) => picked.includes(addOn.name));
+  const subtotal =
+    Math.round((Number(quote.amount || 0) + chosen.reduce((sum, a) => sum + (Number(a.price) || 0), 0)) * 100) / 100;
+  const total = clientTotal(subtotal);
+  const fee = Math.round((total - subtotal) * 100) / 100;
 
   const expiresLabel = quote.expires_at
     ? new Date(quote.expires_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     : null;
+
+  const toggle = (name) =>
+    setPicked((prev) => (prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]));
 
   const acceptAndPay = async () => {
     if (window.self !== window.top) {
@@ -19,7 +31,10 @@ export default function QuotePanel({ quote, booking }) {
     setBusy(true);
     setError('');
     try {
-      const accepted = await base44.functions.invoke('acceptQuote', { quoteId: quote.id });
+      const accepted = await base44.functions.invoke('acceptQuote', {
+        quoteId: quote.id,
+        pickedAddOns: chosen,
+      });
       if (accepted.data?.error) {
         setError(accepted.data.error);
         return;
@@ -41,52 +56,81 @@ export default function QuotePanel({ quote, booking }) {
   };
 
   return (
-    <div className="border p-5" style={{ borderColor: 'rgba(26,39,68,0.18)', background: '#f0ede6' }}>
+    <div className="border p-5" style={{ borderColor: 'rgba(255,255,255,0.12)', background: 'hsl(var(--surface))', borderRadius: 4 }}>
       <div className="flex items-start justify-between gap-4 mb-4">
         <div>
-          <p className="text-[8px] font-body tracking-[0.4em] uppercase mb-2" style={{ color: 'rgba(26,39,68,0.3)' }}>
-            Quote from your creator
-          </p>
-          <p className="font-display text-4xl font-semibold leading-none" style={{ color: '#1a2744' }}>
+          <p className="label-mono text-[9px] text-white/35 mb-2">Quote from your creator</p>
+          <p className="font-heading text-4xl font-semibold leading-none text-white">
             ${(quote.amount || 0).toLocaleString()}
           </p>
         </div>
         {expiresLabel && (
-          <span className="flex items-center gap-1.5 text-[10px] font-body shrink-0" style={{ color: 'rgba(26,39,68,0.45)' }}>
+          <span className="flex items-center gap-1.5 label-mono text-[9px] text-white/40 shrink-0">
             <Clock className="w-3 h-3" /> Expires {expiresLabel}
           </span>
         )}
       </div>
 
-      <div className="text-[11px] font-body space-y-1 mb-4" style={{ color: 'rgba(26,39,68,0.55)' }}>
+      <div className="font-body text-[12px] space-y-1 mb-4 text-white/55">
         <p>{quote.included_edits || 30} edited photos included</p>
-        {(quote.add_ons || []).map((addOn, i) => (
-          <p key={i}>{addOn.name}{addOn.price ? ` · +$${addOn.price}` : ''}</p>
-        ))}
-        <p>Service fee · {Math.round(SERVICE_FEE_RATE * 100)}% · ${(clientTotal(quote.amount) - quote.amount).toLocaleString()}</p>
-        <p className="font-semibold" style={{ color: 'rgba(26,39,68,0.75)' }}>
-          Total charged ${clientTotal(quote.amount).toLocaleString()}
-        </p>
+      </div>
+
+      {offered.length > 0 && (
+        <div className="mb-4">
+          <p className="label-mono text-[9px] text-white/35 mb-3">Add-ons</p>
+          <div className="space-y-2">
+            {offered.map((addOn) => {
+              const active = picked.includes(addOn.name);
+              return (
+                <button
+                  key={addOn.name}
+                  type="button"
+                  onClick={() => toggle(addOn.name)}
+                  aria-pressed={active}
+                  className="w-full flex items-center justify-between gap-3 px-4 py-3 border text-left transition-colors"
+                  style={{
+                    borderRadius: 4,
+                    borderColor: active ? 'hsl(var(--neon-lime))' : 'rgba(255,255,255,0.12)',
+                    background: active ? 'hsl(var(--neon-lime) / 0.08)' : 'transparent',
+                  }}
+                >
+                  <span className="font-body text-[13px] text-white/75">{addOn.name}</span>
+                  <span className="label-mono text-[10px] text-white/60">
+                    {addOn.price ? `+$${Number(addOn.price).toLocaleString()}` : 'Included'}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <div className="font-body text-[12px] space-y-1 mb-4 text-white/55">
+        <p>Service fee · {Math.round(SERVICE_FEE_RATE * 100)}% · ${fee.toLocaleString()}</p>
+        <p className="font-semibold text-white/80">Total charged ${total.toLocaleString()}</p>
       </div>
 
       {quote.message && (
-        <p className="text-[12px] font-body leading-relaxed italic mb-4" style={{ color: 'rgba(26,39,68,0.5)' }}>
+        <p className="font-body text-[13px] leading-relaxed italic mb-4 text-white/50 border-l-2 border-white/10 pl-4">
           “{quote.message}”
         </p>
       )}
 
-      <button onClick={acceptAndPay} disabled={busy}
-        className="w-full flex items-center justify-center gap-2 py-3 rounded-full text-[10px] font-body tracking-[0.08em] uppercase font-semibold disabled:opacity-50"
-        style={{ background: '#1a2744', color: '#f0ede6' }}>
+      <button
+        onClick={acceptAndPay}
+        disabled={busy}
+        className="w-full flex items-center justify-center gap-2 py-3 label-mono text-[10px] font-semibold disabled:opacity-50"
+        style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }}
+      >
         {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Shield className="w-3.5 h-3.5" />}
-        Accept & pay ${clientTotal(quote.amount).toLocaleString()}
+        Accept & pay ${total.toLocaleString()}
       </button>
 
-      <p className="text-[10px] font-body mt-3" style={{ color: 'rgba(26,39,68,0.4)' }}>
+      <p className="font-body text-[11px] mt-3 text-white/40">
         Accepting creates your booking agreement. Payment is held until your photos are delivered.
       </p>
 
-      {error && <p className="text-[11px] font-body mt-3" style={{ color: '#8a2b2b' }}>{error}</p>}
+      {error && <p className="font-body text-[11px] mt-3" style={{ color: 'hsl(var(--neon-magenta))' }}>{error}</p>}
     </div>
   );
 }

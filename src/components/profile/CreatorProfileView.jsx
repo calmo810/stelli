@@ -13,11 +13,10 @@ import ProfileBookingBar from '@/components/profile/ProfileBookingBar';
 import ShareProfileButton from '@/components/profile/ShareProfileButton';
 import ReviewsList from '@/components/profile/ReviewsList';
 import RatingDisplay from '@/components/RatingDisplay';
-import { accentColor, coverImage, focalPoint, galleryComposition } from '@/lib/profilePresets';
+import { accentColor, coverImage, focalPoint, galleryComposition, displayNameOf } from '@/lib/profilePresets';
 
 const COVER_RATIO = {
   night_flash: 'aspect-[4/5] sm:aspect-[3/2]',
-  editorial_cream: 'aspect-[4/5] sm:aspect-[16/9]',
   clean_portfolio: 'aspect-[4/5] sm:aspect-[2/1]',
 };
 
@@ -40,8 +39,14 @@ export default function CreatorProfileView({ creatorId, adminPanel = null }) {
     queryKey: ['creator', creatorId],
     enabled: !!creatorId,
     queryFn: async () => {
-      const list = await base44.entities.Lensman.filter({ id: creatorId });
-      return list[0];
+      // The route carries either the profile link name or the record ID, so
+      // old links keep working alongside the generated ones.
+      if (/^[a-f0-9]{24}$/i.test(creatorId)) {
+        const byId = await base44.entities.Lensman.filter({ id: creatorId }).catch(() => []);
+        if (byId[0]) return byId[0];
+      }
+      const bySlug = await base44.entities.Lensman.filter({ slug: creatorId }).catch(() => []);
+      return bySlug[0];
     },
   });
 
@@ -87,7 +92,7 @@ export default function CreatorProfileView({ creatorId, adminPanel = null }) {
   const focal = focalPoint(creator);
   const { pinned, rest } = galleryComposition(creator);
   const tags = (creator.style_tags || []).slice(0, 3);
-  const name = creator.display_name || creator.full_name;
+  const name = displayNameOf(creator);
   const firstName = String(name).trim().split(' ')[0];
   const hasDraft = hasBookingDraft(creator.id, viewer?.id || 'guest');
   const bookingLabel = creator.booking_cta || 'Request a date';
@@ -109,7 +114,7 @@ export default function CreatorProfileView({ creatorId, adminPanel = null }) {
           <div className="space-y-12 min-w-0">
             <header>
               <p className="label-mono text-[9px] mb-4" style={{ color: accent }}>
-                {creator.market || 'NYC'} · {creator.specialties?.join(' / ') || 'Photography'}
+                {creator.market || 'ELON'} · {creator.specialties?.join(' / ') || 'Photography'}
               </p>
               <h1
                 className="font-heading font-semibold text-white leading-[0.95]"
@@ -130,7 +135,7 @@ export default function CreatorProfileView({ creatorId, adminPanel = null }) {
                 </span>
                 <span className="label-mono text-[9px] text-white/40">{creator.completed_shoots || 0} shoots completed</span>
                 <span className="label-mono text-[9px] text-white/40">
-                  {creator.neighborhoods?.[0] || creator.market || 'NYC'}
+                  {creator.neighborhoods?.[0] || creator.market || 'ELON'}
                 </span>
               </div>
 

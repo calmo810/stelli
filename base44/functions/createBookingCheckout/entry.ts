@@ -49,7 +49,16 @@ export default async function (req) {
       );
     }
 
-    const price = Number(quote.amount);
+    // The quote plus the add-ons the client ticked when they accepted it.
+    // Worked out here, never trusted from the browser.
+    const pickedAddOns = (booking.picked_add_ons || [])
+      .filter((addOn) => addOn && addOn.name)
+      .map((addOn) => ({ name: String(addOn.name), price: Number(addOn.price) || 0 }));
+
+    const price =
+      Math.round(
+        (Number(quote.amount) + pickedAddOns.reduce((sum, addOn) => sum + addOn.price, 0)) * 100
+      ) / 100;
     const fee = serviceFee(price);
     const total = clientTotal(price);
     const transferGroup = `booking_${bookingId}`;
@@ -66,15 +75,25 @@ export default async function (req) {
     // The shoot itself.
     body.set('line_items[0][quantity]', '1');
     body.set('line_items[0][price_data][currency]', 'usd');
-    body.set('line_items[0][price_data][unit_amount]', String(toCents(price)));
+    body.set('line_items[0][price_data][unit_amount]', String(toCents(Number(quote.amount))));
     body.set('line_items[0][price_data][product_data][name]', BOOKING_LABEL);
     body.set('line_items[0][price_data][product_data][description]', `${eventLabel} on ${booking.event_date || 'TBC'}`);
 
+    // Every add-on the client ticked, on its own line.
+    pickedAddOns.forEach((addOn, index) => {
+      const i = index + 1;
+      body.set(`line_items[${i}][quantity]`, '1');
+      body.set(`line_items[${i}][price_data][currency]`, 'usd');
+      body.set(`line_items[${i}][price_data][unit_amount]`, String(toCents(addOn.price)));
+      body.set(`line_items[${i}][price_data][product_data][name]`, addOn.name);
+    });
+
     // Stelli's service fee, shown on its own line.
-    body.set('line_items[1][quantity]', '1');
-    body.set('line_items[1][price_data][currency]', 'usd');
-    body.set('line_items[1][price_data][unit_amount]', String(toCents(fee)));
-    body.set('line_items[1][price_data][product_data][name]', 'Stelli service fee');
+    const feeIndex = pickedAddOns.length + 1;
+    body.set(`line_items[${feeIndex}][quantity]`, '1');
+    body.set(`line_items[${feeIndex}][price_data][currency]`, 'usd');
+    body.set(`line_items[${feeIndex}][price_data][unit_amount]`, String(toCents(fee)));
+    body.set(`line_items[${feeIndex}][price_data][product_data][name]`, 'Stelli service fee');
 
     body.set('metadata[base44_app_id]', appId);
     body.set('metadata[booking_id]', bookingId);

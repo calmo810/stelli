@@ -39,6 +39,8 @@ export default async function (req) {
       booking_id: bookingId,
       sender_name: senderName,
       sender_role: isCreator ? 'lensman' : 'client',
+      client_id: booking.client_id || '',
+      creator_id: booking.creator_id || '',
       client_email: booking.client_email,
       lensman_email: creatorEmail(booking),
       content: text,

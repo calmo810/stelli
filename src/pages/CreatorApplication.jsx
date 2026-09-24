@@ -1,117 +1,111 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, ArrowRight, Check, Upload, Star, Loader2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Check, Loader2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
-const SPECIALTIES = ['Portraits', 'Events', 'Commercial', 'Music Videos', 'Weddings', 'Food & Restaurant', 'Fashion', 'Documentary', 'Product'];
-const NEIGHBORHOODS = ['Bushwick', 'Williamsburg', 'Ridgewood', 'Greenpoint', 'Bed-Stuy', 'Crown Heights', 'Park Slope', 'DUMBO', 'LES', 'East Village', 'Harlem', 'Astoria', 'Other'];
+const fieldClass =
+  'w-full border border-white/10 bg-white/[0.03] px-4 py-3 font-body text-[14px] text-white outline-none transition-colors placeholder:text-white/25 focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan';
 
+function Field({ label, hint, children }) {
+  return (
+    <label className="block">
+      <span className="block label-mono text-[10px] text-white/40 mb-2.5">{label}</span>
+      {children}
+      {hint && <span className="block font-body text-[11px] text-white/50 mt-2">{hint}</span>}
+    </label>
+  );
+}
+
+/**
+ * Creator signup — one screen. The profile itself is built afterwards on
+ * Edit Profile; this only collects who they are and how to reach them.
+ */
 export default function CreatorApplication() {
-  const [step, setStep] = useState(1);
-  const [uploading, setUploading] = useState(false);
   const [legalAgreed, setLegalAgreed] = useState(false);
   const [ageConfirmed, setAgeConfirmed] = useState(false);
-  const [form, setForm] = useState({
-    full_name: '', email: '', phone: '',
-    neighborhoods: [], years_experience: '',
-    portfolio_images: [], bio: '', specialties: [],
-    equipment: '',
-    blackout_dates: [],
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState('');
+
+  const { data: user } = useQuery({
+    queryKey: ['me'],
+    queryFn: async () => {
+      try {
+        return await base44.auth.me();
+      } catch {
+        return null;
+      }
+    },
+    retry: false,
   });
 
-  const update = (key, value) => setForm(prev => ({ ...prev, [key]: value }));
-  const toggleArrayItem = (key, item) => {
-    setForm(prev => ({
-      ...prev,
-      [key]: prev[key].includes(item) ? prev[key].filter(i => i !== item) : [...prev[key], item],
-    }));
-  };
+  const [form, setForm] = useState({
+    full_name: '',
+    email: '',
+    phone: '',
+    market: 'ELON',
+  });
 
-  const handleFileUpload = async (e) => {
-    const files = Array.from(e.target.files);
-    setUploading(true);
-    const urls = [];
-    for (const file of files) {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      urls.push(file_url);
-    }
-    update('portfolio_images', [...form.portfolio_images, ...urls]);
-    setUploading(false);
-  };
+  const update = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
+
+  const contactEmail = form.email || user?.email || '';
 
   const createLensman = useMutation({
     mutationFn: async (data) => {
-      const user = await base44.auth.me();
       if (!user) {
         base44.auth.redirectToLogin('/apply');
         throw new Error('Please sign in to apply.');
       }
-      // The backend files the profile against the applying account and tells
-      // the founders a review is waiting.
       const response = await base44.functions.invoke('applyAsCreator', data);
+      if (response.data?.error) throw new Error(response.data.error);
       return response.data;
     },
     onSuccess: async () => {
-      const authenticated = await base44.auth.isAuthenticated();
-      if (authenticated) {
+      if (await base44.auth.isAuthenticated()) {
         await Promise.all([
           base44.functions.invoke('recordAgreementAcceptance', { documentType: 'terms', documentVersion: '2026-09-10' }),
           base44.functions.invoke('recordAgreementAcceptance', { documentType: 'privacy', documentVersion: '2026-09-10' }),
         ]);
       }
-      setStep(5);
+      setDone(true);
     },
+    onError: (e) => setError(e?.response?.data?.error || e.message || 'We could not file your application.'),
   });
 
-  const handleSubmit = () => {
-    const displayName = form.full_name.split(' ')[0] || form.full_name;
-    const slug = form.full_name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  const submit = () => {
+    setError('');
     createLensman.mutate({
       fullName: form.full_name,
-      email: form.email,
+      email: contactEmail,
       phone: form.phone,
-      neighborhoods: form.neighborhoods,
-      specialties: form.specialties,
-      bio: form.bio,
-      equipment: form.equipment,
-      yearsExperience: parseInt(form.years_experience) || 0,
-      portfolioImages: form.portfolio_images,
-      blackoutDates: form.blackout_dates,
-      displayName,
-      slug,
+      market: form.market,
     });
   };
 
-  const canProceed = () => {
-    switch (step) {
-      case 1: return form.full_name && form.email && form.neighborhoods.length > 0;
-      case 2: return form.portfolio_images.length >= 5;
-      case 3: return form.bio && form.specialties.length > 0;
-      case 4: return legalAgreed && ageConfirmed;
-      default: return true;
-    }
-  };
+  const canSubmit = Boolean(form.full_name.trim() && contactEmail.trim() && legalAgreed && ageConfirmed);
 
-  if (step === 5) {
+  if (done) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-6 py-20">
-        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="max-w-lg text-center">
-          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
-            <Check className="w-8 h-8 text-green-600" />
+      <div className="min-h-screen bg-ink flex items-center justify-center px-6 py-20">
+        <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} className="max-w-lg text-center">
+          <div className="w-16 h-16 flex items-center justify-center mx-auto mb-6" style={{ background: 'hsl(var(--neon-cyan) / 0.15)', borderRadius: 999 }}>
+            <Check className="w-8 h-8" style={{ color: 'hsl(var(--neon-cyan))' }} />
           </div>
-          <h1 className="font-display text-3xl font-semibold mb-3">Your profile is under review.</h1>
-          <p className="text-muted-foreground mb-8">
+          <h1 className="font-heading text-3xl font-semibold mb-3 text-white">Your profile is under review.</h1>
+          <p className="font-body text-[14px] leading-relaxed text-white/55 mb-8">
             We look at every creator ourselves and we'll be in touch soon. Keep building your profile in the meantime. It goes live the moment you're approved.
           </p>
-          <Link to="/lensman-dashboard">
-            <Button className="rounded-full bg-foreground text-background">Go to my dashboard</Button>
+          <Link
+            to="/edit-profile"
+            className="inline-flex px-8 py-4 label-mono text-[10px] font-semibold"
+            style={{ background: '#2AE8F8', color: '#0a0f1e', borderRadius: 4 }}
+          >
+            Build your profile.
           </Link>
         </motion.div>
       </div>
@@ -119,152 +113,81 @@ export default function CreatorApplication() {
   }
 
   return (
-    <div className="min-h-screen bg-cream star-bg">
-      <div className="max-w-2xl mx-auto px-6 py-12">
-        <Link to="/for-creators" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-8">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </Link>
+    <div className="min-h-screen bg-ink">
+      <div className="max-w-xl mx-auto px-5 md:px-8 py-16">
+        <h1 className="font-heading text-white font-semibold leading-[0.95] mb-3" style={{ fontSize: 'clamp(32px, 5vw, 52px)' }}>
+          Join Stelli.
+        </h1>
+        <p className="font-body text-[14px] text-white/50 mb-10">
+          Four fields, then you build the rest of your profile.
+        </p>
 
-        <div className="text-center mb-10">
-          <Star className="w-5 h-5 text-gold fill-gold mx-auto mb-3" />
-          <h1 className="font-display text-2xl sm:text-3xl font-semibold">Join Stelli as a Creator</h1>
-          <p className="text-sm text-muted-foreground mt-2">Step {step} of 4</p>
-        </div>
+        <div className="space-y-6">
+          <Field label="Full name">
+            <input type="text" value={form.full_name} onChange={(e) => update('full_name', e.target.value)} className={fieldClass} style={{ borderRadius: 4 }} />
+          </Field>
 
-        {/* Progress */}
-        <div className="flex gap-2 mb-10">
-          {[1, 2, 3, 4].map(s => (
-            <div key={s} className={`flex-1 h-1 rounded-full transition-colors ${step >= s ? 'bg-foreground' : 'bg-border'}`} />
-          ))}
-        </div>
+          <Field label="Contact email" hint="Where we send booking updates.">
+            <input type="email" value={contactEmail} onChange={(e) => update('email', e.target.value)} className={fieldClass} style={{ borderRadius: 4 }} />
+          </Field>
 
-        <AnimatePresence mode="wait">
-          <motion.div key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-            {step === 1 && (
-              <div className="bg-card border border-border rounded-2xl p-8 space-y-5">
-                <h2 className="font-display text-xl font-semibold">Basic Information</h2>
-                <div>
-                  <Label className="text-sm mb-1.5 block">Full Name *</Label>
-                  <Input value={form.full_name} onChange={e => update('full_name', e.target.value)} className="rounded-xl" />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-sm mb-1.5 block">Email *</Label>
-                    <Input type="email" value={form.email} onChange={e => update('email', e.target.value)} className="rounded-xl" />
-                  </div>
-                  <div>
-                    <Label className="text-sm mb-1.5 block">Phone</Label>
-                    <Input type="tel" value={form.phone} onChange={e => update('phone', e.target.value)} className="rounded-xl" />
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-sm mb-1.5 block">Years of experience</Label>
-                  <Input type="number" value={form.years_experience} onChange={e => update('years_experience', e.target.value)} className="rounded-xl w-32" />
-                </div>
-                <div>
-                  <Label className="text-sm mb-3 block">Neighborhoods where you work *</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {NEIGHBORHOODS.map(n => (
-                      <button key={n} onClick={() => toggleArrayItem('neighborhoods', n)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                          form.neighborhoods.includes(n) ? 'bg-foreground text-background border-foreground' : 'bg-card border-border hover:border-foreground/30'
-                        }`}>{n}</button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
+          <Field label="Phone">
+            <input type="tel" value={form.phone} onChange={(e) => update('phone', e.target.value)} className={fieldClass} style={{ borderRadius: 4 }} />
+          </Field>
 
-            {step === 2 && (
-              <div className="bg-card border border-border rounded-2xl p-8 space-y-5">
-                <h2 className="font-display text-xl font-semibold">Portfolio Upload</h2>
-                <p className="text-sm text-muted-foreground">Upload at least 5 of your best photos (15–20 recommended).</p>
+          <div>
+            <span className="block label-mono text-[10px] text-white/40 mb-2.5">Market</span>
+            <div className="flex gap-2">
+              {[
+                { id: 'ELON', label: 'Elon' },
+                { id: 'NYC', label: 'NYC' },
+              ].map((option) => {
+                const active = form.market === option.id;
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => update('market', option.id)}
+                    aria-pressed={active}
+                    className="px-4 py-2 font-body text-[12px] border transition-colors"
+                    style={{
+                      borderRadius: 999,
+                      borderColor: active ? 'hsl(var(--neon-cyan))' : 'rgba(255,255,255,0.15)',
+                      color: active ? 'hsl(var(--neon-cyan))' : 'rgba(255,255,255,0.6)',
+                      background: active ? 'hsl(var(--neon-cyan) / 0.1)' : 'transparent',
+                    }}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
 
-                <label className="flex flex-col items-center justify-center border-2 border-dashed border-border rounded-xl p-10 cursor-pointer hover:border-foreground/30 transition-colors">
-                  <Upload className="w-8 h-8 text-muted-foreground mb-3" />
-                  <span className="text-sm font-medium">Click to upload photos</span>
-                  <span className="text-xs text-muted-foreground mt-1">JPG, PNG, WebP</span>
-                  <input type="file" multiple accept="image/*" onChange={handleFileUpload} className="hidden" />
-                </label>
+          <label className="flex items-start gap-3 border p-4 cursor-pointer" style={{ borderColor: 'rgba(255,255,255,0.12)', borderRadius: 4 }}>
+            <Checkbox checked={legalAgreed} onCheckedChange={setLegalAgreed} className="mt-0.5" />
+            <span className="font-body text-[12px] leading-relaxed text-white/55">
+              I agree to Stelli's <Link to="/terms" className="text-white underline">Terms and Conditions</Link> and <Link to="/privacy" className="text-white underline">Privacy Policy</Link>.
+            </span>
+          </label>
 
-                {uploading && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="w-4 h-4 animate-spin" /> Uploading...
-                  </div>
-                )}
+          <label className="flex items-start gap-3 border p-4 cursor-pointer" style={{ borderColor: 'rgba(255,255,255,0.12)', borderRadius: 4 }}>
+            <Checkbox checked={ageConfirmed} onCheckedChange={setAgeConfirmed} className="mt-0.5" />
+            <span className="font-body text-[12px] leading-relaxed text-white/55">I'm 18 or older.</span>
+          </label>
 
-                {form.portfolio_images.length > 0 && (
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                    {form.portfolio_images.map((url, i) => (
-                      <div key={i} className="aspect-square rounded-lg overflow-hidden">
-                        <img src={url} alt={`Upload ${i + 1}`} className="w-full h-full object-cover" />
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <p className="text-xs text-muted-foreground">{form.portfolio_images.length} photos uploaded</p>
-              </div>
-            )}
+          {error && <p className="font-body text-[12px]" style={{ color: 'hsl(var(--neon-magenta))' }}>{error}</p>}
 
-            {step === 3 && (
-              <div className="bg-card border border-border rounded-2xl p-8 space-y-5">
-                <h2 className="font-display text-xl font-semibold">Bio & Specialties</h2>
-                <div>
-                  <Label className="text-sm mb-1.5 block">Tell us about yourself *</Label>
-                  <Textarea value={form.bio} onChange={e => update('bio', e.target.value)} className="rounded-xl min-h-[120px]" placeholder="Why do you create? What draws you to this work?" />
-                </div>
-                <div>
-                  <Label className="text-sm mb-3 block">Specialties *</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {SPECIALTIES.map(s => (
-                      <button key={s} onClick={() => toggleArrayItem('specialties', s)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                          form.specialties.includes(s) ? 'bg-foreground text-background border-foreground' : 'bg-card border-border hover:border-foreground/30'
-                        }`}>{s}</button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-sm mb-1.5 block">Equipment (optional)</Label>
-                  <Input value={form.equipment} onChange={e => update('equipment', e.target.value)} className="rounded-xl" placeholder="Camera, lenses, lighting..." />
-                </div>
-              </div>
-            )}
-
-            {step === 4 && (
-              <div className="bg-card border border-border rounded-2xl p-8 space-y-5">
-                <h2 className="font-display text-xl font-semibold">Almost done</h2>
-                <p className="text-sm text-muted-foreground">You'll quote each booking yourself once clients start sending dates.</p>
-                <label className="flex items-start gap-3 rounded-xl border border-border p-4 cursor-pointer">
-                  <Checkbox checked={legalAgreed} onCheckedChange={setLegalAgreed} className="mt-0.5" />
-                  <span className="text-xs leading-relaxed text-muted-foreground">
-                    I agree to Stelli's <Link to="/terms" className="text-foreground underline">Terms and Conditions</Link> and <Link to="/privacy" className="text-foreground underline">Privacy Policy</Link>.
-                  </span>
-                </label>
-                <label className="flex items-start gap-3 rounded-xl border border-border p-4 cursor-pointer">
-                  <Checkbox checked={ageConfirmed} onCheckedChange={setAgeConfirmed} className="mt-0.5" />
-                  <span className="text-xs leading-relaxed text-muted-foreground">I'm 18 or older.</span>
-                </label>
-              </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
-
-        {/* Navigation */}
-        <div className="flex items-center justify-between mt-8">
-          <Button variant="ghost" onClick={() => setStep(s => s - 1)} disabled={step === 1} className="rounded-full">
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back
-          </Button>
-          {step < 4 ? (
-            <Button onClick={() => setStep(s => s + 1)} disabled={!canProceed()} className="rounded-full bg-foreground text-background hover:bg-foreground/90">
-              Continue <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          ) : (
-            <Button onClick={handleSubmit} disabled={!canProceed() || createLensman.isPending} className="rounded-full bg-foreground text-background hover:bg-foreground/90">
-              {createLensman.isPending ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Check className="w-4 h-4 mr-2" />}
-              Submit Application
-            </Button>
-          )}
+          <button
+            type="button"
+            onClick={submit}
+            disabled={!canSubmit || createLensman.isPending}
+            className="w-full inline-flex items-center justify-center gap-2 px-8 py-4 label-mono text-[11px] font-semibold disabled:opacity-40"
+            style={{ background: '#2AE8F8', color: '#0a0f1e', borderRadius: 4 }}
+          >
+            {createLensman.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+            Submit application
+          </button>
         </div>
       </div>
     </div>

@@ -63,10 +63,15 @@ export default async function (req) {
     if (!isClient) {
       const lensman = await base44.asServiceRole.entities.Lensman.get(booking.lensman_id).catch(() => null);
       if (lensman) {
-        await base44.asServiceRole.entities.Lensman.update(lensman.id, {
-          under_review: true,
-          review_note: `Cancelled the ${booking.event_date} booking.`,
+        await base44.asServiceRole.entities.Lensman.update(lensman.id, { under_review: true });
+        const contacts = await base44.asServiceRole.entities.CreatorContact.filter({
+          lensman_id: lensman.id,
         });
+        if (contacts[0]) {
+          await base44.asServiceRole.entities.CreatorContact.update(contacts[0].id, {
+            review_note: `Cancelled the ${booking.event_date} booking.`,
+          });
+        }
       }
     }
 

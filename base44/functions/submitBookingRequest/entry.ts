@@ -31,7 +31,7 @@ export default async function (req) {
 
     const booking = await base44.asServiceRole.entities.Booking.create({
       lensman_id: lensmanId,
-      lensman_name: lensman.display_name || lensman.full_name,
+      lensman_name: lensman.display_name || 'Stelli creator',
       lensman_email: owner.ownerEmail,
       creator_id: owner.ownerId,
       creator_email: owner.ownerEmail,

@@ -7,6 +7,66 @@ export const NYC_TAGS = ['flash', 'film', 'nightlife', 'editorial', 'portraits',
 export const ELON_TAGS = ['grad', 'portraits', 'outdoor', 'campus', 'couples', 'film', 'bright', 'events'];
 export const ALL_STYLE_TAGS = Array.from(new Set([...NYC_TAGS, ...ELON_TAGS]));
 
+/** The campus spots Elon creators shoot at, in the order they are shown. */
+export const ELON_SPOTS = [
+  'Fonville Fountain',
+  'Alamance Building',
+  'Scott Plaza',
+  'Under the Oaks',
+  'Lake Mary Nell',
+  'Lake Verona',
+  'Young Commons',
+  'Chandler Fountain',
+  'The Colonnades',
+  'Historic Neighborhood',
+  'Belk Library',
+  'Schar Center',
+  'Anywhere on campus',
+  'Off campus',
+];
+
+export const NYC_NEIGHBORHOODS = [
+  'Lower East Side',
+  'SoHo',
+  'Williamsburg',
+  'Greenpoint',
+  'Bushwick',
+  'Harlem',
+  'Chelsea',
+  'West Village',
+  'Brooklyn Heights',
+  'Astoria',
+  'Long Island City',
+  'Fort Greene',
+];
+
+/** The chips a creator picks from, per market. Elon leads. */
+export const MARKET_CHIPS = { ELON: ELON_SPOTS, NYC: NYC_NEIGHBORHOODS };
+
+export function spotsForMarket(market) {
+  return MARKET_CHIPS[market === 'NYC' ? 'NYC' : 'ELON'];
+}
+
+export function spotsLabel(market) {
+  return market === 'NYC' ? 'Neighborhoods' : 'Shoots at';
+}
+
+/** The shoot types a creator can claim. */
+export const SPECIALTIES = [
+  'Portraits',
+  'Graduation',
+  'Couples',
+  'Events',
+  'Nightlife',
+  'Editorial',
+  'Commercial',
+  'Music Videos',
+  'Product',
+  'Family',
+  'Sports',
+  'Headshots',
+];
+
 export function tagsForMarket(market, includeOther) {
   const own = market === 'ELON' ? ELON_TAGS : NYC_TAGS;
   const other = market === 'ELON' ? NYC_TAGS : ELON_TAGS;
@@ -26,7 +86,7 @@ export const PROMPTS = [
   'Worst shoot I ever survived…',
 ];
 
-export const LIMITS = { one_liner: 80, prompt_answer: 200, dont_shoot: 120 };
+export const LIMITS = { one_liner: 80, prompt_answer: 200, dont_shoot: 120, bio: 400 };
 
 export const ACCENTS = [
   { id: 'lime', label: 'Lime', token: '--neon-lime' },
@@ -34,9 +94,30 @@ export const ACCENTS = [
   { id: 'magenta', label: 'Magenta', token: '--neon-magenta' },
 ];
 
+export const THEMES = [
+  { value: 'night_flash', label: 'Night flash' },
+  { value: 'clean_portfolio', label: 'Clean' },
+];
+
+export const GALLERY_STYLES = [
+  { value: 'hero_grid', label: 'Hero grid' },
+  { value: 'ordered_grid', label: 'Ordered grid' },
+  { value: 'contact_sheet', label: 'Contact sheet' },
+];
+
 export function accentColor(accent) {
   const found = ACCENTS.find((a) => a.id === accent) || ACCENTS[0];
   return `hsl(var(${found.token}))`;
+}
+
+/** The only name a client ever sees. Never the real name. */
+export function displayNameOf(creator) {
+  return String(creator?.display_name || '').trim() || 'Stelli creator';
+}
+
+/** The auto-written headline: no comma, ever. */
+export function headlineFor(displayName) {
+  return `Book ${String(displayName || '').trim()} safely through Stelli.`;
 }
 
 export const CONTACT_MESSAGE =

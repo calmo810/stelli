@@ -2,14 +2,21 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { notifyBoth } from '../../shared/notify.ts';
 import { createContractForBooking } from '../../shared/bookingContract.ts';
 import { viewerRole } from '../../shared/bookingAccess.ts';
+import { loadCreatorContact } from '../../shared/creatorOwner.ts';
 
+/**
+ * The client accepts a quote and ticks which add-ons they want.
+ *
+ * Only add-ons the creator actually offered on the quote count, and the total
+ * is worked out here — the browser never sends an amount.
+ */
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { quoteId } = await req.json();
+    const { quoteId, pickedAddOns } = await req.json();
     if (!quoteId) return Response.json({ error: 'Quote ID is required' }, { status: 400 });
 
     const quote = await base44.asServiceRole.entities.Quote.get(quoteId);
@@ -34,27 +41,53 @@ export default async function (req) {
       return Response.json({ error: 'This quote expired. Ask your creator for a new one.' }, { status: 409 });
     }
 
-    const lensman = await base44.asServiceRole.entities.Lensman.get(booking.lensman_id).catch(() => null);
+    // Only the add-ons offered on this quote can be picked.
+    const offered = quote.add_ons || [];
+    const wanted = (pickedAddOns || []).map((addOn) => String(addOn?.name || ''));
+    const chosen = offered
+      .filter((addOn) => wanted.includes(String(addOn.name)))
+      .map((addOn) => ({ name: String(addOn.name), price: Number(addOn.price) || 0 }));
+
+    const subtotal =
+      Math.round(
+        (Number(quote.amount || 0) + chosen.reduce((sum, addOn) => sum + addOn.price, 0)) * 100
+      ) / 100;
 
     await base44.asServiceRole.entities.Quote.update(quote.id, { status: 'accepted' });
     await base44.asServiceRole.entities.Booking.update(booking.id, {
       status: 'quote_accepted',
-      total_price: quote.amount,
+      total_price: subtotal,
+      picked_add_ons: chosen,
     });
 
-    const contract = await createContractForBooking(base44, { booking, quote, lensman });
+    const contact = await loadCreatorContact(base44, booking.lensman_id);
+    const contract = await createContractForBooking(base44, {
+      booking,
+      quote: { ...quote, amount: subtotal, add_ons: chosen },
+      lensman: null,
+      contact,
+    });
     await base44.asServiceRole.entities.BookingContract.update(contract.id, {
       client_accepted_at: new Date().toISOString(),
     });
+
+    const addOnLine = chosen.length
+      ? `\nAdd-ons: ${chosen.map((addOn) => `${addOn.name} (+$${addOn.price})`).join(', ')}`
+      : '';
 
     await notifyBoth(
       base44,
       [booking.creator_email || booking.lensman_email],
       'Quote accepted',
-      `The quote for $${(quote.amount || 0).toLocaleString()} was accepted.\n\nShoot date: ${booking.event_date}\n\nThe client can pay to lock the date. Payment stays held by Stelli until delivery.`
+      `The quote for $${subtotal.toLocaleString()} was accepted.${addOnLine}\n\nShoot date: ${booking.event_date}\n\nThe client can pay to lock the date. Payment stays held by Stelli until delivery.`
     );
 
-    return Response.json({ quote: { ...quote, status: 'accepted' }, contract });
+    return Response.json({
+      quote: { ...quote, status: 'accepted' },
+      contract,
+      total: subtotal,
+      pickedAddOns: chosen,
+    });
   } catch (error) {
     console.error('acceptQuote error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });

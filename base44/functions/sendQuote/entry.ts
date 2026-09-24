@@ -42,7 +42,8 @@ export default async function (req) {
 
     const quote = await base44.asServiceRole.entities.Quote.create({
       booking_id: bookingId,
-      creator_id: booking.lensman_id,
+      creator_id: booking.creator_id || '',
+      client_id: booking.client_id || '',
       client_email: booking.client_email,
       creator_email: creatorEmail(booking),
       amount: Number(amount) || 0,
