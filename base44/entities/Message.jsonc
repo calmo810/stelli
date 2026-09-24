@@ -6,6 +6,14 @@
       "type": "string",
       "description": "ID of the related booking"
     },
+    "client_id": {
+      "type": "string",
+      "description": "User ID of the client on the booking"
+    },
+    "creator_id": {
+      "type": "string",
+      "description": "User ID of the creator on the booking"
+    },
     "client_email": {
       "type": "string",
       "description": "Email of the booking's client, used to scope access to the conversation"
@@ -55,6 +63,12 @@
     "read": {
       "$or": [
         {
+          "data.client_id": "{{user.id}}"
+        },
+        {
+          "data.creator_id": "{{user.id}}"
+        },
+        {
           "data.client_email": "{{user.email}}"
         },
         {
@@ -68,19 +82,9 @@
       ]
     },
     "create": {
-      "$or": [
-        {
-          "data.client_email": "{{user.email}}"
-        },
-        {
-          "data.lensman_email": "{{user.email}}"
-        },
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        }
-      ]
+      "user_condition": {
+        "role": "admin"
+      }
     },
     "update": {
       "user_condition": {
