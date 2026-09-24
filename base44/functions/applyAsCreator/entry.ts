@@ -2,8 +2,6 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { sendEmail } from '../../shared/notify.ts';
 import { slugify, displayNameFrom } from '../../shared/creatorApplication.ts';
 
-const PUBLISHED_ORIGIN = 'https://getstelli.base44.app';
-
 /**
  * Creator signup. Files the profile as `pending`, confirms the 18+ check, and
  * tells both the creator and the founders that a review is waiting.
@@ -79,7 +77,7 @@ export default async function (req) {
               base44,
               admin.email,
               `New creator application: ${fullName}`,
-              `A new creator applied to join Stelli. Review the application here: ${PUBLISHED_ORIGIN}/admin/applications/${lensman.id}`
+              `${fullName}\nEmail: ${lensman.email}\nPhone: ${lensman.phone || '—'}\nMarket: ${lensman.market}\nSigned up: ${new Date(now).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}\n\nReview them in the Base44 dashboard under Data > Lensman.`
             )
           )
       );

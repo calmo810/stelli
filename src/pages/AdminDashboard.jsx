@@ -3,10 +3,9 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Star, Users, Calendar, DollarSign } from 'lucide-react';
+import { Star, Calendar, DollarSign } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
 import RatingDisplay from '@/components/RatingDisplay';
 
 const SURFACE = { background: 'hsl(var(--surface))', borderRadius: 4 };
@@ -43,12 +42,10 @@ export default function AdminDashboard() {
   });
 
   const flagged = bookings.filter(b => b.flagged_for_review);
-  const pending = lensmen.filter(l => l.status === 'pending');
   const approved = lensmen.filter(l => l.status === 'approved');
   const totalRevenue = bookings.filter(b => b.status === 'completed').reduce((sum, b) => sum + (b.total_price || 0), 0);
 
   const stats = [
-    { icon: Users, label: 'Pending review', value: pending.length, color: 'hsl(var(--neon-cyan))' },
     { icon: Star, label: 'Active lensmen', value: approved.length, color: 'hsl(var(--neon-lime))' },
     { icon: Calendar, label: 'Total bookings', value: bookings.length, color: 'hsl(var(--neon-magenta))' },
     { icon: DollarSign, label: 'Revenue', value: `$${totalRevenue.toLocaleString()}`, color: 'hsl(var(--neon-lime))' },
@@ -63,29 +60,13 @@ export default function AdminDashboard() {
             <h1 className="font-heading text-white font-semibold leading-[0.95] mb-3" style={{ fontSize: 'clamp(36px, 5vw, 64px)' }}>
               Admin
             </h1>
-            <p className="font-body text-[13px] text-white/45">Review applications, manage lensmen, track bookings.</p>
-
-            <nav className="flex flex-wrap items-center gap-3 mt-7">
-              <Link
-                to="/admin/applications"
-                className="inline-flex items-center gap-2.5 label-mono text-[10px] font-semibold px-5 py-3"
-                style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }}
-              >
-                Applications
-                <span
-                  className="label-mono text-[9px] font-semibold px-2 py-0.5"
-                  style={{ background: 'hsl(var(--ink) / 0.85)', color: 'hsl(var(--neon-lime))', borderRadius: 999 }}
-                >
-                  {pending.length}
-                </span>
-              </Link>
-            </nav>
+            <p className="font-body text-[13px] text-white/45">Manage lensmen and track bookings.</p>
           </motion.div>
         </div>
       </div>
 
       <div className="max-w-[1400px] mx-auto px-5 md:px-10 py-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
           {stats.map((stat, i) => (
             <div key={i} className={`${CARD} p-5 text-center`} style={SURFACE}>
               <stat.icon className="w-4 h-4 mx-auto mb-3" style={{ color: stat.color }} strokeWidth={1.6} />

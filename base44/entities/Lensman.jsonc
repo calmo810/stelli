@@ -190,11 +190,10 @@
       "enum": [
         "pending",
         "approved",
-        "rejected",
-        "suspended"
+        "rejected"
       ],
       "default": "pending",
-      "description": "Vetting status"
+      "description": "Vetting status. Approved profiles are public; pending and rejected are hidden."
     },
     "age_confirmed": {
       "type": "boolean",

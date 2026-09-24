@@ -1,0 +1,41 @@
+{
+  "name": "Creator Status Emails",
+  "description": "Emails a creator when their status is changed to approved or rejected. Fires on the Lensman record itself, so a status change made in the Base44 dashboard sends the email automatically.",
+  "trigger": {
+    "config": {
+      "trigger_type": "entity",
+      "entity_name": "Lensman",
+      "events": [
+        "update"
+      ]
+    },
+    "condition": "${ .trigger.data.status != (.trigger.old_data // {}).status and (.trigger.data.status == \"approved\" or .trigger.data.status == \"rejected\") }"
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "creator_status_emails",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "notify_creator": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "notifyCreatorStatus",
+            "args": {
+              "lensman_id": "${ .trigger.entity_id }",
+              "new_status": "${ .trigger.data.status }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Email the creator",
+            "description": "Approved or rejected"
+          }
+        }
+      }
+    ]
+  }
+}

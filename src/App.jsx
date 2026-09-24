@@ -27,8 +27,6 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import OAuthConsent from './pages/OAuthConsent';
 import RequestSent from './pages/RequestSent';
-import AdminApplications from './pages/AdminApplications';
-import AdminApplicationDetail from './pages/AdminApplicationDetail';
 import Creators from './pages/Creators';
 import CreatorProfile from './pages/CreatorProfile';
 import Faq from './pages/Faq';
@@ -88,8 +86,6 @@ const AuthenticatedApp = () => {
         <Route path="/portal/messages" element={<MessagesInbox />} />
         <Route path="/messages/:bookingId" element={<Messages />} />
         <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-        <Route path="/admin/applications" element={<AdminRoute><AdminApplications /></AdminRoute>} />
-        <Route path="/admin/applications/:id" element={<AdminRoute><AdminApplicationDetail /></AdminRoute>} />
         <Route path="/album/:bookingId" element={<MemoryAlbum />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/privacy" element={<Privacy />} />
