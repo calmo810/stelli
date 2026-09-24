@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { notifyBoth } from '../../shared/notify.ts';
-import { serviceFee, creatorPayout, webhookSecret } from '../../shared/stripe.ts';
+import { serviceFee, creatorPayout, stripeGet, webhookSecret } from '../../shared/stripe.ts';
 
 function parseSignatureHeader(header) {
   const parsed = { timestamp: null, signatures: [] };
@@ -66,6 +66,17 @@ export default async function (req) {
           const price = Number(booking.total_price || 0);
           const now = new Date().toISOString();
 
+          // The charge itself, so the later transfer can be tied back to it.
+          let chargeId = '';
+          if (session.payment_intent) {
+            try {
+              const intent = await stripeGet(`payment_intents/${session.payment_intent}`);
+              chargeId = intent?.latest_charge || '';
+            } catch (error) {
+              console.error('Could not read the charge for session', session.id, '-', error.message);
+            }
+          }
+
           // The client is charged in full and the money stays on Stelli's
           // balance until the photos land — nothing moves to the creator here.
           await base44.asServiceRole.entities.Booking.update(bookingId, {
@@ -73,6 +84,7 @@ export default async function (req) {
             status: 'confirmed',
             paid_at: now,
             stripe_payment_intent_id: session.payment_intent || '',
+            stripe_charge_id: chargeId,
             transfer_group: `booking_${bookingId}`,
             fee_amount: serviceFee(price),
             creator_payout: creatorPayout(price),

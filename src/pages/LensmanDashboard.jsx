@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,7 +7,8 @@ import BookingCard from '../components/dashboard/BookingCard';
 import QuoteForm from '../components/dashboard/QuoteForm';
 import DeliveryForm from '../components/dashboard/DeliveryForm';
 import ProfileEditor from '../components/dashboard/ProfileEditor';
-import PayoutSetup from '../components/dashboard/PayoutSetup';
+import PayoutsCard from '../components/dashboard/PayoutsCard';
+import PayoutNotice from '../components/dashboard/PayoutNotice';
 import PendingBanner from '../components/dashboard/PendingBanner';
 import AgeConfirmGate from '../components/dashboard/AgeConfirmGate';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -22,7 +23,9 @@ const COMPLETED = ['delivered', 'completed'];
 export default function LensmanDashboard() {
   const queryClient = useQueryClient();
   const [tab, setTab] = useState('requests');
+  const [payoutState, setPayoutState] = useState(null);
   const editorGuard = useRef(null);
+  const payoutChecked = useRef(false);
 
   // Switching away from the profile tab goes through the editor's unsaved-changes guard.
   const changeTab = (next) => {
@@ -51,6 +54,34 @@ export default function LensmanDashboard() {
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['lensman-bookings'] });
 
+  const { data: waitingPayouts = [] } = useQuery({
+    queryKey: ['waiting-payouts', user?.email],
+    enabled: !!user?.email,
+    queryFn: () => base44.entities.Booking.filter({ needs_payout_setup: true, lensman_email: user.email }),
+  });
+
+  const waitingTotal = waitingPayouts.reduce((sum, b) => sum + Number(b.creator_payout || 0), 0);
+
+  // Every time the dashboard opens for a creator mid-setup, ask Stripe where
+  // they stand — webhooks are not relied on for this.
+  useEffect(() => {
+    if (payoutChecked.current) return;
+    if (!myProfile?.stripe_account_id || myProfile.payouts_enabled) return;
+    payoutChecked.current = true;
+    (async () => {
+      try {
+        const response = await base44.functions.invoke('startPayoutSetup', { action: 'status' });
+        setPayoutState(response.data || null);
+        if (response.data?.paidOut) {
+          queryClient.invalidateQueries({ queryKey: ['waiting-payouts'] });
+        }
+        await refetchProfile();
+      } catch (error) {
+        console.error('Payout status check failed:', error.message);
+      }
+    })();
+  }, [myProfile?.stripe_account_id, myProfile?.payouts_enabled, refetchProfile, queryClient]);
+
   // Creators who joined before the 18+ check existed confirm it once, here.
   if (myProfile && !myProfile.age_confirmed) {
     return <AgeConfirmGate profile={myProfile} onConfirmed={refetchProfile} />;
@@ -77,6 +108,8 @@ export default function LensmanDashboard() {
       </div>
 
       <div className="max-w-[1180px] mx-auto px-8 md:px-14 py-8">
+        <PayoutNotice state={payoutState} onRefresh={refetchProfile} />
+
         {myProfile && (
           <div className="mb-6">
             <button
@@ -96,7 +129,14 @@ export default function LensmanDashboard() {
 
         {myProfile?.status === 'pending' && <PendingBanner />}
 
-        {myProfile && <PayoutSetup profile={myProfile} onRefresh={refetchProfile} />}
+        {myProfile && (
+          <PayoutsCard
+            profile={myProfile}
+            needsInfo={payoutState?.needsInfo}
+            waitingTotal={waitingTotal}
+            onRefresh={refetchProfile}
+          />
+        )}
 
         <div className="mb-8">
           <MyAgreements role="lensman" />

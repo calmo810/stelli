@@ -62,3 +62,30 @@ export async function stripePost(path, params, idempotencyKey) {
 
   return data;
 }
+
+export async function stripeGet(path) {
+  const response = await fetch(`https://api.stripe.com/v1/${path}`, {
+    headers: {
+      Authorization: `Bearer ${stripeKey()}`,
+      'Stripe-Version': '2025-10-29.clover',
+    },
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    console.error(`Stripe GET ${path} failed:`, data?.error?.message);
+    throw new Error(data?.error?.message || 'Stripe request failed');
+  }
+
+  return data;
+}
+
+/** $450 for whole dollars, $450.50 once there are cents. */
+export function money(amount) {
+  const value = Number(amount || 0);
+  return `$${value.toLocaleString('en-US', {
+    minimumFractionDigits: Number.isInteger(value) ? 0 : 2,
+    maximumFractionDigits: 2,
+  })}`;
+}

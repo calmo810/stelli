@@ -1,11 +1,27 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
-import { stripeKey, stripePost } from '../../shared/stripe.ts';
+import { secrets } from 'base44:runtime';
+import { stripeGet, stripePost } from '../../shared/stripe.ts';
+import { releaseWaitingPayouts } from '../../shared/payouts.ts';
 
 const PUBLISHED_ORIGIN = 'https://getstelli.base44.app';
 
+/** Stripe's merchant category code for photography studios. */
+const PHOTOGRAPHY_MCC = '7221';
+
+const PRODUCT_DESCRIPTION = 'Photography and videography booked through Stelli.';
+
+function splitName(fullName) {
+  const parts = String(fullName || '').trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return { first: '', last: '' };
+  if (parts.length === 1) return { first: parts[0], last: '' };
+  return { first: parts[0], last: parts.slice(1).join(' ') };
+}
+
 /**
- * Payout setup, run the first time a creator tries to quote. Their Stripe
- * account receives the payout once a booking's hold is released.
+ * Creator payouts, all through one function:
+ *  - no action     → create the Connect account if needed and send them to Stripe
+ *  - action status → ask Stripe where they stand, and pay out anything waiting
+ *  - action dashboard → an Express login link so they can manage their own bank
  */
 export default async function (req) {
   try {
@@ -16,25 +32,39 @@ export default async function (req) {
     const { origin, action } = await req.json();
     const base = (origin || PUBLISHED_ORIGIN).replace(/\/$/, '');
 
+    // The profile is found by the account that owns it — never created_by.
     const profiles = await base44.asServiceRole.entities.Lensman.filter({ user_id: user.id });
     const lensman = profiles[0];
     if (!lensman) return Response.json({ error: 'No creator profile found.' }, { status: 404 });
 
-    // Ask Stripe directly whether onboarding finished.
     if (action === 'status' && lensman.stripe_account_id) {
-      const response = await fetch(
-        `https://api.stripe.com/v1/accounts/${lensman.stripe_account_id}`,
-        { headers: { Authorization: `Bearer ${stripeKey()}`, 'Stripe-Version': '2025-10-29.clover' } }
-      );
-      const account = await response.json();
-      const enabled = Boolean(account?.payouts_enabled);
+      const account = await stripeGet(`accounts/${lensman.stripe_account_id}`);
+      const requirements = account?.requirements || {};
+
+      // Creators only ever receive transfers, so charges_enabled is never checked.
+      const enabled =
+        account?.capabilities?.transfers === 'active' && Boolean(account?.payouts_enabled);
+
+      const needsInfo =
+        !account?.details_submitted ||
+        (requirements.currently_due || []).length > 0 ||
+        (requirements.past_due || []).length > 0;
+
       if (enabled !== Boolean(lensman.payouts_enabled)) {
         await base44.asServiceRole.entities.Lensman.update(lensman.id, {
           payouts_enabled: enabled,
           payouts_onboarded_at: enabled ? new Date().toISOString() : lensman.payouts_onboarded_at,
         });
       }
-      return Response.json({ payoutsEnabled: enabled, hasAccount: true });
+
+      // Anything held back for this creator goes out the moment they can be paid.
+      let paidOut = 0;
+      if (enabled) {
+        const sweep = await releaseWaitingPayouts(base44, { ...lensman, payouts_enabled: true });
+        paidOut = sweep.released;
+      }
+
+      return Response.json({ started: true, payoutsEnabled: enabled, needsInfo, paidOut });
     }
 
     // The Express dashboard is where a creator manages their own bank and tax
@@ -53,14 +83,27 @@ export default async function (req) {
     let accountId = lensman.stripe_account_id;
 
     if (!accountId) {
+      const { first, last } = splitName(lensman.full_name);
       const params = new URLSearchParams();
       params.set('type', 'express');
-      params.set('email', lensman.email || user.email);
+      params.set('country', 'US');
+      params.set('business_type', 'individual');
+      // Creators never take payments themselves, so transfers is all they need.
       params.set('capabilities[transfers][requested]', 'true');
-      params.set('metadata[base44_app_id]', '');
+      // Everything Stelli already knows, so they type as little as possible.
+      params.set('email', lensman.email || user.email || '');
+      if (first) params.set('individual[first_name]', first);
+      if (last) params.set('individual[last_name]', last);
+      if (lensman.phone) params.set('individual[phone]', lensman.phone);
+      params.set('business_profile[url]', `${PUBLISHED_ORIGIN}/creators/${lensman.id}`);
+      params.set('business_profile[mcc]', PHOTOGRAPHY_MCC);
+      params.set('business_profile[product_description]', PRODUCT_DESCRIPTION);
+      params.set('metadata[base44_app_id]', secrets.get('BASE44_APP_ID') || '');
       params.set('metadata[lensman_id]', lensman.id);
 
-      const account = await stripePost('accounts', params, `connect-${lensman.id}`);
+      // No idempotency key here: the saved stripe_account_id is what prevents a
+      // second account, and a fixed key would reject any later parameter change.
+      const account = await stripePost('accounts', params);
       accountId = account.id;
 
       await base44.asServiceRole.entities.Lensman.update(lensman.id, {
