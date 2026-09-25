@@ -1,20 +1,36 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
 import Surface from '@/components/shared/Surface';
+
+// A soft highlighter stroke behind the lower half of a word.
+const MARK = {
+  backgroundImage: 'linear-gradient(hsl(var(--neon-lime) / 0.35), hsl(var(--neon-lime) / 0.35))',
+  backgroundSize: '100% .34em',
+  backgroundPosition: '0 74%',
+  backgroundRepeat: 'no-repeat',
+  padding: '0 .06em',
+};
 
 const TILES = [
   {
     to: '/creators',
-    word: 'I need photos.',
-    line: 'Pick a creator. Send a date. Get a private quote.',
+    word: (
+      <>
+        I <span style={MARK}>need</span> photos.
+      </>
+    ),
+    line: 'Pick a creator. Get a private quote.',
     cta: 'Find a creator',
+    tint: 'linear-gradient(180deg, hsl(var(--surface)) 0%, hsl(var(--surface-2)) 45%, hsl(var(--neon-lime) / 0.13) 100%)',
+    button: { background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))' },
   },
   {
     to: '/register?role=creator',
     word: 'I take photos.',
-    line: 'Get booked, get paid on delivery, stop working out of DMs.',
+    line: 'Get booked. Get paid on delivery.',
     cta: 'Apply to join',
+    tint: 'linear-gradient(180deg, hsl(var(--surface)) 0%, hsl(var(--surface-2)) 45%, hsl(var(--neon-cyan) / 0.13) 100%)',
+    button: { background: 'hsl(var(--neon-cyan))', color: 'hsl(var(--ink))' },
   },
 ];
 
@@ -22,7 +38,10 @@ const TILES = [
 export default function TwoDoors() {
   return (
     <section className="max-w-[1240px] mx-auto px-5 md:px-10 py-[88px] md:py-[120px]">
-      <h2 className="text-center text-white/45" style={{ fontSize: 'clamp(18px, 2vw, 24px)' }}>
+      <h2
+        className="text-center font-display text-white/50"
+        style={{ fontSize: 'clamp(20px, 2.4vw, 28px)' }}
+      >
         Which one are you?
       </h2>
 
@@ -33,20 +52,23 @@ export default function TwoDoors() {
             key={tile.to}
             to={tile.to}
             hover
-            className="group flex flex-col justify-between min-h-[220px] md:min-h-[280px] p-7 md:p-10"
+            className="group flex flex-col justify-between min-h-[240px] md:min-h-[300px] p-7 md:p-10"
+            style={{ background: tile.tint, borderRadius: 20 }}
           >
             <p
               className="font-display font-normal leading-[1.02] tracking-[-0.02em] text-white"
-              style={{ fontSize: 'clamp(26px, 3.4vw, 44px)' }}
+              style={{ fontSize: 'clamp(28px, 4vw, 46px)' }}
             >
               {tile.word}
             </p>
 
-            <div className="mt-8 flex items-end justify-between gap-5">
+            <div className="mt-8">
               <p className="text-[14px] md:text-[15px] leading-relaxed text-white/45 max-w-[300px]">{tile.line}</p>
-              <span className="shrink-0 inline-flex items-center gap-2 text-[14px] font-medium text-white/70 group-hover:text-neon-lime transition-colors">
+              <span
+                className="mt-6 inline-flex items-center rounded-full px-6 py-3 text-[13px] font-semibold transition-transform duration-300 group-hover:-translate-y-0.5"
+                style={tile.button}
+              >
                 {tile.cta}
-                <ArrowRight className="w-4 h-4" />
               </span>
             </div>
           </Surface>
