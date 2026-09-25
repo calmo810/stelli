@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { format, formatDistanceToNow } from 'date-fns';
 import { Loader2, Link2, Image as ImageIcon, AlertTriangle } from 'lucide-react';
+import { safeHref } from '@/lib/safeHref';
 
 const fieldClass =
   'w-full border border-white/10 bg-white/[0.03] px-4 py-3 font-body text-[14px] text-white outline-none transition-colors placeholder:text-white/25 focus:border-neon-lime focus:ring-1 focus:ring-neon-lime';
@@ -84,7 +85,7 @@ export default function DeliveryCard({ booking, role, onChanged }) {
           <div className="min-w-0">
             <p className="label-mono text-[9px] text-white/40 mb-1.5">UNEDITED SET</p>
             {booking.unedited_link ? (
-              <a href={booking.unedited_link} target="_blank" rel="noreferrer" className="font-body text-[13px] break-all" style={{ color: 'hsl(var(--neon-cyan))' }}>
+              <a href={safeHref(booking.unedited_link)} target="_blank" rel="noreferrer" className="font-body text-[13px] break-all" style={{ color: 'hsl(var(--neon-cyan))' }}>
                 {booking.unedited_link}
               </a>
             ) : (
@@ -98,7 +99,7 @@ export default function DeliveryCard({ booking, role, onChanged }) {
           <div className="min-w-0">
             <p className="label-mono text-[9px] text-white/40 mb-1.5">FINAL EDITS</p>
             {booking.delivery_link ? (
-              <a href={booking.delivery_link} target="_blank" rel="noreferrer" className="font-body text-[13px] break-all" style={{ color: 'hsl(var(--neon-lime))' }}>
+              <a href={safeHref(booking.delivery_link)} target="_blank" rel="noreferrer" className="font-body text-[13px] break-all" style={{ color: 'hsl(var(--neon-lime))' }}>
                 {booking.delivery_link}
               </a>
             ) : (

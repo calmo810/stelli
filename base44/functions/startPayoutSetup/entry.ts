@@ -3,6 +3,7 @@ import { secrets } from 'base44:runtime';
 import { stripeGet, stripePost } from '../../shared/stripe.ts';
 import { releaseWaitingPayouts } from '../../shared/payouts.ts';
 import { loadCreatorContact } from '../../shared/creatorOwner.ts';
+import { safeOrigin } from '../../shared/origins.ts';
 
 const PUBLISHED_ORIGIN = 'https://getstelli.base44.app';
 
@@ -31,7 +32,7 @@ export default async function (req) {
     if (!user) return Response.json({ error: 'Please sign in.' }, { status: 401 });
 
     const { origin, action } = await req.json();
-    const base = (origin || PUBLISHED_ORIGIN).replace(/\/$/, '');
+    const base = safeOrigin(origin);
 
     // The profile is found by the account that owns it — never created_by.
     const profiles = await base44.asServiceRole.entities.Lensman.filter({ user_id: user.id });

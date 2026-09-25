@@ -29,6 +29,16 @@ export default async function (req) {
     }
 
     const link = deliveryLink.trim();
+
+    // The link is emailed and rendered as a clickable anchor, so it has to be a
+    // real https address — never a javascript: or data: payload.
+    if (!/^https:\/\//i.test(link)) {
+      return Response.json(
+        { error: 'The gallery link needs to start with https://' },
+        { status: 400 }
+      );
+    }
+
     const now = new Date();
 
     if (!isFinal) {

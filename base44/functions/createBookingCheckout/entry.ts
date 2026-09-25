@@ -2,8 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { secrets } from 'base44:runtime';
 import { BOOKING_LABEL } from '../../shared/bookingContract.ts';
 import { clientTotal, serviceFee, stripePost, toCents } from '../../shared/stripe.ts';
-
-const PUBLISHED_ORIGIN = 'https://getstelli.base44.app';
+import { safeOrigin } from '../../shared/origins.ts';
 
 export default async function (req) {
   try {
@@ -62,7 +61,7 @@ export default async function (req) {
     const fee = serviceFee(price);
     const total = clientTotal(price);
     const transferGroup = `booking_${bookingId}`;
-    const base = (origin || PUBLISHED_ORIGIN).replace(/\/$/, '');
+    const base = safeOrigin(origin);
     const appId = secrets.get('BASE44_APP_ID') || '';
     const eventLabel = booking.event_description || 'Shoot';
 

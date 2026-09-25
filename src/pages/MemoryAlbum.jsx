@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { ExternalLink, Copy, Check, ImageOff } from 'lucide-react';
+import { safeHref } from '@/lib/safeHref';
 
 export default function MemoryAlbum() {
   const { bookingId } = useParams();
@@ -52,7 +53,7 @@ export default function MemoryAlbum() {
             </div>
           ) : booking?.delivery_link ? (
             <a
-              href={booking.delivery_link}
+              href={safeHref(booking.delivery_link)}
               target="_blank"
               rel="noreferrer"
               className="flex items-center justify-center gap-3 w-full py-5 label-mono text-[11px] font-semibold transition-transform hover:-translate-y-0.5"
