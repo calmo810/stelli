@@ -60,7 +60,7 @@ export default function MeetCreators() {
   };
 
   return (
-    <section className="py-[88px] md:py-[112px] border-t border-white/10">
+    <section className="py-[44px] md:py-[60px] border-t border-white/10">
       <div className="max-w-[1440px] mx-auto px-5 md:px-10 flex items-end justify-between gap-5">
         <h2
           className="font-display font-medium text-white leading-[1.08] tracking-[-0.02em]"

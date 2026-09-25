@@ -5,7 +5,7 @@ import { ArrowRight } from 'lucide-react';
 /** The quiet close of the home page: one question, one link. */
 export default function FaqButton() {
   return (
-    <section className="border-t border-white/10 py-24 md:py-32">
+    <section className="border-t border-white/10 py-14 md:py-20">
       <div className="max-w-[1240px] mx-auto px-5 md:px-10 flex flex-col items-center text-center">
         <h2
           className="font-display font-normal leading-[0.98] tracking-[-0.02em] text-white"

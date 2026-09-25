@@ -39,7 +39,7 @@ const RISE = {
 
 export default function HowItWorks() {
   return (
-    <section className="relative w-[calc(100%-28px)] md:w-[min(1380px,calc(100%-48px))] mx-auto py-[60px] md:py-[98px]">
+    <section className="relative w-[calc(100%-28px)] md:w-[min(1380px,calc(100%-48px))] mx-auto py-[40px] md:py-[60px]">
       <motion.div
         {...RISE}
         className="relative flex items-center justify-center gap-3 mb-5 label-mono text-[10px] text-white/45"
