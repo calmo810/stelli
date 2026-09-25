@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { Check, Loader2 } from 'lucide-react';
-import { useMarket, MARKETS } from '@/lib/market';
 
 const ROLES = [
   { id: 'client', title: 'I want to book', body: 'Find a creator, request a shoot, get a private quote.', accent: 'hsl(var(--neon-lime))' },
@@ -22,7 +21,6 @@ function getOnboardingDraft() {
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const { market, setMarket } = useMarket();
 
   const draft = getOnboardingDraft();
   const [role, setRole] = useState(draft.role || '');
@@ -51,7 +49,7 @@ export default function Onboarding() {
       await base44.auth.updateMe({
         account_type: role,
         profile_name: form.full_name.trim(),
-        market,
+        market: 'ELON',
         age_confirmed: true,
         ...(role === 'creator'
           ? { specialty: form.specialty.trim(), instagram: form.instagram.trim(), bio: form.bio.trim() }
@@ -109,23 +107,6 @@ export default function Onboarding() {
               <label className="label-mono text-[9px] text-white/40 block mb-2">Full name</label>
               <input className={inputClass} style={{ borderRadius: 4 }} value={form.full_name}
                 onChange={(e) => update('full_name', e.target.value)} placeholder="Your name" />
-            </div>
-
-            <div>
-              <label className="label-mono text-[9px] text-white/40 block mb-2">Market</label>
-              <div className="grid sm:grid-cols-2 gap-3">
-                {MARKETS.map((m) => {
-                  const active = market === m.id;
-                  return (
-                    <button key={m.id} type="button" onClick={() => setMarket(m.id)}
-                      className="text-left p-4 border transition-colors duration-300"
-                      style={{ borderRadius: 4, borderColor: active ? 'hsl(var(--neon-lime))' : 'rgba(255,255,255,0.12)' }}>
-                      <p className="font-heading text-[17px] font-semibold text-white">{m.label}</p>
-                      <p className="font-body text-[11px] text-white/40 mt-1">{m.blurb}</p>
-                    </button>
-                  );
-                })}
-              </div>
             </div>
 
             {role === 'creator' && (

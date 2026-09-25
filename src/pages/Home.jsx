@@ -1,7 +1,7 @@
 import React from 'react';
 import HeroVideo from '@/components/home/HeroVideo';
 import TwoDoors from '@/components/home/TwoDoors';
-import TopRatedRail from '@/components/home/TopRatedRail';
+import MeetCreators from '@/components/home/MeetCreators';
 import HowItWorks from '@/components/home/HowItWorks';
 import FaqButton from '@/components/home/FaqButton';
 import StarSprinkle from '@/components/home/StarSprinkle';
@@ -14,7 +14,7 @@ export default function Home() {
         <HeroVideo />
       </div>
       <TwoDoors />
-      <TopRatedRail />
+      <MeetCreators />
       <HowItWorks />
       <FaqButton />
     </div>

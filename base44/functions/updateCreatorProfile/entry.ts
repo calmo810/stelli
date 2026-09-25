@@ -61,7 +61,6 @@ export default async function (req) {
     for (const field of PUBLIC_LIST_FIELDS) {
       if (Array.isArray(body[field])) patch[field] = body[field];
     }
-    if (body.market === 'NYC' || body.market === 'ELON') patch.market = body.market;
     if (Number.isFinite(Number(body.years_experience))) {
       patch.years_experience = Number(body.years_experience);
     }

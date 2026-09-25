@@ -3,7 +3,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { Menu } from 'lucide-react';
 import MenuOverlay from './MenuOverlay';
-import MarketSwitcher from './MarketSwitcher';
 import StelliWordmark from './StelliWordmark';
 
 export default function Navbar() {
@@ -40,7 +39,6 @@ export default function Navbar() {
           </Link>
 
           <div className="flex items-center gap-3">
-            <MarketSwitcher className="hidden sm:inline-flex" />
             <button
               onClick={() => setOpen(true)}
               aria-label="Open menu"

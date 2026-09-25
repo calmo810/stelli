@@ -45,7 +45,7 @@ export default async function (req) {
     if (takenSlug.length) slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
 
     const now = new Date().toISOString();
-    const market = body.market === 'NYC' ? 'NYC' : 'ELON';
+    const market = 'ELON';
 
     const lensman = await base44.asServiceRole.entities.Lensman.create({
       user_id: user.id,

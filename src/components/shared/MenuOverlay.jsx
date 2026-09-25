@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { X, LogOut } from 'lucide-react';
-import { useMarket, MARKETS } from '@/lib/market';
 import { useAuth } from '@/lib/AuthContext';
 
 const PUBLIC_LINKS = [
@@ -20,7 +19,6 @@ const SHARED_LINKS = [
 ];
 
 export default function MenuOverlay({ onClose }) {
-  const { market, setMarket } = useMarket();
   const { isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -99,29 +97,7 @@ export default function MenuOverlay({ onClose }) {
           )}
         </nav>
 
-        <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
-          <div>
-            <p className="label-mono text-[9px] text-white/35 mb-3">Switch market</p>
-            <div className="flex flex-wrap gap-2">
-              {MARKETS.map((m) => {
-                const active = market === m.id;
-                return (
-                  <button
-                    key={m.id}
-                    onClick={() => setMarket(m.id)}
-                    className="label-mono text-[10px] px-4 py-2.5 border transition-colors"
-                    style={{
-                      borderRadius: 4,
-                      borderColor: active ? 'hsl(var(--neon-lime))' : 'rgba(255,255,255,0.15)',
-                      color: active ? 'hsl(var(--neon-lime))' : 'rgba(255,255,255,0.55)',
-                    }}
-                  >
-                    {m.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+        <div className="pt-6 border-t border-white/10">
           <p className="label-mono text-[9px] text-white/25">一期一会 — one time, one meeting</p>
         </div>
       </div>

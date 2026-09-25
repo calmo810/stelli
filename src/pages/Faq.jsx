@@ -21,8 +21,8 @@ const FAQS = [
     a: 'Contact details stay hidden until a booking is confirmed, so requests stay on-platform and both sides are protected.',
   },
   {
-    q: 'Can I book a creator for another city?',
-    a: 'Stelli runs in New York City and Elon, North Carolina. Switch markets in the menu to see creators near you.',
+    q: 'Where does Stelli run?',
+    a: 'Stelli runs in Elon, North Carolina — campus and the neighborhoods around it. More markets are coming.',
   },
   {
     q: 'Can I cancel?',

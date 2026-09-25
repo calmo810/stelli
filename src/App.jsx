@@ -34,7 +34,6 @@ import Onboarding from './pages/Onboarding';
 import Portal from './pages/Portal';
 import EditProfile from './pages/EditProfile';
 import AccountSettings from './pages/AccountSettings';
-import { MarketProvider } from '@/lib/market';
 import AdminRoute from '@/components/AdminRoute';
 import LegacyRedirect from '@/components/LegacyRedirect';
 
@@ -106,12 +105,10 @@ function App() {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
-        <MarketProvider>
-          <Router>
-            <ScrollToTop />
-            <AuthenticatedApp />
-          </Router>
-        </MarketProvider>
+        <Router>
+          <ScrollToTop />
+          <AuthenticatedApp />
+        </Router>
         <Toaster />
       </QueryClientProvider>
     </AuthProvider>

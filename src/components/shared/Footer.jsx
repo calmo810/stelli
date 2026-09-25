@@ -78,7 +78,7 @@ export default function Footer() {
 
         <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <p className="label-mono text-[9px] text-white/25">
-            © {new Date().getFullYear()} Stelli · NYC · Elon, NC
+            © {new Date().getFullYear()} Stelli · Elon, NC
           </p>
           <p className="font-hand text-[18px] text-neon-lime/70">一期一会 — one time, one meeting</p>
         </div>

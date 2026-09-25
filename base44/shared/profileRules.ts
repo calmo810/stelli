@@ -15,9 +15,8 @@ export const PROMPTS = [
   'Worst shoot I ever survived…',
 ];
 
-export const NYC_TAGS = ['flash', 'film', 'nightlife', 'editorial', 'portraits', 'events', 'moody', 'bright'];
-export const ELON_TAGS = ['grad', 'portraits', 'outdoor', 'campus', 'couples', 'film', 'bright', 'events'];
-export const ALL_STYLE_TAGS = Array.from(new Set([...NYC_TAGS, ...ELON_TAGS]));
+export const STYLE_TAGS = ['grad', 'portraits', 'outdoor', 'campus', 'couples', 'film', 'bright', 'events', 'flash', 'nightlife', 'editorial', 'moody'];
+export const ALL_STYLE_TAGS = STYLE_TAGS;
 
 export const LIMITS = { one_liner: 80, prompt_answer: 200, dont_shoot: 120, bio: 400 };
 export const ACCENTS = ['lime', 'cyan', 'magenta'];

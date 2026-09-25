@@ -1,15 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import RatingDisplay from '@/components/RatingDisplay';
 import { Skeleton } from '@/components/ui/skeleton';
-import MarketSwitcher from '@/components/shared/MarketSwitcher';
-import { useMarket, filterByMarket } from '@/lib/market';
 import { tagsForMarket, displayNameOf } from '@/lib/profilePresets';
 
 export default function Creators() {
-  const { market, activeMarket } = useMarket();
   const [selectedTags, setSelectedTags] = useState([]);
 
   const { data: creators = [], isLoading } = useQuery({
@@ -17,10 +14,8 @@ export default function Creators() {
     queryFn: () => base44.entities.Lensman.filter({ status: 'approved' }),
   });
 
-  useEffect(() => { setSelectedTags([]); }, [market]);
-
-  const marketTags = tagsForMarket(market, false);
-  const scoped = filterByMarket(creators, market);
+  const marketTags = tagsForMarket();
+  const scoped = creators;
 
   const results = selectedTags.length === 0
     ? [...scoped].sort((a, b) => (b.avg_rating || 0) - (a.avg_rating || 0))
@@ -46,9 +41,8 @@ export default function Creators() {
           Creators worth<br />putting in your calendar.
         </h1>
         <p className="font-body text-[14px] leading-relaxed text-white/45 max-w-md mb-9">
-          {activeMarket.blurb}
+          Elon University senior portraits and campus shoots.
         </p>
-        <MarketSwitcher />
       </section>
 
       <section className="max-w-[1500px] mx-auto px-5 md:px-10 pb-24">
@@ -82,7 +76,7 @@ export default function Creators() {
               {selectedTags.length ? 'Nobody yet — try fewer tags.' : 'No creators yet.'}
             </p>
             <p className="font-body text-[13px] text-white/40 mt-2">
-              {selectedTags.length ? 'Loosen the filters to see more work.' : 'Try the other market.'}
+              {selectedTags.length ? 'Loosen the filters to see more work.' : 'Check back soon — new creators are joining.'}
             </p>
             {selectedTags.length > 0 && (
               <button
@@ -121,7 +115,7 @@ export default function Creators() {
                 <div className="p-5">
                   <p className="font-heading text-[22px] font-semibold text-white leading-tight">{displayNameOf(c)}</p>
                   <p className="label-mono text-[9px] text-white/40 mt-2">
-                    {(c.neighborhoods?.[0] || activeMarket.short)} · {c.specialties?.slice(0, 2).join(' / ') || 'Photography'}
+                    {(c.neighborhoods?.[0] || 'ELON')} · {c.specialties?.slice(0, 2).join(' / ') || 'Photography'}
                   </p>
                   <div className="flex items-center gap-1.5 mt-4">
                     <RatingDisplay rating={c.avg_rating} reviewCount={c.review_count} />

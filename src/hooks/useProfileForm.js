@@ -86,7 +86,7 @@ export default function useProfileForm() {
     const loaded = {
       ...emptyProfile,
       ...lensman,
-      market: lensman.market === 'NYC' ? 'NYC' : 'ELON',
+      market: 'ELON',
       years_experience: lensman.years_experience ?? '',
       portfolio_images: lensman.portfolio_images || [],
       specialties: lensman.specialties || [],

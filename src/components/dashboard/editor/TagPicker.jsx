@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
-import { otherMarketLabel, tagsForMarket } from '@/lib/profilePresets';
+import React from 'react';
+import { tagsForMarket } from '@/lib/profilePresets';
 
-export default function TagPicker({ market, tags = [], onChange }) {
-  const [includeOther, setIncludeOther] = useState(false);
-  const options = tagsForMarket(market, includeOther);
+export default function TagPicker({ tags = [], onChange }) {
+  const options = tagsForMarket();
 
   const toggle = (tag) => {
     if (tags.includes(tag)) {
@@ -40,13 +39,6 @@ export default function TagPicker({ market, tags = [], onChange }) {
           );
         })}
       </div>
-
-      <button
-        onClick={() => setIncludeOther((v) => !v)}
-        className="label-mono text-[9px] text-white/30 hover:text-white/60 mt-3"
-      >
-        {includeOther ? 'Show only my market' : `Also shoot in ${otherMarketLabel(market)}?`}
-      </button>
     </div>
   );
 }

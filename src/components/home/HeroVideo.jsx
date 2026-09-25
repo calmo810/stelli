@@ -1,38 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useMarket } from '@/lib/market';
 
-// Full-bleed hero still, one per market.
-const HERO_POSTERS = {
-  ELON: 'https://commons.wikimedia.org/wiki/Special:FilePath/Alamance_Building,_Elon_University.jpg',
-  NYC: 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&w=2000&q=80',
-};
+// Full-bleed hero still: Elon University.
+const POSTER = 'https://commons.wikimedia.org/wiki/Special:FilePath/Alamance_Building,_Elon_University.jpg';
 
 // Every phrase reads on from "Need a photographer for".
-const PHRASES = {
-  ELON: [
-    "your club's event?",
-    'senior pics by the fountain?',
-    'LinkedIn photos?',
-    'headshots?',
-    'your SGA campaign?',
-    'big/little reveal?',
-    'your a cappella concert?',
-    'date party?',
-    "your band's gig?",
-    'graduation weekend?',
-    'your small business?',
-    'your dance recital?',
-  ],
-  NYC: [
-    'a birthday dinner?',
-    "your band's show?",
-    'a rooftop party?',
-    'headshots?',
-    'a brand launch?',
-    "LinkedIn photos that don't look like LinkedIn photos?",
-  ],
-};
+const PHRASES = [
+  "your club's event?",
+  'senior pics by the fountain?',
+  'LinkedIn photos?',
+  'headshots?',
+  'your SGA campaign?',
+  'big/little reveal?',
+  'your a cappella concert?',
+  'date party?',
+  "your band's gig?",
+  'graduation weekend?',
+  'your small business?',
+  'your dance recital?',
+];
 
 const TYPE_MS = 55;
 const HOLD_MS = 1800;
@@ -92,23 +78,12 @@ function usePrefersReducedMotion() {
 }
 
 export default function HeroVideo() {
-  const { activeMarket } = useMarket();
   const reduced = usePrefersReducedMotion();
-  const phrases = PHRASES[activeMarket.id] || PHRASES.ELON;
-  const poster = HERO_POSTERS[activeMarket.id] || HERO_POSTERS.ELON;
-
   const [typer, setTyper] = useState(EMPTY_TYPER);
-
-  // Switching market restarts the typewriter at that list's first phrase.
-  const [market, setMarket] = useState(activeMarket.id);
-  if (market !== activeMarket.id) {
-    setMarket(activeMarket.id);
-    setTyper(EMPTY_TYPER);
-  }
 
   useEffect(() => {
     if (reduced) return undefined;
-    const target = phrases[typer.index];
+    const target = PHRASES[typer.index];
     let delay;
     let next;
 
@@ -125,24 +100,24 @@ export default function HeroVideo() {
       next = { ...typer, text: typer.text.slice(0, -1) };
     } else {
       delay = GAP_MS;
-      next = { ...typer, deleting: false, index: (typer.index + 1) % phrases.length };
+      next = { ...typer, deleting: false, index: (typer.index + 1) % PHRASES.length };
     }
 
     const timer = setTimeout(() => setTyper(next), delay);
     return () => clearTimeout(timer);
-  }, [typer, phrases, reduced]);
+  }, [typer, reduced]);
 
-  const shownText = reduced ? phrases[0] : typer.text;
+  const shownText = reduced ? PHRASES[0] : typer.text;
   const tilt = TILTS[typer.index % TILTS.length];
-  const longest = phrases.reduce((a, phrase) => (phrase.length > a.length ? phrase : a), '');
+  const longest = PHRASES.reduce((a, phrase) => (phrase.length > a.length ? phrase : a), '');
 
   return (
     <section className="relative w-full overflow-hidden bg-ink" style={{ height: '100svh', minHeight: 600 }}>
       <style>{`@keyframes stelliCaretBlink { 50% { opacity: 0 } }`}</style>
 
       <img
-        src={poster}
-        alt={activeMarket.id === 'ELON' ? 'Elon University campus' : 'New York City'}
+        src={POSTER}
+        alt="Elon University campus"
         className="absolute inset-0 w-full h-full object-cover"
       />
 
@@ -162,7 +137,7 @@ export default function HeroVideo() {
             style={{ fontWeight: 500, lineHeight: 1.08, letterSpacing: '-0.015em', fontSize: 'clamp(28px, 4.8vw, 68px)' }}
           >
             Need a photographer for
-            <span className="sr-only">{` ${phrases.join(' ')}`}</span>
+            <span className="sr-only">{` ${PHRASES.join(' ')}`}</span>
 
             <span aria-hidden className="grid">
               <span className="invisible" style={TILT}>
