@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800;9..144,900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Caveat:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800;9..144,900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Caveat:wght@500;600;700&family=Yellowtail&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -15,7 +15,7 @@
     --neon-cyan: 185 94% 57%;
     --neon-magenta: 315 94% 57%;
     --muted-tone: 225 18% 61%;
-    --stelli-cream: 40 33% 94%;
+    --stelli-blue: 225 100% 40%;
 
     /* shadcn-compatible tokens (dark by default) */
     --background: 225 50% 8%;
@@ -50,6 +50,7 @@
     --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
     --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
     --font-hand: 'Caveat', cursive;
+    --font-script: 'Yellowtail', cursive;
 
     /* legacy aliases kept so older screens keep rendering */
     --gold: 75 94% 57%;
@@ -174,8 +175,8 @@
 }
 
 @keyframes stelliStarTwinkle {
-  0%, 100% { opacity: 0.32; }
-  50% { opacity: 0.85; }
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
 }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }

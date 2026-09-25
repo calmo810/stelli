@@ -54,7 +54,7 @@ module.exports = {
   				magenta: 'hsl(var(--neon-magenta))'
   			},
   			stelli: {
-  				cream: 'hsl(var(--stelli-cream))'
+  				blue: 'hsl(var(--stelli-blue))'
   			},
   			chart: {
   				'1': 'hsl(var(--chart-1))',
@@ -91,7 +91,8 @@ module.exports = {
   			body: ['var(--font-body)'],
   			display: ['var(--font-display)'],
   			mono: ['var(--font-mono)'],
-  			hand: ['var(--font-hand)']
+  			hand: ['var(--font-hand)'],
+  			script: ['var(--font-script)']
   		},
   		keyframes: {
   			'accordion-down': {

@@ -2,8 +2,8 @@ import React from 'react';
 import StarCluster from './StarCluster';
 
 /**
- * The hand-inked Stelli wordmark, recut in light tones for the dark header:
- * the script name with the three stars riding at the end of it.
+ * The Stelli wordmark: the hand-inked script name with the three stars riding
+ * at the end of it, all in the brand blue.
  */
 export default function StelliWordmark({ className = '' }) {
   return (
@@ -11,10 +11,10 @@ export default function StelliWordmark({ className = '' }) {
       className={`flex items-end ${className}`}
       style={{ filter: 'drop-shadow(0 1px 10px hsl(var(--ink) / 0.55))' }}
     >
-      <span className="font-hand font-bold text-stelli-cream leading-[0.8]" style={{ fontSize: 30 }}>
+      <span className="font-script text-stelli-blue leading-[0.9]" style={{ fontSize: 34 }}>
         Stelli
       </span>
-      <StarCluster size={30} className="mb-[3px]" rotate={-6} />
+      <StarCluster size={30} className="mb-[2px]" rotate={-6} />
     </span>
   );
 }
