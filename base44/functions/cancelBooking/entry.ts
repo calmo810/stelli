@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { viewerRole } from '../../shared/bookingAccess.ts';
 import { refundBooking, releaseBooking } from '../../shared/payouts.ts';
 import { clientTotal, stripePost } from '../../shared/stripe.ts';
+import { marketTimeZone, shootStartsAt } from '../../shared/shootTime.ts';
 
 export default async function (req) {
   try {
@@ -23,8 +24,14 @@ export default async function (req) {
 
     const isClient = role === 'client';
     const now = new Date();
-    const shootAt = new Date(`${booking.event_date}T${booking.event_time || '12:00'}`);
-    const hoursUntil = (shootAt.getTime() - now.getTime()) / 3600000;
+    const lensman = booking.lensman_id
+      ? await base44.asServiceRole.entities.Lensman.get(booking.lensman_id).catch(() => null)
+      : null;
+    // The shoot time is the local wall clock in the creator's market, so the
+    // 72 and 48 hour cutoffs are measured from the real start, not UTC.
+    const shootAt = shootStartsAt(booking.event_date, booking.event_time, marketTimeZone(lensman?.market));
+    // No usable date means no late-cancellation penalty.
+    const hoursUntil = shootAt ? (shootAt.getTime() - now.getTime()) / 3600000 : Infinity;
 
     // Everything is worked out from what Stripe actually took. Bookings paid
     // before amount_charged existed fall back to the quote plus the service fee.
@@ -91,7 +98,6 @@ export default async function (req) {
     }
 
     if (!isClient) {
-      const lensman = await base44.asServiceRole.entities.Lensman.get(booking.lensman_id).catch(() => null);
       if (lensman) {
         await base44.asServiceRole.entities.Lensman.update(lensman.id, { under_review: true });
         const contacts = await base44.asServiceRole.entities.CreatorContact.filter({
