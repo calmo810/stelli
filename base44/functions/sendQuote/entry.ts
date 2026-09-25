@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { notifyThread } from '../../shared/notify.ts';
 import { viewerRole, recordFirstReply, creatorEmail } from '../../shared/bookingAccess.ts';
+import { stripePost } from '../../shared/stripe.ts';
 
 /** Quotes stay valid for 72 hours unless the creator picks otherwise. */
 const EXPIRY_HOURS = { '24h': 24, '72h': 72, '7d': 168 };
@@ -22,6 +23,43 @@ export default async function (req) {
     const role = viewerRole(booking, user);
     if (role !== 'lensman' && user.role !== 'admin') {
       return Response.json({ error: 'Only the booked creator can quote this request.' }, { status: 403 });
+    }
+
+    // A paid booking's price is locked in — a new quote would only muddy it.
+    if (['processing', 'held', 'released', 'partially_refunded'].includes(booking.payment_status)) {
+      return Response.json(
+        { error: 'This booking is already paid. Message Stelli to change the price.' },
+        { status: 409 }
+      );
+    }
+
+    // An accepted quote that hasn't been paid is replaced by the new one: the
+    // old one is retired and any checkout already open for it is closed.
+    const acceptedBefore = await base44.asServiceRole.entities.Quote.filter({
+      booking_id: bookingId,
+      status: 'accepted',
+    });
+    if (acceptedBefore.length) {
+      await base44.asServiceRole.entities.Quote.updateMany(
+        { booking_id: bookingId, status: 'accepted' },
+        { $set: { status: 'superseded' } }
+      );
+    }
+    if (booking.stripe_checkout_session_id) {
+      try {
+        await stripePost(
+          `checkout/sessions/${booking.stripe_checkout_session_id}/expire`,
+          new URLSearchParams()
+        );
+      } catch (error) {
+        // Already expired or already paid — either way the new quote still goes out.
+        console.error(
+          'Could not expire checkout session',
+          booking.stripe_checkout_session_id,
+          '-',
+          error.message
+        );
+      }
     }
 
     // Payouts come before quoting — the money has to have somewhere to land.
@@ -57,6 +95,7 @@ export default async function (req) {
     await base44.asServiceRole.entities.Booking.update(bookingId, {
       status: 'quoted',
       total_price: quote.amount,
+      quote_id: '',
     });
 
     await recordFirstReply(base44, booking);

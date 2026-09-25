@@ -41,7 +41,18 @@ export default function AdminDashboard() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-bookings'] }),
   });
 
-  const flagged = bookings.filter(b => b.flagged_for_review);
+  // One combined queue: anything a founder has to look at, plus money sitting on
+  // Stelli's balance because the creator has no payout account yet.
+  const needsDecision = (booking) =>
+    booking.flagged_for_review || booking.dispute_status ? 0 : 1;
+  const heldFunds = bookings
+    .filter(
+      (b) =>
+        b.flagged_for_review ||
+        Boolean(b.dispute_status) ||
+        (['held', 'partially_refunded'].includes(b.payment_status) && b.needs_payout_setup)
+    )
+    .sort((a, b) => needsDecision(a) - needsDecision(b));
   const approved = lensmen.filter(l => l.status === 'approved');
   const totalRevenue = bookings.filter(b => b.status === 'completed').reduce((sum, b) => sum + (b.total_price || 0), 0);
 
@@ -85,7 +96,7 @@ export default function AdminDashboard() {
               Bookings ({bookings.length})
             </TabsTrigger>
             <TabsTrigger value="flagged" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-magenta data-[state=active]:text-ink">
-              Held funds ({flagged.length})
+              Held funds ({heldFunds.length})
             </TabsTrigger>
           </TabsList>
 
@@ -134,8 +145,8 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="flagged" className="space-y-4">
-            {flagged.length > 0 ? (
-              flagged.map(b => (
+            {heldFunds.length > 0 ? (
+              heldFunds.map(b => (
                 <div key={b.id} className={`${CARD} p-6`} style={SURFACE}>
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <div>
@@ -146,7 +157,10 @@ export default function AdminDashboard() {
                         {b.event_date} · held ${Number(b.total_price || 0).toLocaleString()} · creator gets ${Number(b.creator_payout || 0).toLocaleString()}
                       </p>
                     </div>
-                    <Pill tone="magenta">{b.payment_status}</Pill>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Pill tone="magenta">{b.payment_status}</Pill>
+                      {b.dispute_status && <Pill tone="cyan">{b.dispute_status}</Pill>}
+                    </div>
                   </div>
 
                   {b.flag_reason && (
@@ -159,25 +173,33 @@ export default function AdminDashboard() {
                     </p>
                   )}
 
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => decidePayout.mutate({ bookingId: b.id, action: 'release' })}
-                      disabled={decidePayout.isPending}
-                      className="flex-1 label-mono text-[10px] font-semibold"
-                      style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }}
-                    >
-                      Release to creator
-                    </Button>
-                    <Button
-                      onClick={() => decidePayout.mutate({ bookingId: b.id, action: 'refund' })}
-                      disabled={decidePayout.isPending}
-                      variant="outline"
-                      className="flex-1 label-mono text-[10px] border-white/15 text-white/60 bg-transparent hover:bg-white/5 hover:text-white"
-                      style={{ borderRadius: 4 }}
-                    >
-                      Refund the client
-                    </Button>
-                  </div>
+                  {b.flagged_for_review ? (
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => decidePayout.mutate({ bookingId: b.id, action: 'release' })}
+                        disabled={decidePayout.isPending}
+                        className="flex-1 label-mono text-[10px] font-semibold"
+                        style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }}
+                      >
+                        Release to creator
+                      </Button>
+                      <Button
+                        onClick={() => decidePayout.mutate({ bookingId: b.id, action: 'refund' })}
+                        disabled={decidePayout.isPending}
+                        variant="outline"
+                        className="flex-1 label-mono text-[10px] border-white/15 text-white/60 bg-transparent hover:bg-white/5 hover:text-white"
+                        style={{ borderRadius: 4 }}
+                      >
+                        Refund the client
+                      </Button>
+                    </div>
+                  ) : (
+                    <p className="label-mono text-[9px] text-white/35">
+                      {b.dispute_status
+                        ? 'Respond in Stripe before the deadline.'
+                        : 'Waiting on the creator to finish payout setup.'}
+                    </p>
+                  )}
                 </div>
               ))
             ) : (

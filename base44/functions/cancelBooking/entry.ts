@@ -1,6 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { viewerRole } from '../../shared/bookingAccess.ts';
-import { refundBooking } from '../../shared/payouts.ts';
+import { refundBooking, releaseBooking } from '../../shared/payouts.ts';
 import { clientTotal } from '../../shared/stripe.ts';
 
 export default async function (req) {
@@ -25,14 +25,21 @@ export default async function (req) {
     const now = new Date();
     const shootAt = new Date(`${booking.event_date}T${booking.event_time || '12:00'}`);
     const hoursUntil = (shootAt.getTime() - now.getTime()) / 3600000;
-    const paid = clientTotal(booking.total_price);
+
+    // Everything is worked out from what Stripe actually took. Bookings paid
+    // before amount_charged existed fall back to the quote plus the service fee.
+    const paid =
+      Number(booking.amount_charged || 0) > 0
+        ? Number(booking.amount_charged)
+        : clientTotal(booking.total_price);
 
     // The creator walking away is always a full refund, and it puts them in
-    // front of a founder.
+    // front of a founder. A client cancelling late still owes the creator.
     let refundAmount = 0;
     let refundNote = 'No payment had been taken, so there is nothing to refund.';
+    let creatorShare = 0; // 1 = the full share, 0.5 = half, 0 = nothing
 
-    if (booking.payment_status === 'held') {
+    if (booking.stripe_payment_intent_id || booking.stripe_charge_id) {
       if (!isClient) {
         refundAmount = paid;
         refundNote = 'The creator cancelled, so the client is refunded in full.';
@@ -41,8 +48,10 @@ export default async function (req) {
         refundNote = 'Cancelled 72 hours or more before the shoot, so the client is refunded in full.';
       } else if (hoursUntil >= 48) {
         refundAmount = Math.round(paid * 0.5 * 100) / 100;
+        creatorShare = 0.5;
         refundNote = 'Cancelled between 48 and 72 hours before the shoot, so half is refunded.';
       } else {
+        creatorShare = 1;
         refundNote = 'Cancelled less than 48 hours before the shoot, so the creator keeps the full amount.';
       }
     }
@@ -58,6 +67,16 @@ export default async function (req) {
 
     if (refundAmount > 0) {
       await refundBooking(base44, booking, refundAmount, refundNote);
+    }
+
+    // The creator is still paid their share of a late client cancellation.
+    if (creatorShare > 0) {
+      if (creatorShare < 1) {
+        const half = Math.round(Number(booking.creator_payout || 0) * creatorShare * 100) / 100;
+        await base44.asServiceRole.entities.Booking.update(bookingId, { creator_payout: half });
+      }
+      const fresh = await base44.asServiceRole.entities.Booking.get(bookingId);
+      await releaseBooking(base44, fresh, 'auto');
     }
 
     if (!isClient) {

@@ -99,6 +99,10 @@
       "type": "number",
       "description": "Quote plus the add-ons the client ticked"
     },
+    "quote_id": {
+      "type": "string",
+      "description": "The quote the client accepted and is paying"
+    },
     "fee_amount": {
       "type": "number",
       "description": "Stelli service fee charged to the client on top of the quote"
@@ -106,6 +110,14 @@
     "creator_payout": {
       "type": "number",
       "description": "Amount transferred to the creator when the hold is released"
+    },
+    "amount_charged": {
+      "type": "number",
+      "description": "What Stripe actually charged the client, in dollars, including any tax"
+    },
+    "tax_amount": {
+      "type": "number",
+      "description": "The tax part of amount_charged, in dollars"
     },
     "picked_add_ons": {
       "type": "array",
@@ -159,12 +171,14 @@
       "type": "string",
       "enum": [
         "pending",
+        "processing",
         "held",
         "released",
-        "refunded"
+        "refunded",
+        "partially_refunded"
       ],
       "default": "pending",
-      "description": "Payment/escrow status"
+      "description": "Payment/escrow status. Processing means the client paid by bank and the money has not cleared yet."
     },
     "paid_at": {
       "type": "string",
@@ -184,6 +198,10 @@
       "type": "string",
       "description": "Stripe charge held on Stelli's balance"
     },
+    "stripe_checkout_session_id": {
+      "type": "string",
+      "description": "The latest Stripe Checkout Session created for this booking"
+    },
     "transfer_group": {
       "type": "string",
       "description": "Shared by the charge and the later payout so the money is traceable"
@@ -191,6 +209,14 @@
     "stripe_transfer_id": {
       "type": "string",
       "description": "Stripe transfer that paid the creator out"
+    },
+    "stripe_transfer_reversal_id": {
+      "type": "string",
+      "description": "Set if a creator payout was pulled back after a refund"
+    },
+    "dispute_status": {
+      "type": "string",
+      "description": "Empty unless the client opened a card dispute; otherwise Stripe's dispute status"
     },
     "released_at": {
       "type": "string",

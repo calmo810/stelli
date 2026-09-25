@@ -31,16 +31,28 @@ export default async function (req) {
       return Response.json({ error: 'This booking belongs to someone else.' }, { status: 403 });
     }
 
-    if (booking.payment_status === 'held' || booking.payment_status === 'released') {
+    if (['processing', 'held', 'released'].includes(booking.payment_status)) {
       return Response.json({ error: 'This booking is already paid.' }, { status: 409 });
     }
 
     // The amount always comes from the quote the client accepted — never the browser.
-    const accepted = await base44.asServiceRole.entities.Quote.filter({
-      booking_id: bookingId,
-      status: 'accepted',
-    });
-    const quote = accepted[0];
+    let quote = booking.quote_id
+      ? await base44.asServiceRole.entities.Quote.get(booking.quote_id).catch(() => null)
+      : null;
+
+    // Bookings accepted before quote_id existed: fall back to the most recent
+    // accepted quote and remember it, so nothing has to be re-accepted by hand.
+    if (!quote) {
+      const accepted = await base44.asServiceRole.entities.Quote.filter(
+        { booking_id: bookingId, status: 'accepted' },
+        '-created_date'
+      );
+      quote = accepted[0];
+      if (quote) {
+        await base44.asServiceRole.entities.Booking.update(bookingId, { quote_id: quote.id });
+      }
+    }
+
     if (!quote || !quote.amount) {
       return Response.json(
         { error: 'There is no accepted quote on this booking yet.' },
@@ -94,6 +106,8 @@ export default async function (req) {
     body.set(`line_items[${feeIndex}][price_data][unit_amount]`, String(toCents(fee)));
     body.set(`line_items[${feeIndex}][price_data][product_data][name]`, 'Stelli service fee');
 
+    // Every paid booking gets a Stripe invoice and receipt.
+    body.set('invoice_creation[enabled]', 'true');
     body.set('metadata[base44_app_id]', appId);
     body.set('metadata[booking_id]', bookingId);
     body.set('metadata[quote_id]', quote.id);
@@ -103,6 +117,11 @@ export default async function (req) {
     body.set('payment_intent_data[metadata][quote_id]', quote.id);
 
     const session = await stripePost('checkout/sessions', body, `booking-checkout-${quote.id}`);
+
+    // Kept so a later quote can close this session instead of leaving it payable.
+    await base44.asServiceRole.entities.Booking.update(bookingId, {
+      stripe_checkout_session_id: session.id,
+    });
 
     return Response.json({
       url: session.url,

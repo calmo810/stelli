@@ -1,6 +1,21 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
-import { notifyBoth } from '../../shared/notify.ts';
-import { serviceFee, creatorPayout, stripeGet, webhookSecret } from '../../shared/stripe.ts';
+import { secrets } from 'base44:runtime';
+import { notifyBoth, sendEmail } from '../../shared/notify.ts';
+import { markBookingPaid, releaseWaitingPayouts } from '../../shared/payouts.ts';
+
+/** Anything older than this is a replay and is refused. */
+const SIGNATURE_TOLERANCE_SECONDS = 300;
+
+/**
+ * Stelli points two Stripe endpoints at this one function — one for its own
+ * account and one for connected accounts — and each signs with its own secret.
+ */
+const WEBHOOK_SECRET_NAMES = [
+  'STRIPE_TEST_WEBHOOK_SECRET',
+  'STRIPE_WEBHOOK_SECRET',
+  'STRIPE_TEST_CONNECT_WEBHOOK_SECRET',
+  'STRIPE_CONNECT_WEBHOOK_SECRET',
+];
 
 function parseSignatureHeader(header) {
   const parsed = { timestamp: null, signatures: [] };
@@ -12,10 +27,17 @@ function parseSignatureHeader(header) {
   return parsed;
 }
 
-async function isValidSignature(payload, header, secret) {
-  const { timestamp, signatures } = parseSignatureHeader(header);
-  if (!timestamp || signatures.length === 0) return false;
+/** Compared in constant time, so a wrong signature leaks nothing. */
+function constantTimeEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string' || a.length !== b.length) return false;
+  let difference = 0;
+  for (let index = 0; index < a.length; index += 1) {
+    difference |= a.charCodeAt(index) ^ b.charCodeAt(index);
+  }
+  return difference === 0;
+}
 
+async function hmacHex(secret, payload) {
   const key = await crypto.subtle.importKey(
     'raw',
     new TextEncoder().encode(secret),
@@ -23,16 +45,40 @@ async function isValidSignature(payload, header, secret) {
     false,
     ['sign']
   );
-  const digest = await crypto.subtle.sign(
-    'HMAC',
-    key,
-    new TextEncoder().encode(`${timestamp}.${payload}`)
-  );
-  const expected = Array.from(new Uint8Array(digest))
+  const digest = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(payload));
+  return Array.from(new Uint8Array(digest))
     .map((byte) => byte.toString(16).padStart(2, '0'))
     .join('');
+}
 
-  return signatures.some((signature) => signature === expected);
+/** True when the event is signed by any of the configured endpoints. */
+async function signatureIsValid(payload, header) {
+  const { timestamp, signatures } = parseSignatureHeader(header);
+  if (!timestamp || signatures.length === 0) return false;
+
+  const seconds = Number(timestamp);
+  if (!Number.isFinite(seconds)) return false;
+  if (Math.abs(Date.now() / 1000 - seconds) > SIGNATURE_TOLERANCE_SECONDS) return false;
+
+  const candidates = WEBHOOK_SECRET_NAMES.map((name) => secrets.get(name)).filter(Boolean);
+  if (candidates.length === 0) return false;
+
+  for (const secret of candidates) {
+    const expected = await hmacHex(secret, `${timestamp}.${payload}`);
+    if (signatures.some((signature) => constantTimeEqual(signature, expected))) return true;
+  }
+
+  return false;
+}
+
+async function emailAdmins(base44, subject, body) {
+  const admins = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
+  await notifyBoth(
+    base44,
+    admins.map((admin) => admin.email),
+    subject,
+    body
+  );
 }
 
 export default async function (req) {
@@ -41,91 +87,132 @@ export default async function (req) {
 
     const signature = req.headers.get('stripe-signature');
     const payload = await req.text();
-    const secret = webhookSecret();
 
-    if (!signature || !secret) {
-      console.error('Stripe webhook rejected: missing signature or secret.');
+    if (!signature) {
+      console.error('Stripe webhook rejected: missing signature.');
       return Response.json({ error: 'Missing signature' }, { status: 400 });
     }
 
-    if (!(await isValidSignature(payload, signature, secret))) {
+    if (!(await signatureIsValid(payload, signature))) {
       console.error('Stripe webhook rejected: invalid signature.');
       return Response.json({ error: 'Invalid signature' }, { status: 400 });
     }
 
     const event = JSON.parse(payload);
+    const object = event?.data?.object || {};
 
+    // Paid by card: the money is held. Paid by bank: it has to clear first.
     if (event.type === 'checkout.session.completed') {
-      const session = event.data.object;
-      const bookingId = session?.metadata?.booking_id;
+      const bookingId = object?.metadata?.booking_id;
 
-      if (bookingId) {
-        const booking = await base44.asServiceRole.entities.Booking.get(bookingId);
-
+      if (bookingId && object.payment_status === 'paid') {
+        await markBookingPaid(base44, object);
+      } else if (bookingId && object.payment_status === 'unpaid') {
+        const booking = await base44.asServiceRole.entities.Booking.get(bookingId).catch(() => null);
         if (booking) {
-          const price = Number(booking.total_price || 0);
-          const now = new Date().toISOString();
-
-          // The charge itself, so the later transfer can be tied back to it.
-          let chargeId = '';
-          if (session.payment_intent) {
-            try {
-              const intent = await stripeGet(`payment_intents/${session.payment_intent}`);
-              chargeId = intent?.latest_charge || '';
-            } catch (error) {
-              console.error('Could not read the charge for session', session.id, '-', error.message);
-            }
-          }
-
-          // The client is charged in full and the money stays on Stelli's
-          // balance until the photos land — nothing moves to the creator here.
+          // Not confirmed and contact details stay locked until the money clears.
           await base44.asServiceRole.entities.Booking.update(bookingId, {
-            payment_status: 'held',
-            status: 'confirmed',
-            paid_at: now,
-            stripe_payment_intent_id: session.payment_intent || '',
-            stripe_charge_id: chargeId,
-            transfer_group: `booking_${bookingId}`,
-            fee_amount: serviceFee(price),
-            creator_payout: creatorPayout(price),
+            payment_status: 'processing',
           });
-
-          await base44.asServiceRole.entities.Quote.updateMany(
-            { booking_id: bookingId, status: 'sent' },
-            { $set: { status: 'accepted' } }
-          );
-
-          await notifyBoth(
+          await sendEmail(
             base44,
-            [booking.client_email, booking.creator_email || booking.lensman_email],
-            'Payment held',
-            `The ${booking.event_date} shoot is confirmed. Payment of $${(price + serviceFee(price)).toLocaleString()} is held by Stelli until your photos are delivered.`
+            booking.client_email,
+            'Your payment is processing',
+            'Your payment is processing. Your date is locked in once it clears, usually within a few business days.'
           );
         }
       }
-    }
-
-    if (event.type === 'charge.refunded') {
-      const charge = event.data.object;
-      const bookingId = charge?.metadata?.booking_id;
+    } else if (event.type === 'checkout.session.async_payment_succeeded') {
+      await markBookingPaid(base44, object);
+    } else if (event.type === 'checkout.session.async_payment_failed') {
+      const bookingId = object?.metadata?.booking_id;
       if (bookingId) {
-        await base44.asServiceRole.entities.Booking.update(bookingId, {
-          payment_status: 'refunded',
-          refunded_at: new Date().toISOString(),
-        });
+        const booking = await base44.asServiceRole.entities.Booking.get(bookingId).catch(() => null);
+        if (booking) {
+          await base44.asServiceRole.entities.Booking.update(bookingId, {
+            payment_status: 'pending',
+            status: 'quote_accepted',
+          });
+          await sendEmail(
+            base44,
+            booking.client_email,
+            'Your bank payment did not go through',
+            "Your bank payment didn't go through. Open your Stelli messages to pay again."
+          );
+        }
       }
-    }
-
-    // Payout readiness lands here once Stripe finishes onboarding.
-    if (event.type === 'account.updated') {
-      const account = event.data.object;
+    } else if (event.type === 'charge.refunded') {
+      const charge = object;
+      // Found from the payment intent — charge metadata is not reliable.
+      if (charge?.payment_intent) {
+        const matches = await base44.asServiceRole.entities.Booking.filter({
+          stripe_payment_intent_id: charge.payment_intent,
+        });
+        const booking = matches[0];
+        if (booking) {
+          await base44.asServiceRole.entities.Booking.update(booking.id, {
+            refund_amount: Number(charge.amount_refunded || 0) / 100,
+            refunded_at: new Date().toISOString(),
+            ...(charge.refunded === true
+              ? { payment_status: 'refunded' }
+              : booking.payment_status === 'held'
+                ? { payment_status: 'partially_refunded' }
+                : {}),
+          });
+        }
+      }
+    } else if (event.type === 'charge.dispute.created') {
+      const dispute = object;
+      if (dispute?.payment_intent) {
+        const matches = await base44.asServiceRole.entities.Booking.filter({
+          stripe_payment_intent_id: dispute.payment_intent,
+        });
+        const booking = matches[0];
+        if (booking) {
+          await base44.asServiceRole.entities.Booking.update(booking.id, {
+            dispute_status: dispute.status,
+            flagged_for_review: true,
+            flag_reason: 'Card dispute opened. Respond in Stripe before the deadline.',
+          });
+          await emailAdmins(
+            base44,
+            'Card dispute opened',
+            `A client opened a card dispute on the ${booking.event_date} shoot (${dispute.status}). Respond in Stripe before the deadline.`
+          );
+        }
+      }
+    } else if (event.type === 'charge.dispute.closed') {
+      const dispute = object;
+      if (dispute?.payment_intent) {
+        const matches = await base44.asServiceRole.entities.Booking.filter({
+          stripe_payment_intent_id: dispute.payment_intent,
+        });
+        // The flag stays on, so a founder clears it by hand.
+        if (matches[0]) {
+          await base44.asServiceRole.entities.Booking.update(matches[0].id, {
+            dispute_status: dispute.status,
+          });
+        }
+      }
+    } else if (event.type === 'account.updated') {
+      const account = object;
       const profiles = await base44.asServiceRole.entities.Lensman.filter({
         stripe_account_id: account.id,
       });
-      if (profiles[0]) {
-        await base44.asServiceRole.entities.Lensman.update(profiles[0].id, {
-          payouts_enabled: Boolean(account.payouts_enabled),
+      const lensman = profiles[0];
+      if (lensman) {
+        // Same rule the dashboard check uses: transfers active and payouts on.
+        const enabled =
+          account?.capabilities?.transfers === 'active' && account?.payouts_enabled === true;
+
+        await base44.asServiceRole.entities.Lensman.update(lensman.id, {
+          payouts_enabled: enabled,
         });
+
+        // Anything that was waiting on this creator goes out right away.
+        if (enabled && !lensman.payouts_enabled) {
+          await releaseWaitingPayouts(base44, { ...lensman, payouts_enabled: true });
+        }
       }
     }
 

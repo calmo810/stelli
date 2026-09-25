@@ -61,10 +61,11 @@
         "sent",
         "accepted",
         "declined",
-        "expired"
+        "expired",
+        "superseded"
       ],
       "default": "sent",
-      "description": "Quote state"
+      "description": "Quote state. Superseded means a newer quote replaced this one."
     }
   },
   "required": [

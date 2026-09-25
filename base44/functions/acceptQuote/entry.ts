@@ -53,11 +53,22 @@ export default async function (req) {
         (Number(quote.amount || 0) + chosen.reduce((sum, addOn) => sum + addOn.price, 0)) * 100
       ) / 100;
 
+    // One quote in play: every other live quote on this booking is retired, so
+    // only the accepted one can ever be paid.
+    await base44.asServiceRole.entities.Quote.updateMany(
+      { booking_id: booking.id, status: 'sent' },
+      { $set: { status: 'superseded' } }
+    );
+    await base44.asServiceRole.entities.Quote.updateMany(
+      { booking_id: booking.id, status: 'accepted' },
+      { $set: { status: 'superseded' } }
+    );
     await base44.asServiceRole.entities.Quote.update(quote.id, { status: 'accepted' });
     await base44.asServiceRole.entities.Booking.update(booking.id, {
       status: 'quote_accepted',
       total_price: subtotal,
       picked_add_ons: chosen,
+      quote_id: quote.id,
     });
 
     const contact = await loadCreatorContact(base44, booking.lensman_id);
