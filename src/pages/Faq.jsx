@@ -1,4 +1,9 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
+import { Plus } from 'lucide-react';
+import PageShell from '@/components/shared/PageShell';
+import SectionHeader from '@/components/shared/SectionHeader';
+
 const FAQS = [
   {
     q: 'How does pricing work?',
@@ -17,12 +22,12 @@ const FAQS = [
     a: 'Creators deliver through their own gallery service. Once your payment has cleared, your delivery link appears on the booking in your portal and arrives by email.',
   },
   {
-    q: 'When do I see my creator\'s contact details?',
+    q: "When do I see my creator's contact details?",
     a: 'Contact details stay hidden until a booking is confirmed, so requests stay on-platform and both sides are protected.',
   },
   {
-    q: 'Can I book a creator for another city?',
-    a: 'Stelli runs in New York City and Elon, North Carolina. Switch markets in the menu to see creators near you.',
+    q: 'Where does Stelli run?',
+    a: 'Stelli runs in Elon, North Carolina — campus and the neighborhoods around it. More markets are coming.',
   },
   {
     q: 'Can I cancel?',
@@ -32,30 +37,41 @@ const FAQS = [
 
 export default function Faq() {
   return (
-    <div className="min-h-screen bg-ink">
-      <section className="max-w-3xl mx-auto px-5 md:px-10 pt-32 pb-24">
-        <p className="label-mono text-[9px] text-white/35 mb-5">Stelli · FAQ</p>
-        <h1 className="font-heading font-semibold text-white leading-[0.95] mb-6" style={{ fontSize: 'clamp(40px, 7vw, 84px)' }}>
-          Questions,<br />answered.
-        </h1>
-        <p className="font-body text-[14px] leading-relaxed text-white/45 max-w-lg mb-16">
-          Everything about booking, quoting, payment, and getting your photos.
-        </p>
+    <PageShell width="reading">
+      <SectionHeader
+        eyebrow="Stelli · FAQ"
+        title="Questions, answered."
+        intro="Everything about booking, quoting, payment, and getting your photos."
+      />
 
-        <div className="space-y-px" style={{ background: 'rgba(255,255,255,0.08)' }}>
-          {FAQS.map((item) => (
-            <details key={item.q} className="group p-6 md:p-8" style={{ background: 'hsl(var(--ink))' }}>
-              <summary className="cursor-pointer list-none flex items-start justify-between gap-6">
-                <h2 className="font-heading text-[19px] md:text-[23px] font-semibold text-white group-hover:text-neon-lime transition-colors">
-                  {item.q}
-                </h2>
-                <span className="font-mono text-[16px] shrink-0 mt-1" style={{ color: 'hsl(var(--neon-lime))' }}>+</span>
-              </summary>
-              <p className="font-body text-[13px] md:text-[14px] leading-relaxed text-white/50 mt-4 max-w-2xl">{item.a}</p>
-            </details>
-          ))}
-        </div>
-      </section>
-    </div>
+      <div className="mt-14 md:mt-16 border-t border-white/10">
+        {FAQS.map((item) => (
+          <details key={item.q} className="group border-b border-white/10 py-6 md:py-7">
+            <summary className="cursor-pointer list-none flex items-start justify-between gap-6">
+              <h2 className="text-[17px] md:text-[20px] font-semibold leading-snug text-white group-hover:text-neon-lime transition-colors">
+                {item.q}
+              </h2>
+              <Plus
+                aria-hidden
+                className="w-4 h-4 shrink-0 mt-1.5 text-neon-lime transition-transform duration-300 group-open:rotate-45"
+              />
+            </summary>
+            <p className="mt-4 max-w-2xl text-[14px] md:text-[15px] leading-relaxed text-white/45">{item.a}</p>
+          </details>
+        ))}
+      </div>
+
+      <p className="mt-12 text-[14px] text-white/40">
+        Something else on your mind?{' '}
+        <Link to="/creators" className="text-neon-lime hover:underline underline-offset-4">
+          Browse creators
+        </Link>{' '}
+        or read the{' '}
+        <Link to="/terms" className="text-neon-lime hover:underline underline-offset-4">
+          terms
+        </Link>
+        .
+      </p>
+    </PageShell>
   );
 }

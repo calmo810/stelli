@@ -27,7 +27,7 @@ export default function BornTo() {
         {/* An invisible copy of the longest line holds the space, so the page
             never jumps while the words type out, at any screen width. */}
         <div
-          className="grid font-heading font-medium text-white leading-[1.05] max-w-5xl"
+          className="grid font-display font-medium text-white leading-[1.05] max-w-5xl"
           style={{ fontSize: 'clamp(34px, 6vw, 88px)' }}
         >
           <p aria-hidden="true" className="invisible [grid-area:1/1]">

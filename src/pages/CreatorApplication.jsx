@@ -48,7 +48,6 @@ export default function CreatorApplication() {
     full_name: '',
     email: '',
     phone: '',
-    market: 'ELON',
   });
 
   const update = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
@@ -83,7 +82,7 @@ export default function CreatorApplication() {
       fullName: form.full_name,
       email: contactEmail,
       phone: form.phone,
-      market: form.market,
+      market: 'ELON',
     });
   };
 
@@ -119,7 +118,7 @@ export default function CreatorApplication() {
           Join Stelli.
         </h1>
         <p className="font-body text-[14px] text-white/50 mb-10">
-          Four fields, then you build the rest of your profile.
+          Three fields, then you build the rest of your profile.
         </p>
 
         <div className="space-y-6">
@@ -134,35 +133,6 @@ export default function CreatorApplication() {
           <Field label="Phone">
             <input type="tel" value={form.phone} onChange={(e) => update('phone', e.target.value)} className={fieldClass} style={{ borderRadius: 4 }} />
           </Field>
-
-          <div>
-            <span className="block label-mono text-[10px] text-white/40 mb-2.5">Market</span>
-            <div className="flex gap-2">
-              {[
-                { id: 'ELON', label: 'Elon' },
-                { id: 'NYC', label: 'NYC' },
-              ].map((option) => {
-                const active = form.market === option.id;
-                return (
-                  <button
-                    key={option.id}
-                    type="button"
-                    onClick={() => update('market', option.id)}
-                    aria-pressed={active}
-                    className="px-4 py-2 font-body text-[12px] border transition-colors"
-                    style={{
-                      borderRadius: 999,
-                      borderColor: active ? 'hsl(var(--neon-cyan))' : 'rgba(255,255,255,0.15)',
-                      color: active ? 'hsl(var(--neon-cyan))' : 'rgba(255,255,255,0.6)',
-                      background: active ? 'hsl(var(--neon-cyan) / 0.1)' : 'transparent',
-                    }}
-                  >
-                    {option.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
 
           <label className="flex items-start gap-3 border p-4 cursor-pointer" style={{ borderColor: 'rgba(255,255,255,0.12)', borderRadius: 4 }}>
             <Checkbox checked={legalAgreed} onCheckedChange={setLegalAgreed} className="mt-0.5" />

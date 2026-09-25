@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { Menu } from 'lucide-react';
 import MenuOverlay from './MenuOverlay';
-import MarketSwitcher from './MarketSwitcher';
+import StelliWordmark from './StelliWordmark';
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
@@ -34,12 +34,11 @@ export default function Navbar() {
         }}
       >
         <div className="max-w-[1500px] mx-auto px-5 md:px-10 h-16 flex items-center justify-between">
-          <Link to="/" className="font-heading text-[22px] font-semibold text-white leading-none">
-            Stelli
+          <Link to="/" aria-label="Stelli — home" className="shrink-0">
+            <StelliWordmark />
           </Link>
 
           <div className="flex items-center gap-3">
-            <MarketSwitcher className="hidden sm:inline-flex" />
             <button
               onClick={() => setOpen(true)}
               aria-label="Open menu"

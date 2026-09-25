@@ -17,11 +17,10 @@
     "market": {
       "type": "string",
       "enum": [
-        "NYC",
         "ELON"
       ],
       "default": "ELON",
-      "description": "Market this creator operates in"
+      "description": "Market this creator operates in. Stelli runs in Elon only."
     },
     "bio": {
       "type": "string",
@@ -118,7 +117,7 @@
       "items": {
         "type": "string"
       },
-      "description": "Campus spots (Elon) or neighborhoods (NYC) where they shoot"
+      "description": "Campus spots where they shoot"
     },
     "specialties": {
       "type": "array",
@@ -154,7 +153,7 @@
       "items": {
         "type": "string"
       },
-      "description": "Up to three style tags from the fixed market list"
+      "description": "Up to three style tags from the fixed list"
     },
     "avg_rating": {
       "type": "number",

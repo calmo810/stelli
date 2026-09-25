@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800;9..144,900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Caveat:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..800;1,14..32,300..800&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -15,6 +15,7 @@
     --neon-cyan: 185 94% 57%;
     --neon-magenta: 315 94% 57%;
     --muted-tone: 225 18% 61%;
+    --stelli-blue: 225 100% 40%;
 
     /* shadcn-compatible tokens (dark by default) */
     --background: 225 50% 8%;
@@ -36,7 +37,7 @@
     --border: 225 30% 22%;
     --input: 225 30% 22%;
     --ring: 75 94% 57%;
-    --radius: 0.25rem;
+    --radius: 0.75rem;
 
     --chart-1: 75 94% 57%;
     --chart-2: 185 94% 57%;
@@ -44,11 +45,16 @@
     --chart-4: 225 18% 61%;
     --chart-5: 224 42% 13%;
 
-    --font-heading: 'Fraunces', Georgia, serif;
+    /* One clean sans carries every page. The old serif/mono/hand roles all
+       resolve to it, so no screen keeps a second typeface. */
+    --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-heading: var(--font-sans);
+    /* The home page keeps its original serif voice; everything else is sans. */
     --font-display: 'Fraunces', Georgia, serif;
-    --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
-    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-    --font-hand: 'Caveat', cursive;
+    --font-body: var(--font-sans);
+    --font-mono: var(--font-sans);
+    --font-hand: var(--font-sans);
+    --font-script: var(--font-sans);
 
     /* legacy aliases kept so older screens keep rendering */
     --gold: 75 94% 57%;
@@ -140,6 +146,7 @@
     letter-spacing: 0.18em;
   }
 
+
   .neon-underline {
     position: relative;
   }
@@ -156,6 +163,15 @@
   .neon-underline:hover::after {
     width: 100%;
   }
+
+  /* Liquid glass: the dashboards' one surface. */
+  .glass {
+    background: rgba(255, 255, 255, 0.08);
+    -webkit-backdrop-filter: blur(28px) saturate(1.6);
+    backdrop-filter: blur(28px) saturate(1.6);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 20px 50px -24px rgba(0, 0, 0, 0.6);
+  }
 }
 
 @keyframes marquee {
@@ -165,6 +181,42 @@
 
 .animate-marquee {
   animation: marquee 30s linear infinite;
+}
+
+@keyframes stelliStarDrift {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(16px, -26px, 0); }
+}
+
+@keyframes stelliStarTwinkle {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* A bright band sweeping across a word, for the two doors. */
+@keyframes stelliShimmer {
+  from { background-position: 105% center, 0 0; }
+  to { background-position: -5% center, 0 0; }
+}
+
+.stelli-shimmer {
+  background-image: linear-gradient(90deg, transparent calc(50% - var(--shimmer-spread, 30px)), var(--shimmer-hi), transparent calc(50% + var(--shimmer-spread, 30px))), linear-gradient(rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.72));
+  background-size: 250% 100%, auto;
+  background-repeat: no-repeat, padding-box;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: stelliShimmer 2.6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stelli-shimmer {
+    background: none;
+    color: #fff;
+    -webkit-text-fill-color: #fff;
+    animation: none;
+  }
 }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }

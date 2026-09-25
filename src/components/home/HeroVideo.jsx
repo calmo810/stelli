@@ -1,142 +1,173 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { useMarket } from '@/lib/market';
 
-// Paste the uploaded hero video URL (stelli-hero.mp4) between the quotes.
-const HERO_VIDEO_URL = '';
-// Held final frame + fallback still (bright daylight, Manhattan).
-const NYC_HERO_POSTER = 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?auto=format&fit=crop&w=2000&q=80';
-const ELON_HERO_POSTER = 'https://commons.wikimedia.org/wiki/Special:FilePath/Alamance_Building,_Elon_University.jpg';
+// Full-bleed hero still: Elon University.
+const POSTER = 'https://commons.wikimedia.org/wiki/Special:FilePath/Alamance_Building,_Elon_University.jpg';
 
-const rise = {
-  hidden: { opacity: 0, y: 16 },
-  show: (i) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.45, ease: 'easeOut', delay: i * 0.08 },
-  }),
+// Every phrase reads on from "Need a photographer for".
+const PHRASES = [
+  "your club's event?",
+  'senior pics by the fountain?',
+  'LinkedIn photos?',
+  'headshots?',
+  'your SGA campaign?',
+  'big/little reveal?',
+  'your a cappella concert?',
+  'date party?',
+  "your band's gig?",
+  'graduation weekend?',
+  'your small business?',
+  'your dance recital?',
+];
+
+const TYPE_MS = 55;
+const HOLD_MS = 1800;
+const DELETE_MS = 25;
+const GAP_MS = 250;
+const START_MS = 600;
+
+const EMPTY_TYPER = { index: 0, text: '', deleting: false, started: false };
+
+const HIGHLIGHT = {
+  display: 'inline',
+  background: 'hsl(var(--neon-lime))',
+  color: 'hsl(var(--ink))',
+  padding: '.02em .22em .06em',
+  borderRadius: 6,
+  WebkitBoxDecorationBreak: 'clone',
+  boxDecorationBreak: 'clone',
 };
 
+const TILT = {
+  gridArea: '1 / 1',
+  display: 'inline-block',
+  transform: 'rotate(-1.5deg)',
+  marginTop: '.18em',
+};
+
+// The highlighter settles at a different angle for each phrase, so it never
+// sits at the same slant twice in a row.
+const TILTS = [-1.6, 1.2, -0.9, 1.7, -1.3, 0.8];
+
+const CARET = {
+  display: 'inline-block',
+  width: 2,
+  height: '.8em',
+  marginLeft: 2,
+  verticalAlign: '-.05em',
+  background: 'hsl(var(--ink))',
+  animation: 'stelliCaretBlink 1s steps(1) infinite',
+};
+
+const BUTTON = {
+  borderRadius: 980,
+  padding: '15px 30px',
+};
+
+function usePrefersReducedMotion() {
+  const [reduced, setReduced] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+  useEffect(() => {
+    const query = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const onChange = (event) => setReduced(event.matches);
+    query.addEventListener('change', onChange);
+    return () => query.removeEventListener('change', onChange);
+  }, []);
+  return reduced;
+}
+
 export default function HeroVideo() {
-  const { activeMarket } = useMarket();
-  const poster = activeMarket.id === 'ELON' ? ELON_HERO_POSTER : NYC_HERO_POSTER;
-  const [revealed, setRevealed] = useState(false);
-  const [showVideo, setShowVideo] = useState(false);
+  const reduced = usePrefersReducedMotion();
+  const [typer, setTyper] = useState(EMPTY_TYPER);
 
   useEffect(() => {
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const small = window.innerWidth < 640;
+    if (reduced) return undefined;
+    const target = PHRASES[typer.index];
+    let delay;
+    let next;
 
-    if (!HERO_VIDEO_URL || reduced || small || activeMarket.id === 'ELON') {
-      setShowVideo(false);
-      setRevealed(true);
-      return;
+    if (!typer.deleting) {
+      if (typer.text.length < target.length) {
+        delay = typer.started ? TYPE_MS : START_MS;
+        next = { ...typer, text: target.slice(0, typer.text.length + 1), started: true };
+      } else {
+        delay = HOLD_MS;
+        next = { ...typer, deleting: true };
+      }
+    } else if (typer.text.length > 0) {
+      delay = DELETE_MS;
+      next = { ...typer, text: typer.text.slice(0, -1) };
+    } else {
+      delay = GAP_MS;
+      next = { ...typer, deleting: false, index: (typer.index + 1) % PHRASES.length };
     }
 
-    setShowVideo(true);
-    const safety = setTimeout(() => setRevealed(true), 14000);
-    return () => clearTimeout(safety);
-  }, [activeMarket.id]);
+    const timer = setTimeout(() => setTyper(next), delay);
+    return () => clearTimeout(timer);
+  }, [typer, reduced]);
+
+  const shownText = reduced ? PHRASES[0] : typer.text;
+  const tilt = TILTS[typer.index % TILTS.length];
+  const longest = PHRASES.reduce((a, phrase) => (phrase.length > a.length ? phrase : a), '');
 
   return (
-    <section className="relative w-full overflow-hidden bg-ink" style={{ height: '100svh', minHeight: 580 }}>
-      <img src={poster} alt={activeMarket.id === 'ELON' ? 'Elon University campus' : ''} className="absolute inset-0 w-full h-full object-cover" />
+    <section className="relative w-full overflow-hidden bg-ink" style={{ height: '100svh', minHeight: 600 }}>
+      <style>{`@keyframes stelliCaretBlink { 50% { opacity: 0 } }`}</style>
 
-      {showVideo && (
-        <video
-          className="absolute inset-0 w-full h-full object-cover"
-          src={HERO_VIDEO_URL}
-          poster={poster}
-          autoPlay
-          muted
-          playsInline
-          preload="auto"
-          disablePictureInPicture
-          onEnded={() => setRevealed(true)}
-          onError={() => setRevealed(true)}
-        />
-      )}
+      <img
+        src={POSTER}
+        alt="Elon University campus"
+        className="absolute inset-0 w-full h-full object-cover"
+      />
 
-      {/* edge vignette */}
+      {/* ink scrim, bottom up */}
       <div
         className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(125% 95% at 50% 45%, transparent 55%, rgba(10,15,30,0.6) 100%)' }}
+        style={{
+          background:
+            'linear-gradient(to top, hsl(var(--ink) / 0.92) 0%, hsl(var(--ink) / 0.55) 50%, hsl(var(--ink) / 0.35) 100%)',
+        }}
       />
 
-      {/* scrim */}
-      <motion.div
-        className="absolute inset-0"
-        initial={false}
-        animate={{ opacity: revealed ? 1 : 0 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
-        style={{ background: 'hsl(var(--ink) / 0.55)' }}
-      />
-      <motion.div
-        className="absolute inset-0"
-        initial={false}
-        animate={{ opacity: revealed ? 1 : 0 }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
-        style={{ background: 'linear-gradient(to top, hsl(var(--ink) / 0.92) 0%, transparent 60%)' }}
-      />
-
-      <div className="absolute inset-0 flex items-end">
-        <div className="max-w-[1500px] mx-auto w-full px-5 md:px-10 pb-14 md:pb-20">
-          <motion.p
-            variants={rise}
-            initial="hidden"
-            animate={revealed ? 'show' : 'hidden'}
-            custom={0}
-            className="label-mono text-[10px] mb-5"
-            style={{ color: 'hsl(var(--neon-lime))', textShadow: '0 2px 40px rgba(0,0,0,0.6)' }}
+      <div className="absolute inset-0 flex items-end justify-center text-center px-5 md:px-10 pb-16 sm:pb-[88px]">
+        <div className="w-full max-w-[900px]">
+          <h1
+            className="font-display"
+            style={{ fontWeight: 500, lineHeight: 1.08, letterSpacing: '-0.015em', fontSize: 'clamp(28px, 4.8vw, 68px)' }}
           >
-            {activeMarket.label} — 2026
-          </motion.p>
+            Need a photographer for
+            <span className="sr-only">{` ${PHRASES.join(' ')}`}</span>
 
-          <motion.h1
-            variants={rise}
-            initial="hidden"
-            animate={revealed ? 'show' : 'hidden'}
-            custom={1}
-            className="font-heading font-semibold text-white leading-[0.92] mb-4"
-            style={{ fontSize: 'clamp(46px, 9vw, 132px)', textShadow: '0 2px 40px rgba(0,0,0,0.55)' }}
-          >
-            You're the <span style={{ color: 'hsl(var(--neon-lime))' }}>star</span>.
-          </motion.h1>
+            <span aria-hidden className="grid">
+              <span className="invisible" style={TILT}>
+                <span style={HIGHLIGHT}>{`${longest} `}</span>
+              </span>
+              <span style={{ ...TILT, transform: `rotate(${tilt}deg)`, transition: 'transform 420ms ease-out' }}>
+                <span style={HIGHLIGHT}>
+                  <span style={{ fontStyle: 'italic' }}>{shownText}</span>
+                  {!reduced && <span style={CARET} />}
+                </span>
+              </span>
+            </span>
+          </h1>
 
-          <motion.p
-            variants={rise}
-            initial="hidden"
-            animate={revealed ? 'show' : 'hidden'}
-            custom={2}
-            className="font-heading font-medium text-white/85 mb-9"
-            style={{ fontSize: 'clamp(20px, 3vw, 38px)', textShadow: '0 2px 40px rgba(0,0,0,0.55)' }}
-          >
-            We just bring the camera.
-          </motion.p>
-
-          <motion.div
-            variants={rise}
-            initial="hidden"
-            animate={revealed ? 'show' : 'hidden'}
-            custom={3}
-            className="flex flex-col sm:flex-row gap-3"
-          >
+          <div className="flex flex-wrap justify-center" style={{ marginTop: 40, gap: 12 }}>
             <Link
               to="/creators"
-              className="label-mono text-[11px] font-semibold px-8 py-4 text-center transition-transform duration-300 hover:-translate-y-0.5"
-              style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }}
+              className="label-mono text-[11px] font-semibold w-full sm:w-auto text-center transition-transform duration-300 hover:-translate-y-0.5"
+              style={{ ...BUTTON, background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))' }}
             >
               Book a creator
             </Link>
             <Link
               to="/register?role=creator"
-              className="label-mono text-[11px] font-semibold px-8 py-4 text-center border transition-colors duration-300"
-              style={{ borderColor: 'hsl(var(--neon-cyan))', color: 'hsl(var(--neon-cyan))', borderRadius: 4 }}
+              className="label-mono text-[11px] font-semibold w-full sm:w-auto text-center"
+              style={{ ...BUTTON, border: '1px solid rgba(255,255,255,0.35)', color: '#fff' }}
             >
               Shoot with Stelli
             </Link>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

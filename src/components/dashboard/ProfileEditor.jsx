@@ -1,8 +1,7 @@
 import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { Upload } from 'lucide-react';
-import { LIMITS, THEMES, GALLERY_STYLES, SPECIALTIES, spotsForMarket, spotsLabel, tagsForMarket, displayNameOf } from '@/lib/profilePresets';
-import { useMarket } from '@/lib/market';
+import { LIMITS, THEMES, GALLERY_STYLES, SPECIALTIES, spotsForMarket, spotsLabel } from '@/lib/profilePresets';
 import LimitedTextField from './editor/LimitedTextField';
 import PresetPicker from './editor/PresetPicker';
 import CoverPicker from './editor/CoverPicker';
@@ -36,21 +35,12 @@ function Section({ id, title, blurb, children }) {
  * live on the Edit Profile page — this is the form itself.
  */
 export default function ProfileEditor({ controller }) {
-  const { market } = useMarket();
   const {
     form, update, updateMany, checklist, contactErrors, serverError,
     warnings, coverError, uploadError, uploading,
     uploadPortfolio, uploadProfileImage, uploadCover, removeImage, pinToFront,
     lensman,
   } = controller;
-
-  const market_ = form.market === 'NYC' ? 'NYC' : 'ELON';
-
-  // Switching market swaps the chip list and clears picks made for the other.
-  const switchMarket = (next) => {
-    if (next === market_) return;
-    updateMany({ market: next, neighborhoods: [] });
-  };
 
   return (
     <div className="space-y-6">
@@ -106,40 +96,11 @@ export default function ProfileEditor({ controller }) {
       </Section>
 
       <Section id="work" title="Your Work">
-        <div id="market">
-          <span className="block label-mono text-[10px] text-white/40 mb-2.5">Market</span>
-          <div className="flex gap-2">
-            {[
-              { id: 'ELON', label: 'Elon' },
-              { id: 'NYC', label: 'NYC' },
-            ].map((option) => {
-              const active = market_ === option.id;
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={() => switchMarket(option.id)}
-                  aria-pressed={active}
-                  className="px-4 py-2 font-body text-[12px] border transition-colors"
-                  style={{
-                    borderRadius: 999,
-                    borderColor: active ? 'hsl(var(--neon-cyan))' : 'rgba(255,255,255,0.15)',
-                    color: active ? 'hsl(var(--neon-cyan))' : 'rgba(255,255,255,0.6)',
-                    background: active ? 'hsl(var(--neon-cyan) / 0.1)' : 'transparent',
-                  }}
-                >
-                  {option.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
         <ChipPicker
           id="neighborhoods"
-          label={`Where you shoot · ${spotsLabel(market_)}`}
-          hint={market_ === 'NYC' ? 'Tap the neighborhoods you shoot in.' : 'Tap the campus spots you like shooting at.'}
-          options={spotsForMarket(market_)}
+          label={`Where you shoot · ${spotsLabel()}`}
+          hint="Tap the campus spots you like shooting at."
+          options={spotsForMarket()}
           values={form.neighborhoods}
           onChange={(values) => update('neighborhoods', values)}
         />
@@ -186,7 +147,7 @@ export default function ProfileEditor({ controller }) {
           <p className="font-body text-[11px]" style={{ color: 'hsl(var(--neon-magenta))' }}>{uploadError}</p>
         )}
 
-        <TagPicker market={market} tags={form.style_tags} onChange={(tags) => update('style_tags', tags)} />
+        <TagPicker tags={form.style_tags} onChange={(tags) => update('style_tags', tags)} />
       </Section>
 
       <Section id="how" title="How You Shoot">

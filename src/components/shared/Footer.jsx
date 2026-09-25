@@ -1,86 +1,97 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Instagram } from 'lucide-react';
+import StelliWordmark from './StelliWordmark';
 
-const COLUMNS = [
-  {
-    label: 'Stelli',
-    links: [
-      { to: '/creators', text: 'Browse creators' },
-      { to: '/how-it-works', text: 'How it works' },
-      { to: '/faq', text: 'FAQ' },
-    ],
-  },
-  {
-    label: 'Account',
-    links: [
-      { to: '/register?role=client', text: 'Sign up as a client' },
-      { to: '/register?role=creator', text: 'Sign up as a creator' },
-      { to: '/portal', text: 'Your portal' },
-    ],
-  },
-  {
-    label: 'Legal',
-    links: [
-      { to: '/terms', text: 'Terms & Conditions' },
-      { to: '/privacy', text: 'Privacy Policy' },
-    ],
-  },
+const LINKS = [
+  { to: '/creators', text: 'Browse creators' },
+  { to: '/how-it-works', text: 'How it works' },
+  { to: '/faq', text: 'FAQ' },
+  { to: '/register?role=client', text: 'Sign up' },
+  { to: '/register?role=creator', text: 'Shoot with Stelli' },
+  { to: '/portal', text: 'Your portal' },
+  { to: '/terms', text: 'Terms' },
+  { to: '/privacy', text: 'Privacy' },
 ];
 
+const PANEL = {
+  borderRadius: 28,
+  background: 'rgba(255,255,255,0.055)',
+  border: '1px solid rgba(255,255,255,0.12)',
+  backdropFilter: 'blur(24px) saturate(170%)',
+  WebkitBackdropFilter: 'blur(24px) saturate(170%)',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18), 0 30px 70px -34px rgba(0,0,0,0.95)',
+};
+
+const LINK = 'font-body text-[13px] text-white/60 hover:text-white transition-colors whitespace-nowrap';
+
+/** The footer: one floating sheet of liquid glass, and very little else. */
 export default function Footer() {
   return (
-    <footer className="border-t border-white/10 bg-ink">
-      <div className="max-w-[1500px] mx-auto px-5 md:px-10 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-14">
-          <div>
-            <p className="font-heading text-3xl font-semibold text-white mb-3">Stelli</p>
-            <p className="font-body text-[12px] leading-relaxed text-white/40 max-w-[220px]">
-              You're the star — we just bring the camera.
-            </p>
+    <footer className="relative bg-ink px-4 md:px-10 pb-6 md:pb-8 pt-2 overflow-hidden">
+      {/* one soft lime light behind the glass, and nothing else */}
+      <div aria-hidden className="absolute inset-0 pointer-events-none">
+        <div
+          className="absolute rounded-full"
+          style={{
+            width: 560,
+            height: 320,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            bottom: '-60%',
+            background: 'hsl(var(--neon-lime) / 0.22)',
+            filter: 'blur(100px)',
+          }}
+        />
+      </div>
+
+      <div className="relative max-w-[1500px] mx-auto" style={PANEL}>
+        <div
+          aria-hidden
+          className="absolute left-6 right-6 top-0 h-px"
+          style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent)' }}
+        />
+
+        <div className="px-6 md:px-10 py-9 md:py-11">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
+            <div>
+              <StelliWordmark />
+              <p className="mt-4 font-body text-[13px] leading-relaxed text-white/50 max-w-[230px]">
+                You're the star — we just bring the camera.
+              </p>
+            </div>
+
+            <nav className="flex flex-wrap gap-x-6 gap-y-3 md:justify-end md:max-w-[560px]">
+              {LINKS.map((link) => (
+                <Link key={link.text} to={link.to} className={LINK}>
+                  {link.text}
+                </Link>
+              ))}
+            </nav>
           </div>
 
-          {COLUMNS.map((col) => (
-            <div key={col.label}>
-              <p className="label-mono text-[9px] text-white/30 mb-5">{col.label}</p>
-              <div className="space-y-3">
-                {col.links.map((l) => (
-                  <Link
-                    key={l.text}
-                    to={l.to}
-                    className="block font-body text-[12px] text-white/45 hover:text-neon-lime transition-colors"
-                  >
-                    {l.text}
-                  </Link>
-                ))}
-                {col.label === 'Stelli' && (
-                  <a
-                    href="mailto:hello@getstelli.com"
-                    className="block font-body text-[12px] text-white/45 hover:text-neon-lime transition-colors"
-                  >
-                    hello@getstelli.com
-                  </a>
-                )}
-                {col.label === 'Legal' && (
-                  <a
-                    href="https://instagram.com/getstelli"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 font-body text-[12px] text-white/45 hover:text-neon-lime transition-colors"
-                  >
-                    <Instagram className="w-3.5 h-3.5" /> Instagram
-                  </a>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+          <div
+            className="mt-9 pt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+            style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}
+          >
+            <p className="label-mono text-[9px] text-white/30">© {new Date().getFullYear()} Stelli · Elon, NC</p>
 
-        <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <p className="label-mono text-[9px] text-white/25">
-            © {new Date().getFullYear()} Stelli · NYC · Elon, NC
-          </p>
-          <p className="font-hand text-[18px] text-neon-lime/70">一期一会 — one time, one meeting</p>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+              <a href="mailto:hello@getstelli.com" className={LINK}>
+                hello@getstelli.com
+              </a>
+              <a
+                href="https://instagram.com/getstelli"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Stelli on Instagram"
+                className="text-white/55 hover:text-neon-lime transition-colors"
+              >
+                <Instagram className="w-4 h-4" />
+              </a>
+              <p className="text-[12px] text-white/35">one time, one meeting</p>
+            </div>
+          </div>
         </div>
       </div>
     </footer>

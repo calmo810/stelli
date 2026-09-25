@@ -1,118 +1,93 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Shield, Users, Calendar, Star, CreditCard, MessageCircle, ArrowRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { ArrowRight, Shield, Users, Calendar, MessageCircle, CreditCard } from 'lucide-react';
+import PageShell from '@/components/shared/PageShell';
+import SectionHeader from '@/components/shared/SectionHeader';
+import Surface from '@/components/shared/Surface';
 
-const steps = [
-  { icon: Users, title: 'Find a creator', desc: "Every lensman on Stelli is handpicked and reviewed. Browse portfolios, check reviews, and find someone whose style matches your vision." },
-  { icon: Calendar, title: 'Send a date', desc: 'Tell them when and where. One short form — no packages to pick and nothing to pay yet.' },
-  { icon: MessageCircle, title: 'Work out the details in messages', desc: 'Chat directly with your creator before the shoot. Share shot lists, venue details, and any creative ideas.' },
-  { icon: CreditCard, title: 'Accept the quote and pay', desc: 'Your creator sends a private quote for the actual work. Accept it to lock the date and pay securely — payment is held until your photos are delivered.' },
+const STEPS = [
+  {
+    icon: Users,
+    title: 'Find your person',
+    desc: 'Every creator on Stelli is reviewed before they go public. Browse portfolios and pick a style that matches what you are making.',
+  },
+  {
+    icon: Calendar,
+    title: 'Send a date',
+    desc: 'One short form: when, where, and what the shoot is. Nothing to pay yet, no packages to choose.',
+  },
+  {
+    icon: MessageCircle,
+    title: 'Talk it through',
+    desc: 'Your creator replies in the booking thread with a private quote and any questions. Shot lists, venue details, ideas — all in one place.',
+  },
+  {
+    icon: CreditCard,
+    title: 'Pay when you accept',
+    desc: 'Accept the quote to lock the date. Your payment is held, and only released to the creator once your photos are delivered.',
+  },
 ];
 
-const faqs = [
-  { q: 'How does payment work?', a: "Send a request, get a private quote, and pay only when you accept it. Your payment is held in escrow, and we only release it to the creator after you've received your files." },
-  { q: 'What if I need to cancel?', a: "Cancellations made more than 48 hours before the shoot get a full refund. Within 48 hours, a 50% fee applies. We know plans change — we'll always try to work with you." },
-  { q: 'How are creators vetted?', a: "Every lensman goes through a portfolio review, reference check, and test shoot before being approved. We keep ~10 creators per neighborhood to maintain quality." },
-  { q: 'How long until I get my photos?', a: "Standard delivery is 14 days after your shoot. Need them sooner? Add rush delivery for 5-day turnaround." },
-  { q: 'Can I request specific shots?', a: "Absolutely. Once your booking is confirmed, you can share a shot list, mood board, or reference images directly with your creator via our messaging system." },
+const PROMISES = [
+  { title: 'Held payments', desc: 'Your money sits with Stelli until delivery, never with a stranger.' },
+  { title: 'Vetted creators', desc: 'Portfolio review and reference checks before anyone is listed.' },
+  { title: 'A deadline you can see', desc: 'Delivery dates live on the booking, and our team steps in if one slips.' },
 ];
 
 export default function HowItWorks() {
   return (
-    <div className="min-h-screen">
-      {/* Hero */}
-      <section className="bg-cream star-bg py-20 px-6 text-center">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-3xl mx-auto">
-          <Star className="w-6 h-6 text-gold fill-gold mx-auto mb-4" />
-          <h1 className="font-display text-4xl sm:text-5xl font-semibold tracking-tight mb-4">How Stelli Works</h1>
-          <p className="text-lg text-muted-foreground">From booking to delivery, we make it simple and safe.</p>
-        </motion.div>
-      </section>
+    <PageShell width="narrow">
+      <SectionHeader
+        eyebrow="How Stelli works"
+        title="Four steps, no mystery."
+        intro="From the first message to the final gallery, every step happens in the same thread so nobody is left guessing what happens next."
+      />
 
-      {/* Steps */}
-      <section className="py-24 px-6">
-        <div className="max-w-3xl mx-auto space-y-16">
-          {steps.map((step, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="flex gap-6"
-            >
-              <div className="flex flex-col items-center">
-                <div className="w-12 h-12 rounded-2xl bg-cream-dark flex items-center justify-center flex-shrink-0">
-                  <step.icon className="w-5 h-5 text-foreground" strokeWidth={1.5} />
-                </div>
-                {i < steps.length - 1 && <div className="flex-1 w-px bg-border mt-4" />}
-              </div>
-              <div className="pb-8">
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-gold">Step {i + 1}</span>
-                <h3 className="font-display text-xl font-semibold mt-1 mb-2">{step.title}</h3>
-                <p className="text-muted-foreground leading-relaxed">{step.desc}</p>
-              </div>
-            </motion.div>
+      <ol className="mt-16 md:mt-20 border-t border-white/10">
+        {STEPS.map((step, i) => (
+          <li
+            key={step.title}
+            className="grid grid-cols-1 md:grid-cols-[64px_1fr_1fr] gap-5 md:gap-10 py-9 md:py-11 border-b border-white/10 items-start"
+          >
+            <span className="label-mono text-[11px] text-neon-lime pt-1">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <h2 className="text-[22px] md:text-[28px] font-semibold leading-tight text-white">{step.title}</h2>
+            <p className="text-[14px] md:text-[15px] leading-relaxed text-white/45 max-w-md">{step.desc}</p>
+          </li>
+        ))}
+      </ol>
+
+      <section className="mt-20 md:mt-24">
+        <div className="flex items-center gap-3 mb-8">
+          <Shield className="w-4 h-4 text-neon-lime" strokeWidth={1.7} />
+          <h2 className="label-mono text-[10px] text-white/45">What Stelli guarantees</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+          {PROMISES.map((item) => (
+            <Surface key={item.title} className="p-6 md:p-7">
+              <h3 className="text-[16px] font-semibold text-white">{item.title}</h3>
+              <p className="mt-2.5 text-[14px] leading-relaxed text-white/45">{item.desc}</p>
+            </Surface>
           ))}
         </div>
       </section>
 
-      {/* Trust */}
-      <section className="py-20 px-6 bg-cream">
-        <div className="max-w-4xl mx-auto text-center">
-          <Shield className="w-8 h-8 text-foreground mx-auto mb-4" strokeWidth={1.5} />
-          <h2 className="font-display text-3xl font-semibold mb-4">Built on trust</h2>
-          <p className="text-muted-foreground max-w-2xl mx-auto mb-10">
-            Stelli was born because we had a terrible experience hiring a photographer and getting corrupted files. 
-            We built the safety nets we wished we'd had.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-left">
-            {[
-              { title: 'Escrow payments', desc: 'Your money is held safely until you confirm delivery. No risk.' },
-              { title: 'Vetted creators', desc: 'Every lensman is handpicked, portfolio-reviewed, and reference-checked.' },
-              { title: 'Guaranteed delivery', desc: 'Clear timelines. If something goes wrong, our team steps in.' },
-            ].map((item, i) => (
-              <div key={i} className="bg-card border border-border rounded-2xl p-6">
-                <h3 className="font-semibold mb-2 text-sm">{item.title}</h3>
-                <p className="text-sm text-muted-foreground">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+      <section className="mt-20 md:mt-24 flex flex-col sm:flex-row gap-3">
+        <Link
+          to="/creators"
+          className="inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 label-mono text-[11px] font-semibold transition-transform duration-300 hover:-translate-y-0.5"
+          style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))' }}
+        >
+          Browse creators <ArrowRight className="w-4 h-4" />
+        </Link>
+        <Link
+          to="/faq"
+          className="inline-flex items-center justify-center rounded-full border border-white/15 px-8 py-4 label-mono text-[11px] text-white/60 hover:text-white transition-colors"
+        >
+          Read the FAQ
+        </Link>
       </section>
-
-      {/* FAQ */}
-      <section className="py-24 px-6">
-        <div className="max-w-3xl mx-auto">
-          <h2 className="font-display text-3xl font-semibold text-center mb-12">Frequently asked questions</h2>
-          <div className="space-y-6">
-            {faqs.map((faq, i) => (
-              <motion.div key={i} initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="border-b border-border pb-6">
-                <h3 className="font-semibold mb-2">{faq.q}</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{faq.a}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="py-16 px-6 bg-foreground text-background text-center">
-        <h2 className="font-display text-3xl font-semibold mb-6">Ready to get started?</h2>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link to="/creators">
-            <Button size="lg" className="rounded-full bg-background text-foreground hover:bg-background/90">
-              Browse creators <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </Link>
-          <Link to="/apply">
-            <Button variant="outline" size="lg" className="rounded-full border-background/30 text-background hover:bg-background/10">
-              Join as Creator
-            </Button>
-          </Link>
-        </div>
-      </section>
-    </div>
+    </PageShell>
   );
 }

@@ -3,9 +3,8 @@
  * Mirrors base44/shared/profileRules.ts — the server remains the authority.
  */
 
-export const NYC_TAGS = ['flash', 'film', 'nightlife', 'editorial', 'portraits', 'events', 'moody', 'bright'];
-export const ELON_TAGS = ['grad', 'portraits', 'outdoor', 'campus', 'couples', 'film', 'bright', 'events'];
-export const ALL_STYLE_TAGS = Array.from(new Set([...NYC_TAGS, ...ELON_TAGS]));
+export const STYLE_TAGS = ['grad', 'portraits', 'outdoor', 'campus', 'couples', 'film', 'bright', 'events', 'flash', 'nightlife', 'editorial', 'moody'];
+export const ALL_STYLE_TAGS = STYLE_TAGS;
 
 /** The campus spots Elon creators shoot at, in the order they are shown. */
 export const ELON_SPOTS = [
@@ -25,30 +24,13 @@ export const ELON_SPOTS = [
   'Off campus',
 ];
 
-export const NYC_NEIGHBORHOODS = [
-  'Lower East Side',
-  'SoHo',
-  'Williamsburg',
-  'Greenpoint',
-  'Bushwick',
-  'Harlem',
-  'Chelsea',
-  'West Village',
-  'Brooklyn Heights',
-  'Astoria',
-  'Long Island City',
-  'Fort Greene',
-];
-
-/** The chips a creator picks from, per market. Elon leads. */
-export const MARKET_CHIPS = { ELON: ELON_SPOTS, NYC: NYC_NEIGHBORHOODS };
-
-export function spotsForMarket(market) {
-  return MARKET_CHIPS[market === 'NYC' ? 'NYC' : 'ELON'];
+/** The chips a creator picks from. */
+export function spotsForMarket() {
+  return ELON_SPOTS;
 }
 
-export function spotsLabel(market) {
-  return market === 'NYC' ? 'Neighborhoods' : 'Shoots at';
+export function spotsLabel() {
+  return 'Shoots at';
 }
 
 /** The shoot types a creator can claim. */
@@ -67,14 +49,8 @@ export const SPECIALTIES = [
   'Headshots',
 ];
 
-export function tagsForMarket(market, includeOther) {
-  const own = market === 'ELON' ? ELON_TAGS : NYC_TAGS;
-  const other = market === 'ELON' ? NYC_TAGS : ELON_TAGS;
-  return includeOther ? Array.from(new Set([...own, ...other])) : own;
-}
-
-export function otherMarketLabel(market) {
-  return market === 'ELON' ? 'NYC' : 'Elon';
+export function tagsForMarket() {
+  return STYLE_TAGS;
 }
 
 export const PROMPTS = [
