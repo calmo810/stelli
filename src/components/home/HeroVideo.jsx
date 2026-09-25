@@ -15,17 +15,17 @@ const NEON = { lime: '#C4F82A', magenta: '#F82AC4', cyan: '#2AE8F8' };
 // Every phrase starts lowercase so it reads on from "Need a photographer for…".
 const PHRASES = {
   ELON: [
-    { text: 'senior pics at the fountain?', color: 'lime' },
-    { text: 'big/little reveal?', color: 'magenta' },
-    { text: 'your a cappella concert?', color: 'cyan' },
-    { text: 'a photo dump actually worth posting?', color: 'lime' },
-    { text: 'musical theatre headshots?', color: 'magenta' },
-    { text: "LinkedIn photos that don't look like LinkedIn photos?", color: 'cyan' },
-    { text: 'date party?', color: 'lime' },
-    { text: "your band's gig?", color: 'magenta' },
-    { text: 'your graduation weekend?', color: 'cyan' },
-    { text: "your club's next big event?", color: 'lime' },
-    { text: 'a campaign for your small business?', color: 'magenta' },
+    { text: "your club's event?", color: 'lime' },
+    { text: 'senior pics by the fountain?', color: 'magenta' },
+    { text: 'LinkedIn photos?', color: 'cyan' },
+    { text: 'headshots?', color: 'lime' },
+    { text: 'your SGA campaign?', color: 'magenta' },
+    { text: 'big/little reveal?', color: 'cyan' },
+    { text: 'your a cappella concert?', color: 'lime' },
+    { text: 'date party?', color: 'magenta' },
+    { text: "your band's gig?", color: 'cyan' },
+    { text: 'graduation weekend?', color: 'lime' },
+    { text: 'your small business?', color: 'magenta' },
     { text: 'your dance recital?', color: 'cyan' },
   ],
   NYC: [
@@ -127,7 +127,6 @@ export default function HeroVideo() {
   const [showVideo, setShowVideo] = useState(false);
 
   const phrases = PHRASES[activeMarket.id] || PHRASES.ELON;
-  const longest = phrases.reduce((a, p) => (p.text.length > a.length ? p.text : a), '');
 
   const [phraseIndex, setPhraseIndex] = useState(0);
   const [text, setText] = useState('');
@@ -298,7 +297,7 @@ export default function HeroVideo() {
               >
                 <span
                   className="block font-medium"
-                  style={{ fontSize: 'clamp(30px, 4.6vw, 64px)', lineHeight: 1, color: 'rgba(255,255,255,0.92)', marginBottom: 10 }}
+                  style={{ fontSize: 'clamp(28px, 4.8vw, 68px)', lineHeight: 1, color: 'rgba(255,255,255,0.92)', marginBottom: 10 }}
                 >
                   Need a photographer for…
                 </span>
@@ -306,18 +305,16 @@ export default function HeroVideo() {
                 <span
                   className="block"
                   style={{
-                    fontSize: 'clamp(38px, 6.4vw, 104px)',
+                    fontSize: 'clamp(28px, 4.8vw, 68px)',
                     fontWeight: 400,
                     fontStyle: 'italic',
                     letterSpacing: '-0.02em',
                     lineHeight: 1.02,
-                    marginBottom: 36,
+                    marginBottom: 40,
                   }}
                 >
                   <span className="grid" style={{ gridTemplateColumns: '1fr' }}>
-                    <span aria-hidden className="invisible" style={{ gridArea: '1 / 1', overflowWrap: 'break-word' }}>
-                      {longest}
-                    </span>
+                    <span aria-hidden style={{ gridArea: '1 / 1', display: 'block', height: '1.02em' }} />
                     <span aria-hidden style={{ gridArea: '1 / 1', overflowWrap: 'break-word' }}>
                       <span style={{ color, textShadow: `0 0 34px ${color}66` }}>{shownText}</span>
                       <span
