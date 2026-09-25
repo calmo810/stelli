@@ -146,6 +146,13 @@
     letter-spacing: 0.18em;
   }
 
+  /* Fraunces switches to a chunky "soft" cut at small optical sizes. Pin it to
+     its display cut so headings stay refined at every size. */
+  .font-display {
+    font-optical-sizing: none;
+    font-variation-settings: 'opsz' 144;
+  }
+
   .neon-underline {
     position: relative;
   }

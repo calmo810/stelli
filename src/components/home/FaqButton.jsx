@@ -8,7 +8,7 @@ export default function FaqButton() {
     <section className="border-t border-white/10 py-24 md:py-32">
       <div className="max-w-[1240px] mx-auto px-5 md:px-10 flex flex-col items-center text-center">
         <h2
-          className="font-display font-semibold leading-[0.98] tracking-[-0.02em] text-white"
+          className="font-display font-normal leading-[0.98] tracking-[-0.02em] text-white"
           style={{ fontSize: 'clamp(34px, 6vw, 72px)' }}
         >
           Still wondering?
