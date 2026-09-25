@@ -1,69 +1,55 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
+import Surface from '@/components/shared/Surface';
 
 const TILES = [
   {
     to: '/creators',
-    tone: 'neon-lime',
     word: 'I need photos.',
-    line: 'Pick a creator. Get a private quote.',
+    line: 'Pick a creator. Send a date. Get a private quote.',
     cta: 'Find a creator',
-    delay: '0s',
   },
   {
     to: '/register?role=creator',
-    tone: 'neon-cyan',
     word: 'I take photos.',
-    line: 'Get booked. Get paid on delivery.',
+    line: 'Get booked, get paid on delivery, stop working out of DMs.',
     cta: 'Apply to join',
-    delay: '1.3s',
   },
 ];
 
+/** Two doors, said plainly: one line each, one way through. */
 export default function TwoDoors() {
   return (
-    <section className="max-w-[1040px] mx-auto px-3 md:px-10 py-[88px] md:py-[120px]">
-      <h2
-        className="text-center font-heading font-medium text-white/70 leading-[1.08] tracking-[-0.02em]"
-        style={{ fontSize: 'clamp(22px, 2.6vw, 34px)' }}
-      >
+    <section className="max-w-[1240px] mx-auto px-5 md:px-10 py-[88px] md:py-[120px]">
+      <h2 className="text-center text-white/45" style={{ fontSize: 'clamp(18px, 2vw, 24px)' }}>
         Which one are you?
       </h2>
 
-      <div className="mt-10 md:mt-8 grid grid-cols-2 gap-2 md:gap-3.5">
+      <div className="mt-10 md:mt-14 grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
         {TILES.map((tile) => (
-          <Link
+          <Surface
+            as={Link}
             key={tile.to}
             to={tile.to}
-            className="group relative isolate overflow-hidden flex flex-col items-center justify-center text-center min-h-[260px] md:min-h-[360px] px-[10px] py-9 md:px-6 md:py-12 transition-transform duration-500 hover:-translate-y-1"
-            style={{
-              borderRadius: 'clamp(18px, 2vw, 24px)',
-              background: `radial-gradient(120% 85% at 50% 118%, hsl(var(--${tile.tone}) / 0.5), hsl(var(--surface)) 68%)`,
-            }}
+            hover
+            className="group flex flex-col justify-between min-h-[220px] md:min-h-[280px] p-7 md:p-10"
           >
             <p
-              className="stelli-shimmer font-heading font-medium"
-              style={{
-                '--shimmer-hi': `hsl(var(--${tile.tone}))`,
-                animationDelay: tile.delay,
-                fontSize: 'clamp(26px, 4vw, 56px)',
-                letterSpacing: '-0.03em',
-                lineHeight: 1.05,
-                paddingBottom: '.06em',
-              }}
+              className="font-semibold leading-[1.02] tracking-[-0.02em] text-white"
+              style={{ fontSize: 'clamp(26px, 3.4vw, 44px)' }}
             >
               {tile.word}
             </p>
 
-            <p className="mt-2.5 text-[13px] md:text-[17px] leading-snug text-white/85 max-w-[300px]">{tile.line}</p>
-
-            <span
-              className="mt-4 md:mt-5 inline-flex items-center whitespace-nowrap font-medium text-[12px] md:text-[14px] px-3.5 py-2 md:px-[18px] md:py-[9px] transition-transform duration-300 group-hover:scale-[1.04]"
-              style={{ background: `hsl(var(--${tile.tone}))`, color: 'hsl(var(--ink))', borderRadius: 980 }}
-            >
-              {tile.cta}
-            </span>
-          </Link>
+            <div className="mt-8 flex items-end justify-between gap-5">
+              <p className="text-[14px] md:text-[15px] leading-relaxed text-white/45 max-w-[300px]">{tile.line}</p>
+              <span className="shrink-0 inline-flex items-center gap-2 text-[14px] font-medium text-white/70 group-hover:text-neon-lime transition-colors">
+                {tile.cta}
+                <ArrowRight className="w-4 h-4" />
+              </span>
+            </div>
+          </Surface>
         ))}
       </div>
     </section>

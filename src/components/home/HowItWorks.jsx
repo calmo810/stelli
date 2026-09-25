@@ -40,21 +40,6 @@ const RISE = {
 export default function HowItWorks() {
   return (
     <section className="relative w-[calc(100%-28px)] md:w-[min(1380px,calc(100%-48px))] mx-auto py-[80px] md:py-[130px]">
-      <div aria-hidden className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div
-          className="absolute w-[170px] h-[170px] rounded-full border border-neon-lime/10 animate-spin right-[12%] top-[7%]"
-          style={{ animationDuration: '18s' }}
-        >
-          <span className="absolute w-[5px] h-[5px] rounded-full bg-neon-lime top-4 left-[18px] shadow-[0_0_18px_hsl(var(--neon-lime))]" />
-        </div>
-        <div
-          className="absolute w-[90px] h-[90px] rounded-full border border-neon-lime/10 animate-spin left-[7%] top-[54%]"
-          style={{ animationDuration: '12s', animationDirection: 'reverse' }}
-        >
-          <span className="absolute w-[5px] h-[5px] rounded-full bg-neon-lime top-2 left-3 shadow-[0_0_18px_hsl(var(--neon-lime))]" />
-        </div>
-      </div>
-
       <motion.div
         {...RISE}
         className="relative flex items-center justify-center gap-3.5 mb-7 label-mono text-[11px] text-white/45"

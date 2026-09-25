@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800;9..144,900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Caveat:wght@500;600;700&family=Yellowtail&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..800;1,14..32,300..800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -37,7 +37,7 @@
     --border: 225 30% 22%;
     --input: 225 30% 22%;
     --ring: 75 94% 57%;
-    --radius: 0.25rem;
+    --radius: 0.75rem;
 
     --chart-1: 75 94% 57%;
     --chart-2: 185 94% 57%;
@@ -45,12 +45,15 @@
     --chart-4: 225 18% 61%;
     --chart-5: 224 42% 13%;
 
-    --font-heading: 'Fraunces', Georgia, serif;
-    --font-display: 'Fraunces', Georgia, serif;
-    --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
-    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-    --font-hand: 'Caveat', cursive;
-    --font-script: 'Yellowtail', cursive;
+    /* One clean sans carries every page. The old serif/mono/hand roles all
+       resolve to it, so no screen keeps a second typeface. */
+    --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+    --font-heading: var(--font-sans);
+    --font-display: var(--font-sans);
+    --font-body: var(--font-sans);
+    --font-mono: var(--font-sans);
+    --font-hand: var(--font-sans);
+    --font-script: var(--font-sans);
 
     /* legacy aliases kept so older screens keep rendering */
     --gold: 75 94% 57%;

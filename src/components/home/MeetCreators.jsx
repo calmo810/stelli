@@ -8,8 +8,7 @@ import { coverImage, displayNameOf } from '@/lib/profilePresets';
 
 const CARD_WIDTH = 'clamp(260px, 28vw, 420px)';
 const CARD_RADIUS = 24;
-const CARD_BG =
-  'radial-gradient(90% 70% at 50% 100%, hsl(var(--neon-lime) / 0.28), hsl(var(--surface)) 70%), hsl(var(--surface))';
+const CARD_BG = 'hsl(var(--surface))';
 
 const HIGHLIGHT = {
   background: 'hsl(var(--neon-lime))',

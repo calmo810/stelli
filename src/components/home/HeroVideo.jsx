@@ -60,7 +60,7 @@ const CARET = {
 };
 
 const BUTTON = {
-  borderRadius: 4,
+  borderRadius: 980,
   padding: '15px 30px',
 };
 

@@ -29,38 +29,17 @@ const LINK = 'font-body text-[13px] text-white/60 hover:text-white transition-co
 export default function Footer() {
   return (
     <footer className="relative bg-ink px-4 md:px-10 pb-6 md:pb-8 pt-2 overflow-hidden">
-      {/* the light the glass refracts */}
+      {/* one soft lime light behind the glass, and nothing else */}
       <div aria-hidden className="absolute inset-0 pointer-events-none">
-        <div
-          className="absolute rounded-full"
-          style={{
-            width: 460,
-            height: 300,
-            left: '-6%',
-            bottom: '-55%',
-            background: 'hsl(var(--neon-cyan) / 0.3)',
-            filter: 'blur(90px)',
-          }}
-        />
         <div
           className="absolute rounded-full"
           style={{
             width: 560,
             height: 320,
-            right: '-4%',
+            left: '50%',
+            transform: 'translateX(-50%)',
             bottom: '-60%',
-            background: 'hsl(var(--neon-lime) / 0.32)',
-            filter: 'blur(90px)',
-          }}
-        />
-        <div
-          className="absolute rounded-full"
-          style={{
-            width: 380,
-            height: 240,
-            left: '42%',
-            bottom: '-58%',
-            background: 'hsl(var(--neon-magenta) / 0.16)',
+            background: 'hsl(var(--neon-lime) / 0.22)',
             filter: 'blur(100px)',
           }}
         />
@@ -110,7 +89,7 @@ export default function Footer() {
               >
                 <Instagram className="w-4 h-4" />
               </a>
-              <p className="font-hand text-[17px] text-neon-lime/75">一期一会 — one time, one meeting</p>
+              <p className="text-[12px] text-white/35">one time, one meeting</p>
             </div>
           </div>
         </div>

@@ -2,18 +2,24 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
+/** The quiet close of the home page: one question, one link. */
 export default function FaqButton() {
   return (
     <section className="border-t border-white/10 py-24 md:py-32">
-      <div className="max-w-[1500px] mx-auto px-5 md:px-10 flex flex-col items-center text-center">
-        <p className="font-hand text-[26px] mb-4" style={{ color: 'hsl(var(--neon-lime))' }}>still wondering?</p>
-        <h2 className="font-heading font-semibold text-white leading-[0.95] mb-9" style={{ fontSize: 'clamp(38px, 6vw, 88px)' }}>
-          Questions?
+      <div className="max-w-[1240px] mx-auto px-5 md:px-10 flex flex-col items-center text-center">
+        <h2
+          className="font-semibold leading-[0.98] tracking-[-0.02em] text-white"
+          style={{ fontSize: 'clamp(34px, 6vw, 72px)' }}
+        >
+          Still wondering?
         </h2>
+        <p className="mt-5 max-w-md text-[15px] leading-relaxed text-white/45">
+          Pricing, payments, delivery and cancellations — answered in one place.
+        </p>
         <Link
           to="/faq"
-          className="inline-flex items-center gap-3 label-mono text-[11px] font-semibold px-9 py-4 transition-transform duration-300 hover:-translate-y-0.5"
-          style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }}
+          className="mt-9 inline-flex items-center gap-3 rounded-full px-8 py-4 label-mono text-[11px] font-semibold transition-transform duration-300 hover:-translate-y-0.5"
+          style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))' }}
         >
           Read the FAQ <ArrowRight className="w-4 h-4" />
         </Link>
