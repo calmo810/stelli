@@ -179,5 +179,31 @@
   50% { opacity: 1; }
 }
 
+/* A bright band sweeping across a word, for the two doors. */
+@keyframes stelliShimmer {
+  from { background-position: 105% center, 0 0; }
+  to { background-position: -5% center, 0 0; }
+}
+
+.stelli-shimmer {
+  background-image: linear-gradient(90deg, transparent calc(50% - var(--shimmer-spread, 30px)), var(--shimmer-hi), transparent calc(50% + var(--shimmer-spread, 30px))), linear-gradient(rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.72));
+  background-size: 250% 100%, auto;
+  background-repeat: no-repeat, padding-box;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  animation: stelliShimmer 2.6s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stelli-shimmer {
+    background: none;
+    color: #fff;
+    -webkit-text-fill-color: #fff;
+    animation: none;
+  }
+}
+
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

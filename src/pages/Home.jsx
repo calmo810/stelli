@@ -9,8 +9,10 @@ import StarSprinkle from '@/components/home/StarSprinkle';
 export default function Home() {
   return (
     <div className="relative bg-ink">
-      <StarSprinkle />
-      <HeroVideo />
+      <div className="relative">
+        <StarSprinkle />
+        <HeroVideo />
+      </div>
       <TwoDoors />
       <TopRatedRail />
       <HowItWorks />
