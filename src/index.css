@@ -15,6 +15,7 @@
     --neon-cyan: 185 94% 57%;
     --neon-magenta: 315 94% 57%;
     --muted-tone: 225 18% 61%;
+    --stelli-cream: 40 33% 94%;
 
     /* shadcn-compatible tokens (dark by default) */
     --background: 225 50% 8%;
@@ -165,6 +166,16 @@
 
 .animate-marquee {
   animation: marquee 30s linear infinite;
+}
+
+@keyframes stelliStarDrift {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(16px, -26px, 0); }
+}
+
+@keyframes stelliStarTwinkle {
+  0%, 100% { opacity: 0.32; }
+  50% { opacity: 0.85; }
 }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }

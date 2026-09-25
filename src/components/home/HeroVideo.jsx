@@ -59,6 +59,10 @@ const TILT = {
   marginTop: '.18em',
 };
 
+// The highlighter settles at a different angle for each phrase, so it never
+// sits at the same slant twice in a row.
+const TILTS = [-1.6, 1.2, -0.9, 1.7, -1.3, 0.8];
+
 const CARET = {
   display: 'inline-block',
   width: 2,
@@ -129,6 +133,7 @@ export default function HeroVideo() {
   }, [typer, phrases, reduced]);
 
   const shownText = reduced ? phrases[0] : typer.text;
+  const tilt = TILTS[typer.index % TILTS.length];
   const longest = phrases.reduce((a, phrase) => (phrase.length > a.length ? phrase : a), '');
 
   return (
@@ -163,7 +168,7 @@ export default function HeroVideo() {
               <span className="invisible" style={TILT}>
                 <span style={HIGHLIGHT}>{`${longest} `}</span>
               </span>
-              <span style={TILT}>
+              <span style={{ ...TILT, transform: `rotate(${tilt}deg)`, transition: 'transform 420ms ease-out' }}>
                 <span style={HIGHLIGHT}>
                   <span style={{ fontStyle: 'italic' }}>{shownText}</span>
                   {!reduced && <span style={CARET} />}

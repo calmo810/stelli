@@ -4,10 +4,12 @@ import TwoDoors from '@/components/home/TwoDoors';
 import TopRatedRail from '@/components/home/TopRatedRail';
 import HowItWorks from '@/components/home/HowItWorks';
 import FaqButton from '@/components/home/FaqButton';
+import StarSprinkle from '@/components/home/StarSprinkle';
 
 export default function Home() {
   return (
-    <div className="bg-ink">
+    <div className="relative bg-ink">
+      <StarSprinkle />
       <HeroVideo />
       <TwoDoors />
       <TopRatedRail />

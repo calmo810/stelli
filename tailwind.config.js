@@ -53,6 +53,9 @@ module.exports = {
   				cyan: 'hsl(var(--neon-cyan))',
   				magenta: 'hsl(var(--neon-magenta))'
   			},
+  			stelli: {
+  				cream: 'hsl(var(--stelli-cream))'
+  			},
   			chart: {
   				'1': 'hsl(var(--chart-1))',
   				'2': 'hsl(var(--chart-2))',
