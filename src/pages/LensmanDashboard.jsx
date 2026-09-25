@@ -1,20 +1,23 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Star, Calendar, Inbox, Link2, MessageCircle, Pencil } from 'lucide-react';
-import BookingCard from '../components/dashboard/BookingCard';
-import QuoteForm from '../components/dashboard/QuoteForm';
-import DeliveryForm from '../components/dashboard/DeliveryForm';
-import PayoutsCard from '../components/dashboard/PayoutsCard';
-import PayoutNotice from '../components/dashboard/PayoutNotice';
-import PendingBanner from '../components/dashboard/PendingBanner';
-import AgeConfirmGate from '../components/dashboard/AgeConfirmGate';
-import { Skeleton } from '@/components/ui/skeleton';
-import { motion } from 'framer-motion';
+import { Inbox, CalendarCheck, Link2, Sparkles } from 'lucide-react';
+import BookingCard from '@/components/dashboard/BookingCard';
+import QuoteForm from '@/components/dashboard/QuoteForm';
+import DeliveryForm from '@/components/dashboard/DeliveryForm';
+import PayoutsCard from '@/components/dashboard/PayoutsCard';
+import PayoutNotice from '@/components/dashboard/PayoutNotice';
+import PendingBanner from '@/components/dashboard/PendingBanner';
+import AgeConfirmGate from '@/components/dashboard/AgeConfirmGate';
 import MyAgreements from '@/components/dashboard/MyAgreements';
-import { Link } from 'react-router-dom';
-import { displayNameOf } from '@/lib/profilePresets';
+import DashboardShell from '@/components/dashboard/DashboardShell';
+import SegmentedTabs from '@/components/dashboard/SegmentedTabs';
+import NeedsYou from '@/components/dashboard/NeedsYou';
+import EmptyPanel from '@/components/dashboard/EmptyPanel';
+import CopyLinkPill from '@/components/dashboard/CopyLinkPill';
+import GlassRows from '@/components/shared/GlassRows';
+import { Skeleton } from '@/components/ui/skeleton';
+import shortDate from '@/lib/shortDate';
 
 const UPCOMING = ['quoted', 'quote_accepted'];
 const DELIVERIES = ['confirmed', 'in_progress', 'awaiting_delivery'];
@@ -78,159 +81,141 @@ export default function LensmanDashboard() {
     return <AgeConfirmGate onConfirmed={refetchProfile} />;
   }
 
+  const firstName = (user?.full_name || '').split(' ')[0] || 'there';
+
   const requests = bookings.filter((b) => b.status === 'requested');
   const upcoming = bookings.filter((b) => UPCOMING.includes(b.status));
   const deliveries = bookings.filter((b) => DELIVERIES.includes(b.status));
   const completed = bookings.filter((b) => COMPLETED.includes(b.status));
 
-  return (
-    <div className="min-h-screen bg-ink">
-      <div className="border-b border-white/10 py-12 px-5 md:px-10">
-        <div className="max-w-[1180px] mx-auto">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <p className="label-mono text-[9px] text-white/35 mb-4">Creator Home Base</p>
-            <h1 className="font-heading text-white font-semibold leading-[0.95] mb-3" style={{ fontSize: 'clamp(34px, 4.5vw, 60px)' }}>
-              Creator Dashboard
-            </h1>
-            <p className="font-body text-[13px] text-white/50">
-              Answer requests with a private quote, then deliver the gallery link.
-            </p>
-            <Link
-              to="/portal/messages"
-              className="inline-flex items-center gap-2 mt-5 border border-white/15 px-4 py-2 label-mono text-[10px] text-white/70 hover:text-white transition-colors"
-              style={{ borderRadius: 4 }}
-            >
-              <MessageCircle className="w-3.5 h-3.5" /> Messages
-            </Link>
-          </motion.div>
+  const needs = [
+    ...requests.map((b) => ({
+      id: b.id,
+      title: `${b.client_name || 'Someone'} wants ${b.event_type || 'photos'}`,
+      meta: [shortDate(b.event_date), b.location].filter(Boolean).join(' · '),
+      action: 'Quote',
+      to: `/messages/${b.id}`,
+    })),
+    ...deliveries
+      .filter((b) => !b.delivery_link)
+      .map((b) => ({
+        id: `deliver-${b.id}`,
+        title: `Deliver to ${b.client_name || 'your client'}`,
+        meta: `Shot ${shortDate(b.event_date)}`,
+        action: 'Add link',
+        to: `/messages/${b.id}`,
+      })),
+  ];
+
+  const tabs = [
+    { value: 'requests', label: 'Requests', count: requests.length },
+    { value: 'upcoming', label: 'Upcoming', count: upcoming.length },
+    { value: 'deliveries', label: 'Deliveries', count: deliveries.length },
+    { value: 'completed', label: 'Done', count: completed.length },
+  ];
+
+  const panels = {
+    requests: requests.length ? (
+      requests.map((b) => (
+        <div key={b.id} className="space-y-3">
+          <BookingCard booking={b} role="lensman" />
+          <QuoteForm booking={b} onSent={refresh} />
         </div>
-      </div>
+      ))
+    ) : (
+      <EmptyPanel icon={Inbox} title="No requests yet." body="When someone asks you to shoot, it lands here." />
+    ),
+    upcoming: upcoming.length ? (
+      upcoming.map((b) => <BookingCard key={b.id} booking={b} role="lensman" />)
+    ) : (
+      <EmptyPanel icon={CalendarCheck} title="Nothing on the books." body="Shoots you have quoted and booked show up here." />
+    ),
+    deliveries: deliveries.length ? (
+      deliveries.map((b) => (
+        <div key={b.id} className="space-y-3">
+          <BookingCard booking={b} role="lensman" />
+          <DeliveryForm booking={b} onDelivered={refresh} />
+        </div>
+      ))
+    ) : (
+      <EmptyPanel icon={Link2} title="No galleries due." body="Shoots waiting on your delivery link live here." />
+    ),
+    completed: completed.length ? (
+      completed.map((b) => <BookingCard key={b.id} booking={b} role="lensman" />)
+    ) : (
+      <EmptyPanel icon={Sparkles} title="Nothing wrapped yet." body="Finished and paid-out shoots collect here." />
+    ),
+  };
 
-      <div className="max-w-[1180px] mx-auto px-5 md:px-10 py-8">
-        <PayoutNotice state={payoutState} onRefresh={refetchProfile} />
+  return (
+    <DashboardShell>
+      <h1
+        className="font-display font-medium text-white"
+        style={{ fontSize: 40, letterSpacing: '-0.02em', lineHeight: 1.05 }}
+      >
+        Hey, {firstName}.
+      </h1>
+      <p className="mt-1.5 text-[16px] text-white/60">Your requests, shoots and payouts in one place.</p>
 
-        {/* Review banner, then Edit your profile, then the preview link. */}
-        {myProfile?.status === 'pending' && <PendingBanner />}
-        {myProfile?.under_review && (
-          <div className="mb-6 border px-5 py-4" style={{ borderColor: 'hsl(var(--neon-magenta) / 0.5)', borderRadius: 4 }}>
-            <p className="font-body text-[12px] leading-relaxed text-white/70">
-              Your profile is under review by the Stelli team after a cancellation.
-            </p>
-          </div>
-        )}
+      <PayoutNotice state={payoutState} onRefresh={refetchProfile} />
+      {myProfile?.status === 'pending' && <PendingBanner />}
+      {myProfile?.under_review && (
+        <div className="glass mt-4 rounded-[22px] px-[18px] py-4" style={{ borderColor: 'hsl(var(--neon-magenta) / 0.5)' }}>
+          <p className="text-[13px] leading-relaxed text-white/70">
+            Your profile is under review by the Stelli team after a cancellation.
+          </p>
+        </div>
+      )}
 
-        {myProfile && (
-          <div className="mb-6">
-            <Link
-              to="/edit-profile"
-              className="w-full inline-flex items-center justify-center gap-2.5 px-8 font-body font-semibold text-[15px] transition-transform duration-300 hover:-translate-y-0.5"
-              style={{ background: '#2AE8F8', color: '#0a0f1e', minHeight: 64, borderRadius: 4 }}
-            >
-              <Pencil className="w-4 h-4" /> Edit your profile
-            </Link>
-            <div className="mt-3 text-center">
-              <a
-                href={`/creators/${myProfile.slug || myProfile.id}`}
-                target="_blank"
-                rel="noreferrer"
-                className="font-body text-[12px] text-white/50 hover:text-white underline underline-offset-4"
-              >
-                Preview my profile.
-              </a>
-            </div>
-          </div>
-        )}
-
-        {myProfile && (
+      {myProfile && (
+        <div className="mt-5">
           <PayoutsCard
             profile={myProfile}
             needsInfo={payoutState?.needsInfo}
             waitingTotal={waitingTotal}
             onRefresh={refetchProfile}
           />
-        )}
-
-        <div className="mb-8">
-          <MyAgreements role="lensman" />
         </div>
+      )}
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {[
-            { icon: Inbox, label: 'New Requests', value: requests.length },
-            { icon: Calendar, label: 'Upcoming', value: upcoming.length },
-            { icon: Link2, label: 'To Deliver', value: deliveries.length },
-            { icon: Star, label: 'Completed', value: completed.length },
-          ].map((stat, i) => (
-            <div key={i} className="border p-4 text-center" style={{ background: 'hsl(var(--surface))', borderColor: 'rgba(255,255,255,0.1)', borderRadius: 4 }}>
-              <stat.icon className="w-4 h-4 mx-auto mb-2 text-white/35" strokeWidth={1.6} />
-              <p className="font-heading text-3xl font-semibold text-white leading-none mb-2">{stat.value}</p>
-              <p className="label-mono text-[8px] text-white/40">{stat.label}</p>
-            </div>
+      <h3 className="mb-2.5 mt-8 pl-1.5 text-[13px] font-semibold text-white/50">Needs you</h3>
+      <NeedsYou
+        items={needs}
+        empty={{
+          icon: Sparkles,
+          title: "You're all caught up.",
+          body: 'Share your profile to get your next booking.',
+          cta: myProfile ? <CopyLinkPill creator={myProfile} /> : null,
+        }}
+      />
+
+      <SegmentedTabs className="mt-8" value={tab} onChange={setTab} options={tabs} />
+
+      {isLoading ? (
+        <div className="mt-3 space-y-3">
+          {Array(3).fill(0).map((_, i) => (
+            <Skeleton key={i} className="h-32 rounded-[22px]" />
           ))}
         </div>
+      ) : (
+        <div className="mt-3 space-y-3">{panels[tab]}</div>
+      )}
 
-        <Tabs value={tab} onValueChange={setTab} className="space-y-6">
-          <TabsList className="bg-transparent border border-white/10 rounded-none p-1 flex-wrap h-auto">
-            <TabsTrigger value="requests" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-cyan data-[state=active]:text-ink">
-              Requests ({requests.length})
-            </TabsTrigger>
-            <TabsTrigger value="upcoming" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-cyan data-[state=active]:text-ink">
-              Upcoming ({upcoming.length})
-            </TabsTrigger>
-            <TabsTrigger value="deliveries" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-cyan data-[state=active]:text-ink">
-              Deliveries ({deliveries.length})
-            </TabsTrigger>
-            <TabsTrigger value="completed" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-cyan data-[state=active]:text-ink">
-              Completed ({completed.length})
-            </TabsTrigger>
-          </TabsList>
-
-          {isLoading ? (
-            <div className="space-y-4">
-              {Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-32" />)}
-            </div>
-          ) : (
-            <>
-              <TabsContent value="requests" className="space-y-4">
-                {requests.length > 0 ? requests.map((b) => (
-                  <div key={b.id} className="space-y-3">
-                    <BookingCard booking={b} role="lensman" />
-                    <QuoteForm booking={b} onSent={refresh} />
-                  </div>
-                )) : (
-                  <p className="font-body text-[13px] text-center py-16 text-white/35">No new requests right now.</p>
-                )}
-              </TabsContent>
-              <TabsContent value="upcoming" className="space-y-4">
-                {upcoming.length > 0 ? upcoming.map((b) => <BookingCard key={b.id} booking={b} role="lensman" />) : (
-                  <p className="font-body text-[13px] text-center py-16 text-white/35">No quoted bookings yet.</p>
-                )}
-              </TabsContent>
-              <TabsContent value="deliveries" className="space-y-4">
-                {deliveries.length > 0 ? deliveries.map((b) => (
-                  <div key={b.id} className="space-y-3">
-                    <BookingCard booking={b} role="lensman" />
-                    <DeliveryForm booking={b} onDelivered={refresh} />
-                  </div>
-                )) : (
-                  <p className="font-body text-[13px] text-center py-16 text-white/35">Nothing waiting on delivery.</p>
-                )}
-              </TabsContent>
-              <TabsContent value="completed" className="space-y-4">
-                {completed.length > 0 ? completed.map((b) => <BookingCard key={b.id} booking={b} role="lensman" />) : (
-                  <p className="font-body text-[13px] text-center py-16 text-white/35">No completed bookings yet.</p>
-                )}
-              </TabsContent>
-            </>
-          )}
-        </Tabs>
-
-        <div className="mt-12 pt-8 border-t border-white/10 text-center">
-          <Link to="/account-settings" className="font-body text-[12px] text-white/45 hover:text-white underline underline-offset-4">
-            Account settings.
-          </Link>
-        </div>
+      <div className="mt-8">
+        <MyAgreements role="lensman" />
       </div>
-    </div>
+
+      <GlassRows
+        className="mt-8"
+        rows={[
+          { label: 'Your profile', to: '/edit-profile' },
+          ...(myProfile
+            ? [{ label: 'Your public page', href: `/creators/${myProfile.slug || myProfile.id}`, external: true }]
+            : []),
+          { label: 'Messages', to: '/portal/messages' },
+          { label: 'Account', to: '/account-settings' },
+        ]}
+      />
+    </DashboardShell>
   );
 }

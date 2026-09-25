@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Loader2 } from 'lucide-react';
+import Pill from '@/components/shared/Pill';
 
-const NAVY = '#0a0f1e';
-const CYAN = '#2AE8F8';
+const CYAN = 'hsl(var(--neon-cyan))';
 
 function money(amount) {
   const value = Number(amount || 0);
@@ -14,7 +14,7 @@ function money(amount) {
 }
 
 /**
- * The creator's payout state in one card. Stelli never stores bank or tax
+ * The creator's payout state in one line. Stelli never stores bank or tax
  * details — Stripe's own hosted pages handle all of it.
  */
 export default function PayoutsCard({ profile, needsInfo, waitingTotal = 0, onRefresh }) {
@@ -60,76 +60,66 @@ export default function PayoutsCard({ profile, needsInfo, waitingTotal = 0, onRe
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  let heading;
   let text;
   let button = null;
   let link = null;
 
   if (active) {
-    text = 'Payouts active';
-    link = 'Manage payouts.';
+    heading = 'Payouts are on.';
+    text = 'Manage your bank details and payout schedule in Stripe.';
+    link = 'Manage payouts';
   } else if (waiting) {
-    text = `You have ${money(waitingTotal)} waiting. Set up payouts to get it.`;
-    button = started ? 'Finish payout setup' : 'Set up payouts';
+    heading = `${money(waitingTotal)} is waiting.`;
+    text = 'Set up payouts and we will send it over.';
+    button = started ? 'Finish setup' : 'Set up';
   } else if (started && needsInfo === false) {
-    text = "Stripe is checking your info. This page will update once it's done.";
+    heading = 'Stripe is checking your info.';
+    text = 'This page updates on its own once that is done.';
   } else if (started) {
-    text = "You started payout setup but didn't finish.";
-    button = 'Finish payout setup';
+    heading = 'You started payout setup.';
+    text = 'Pick up where you left off — it takes a minute.';
+    button = 'Finish setup';
   } else {
-    text = 'Set up payouts so you can get paid. It takes a few minutes.';
-    button = 'Set up payouts';
+    heading = 'Set up payouts.';
+    text = 'So you can get paid. Takes a couple of minutes.';
+    button = 'Set up';
   }
 
   return (
-    <div
-      className="mb-8 p-6"
-      style={{
-        background: NAVY,
-        borderRadius: 4,
-        border: `1px solid ${waiting ? CYAN : 'rgba(255,255,255,0.14)'}`,
-      }}
-    >
-      <p
-        className="font-body text-[10px] uppercase tracking-[0.3em] mb-3"
-        style={{ color: 'rgba(255,255,255,0.4)' }}
+    <div>
+      <div
+        className="glass flex items-center gap-3.5 rounded-[26px] p-5"
+        style={{ borderColor: waiting ? CYAN : undefined }}
       >
-        Payouts
-      </p>
+        <span
+          aria-hidden
+          className="h-2.5 w-2.5 shrink-0 rounded-full"
+          style={{ background: CYAN }}
+        />
 
-      <h3 className="font-heading font-semibold text-white text-[24px] leading-tight max-w-[620px]">
-        {text}
-      </h3>
+        <p className="min-w-0 flex-1">
+          <b className="block text-[16px] font-semibold text-white">{heading}</b>
+          <small className="mt-0.5 block text-[14px] leading-snug text-white/60">{text}</small>
+        </p>
 
-      {(button || link) && (
-        <div className="mt-5">
-          {button && (
-            <button
-              onClick={() => run()}
-              disabled={busy}
-              className="inline-flex items-center gap-2 px-7 py-3.5 font-body text-[13px] font-semibold transition-transform duration-300 hover:-translate-y-0.5 disabled:opacity-50"
-              style={{ background: CYAN, color: NAVY, borderRadius: 4 }}
-            >
-              {busy && <Loader2 className="w-4 h-4 animate-spin" />}
-              {button}
-            </button>
-          )}
+        {button && (
+          <Pill as="button" type="button" onClick={() => run()} disabled={busy}>
+            {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+            {button}
+          </Pill>
+        )}
 
-          {link && (
-            <button
-              onClick={() => run('dashboard')}
-              disabled={busy}
-              className="inline-flex items-center gap-2 font-body text-[12px] underline underline-offset-4 disabled:opacity-50"
-              style={{ color: CYAN }}
-            >
-              {busy && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-              {link}
-            </button>
-          )}
-        </div>
-      )}
+        {link && (
+          <Pill as="button" type="button" tone="glass" onClick={() => run('dashboard')} disabled={busy}>
+            {busy && <Loader2 className="h-4 w-4 animate-spin" />}
+            {link}
+          </Pill>
+        )}
+      </div>
 
       {error && (
-        <p className="font-body text-[12px] mt-4" style={{ color: 'hsl(var(--neon-magenta))' }}>
+        <p className="mt-2 pl-1 text-[13px]" style={{ color: 'hsl(var(--neon-magenta))' }}>
           {error}
         </p>
       )}

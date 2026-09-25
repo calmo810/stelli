@@ -1,15 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Star, Calendar, Clock, MessageCircle } from 'lucide-react';
-import BookingCard from '../components/dashboard/BookingCard';
-import QuotePanel from '../components/dashboard/QuotePanel';
-import { Skeleton } from '@/components/ui/skeleton';
-import { motion } from 'framer-motion';
+import { CalendarCheck, Sparkles, Images } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import BookingCard from '@/components/dashboard/BookingCard';
+import QuotePanel from '@/components/dashboard/QuotePanel';
 import MyAgreements from '@/components/dashboard/MyAgreements';
+import DashboardShell from '@/components/dashboard/DashboardShell';
+import SegmentedTabs from '@/components/dashboard/SegmentedTabs';
+import NeedsYou from '@/components/dashboard/NeedsYou';
+import EmptyPanel from '@/components/dashboard/EmptyPanel';
+import GlassRows from '@/components/shared/GlassRows';
+import Pill from '@/components/shared/Pill';
+import { Skeleton } from '@/components/ui/skeleton';
+import shortDate from '@/lib/shortDate';
 
 const UPCOMING = ['requested', 'quoted', 'quote_accepted', 'confirmed', 'in_progress'];
 const AWAITING = ['awaiting_delivery'];
@@ -17,6 +21,7 @@ const PAST = ['delivered', 'completed'];
 
 export default function ClientDashboard() {
   const queryClient = useQueryClient();
+  const [tab, setTab] = useState('upcoming');
   const { data: user } = useQuery({ queryKey: ['me'], queryFn: () => base44.auth.me() });
 
   const { data: bookings = [], isLoading } = useQuery({
@@ -30,111 +35,136 @@ export default function ClientDashboard() {
     queryFn: () => base44.entities.Quote.list('-created_date'),
   });
 
-  const quoteFor = (bookingId) =>
-    quotes.find(q => q.booking_id === bookingId && q.status === 'sent');
+  const quoteFor = (bookingId) => quotes.find((q) => q.booking_id === bookingId && q.status === 'sent');
 
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ['client-bookings'] });
     queryClient.invalidateQueries({ queryKey: ['client-quotes'] });
   };
 
-  const upcoming = bookings.filter(b => UPCOMING.includes(b.status));
-  const awaiting = bookings.filter(b => AWAITING.includes(b.status));
-  const past = bookings.filter(b => PAST.includes(b.status));
-  const openQuotes = bookings.filter(b => quoteFor(b.id)).length;
+  const firstName = (user?.full_name || '').split(' ')[0] || 'there';
+
+  const upcoming = bookings.filter((b) => UPCOMING.includes(b.status));
+  const awaiting = bookings.filter((b) => AWAITING.includes(b.status));
+  const past = bookings.filter((b) => PAST.includes(b.status));
+
+  const needs = [
+    ...bookings
+      .filter((b) => quoteFor(b.id))
+      .map((b) => ({
+        id: `quote-${b.id}`,
+        title: `${b.lensman_name || 'Your creator'} sent a quote`,
+        meta: [shortDate(b.event_date), b.location].filter(Boolean).join(' · '),
+        action: 'Review',
+        to: `/messages/${b.id}`,
+      })),
+    ...awaiting.map((b) => ({
+      id: `ready-${b.id}`,
+      title: `${b.lensman_name || 'Your creator'} delivered your photos`,
+      meta: `Shot ${shortDate(b.event_date)}`,
+      action: 'View',
+      to: `/album/${b.id}`,
+    })),
+  ];
+
+  const tabs = [
+    { value: 'upcoming', label: 'Upcoming', count: upcoming.length },
+    { value: 'awaiting', label: 'Awaiting', count: awaiting.length },
+    { value: 'past', label: 'Delivered', count: past.length },
+  ];
+
+  const panels = {
+    upcoming: upcoming.length ? (
+      upcoming.map((b) => (
+        <div key={b.id} className="space-y-3">
+          <BookingCard booking={b} role="client" />
+          {quoteFor(b.id) && <QuotePanel quote={quoteFor(b.id)} booking={b} onAccepted={refresh} />}
+        </div>
+      ))
+    ) : (
+      <EmptyPanel
+        icon={CalendarCheck}
+        title="No shoots booked."
+        body="Find a creator and send your first request."
+        cta={
+          <Link to="/creators">
+            <Pill>Browse creators</Pill>
+          </Link>
+        }
+      />
+    ),
+    awaiting: awaiting.length ? (
+      awaiting.map((b) => <BookingCard key={b.id} booking={b} role="client" />)
+    ) : (
+      <EmptyPanel icon={Images} title="Nothing in the darkroom." body="Shoots waiting on delivery show up here." />
+    ),
+    past: past.length ? (
+      past.map((b) => (
+        <div key={b.id} className="space-y-3">
+          <BookingCard booking={b} role="client" />
+          {b.delivery_link && (
+            <div className="flex justify-end">
+              <Link to={`/album/${b.id}`}>
+                <Pill tone="glass">Memory album</Pill>
+              </Link>
+            </div>
+          )}
+        </div>
+      ))
+    ) : (
+      <EmptyPanel icon={Sparkles} title="No photos yet." body="Delivered galleries collect here." />
+    ),
+  };
 
   return (
-    <div className="min-h-screen bg-ink">
-      <div className="border-b border-white/10 py-10 px-6">
-        <div className="max-w-5xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <h1 className="font-display text-2xl sm:text-3xl font-semibold mb-2">Your Dashboard</h1>
-            <p className="text-sm text-muted-foreground">Manage your requests, quotes, and deliveries.</p>
-            <Link to="/portal/messages" className="inline-flex items-center gap-2 mt-5 rounded-full border border-border px-4 py-2 text-xs font-medium hover:bg-card transition-colors">
-              <MessageCircle className="w-4 h-4" /> Messages
+    <DashboardShell>
+      <h1
+        className="font-display font-medium text-white"
+        style={{ fontSize: 40, letterSpacing: '-0.02em', lineHeight: 1.05 }}
+      >
+        Hey, {firstName}.
+      </h1>
+      <p className="mt-1.5 text-[16px] text-white/60">Your shoots, quotes and galleries in one place.</p>
+
+      <h3 className="mb-2.5 mt-8 pl-1.5 text-[13px] font-semibold text-white/50">Needs you</h3>
+      <NeedsYou
+        items={needs}
+        empty={{
+          icon: Sparkles,
+          title: "You're all caught up.",
+          body: 'Book your next shoot and it will show up here.',
+          cta: (
+            <Link to="/creators">
+              <Pill>Browse creators</Pill>
             </Link>
-          </motion.div>
-        </div>
-      </div>
+          ),
+        }}
+      />
 
-      <div className="max-w-5xl mx-auto px-6 py-8">
-        <div className="mb-8">
-          <MyAgreements role="client" />
-        </div>
+      <SegmentedTabs className="mt-8" value={tab} onChange={setTab} options={tabs} />
 
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          {[
-            { icon: Calendar, label: 'Upcoming', value: upcoming.length },
-            { icon: Clock, label: 'Quotes to review', value: openQuotes },
-            { icon: Star, label: 'Delivered', value: past.length },
-          ].map((stat, i) => (
-            <div key={i} className="bg-card border border-border rounded-2xl p-4 text-center">
-              <stat.icon className="w-4 h-4 text-muted-foreground mx-auto mb-2" />
-              <p className="text-2xl font-bold">{stat.value}</p>
-              <p className="text-xs text-muted-foreground">{stat.label}</p>
-            </div>
+      {isLoading ? (
+        <div className="mt-3 space-y-3">
+          {Array(3).fill(0).map((_, i) => (
+            <Skeleton key={i} className="h-32 rounded-[22px]" />
           ))}
         </div>
+      ) : (
+        <div className="mt-3 space-y-3">{panels[tab]}</div>
+      )}
 
-        <Tabs defaultValue="upcoming" className="space-y-6">
-          <TabsList className="bg-card border border-border rounded-full p-1">
-            <TabsTrigger value="upcoming" className="rounded-full text-xs">Upcoming ({upcoming.length})</TabsTrigger>
-            <TabsTrigger value="awaiting" className="rounded-full text-xs">Awaiting ({awaiting.length})</TabsTrigger>
-            <TabsTrigger value="past" className="rounded-full text-xs">Delivered ({past.length})</TabsTrigger>
-          </TabsList>
-
-          {isLoading ? (
-            <div className="space-y-4">
-              {Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-32 rounded-2xl" />)}
-            </div>
-          ) : (
-            <>
-              <TabsContent value="upcoming" className="space-y-4">
-                {upcoming.length > 0 ? upcoming.map(b => (
-                  <div key={b.id} className="space-y-3">
-                    <BookingCard booking={b} role="client" />
-                    {quoteFor(b.id) && (
-                      <QuotePanel quote={quoteFor(b.id)} booking={b} onAccepted={refresh} />
-                    )}
-                  </div>
-                )) : (
-                  <div className="text-center py-16">
-                    <p className="text-muted-foreground mb-4">No requests yet</p>
-                    <Link to="/creators"><Button className="rounded-full bg-foreground text-background">Browse creators</Button></Link>
-                  </div>
-                )}
-              </TabsContent>
-              <TabsContent value="awaiting" className="space-y-4">
-                {awaiting.length > 0 ? awaiting.map(b => <BookingCard key={b.id} booking={b} role="client" />) : (
-                  <p className="text-center py-16 text-muted-foreground">No deliveries pending</p>
-                )}
-              </TabsContent>
-              <TabsContent value="past" className="space-y-4">
-                {past.length > 0 ? past.map(b => (
-                  <div key={b.id} className="relative">
-                    <BookingCard booking={b} role="client" />
-                    {b.delivery_link && (
-                      <div className="absolute top-4 right-4">
-                        <Link to={`/album/${b.id}`}>
-                          <Button size="sm" className="rounded-full bg-foreground text-background text-xs">Memory album</Button>
-                        </Link>
-                      </div>
-                    )}
-                  </div>
-                )) : (
-                  <p className="text-center py-16 text-muted-foreground">Nothing delivered yet</p>
-                )}
-              </TabsContent>
-            </>
-          )}
-        </Tabs>
-
-        <div className="mt-12 pt-8 border-t border-white/10 text-center">
-          <Link to="/account-settings" className="font-body text-[12px] text-white/45 hover:text-white underline underline-offset-4">
-            Account settings.
-          </Link>
-        </div>
+      <div className="mt-8">
+        <MyAgreements role="client" />
       </div>
-    </div>
+
+      <GlassRows
+        className="mt-8"
+        rows={[
+          { label: 'Find a creator', to: '/creators' },
+          { label: 'Messages', to: '/portal/messages' },
+          { label: 'Account', to: '/account-settings' },
+        ]}
+      />
+    </DashboardShell>
   );
 }
