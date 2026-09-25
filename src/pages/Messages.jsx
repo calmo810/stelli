@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Loader2, Lock } from 'lucide-react';
+import { FileText, Loader2, Lock } from 'lucide-react';
 import { viewerRole, firstName } from '@/lib/threadStatus';
 import ThreadHeader from '@/components/thread/ThreadHeader';
 import RequestCard from '@/components/thread/RequestCard';
@@ -11,6 +11,7 @@ import HeldPaymentNote from '@/components/thread/HeldPaymentNote';
 import MessageBubble from '@/components/thread/MessageBubble';
 import SystemNotice from '@/components/thread/SystemNotice';
 import JustSentBanner from '@/components/thread/JustSentBanner';
+import Pill from '@/components/shared/Pill';
 import ThreadComposer from '@/components/thread/ThreadComposer';
 import QuoteComposer from '@/components/thread/QuoteComposer';
 import DeliveryCard from '@/components/thread/DeliveryCard';
@@ -18,6 +19,7 @@ import DeliveryCard from '@/components/thread/DeliveryCard';
 export default function Messages() {
   const { bookingId } = useParams();
   const [params] = useSearchParams();
+  const [quoting, setQuoting] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: user, isLoading: userLoading } = useQuery({
@@ -105,16 +107,14 @@ export default function Messages() {
   if (!booking || !role) {
     return (
       <div className="min-h-screen bg-ink px-5 pt-32 pb-24">
-        <div className="max-w-md mx-auto border border-white/10 p-8 text-center" style={{ borderRadius: 4 }}>
-          <Lock className="w-5 h-5 mx-auto mb-4 text-white/30" />
-          <h1 className="font-heading text-2xl font-semibold text-white mb-3">
-            This conversation isn't yours.
-          </h1>
-          <p className="font-body text-[13px] text-white/45 mb-6">
+        <div className="glass mx-auto max-w-[440px] rounded-[28px] p-7 text-center">
+          <Lock className="mx-auto mb-4 h-5 w-5 text-white/35" />
+          <h1 className="text-[22px] font-semibold text-white">This conversation isn't yours.</h1>
+          <p className="mt-2 text-[14px] text-white/50">
             Sign in with the account that made this booking to open it.
           </p>
-          <Link to="/portal" className="label-mono text-[10px] font-semibold px-6 py-3 inline-block" style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }}>
-            Go to your portal
+          <Link to="/portal" className="mt-5 inline-block">
+            <Pill>Go to your portal</Pill>
           </Link>
         </div>
       </div>
@@ -122,7 +122,7 @@ export default function Messages() {
   }
 
   return (
-    <div className="min-h-screen bg-ink pb-44">
+    <div className="min-h-screen bg-ink pb-52">
       <ThreadHeader
         booking={booking}
         creator={creator}
@@ -131,9 +131,12 @@ export default function Messages() {
         profileHref={role === 'client' && booking.lensman_id ? `/creators/${booking.lensman_id}` : null}
       />
 
-      <div className="max-w-3xl mx-auto px-5 md:px-8 py-6 space-y-5">
+      <div className="mx-auto w-full max-w-[640px] space-y-4 px-4 py-5 sm:px-5">
         {params.get('payment') === 'success' && (
-          <p className="label-mono text-[10px]" style={{ color: 'hsl(var(--neon-lime))' }}>
+          <p
+            className="rounded-[980px] px-4 py-2.5 text-center text-[13px] font-semibold"
+            style={{ background: 'hsl(var(--neon-lime) / 0.14)', color: 'hsl(var(--neon-lime))' }}
+          >
             Payment received — the date is locked in.
           </p>
         )}
@@ -141,6 +144,18 @@ export default function Messages() {
         {role === 'client' && <JustSentBanner bookingId={booking.id} creatorName={creatorName} />}
 
         <RequestCard booking={booking} />
+
+        {role === 'lensman' && !booking.payment_status?.includes('held') && (
+          <Pill
+            as="button"
+            type="button"
+            tone="lime"
+            onClick={() => setQuoting(true)}
+            className="w-full py-4"
+          >
+            <FileText className="h-4 w-4" /> Send a quote
+          </Pill>
+        )}
 
         <HeldPaymentNote booking={booking} role={role} />
 
@@ -170,7 +185,7 @@ export default function Messages() {
         ))}
 
         {items.length === 0 && !booking.payment_status?.includes('held') && (
-          <p className="font-body text-[13px] text-white/35 text-center py-2">
+          <p className="py-2 text-center text-[13px] text-white/35">
             {role === 'client'
               ? `${firstName(creatorName)} will reply here. Add anything you forgot below.`
               : 'Reply to work out the details, then send your quote.'}
@@ -184,15 +199,13 @@ export default function Messages() {
         placeholder={role === 'client' ? `Message ${firstName(creatorName)}...` : `Message ${firstName(booking.client_name)}...`}
       />
 
-      {role === 'lensman' && !booking.payment_status?.includes('held') && (
-        <div className="fixed bottom-24 right-5 md:right-8 z-40">
-          <QuoteComposer
-            booking={booking}
-            payoutsReady={Boolean(creator?.payouts_enabled)}
-            onSent={refreshBooking}
-          />
-        </div>
-      )}
+      <QuoteComposer
+        open={quoting}
+        onClose={() => setQuoting(false)}
+        booking={booking}
+        payoutsReady={Boolean(creator?.payouts_enabled)}
+        onSent={refreshBooking}
+      />
     </div>
   );
 }

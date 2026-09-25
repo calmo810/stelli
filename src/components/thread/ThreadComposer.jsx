@@ -35,48 +35,49 @@ export default function ThreadComposer({ onSend, booking, disabled, placeholder 
 
   return (
     <div
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-ink/95 backdrop-blur"
+      className="fixed inset-x-0 bottom-0 z-40"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      <div className="max-w-3xl mx-auto px-5 md:px-8 py-3">
+      <div className="mx-auto w-full max-w-[640px] px-4 pb-4 sm:px-5">
         {(error || blocked) && (
-          <p
-            className="font-body text-[12px] leading-relaxed mb-2.5"
-            style={{ color: blocked ? 'hsl(var(--neon-magenta))' : 'hsl(var(--neon-magenta))' }}
-          >
+          <p className="mb-2 px-1 text-[13px] leading-relaxed" style={{ color: 'hsl(var(--neon-magenta))' }}>
             {blocked ? CONTACT_BLOCK_MESSAGE : error}
           </p>
         )}
 
-        <div className="flex items-end gap-3">
+        <div className="glass flex items-end gap-2.5 rounded-[26px] p-2.5">
           <textarea
             rows={1}
             value={text}
             disabled={disabled}
             placeholder={placeholder || 'Type a message...'}
-            onChange={(e) => { setText(e.target.value); setError(''); }}
+            onChange={(e) => {
+              setText(e.target.value);
+              setError('');
+            }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
                 submit();
               }
             }}
-            className="flex-1 resize-none border border-white/10 bg-white/[0.03] px-4 py-3 font-body text-[14px] text-white outline-none transition-colors placeholder:text-white/25 focus:border-neon-lime focus:ring-1 focus:ring-neon-lime disabled:opacity-50"
-            style={{ borderRadius: 4, maxHeight: 140 }}
+            className="flex-1 resize-none bg-transparent px-3 py-2.5 text-[15px] text-white outline-none placeholder:text-white/30 disabled:opacity-50"
+            style={{ maxHeight: 140 }}
           />
           <button
+            type="button"
             onClick={submit}
             disabled={disabled || busy || !text.trim()}
-            className="shrink-0 w-12 h-12 flex items-center justify-center disabled:opacity-40"
-            style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }}
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full transition-transform active:scale-[0.96] disabled:opacity-40"
+            style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))' }}
             aria-label="Send message"
           >
-            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           </button>
         </div>
 
         {locked && (
-          <p className="label-mono text-[9px] text-white/25 mt-2">
+          <p className="mt-2 px-1 text-[12px] text-white/30">
             Contact details unlock once the booking is confirmed
           </p>
         )}

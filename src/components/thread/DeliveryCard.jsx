@@ -3,9 +3,15 @@ import { base44 } from '@/api/base44Client';
 import { format, formatDistanceToNow } from 'date-fns';
 import { Loader2, Link2, Image as ImageIcon, AlertTriangle } from 'lucide-react';
 import { safeHref } from '@/lib/safeHref';
+import Pill from '@/components/shared/Pill';
+import { fieldClass } from '@/lib/glassField';
 
-const fieldClass =
-  'w-full border border-white/10 bg-white/[0.03] px-4 py-3 font-body text-[14px] text-white outline-none transition-colors placeholder:text-white/25 focus:border-neon-lime focus:ring-1 focus:ring-neon-lime';
+const stepPill = (active) => ({
+  borderRadius: 980,
+  borderColor: active ? 'hsl(var(--neon-lime))' : 'rgba(255,255,255,0.14)',
+  background: active ? 'hsl(var(--neon-lime) / 0.12)' : 'transparent',
+  color: active ? 'hsl(var(--neon-lime))' : 'rgba(255,255,255,0.6)',
+});
 
 /** Two delivery steps, the 48 hour window, and reporting a problem. */
 export default function DeliveryCard({ booking, role, onChanged }) {
@@ -76,76 +82,92 @@ export default function DeliveryCard({ booking, role, onChanged }) {
   };
 
   return (
-    <div className="border border-white/10 bg-surface p-5 sm:p-6" style={{ borderRadius: 4 }}>
-      <p className="label-mono text-[9px] text-white/35 mb-4">Delivery</p>
+    <div className="glass rounded-[26px] p-5 sm:p-6">
+      <p className="text-[11px] font-semibold text-white/40">DELIVERY</p>
 
-      <div className="space-y-4 mb-5">
+      <div className="mt-4 space-y-3">
         <div className="flex items-start gap-3">
-          <ImageIcon className="w-4 h-4 shrink-0 mt-0.5 text-white/30" />
+          <ImageIcon className="mt-0.5 h-4 w-4 shrink-0 text-white/35" />
           <div className="min-w-0">
-            <p className="label-mono text-[9px] text-white/40 mb-1.5">UNEDITED SET</p>
+            <p className="text-[12px] text-white/45">Unedited set</p>
             {booking.unedited_link ? (
-              <a href={safeHref(booking.unedited_link)} target="_blank" rel="noreferrer" className="font-body text-[13px] break-all" style={{ color: 'hsl(var(--neon-cyan))' }}>
+              <a
+                href={safeHref(booking.unedited_link)}
+                target="_blank"
+                rel="noreferrer"
+                className="text-[14px] break-all"
+                style={{ color: 'hsl(var(--neon-cyan))' }}
+              >
                 {booking.unedited_link}
               </a>
             ) : (
-              <p className="font-body text-[13px] text-white/35">Not posted yet</p>
+              <p className="text-[14px] text-white/35">Not posted yet</p>
             )}
           </div>
         </div>
 
         <div className="flex items-start gap-3">
-          <Link2 className="w-4 h-4 shrink-0 mt-0.5 text-white/30" />
+          <Link2 className="mt-0.5 h-4 w-4 shrink-0 text-white/35" />
           <div className="min-w-0">
-            <p className="label-mono text-[9px] text-white/40 mb-1.5">FINAL EDITS</p>
+            <p className="text-[12px] text-white/45">Final edits</p>
             {booking.delivery_link ? (
-              <a href={safeHref(booking.delivery_link)} target="_blank" rel="noreferrer" className="font-body text-[13px] break-all" style={{ color: 'hsl(var(--neon-lime))' }}>
+              <a
+                href={safeHref(booking.delivery_link)}
+                target="_blank"
+                rel="noreferrer"
+                className="text-[14px] break-all"
+                style={{ color: 'hsl(var(--neon-lime))' }}
+              >
                 {booking.delivery_link}
               </a>
             ) : (
-              <p className="font-body text-[13px] text-white/35">Not posted yet</p>
+              <p className="text-[14px] text-white/35">Not posted yet</p>
             )}
           </div>
         </div>
       </div>
 
       {delivered && windowOpen && !booking.problem_reported_at && (
-        <p className="label-mono text-[9px] text-white/40 mb-4">
-          PAYMENT RELEASES {formatDistanceToNow(new Date(booking.release_due_at), { addSuffix: false }).toUpperCase()} FROM NOW
+        <p className="mt-4 text-[12px] text-white/45">
+          Payment releases {formatDistanceToNow(new Date(booking.release_due_at), { addSuffix: false })} from now
         </p>
       )}
 
       {booking.problem_reported_at && (
-        <div className="border px-4 py-3 mb-4" style={{ borderColor: 'hsl(var(--neon-magenta) / 0.4)', background: 'hsl(var(--neon-magenta) / 0.06)', borderRadius: 4 }}>
-          <p className="label-mono text-[9px] mb-2" style={{ color: 'hsl(var(--neon-magenta))' }}>PROBLEM REPORTED</p>
-          <p className="font-body text-[13px] text-white/70 leading-relaxed">{booking.problem_note}</p>
-          <p className="font-body text-[12px] text-white/40 mt-2">
+        <div
+          className="mt-4 rounded-2xl px-4 py-3"
+          style={{ background: 'hsl(var(--neon-magenta) / 0.08)', border: '1px solid hsl(var(--neon-magenta) / 0.4)' }}
+        >
+          <p className="text-[11px] font-semibold" style={{ color: 'hsl(var(--neon-magenta))' }}>
+            PROBLEM REPORTED
+          </p>
+          <p className="mt-2 text-[14px] leading-relaxed text-white/75">{booking.problem_note}</p>
+          <p className="mt-2 text-[13px] text-white/45">
             The payment stays held while a founder reviews it.
           </p>
         </div>
       )}
 
       {role === 'lensman' && (
-        <div className="space-y-3">
-          <div className="flex gap-2">
+        <div className="mt-4 space-y-3">
+          <div className="flex flex-wrap gap-2">
             {[
               { value: 'unedited', label: 'Unedited set' },
               { value: 'final', label: 'Final edits' },
             ].map((option) => (
               <button
                 key={option.value}
+                type="button"
                 onClick={() => setStep(option.value)}
-                className="label-mono text-[9px] px-3 py-2 border"
-                style={{
-                  borderRadius: 3,
-                  borderColor: step === option.value ? 'hsl(var(--neon-lime))' : 'rgba(255,255,255,0.12)',
-                  color: step === option.value ? 'hsl(var(--neon-lime))' : 'rgba(255,255,255,0.45)',
-                }}
+                aria-pressed={step === option.value}
+                className="rounded-[980px] border px-4 py-2.5 text-[14px] transition-colors"
+                style={stepPill(step === option.value)}
               >
                 {option.label}
               </button>
             ))}
           </div>
+
           <input
             type="url"
             value={link}
@@ -153,22 +175,18 @@ export default function DeliveryCard({ booking, role, onChanged }) {
             placeholder={step === 'unedited' ? 'Paste the unedited gallery link' : 'Paste the final edits link'}
             className={fieldClass}
           />
-          <button
-            onClick={post}
-            disabled={busy}
-            className="w-full flex items-center justify-center gap-2 py-3.5 label-mono text-[10px] font-semibold disabled:opacity-50"
-            style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }}
-          >
-            {busy && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+
+          <Pill as="button" type="button" tone="lime" onClick={post} disabled={busy} className="w-full py-4">
+            {busy && <Loader2 className="h-4 w-4 animate-spin" />}
             {step === 'unedited' ? 'Post unedited set' : 'Post final edits'}
-          </button>
+          </Pill>
         </div>
       )}
 
       {role === 'client' && delivered && booking.payment_status === 'held' && !booking.problem_reported_at && (
         <>
           {reporting ? (
-            <div className="space-y-3">
+            <div className="mt-4 space-y-3">
               <textarea
                 rows={3}
                 value={note}
@@ -177,29 +195,31 @@ export default function DeliveryCard({ booking, role, onChanged }) {
                 className={fieldClass}
               />
               <div className="flex gap-2">
-                <button onClick={report} disabled={busy} className="flex-1 flex items-center justify-center gap-2 py-3 label-mono text-[10px] font-semibold disabled:opacity-50" style={{ background: 'hsl(var(--neon-magenta))', color: 'hsl(var(--ink))', borderRadius: 4 }}>
-                  {busy && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                <Pill as="button" type="button" tone="lime" onClick={report} disabled={busy} className="flex-1 py-3.5">
+                  {busy && <Loader2 className="h-4 w-4 animate-spin" />}
                   Send report
-                </button>
-                <button onClick={() => setReporting(false)} className="px-5 label-mono text-[10px] text-white/40 border border-white/12" style={{ borderRadius: 4 }}>
+                </Pill>
+                <Pill as="button" type="button" tone="glass" onClick={() => setReporting(false)}>
                   Cancel
-                </button>
+                </Pill>
               </div>
             </div>
           ) : (
-            <button
+            <Pill
+              as="button"
+              type="button"
+              tone="glass"
               onClick={() => setReporting(true)}
-              className="flex items-center gap-2 label-mono text-[10px] text-white/45 hover:text-white border border-white/12 px-4 py-3"
-              style={{ borderRadius: 4 }}
+              className="mt-4"
             >
-              <AlertTriangle className="w-3.5 h-3.5" /> Report a problem
-            </button>
+              <AlertTriangle className="h-4 w-4" /> Report a problem
+            </Pill>
           )}
         </>
       )}
 
       {error && (
-        <p className="font-body text-[12px] mt-3" style={{ color: 'hsl(var(--neon-magenta))' }}>
+        <p className="mt-3 text-[13px]" style={{ color: 'hsl(var(--neon-magenta))' }}>
           {error}
         </p>
       )}

@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { Loader2, FileText, Plus, X } from 'lucide-react';
+import { Loader2, Plus, X } from 'lucide-react';
 import { creatorPayout } from '@/lib/threadPricing';
-
-const fieldClass =
-  'w-full border border-white/10 bg-white/[0.03] px-4 py-3 font-body text-[14px] text-white outline-none transition-colors placeholder:text-white/25 focus:border-neon-lime focus:ring-1 focus:ring-neon-lime';
+import Pill from '@/components/shared/Pill';
+import { fieldClass, labelClass } from '@/lib/glassField';
 
 const EXPIRIES = [
   { value: '24h', label: '24 hours' },
@@ -12,9 +11,8 @@ const EXPIRIES = [
   { value: '7d', label: '7 days' },
 ];
 
-/** The creator's private quote, sent from beside the composer. */
-export default function QuoteComposer({ booking, payoutsReady, onSent }) {
-  const [open, setOpen] = useState(false);
+/** The creator's private quote sheet, opened from the thread. */
+export default function QuoteComposer({ open, onClose, booking, payoutsReady, onSent }) {
   const [amount, setAmount] = useState('');
   const [edits, setEdits] = useState('30');
   const [note, setNote] = useState('');
@@ -58,7 +56,7 @@ export default function QuoteComposer({ booking, payoutsReady, onSent }) {
         setError(response.data.error);
         return;
       }
-      setOpen(false);
+      onClose?.();
       setAmount('');
       setNote('');
       setAddOn(null);
@@ -72,107 +70,138 @@ export default function QuoteComposer({ booking, payoutsReady, onSent }) {
     }
   };
 
-  if (!open) {
-    return (
-      <button
-        onClick={() => setOpen(true)}
-        className="shrink-0 flex items-center gap-2 label-mono text-[10px] font-semibold px-4 py-3.5"
-        style={{ background: 'hsl(var(--neon-cyan))', color: 'hsl(var(--ink))', borderRadius: 4 }}
-      >
-        <FileText className="w-3.5 h-3.5" /> Send quote
-      </button>
-    );
-  }
+  if (!open) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/15 bg-ink/98 backdrop-blur">
-      <div className="max-w-3xl mx-auto px-5 md:px-8 py-5">
-        <div className="flex items-center justify-between gap-4 mb-4">
-          <p className="label-mono text-[10px] text-white/50">Private quote</p>
-          <button onClick={() => setOpen(false)} className="text-white/35 hover:text-white">
-            <X className="w-4 h-4" />
+    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/[0.12] bg-ink/95 backdrop-blur-xl">
+      <div className="mx-auto max-h-[85vh] w-full max-w-[640px] overflow-y-auto px-4 py-5 sm:px-5">
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <p className="text-[11px] font-semibold text-white/45">SEND A QUOTE</p>
+          <button type="button" onClick={() => onClose?.()} className="text-white/40 hover:text-white" aria-label="Close">
+            <X className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <label className="block">
-            <span className="block label-mono text-[9px] text-white/35 mb-2">Price · USD</span>
-            <input type="number" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} className={fieldClass} />
-          </label>
-          <label className="block">
-            <span className="block label-mono text-[9px] text-white/35 mb-2">Edited photos</span>
-            <input type="number" min="0" value={edits} onChange={(e) => setEdits(e.target.value)} className={fieldClass} />
-          </label>
-        </div>
-
-        <label className="block mb-4">
-          <span className="block label-mono text-[9px] text-white/35 mb-2">Note · optional</span>
-          <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Two hours on location, golden hour" className={fieldClass} />
+        <label className="block">
+          <span className={labelClass}>Your price · USD</span>
+          <input
+            type="number"
+            min="0"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="1200"
+            className={`${fieldClass} text-[20px] font-semibold`}
+          />
         </label>
 
-        <div className="flex items-center gap-3 mb-4 flex-wrap">
-          {EXPIRIES.map((option) => (
-            <button
-              key={option.value}
-              onClick={() => setExpiry(option.value)}
-              className="label-mono text-[9px] px-3 py-2 border transition-colors"
-              style={{
-                borderRadius: 3,
-                borderColor: expiry === option.value ? 'hsl(var(--neon-lime))' : 'rgba(255,255,255,0.12)',
-                color: expiry === option.value ? 'hsl(var(--neon-lime))' : 'rgba(255,255,255,0.45)',
-              }}
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
-
-        {addOn ? (
-          <div className="flex items-center gap-3 mb-4">
-            <input type="text" value={addOn.name} placeholder="Add-on" onChange={(e) => setAddOn({ ...addOn, name: e.target.value })} className={fieldClass} />
-            <input type="number" min="0" value={addOn.price} placeholder="Price" onChange={(e) => setAddOn({ ...addOn, price: Number(e.target.value) })} className={fieldClass} />
-            <button onClick={() => setAddOn(null)} className="text-white/35 hover:text-white shrink-0">
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        ) : (
-          <button onClick={() => setAddOn({ name: '', price: 0 })} className="label-mono text-[9px] text-white/35 hover:text-neon-lime mb-4 flex items-center gap-1.5">
-            <Plus className="w-3 h-3" /> Add a line item
-          </button>
-        )}
-
         {amount && Number(amount) > 0 && (
-          <p className="label-mono text-[9px] text-white/30 mb-4">
+          <p className="mt-2 text-[12px] text-white/40">
             You receive ${creatorPayout(Number(amount)).toLocaleString()} after Stelli's fee
           </p>
         )}
 
+        <div className="mt-4">
+          <span className={labelClass}>Good for</span>
+          <div className="flex flex-wrap gap-2">
+            {EXPIRIES.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => setExpiry(option.value)}
+                aria-pressed={expiry === option.value}
+                className="rounded-[980px] border px-4 py-2.5 text-[14px] transition-colors"
+                style={{
+                  borderColor: expiry === option.value ? 'hsl(var(--neon-lime))' : 'rgba(255,255,255,0.14)',
+                  background: expiry === option.value ? 'hsl(var(--neon-lime) / 0.12)' : 'transparent',
+                  color: expiry === option.value ? 'hsl(var(--neon-lime))' : 'rgba(255,255,255,0.6)',
+                }}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <label className="mt-4 block">
+          <span className={labelClass}>Edited photos</span>
+          <input
+            type="number"
+            min="0"
+            value={edits}
+            onChange={(e) => setEdits(e.target.value)}
+            className={fieldClass}
+          />
+        </label>
+
+        <label className="mt-4 block">
+          <span className={labelClass}>Note to the client · optional</span>
+          <input
+            type="text"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Two hours on location, golden hour"
+            className={fieldClass}
+          />
+        </label>
+
+        <div className="mt-4">
+          {addOn ? (
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                <input
+                  type="text"
+                  value={addOn.name}
+                  placeholder="Rush delivery"
+                  onChange={(e) => setAddOn({ ...addOn, name: e.target.value })}
+                  className={fieldClass}
+                />
+              </div>
+              <div className="w-24 shrink-0">
+                <input
+                  type="number"
+                  min="0"
+                  value={addOn.price}
+                  placeholder="150"
+                  onChange={(e) => setAddOn({ ...addOn, price: Number(e.target.value) })}
+                  className={fieldClass}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setAddOn(null)}
+                className="shrink-0 text-white/40 hover:text-white"
+                aria-label="Remove line item"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setAddOn({ name: '', price: 0 })}
+              className="inline-flex items-center gap-1.5 text-[13px] text-white/50 hover:text-white"
+            >
+              <Plus className="h-3.5 w-3.5" /> Add a line item
+            </button>
+          )}
+        </div>
+
         {error && (
-          <p className="font-body text-[12px] mb-4" style={{ color: 'hsl(var(--neon-magenta))' }}>
+          <p className="mt-4 text-[13px]" style={{ color: 'hsl(var(--neon-magenta))' }}>
             {error}
           </p>
         )}
 
         {needsPayouts && !payoutsReady ? (
-          <button
-            onClick={startPayouts}
-            disabled={busy}
-            className="w-full flex items-center justify-center gap-2 py-3.5 label-mono text-[10px] font-semibold disabled:opacity-50"
-            style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }}
-          >
-            {busy && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+          <Pill as="button" type="button" tone="lime" onClick={startPayouts} disabled={busy} className="mt-4 w-full py-4">
+            {busy && <Loader2 className="h-4 w-4 animate-spin" />}
             Set up payouts to send your first quote
-          </button>
+          </Pill>
         ) : (
-          <button
-            onClick={send}
-            disabled={busy}
-            className="w-full flex items-center justify-center gap-2 py-3.5 label-mono text-[10px] font-semibold disabled:opacity-50"
-            style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }}
-          >
-            {busy && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+          <Pill as="button" type="button" tone="lime" onClick={send} disabled={busy} className="mt-4 w-full py-4">
+            {busy && <Loader2 className="h-4 w-4 animate-spin" />}
             Send quote
-          </button>
+          </Pill>
         )}
       </div>
     </div>
