@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { viewerRole } from '../../shared/bookingAccess.ts';
 import { refundBooking, releaseBooking } from '../../shared/payouts.ts';
-import { clientTotal } from '../../shared/stripe.ts';
+import { clientTotal, stripePost } from '../../shared/stripe.ts';
 
 export default async function (req) {
   try {
@@ -64,6 +64,17 @@ export default async function (req) {
       flagged_for_review: !isClient,
       flag_reason: isClient ? '' : 'Creator cancelled — review the creator.',
     });
+
+    // A checkout left open would still let the client pay a cancelled booking.
+    if (booking.stripe_checkout_session_id && !booking.stripe_payment_intent_id) {
+      await stripePost(
+        `checkout/sessions/${booking.stripe_checkout_session_id}/expire`,
+        new URLSearchParams()
+      ).catch((error) => {
+        // Already expired or completed — a late payment is flagged for review.
+        console.error('Could not expire checkout on cancel:', error.message);
+      });
+    }
 
     if (refundAmount > 0) {
       await refundBooking(base44, booking, refundAmount, refundNote);

@@ -18,6 +18,11 @@ export function stripeMode() {
   return secrets.get('STRIPE_TEST_SECRET_KEY') ? 'test' : 'live';
 }
 
+/** Test events must never move live bookings, and live events never test ones. */
+export function eventMatchesMode(event) {
+  return Boolean(event?.livemode) === (stripeMode() === 'live');
+}
+
 export function webhookSecret() {
   return secrets.get('STRIPE_TEST_WEBHOOK_SECRET') || secrets.get('STRIPE_WEBHOOK_SECRET');
 }
@@ -41,44 +46,73 @@ export function toCents(amount) {
   return Math.round(Number(amount || 0) * 100);
 }
 
-export async function stripePost(path, params, idempotencyKey) {
-  const response = await fetch(`https://api.stripe.com/v1/${path}`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${stripeKey()}`,
-      'Stripe-Version': '2025-10-29.clover',
-      'Content-Type': 'application/x-www-form-urlencoded',
-      ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}),
-    },
-    body: params,
-  });
+const STRIPE_VERSION = '2025-10-29.clover';
 
-  const data = await response.json();
+/** Stripe asks for a retry on rate limits, conflicts and its own 5xx errors. */
+const MAX_ATTEMPTS = 3;
 
-  if (!response.ok) {
-    console.error(`Stripe ${path} failed:`, data?.error?.message);
-    throw new Error(data?.error?.message || 'Stripe request failed');
-  }
-
-  return data;
+function shouldRetry(response) {
+  const hint = response.headers.get('stripe-should-retry');
+  if (hint === 'true') return true;
+  if (hint === 'false') return false;
+  return response.status === 409 || response.status === 429 || response.status >= 500;
 }
 
-export async function stripeGet(path) {
-  const response = await fetch(`https://api.stripe.com/v1/${path}`, {
-    headers: {
-      Authorization: `Bearer ${stripeKey()}`,
-      'Stripe-Version': '2025-10-29.clover',
-    },
-  });
+const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-  const data = await response.json();
+/**
+ * One path for every Stripe call. A request is only retried when repeating it
+ * cannot do anything twice: reads, and writes that carry an idempotency key.
+ */
+async function stripeRequest(method, path, params, idempotencyKey) {
+  const retryable = method === 'GET' || Boolean(idempotencyKey);
+  const headers = {
+    Authorization: `Bearer ${stripeKey()}`,
+    'Stripe-Version': STRIPE_VERSION,
+    ...(method === 'POST' ? { 'Content-Type': 'application/x-www-form-urlencoded' } : {}),
+    ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}),
+  };
 
-  if (!response.ok) {
-    console.error(`Stripe GET ${path} failed:`, data?.error?.message);
-    throw new Error(data?.error?.message || 'Stripe request failed');
+  for (let attempt = 1; ; attempt += 1) {
+    let response;
+    try {
+      response = await fetch(`https://api.stripe.com/v1/${path}`, {
+        method,
+        headers,
+        ...(method === 'POST' ? { body: params || new URLSearchParams() } : {}),
+      });
+    } catch (error) {
+      // The network dropped — Stripe may or may not have seen the request.
+      if (retryable && attempt < MAX_ATTEMPTS) {
+        await pause(500 * 2 ** attempt);
+        continue;
+      }
+      console.error(`Stripe ${method} ${path} could not be reached:`, error.message);
+      throw new Error('Stripe could not be reached. Please try again.');
+    }
+
+    const data = await response.json().catch(() => ({}));
+    if (response.ok) return data;
+
+    if (retryable && attempt < MAX_ATTEMPTS && shouldRetry(response)) {
+      await pause(500 * 2 ** attempt);
+      continue;
+    }
+
+    console.error(`Stripe ${method} ${path} failed:`, data?.error?.message);
+    const failure = new Error(data?.error?.message || 'Stripe request failed');
+    failure.code = data?.error?.code;
+    failure.status = response.status;
+    throw failure;
   }
+}
 
-  return data;
+export function stripePost(path, params, idempotencyKey) {
+  return stripeRequest('POST', path, params, idempotencyKey);
+}
+
+export function stripeGet(path) {
+  return stripeRequest('GET', path);
 }
 
 /** $450 for whole dollars, $450.50 once there are cents. */
