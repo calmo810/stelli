@@ -5,8 +5,6 @@ const TILES = [
   {
     to: '/creators',
     tone: 'neon-lime',
-    image:
-      'https://base44.app/api/apps/6a2c4e448e7fec52fb6d322a/files/mp/public/6a2c4e448e7fec52fb6d322a/8054474cf_IMG_8072.jpeg',
     word: 'I need photos.',
     line: 'Pick a creator. Get a private quote.',
     cta: 'Find a creator',
@@ -15,8 +13,6 @@ const TILES = [
   {
     to: '/register?role=creator',
     tone: 'neon-cyan',
-    image:
-      'https://base44.app/api/apps/6a2c4e448e7fec52fb6d322a/files/mp/public/6a2c4e448e7fec52fb6d322a/d1bf8121f_IMG_7699.jpeg',
     word: 'I take photos.',
     line: 'Get booked. Get paid on delivery.',
     cta: 'Apply to join',
@@ -39,28 +35,12 @@ export default function TwoDoors() {
           <Link
             key={tile.to}
             to={tile.to}
-            className="group relative isolate overflow-hidden flex flex-col items-center text-center min-h-[300px] md:min-h-[420px] px-[10px] py-7 md:px-6 md:py-11"
+            className="group relative isolate overflow-hidden flex flex-col items-center justify-center text-center min-h-[260px] md:min-h-[360px] px-[10px] py-9 md:px-6 md:py-12 transition-transform duration-500 hover:-translate-y-1"
             style={{
               borderRadius: 'clamp(18px, 2vw, 24px)',
-              background: `radial-gradient(80% 60% at 50% 100%, hsl(var(--${tile.tone}) / 0.35), hsl(var(--surface)) 70%)`,
+              background: `radial-gradient(120% 85% at 50% 118%, hsl(var(--${tile.tone}) / 0.5), hsl(var(--surface)) 68%)`,
             }}
           >
-            <img
-              src={tile.image}
-              alt=""
-              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105"
-              style={{ zIndex: -2, transition: 'transform 1.2s cubic-bezier(.16,1,.3,1)' }}
-            />
-            <span
-              aria-hidden
-              className="absolute inset-0"
-              style={{
-                zIndex: -1,
-                background:
-                  'linear-gradient(to bottom, hsl(var(--ink) / 0.88) 0%, hsl(var(--ink) / 0.35) 50%, hsl(var(--ink) / 0.1) 100%)',
-              }}
-            />
-
             <p
               className="stelli-shimmer font-heading font-medium"
               style={{
