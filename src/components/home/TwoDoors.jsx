@@ -36,7 +36,7 @@ export default function TwoDoors() {
             className="group flex flex-col justify-between min-h-[220px] md:min-h-[280px] p-7 md:p-10"
           >
             <p
-              className="font-semibold leading-[1.02] tracking-[-0.02em] text-white"
+              className="font-display font-semibold leading-[1.02] tracking-[-0.02em] text-white"
               style={{ fontSize: 'clamp(26px, 3.4vw, 44px)' }}
             >
               {tile.word}

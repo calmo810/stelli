@@ -63,7 +63,7 @@ export default function MeetCreators() {
     <section className="py-[88px] md:py-[112px] border-t border-white/10">
       <div className="max-w-[1440px] mx-auto px-5 md:px-10 flex items-end justify-between gap-5">
         <h2
-          className="font-heading font-medium text-white leading-[1.08] tracking-[-0.02em]"
+          className="font-display font-medium text-white leading-[1.08] tracking-[-0.02em]"
           style={{ fontSize: 'clamp(30px, 4.6vw, 64px)' }}
         >
           Meet the{' '}
@@ -119,7 +119,7 @@ export default function MeetCreators() {
                   style={{ background: 'linear-gradient(to top, hsl(var(--ink) / 0.9) 0%, transparent 50%)' }}
                 />
                 <div className="absolute left-[22px] right-[22px] bottom-[22px] z-10">
-                  <p className="font-heading font-medium text-white leading-none" style={{ fontSize: 30 }}>
+                  <p className="font-display font-medium text-white leading-none" style={{ fontSize: 30 }}>
                     {displayNameOf(creator)}
                   </p>
                   <p className="mt-2 font-body text-[14px] text-white/70">
@@ -142,7 +142,7 @@ export default function MeetCreators() {
               padding: 26,
             }}
           >
-            <p className="font-heading font-medium leading-[1.05]" style={{ fontSize: 34 }}>
+            <p className="font-display font-medium leading-[1.05]" style={{ fontSize: 34 }}>
               Your name
               <br />
               could be here.
