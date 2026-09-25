@@ -1,77 +1,72 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import Surface from '@/components/shared/Surface';
-
-// A soft highlighter stroke behind the lower half of a word.
-const MARK = {
-  backgroundImage: 'linear-gradient(hsl(var(--neon-lime) / 0.35), hsl(var(--neon-lime) / 0.35))',
-  backgroundSize: '100% .34em',
-  backgroundPosition: '0 74%',
-  backgroundRepeat: 'no-repeat',
-  padding: '0 .06em',
-};
 
 const TILES = [
   {
     to: '/creators',
-    word: (
-      <>
-        I <span style={MARK}>need</span> photos.
-      </>
-    ),
+    word: 'I need photos.',
     line: 'Pick a creator. Get a private quote.',
     cta: 'Find a creator',
-    tint: 'linear-gradient(180deg, hsl(var(--surface)) 0%, hsl(var(--surface-2)) 45%, hsl(var(--neon-lime) / 0.13) 100%)',
-    button: { background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))' },
+    hi: 'hsl(var(--neon-lime))',
+    glow: 'hsl(var(--neon-lime) / 0.35)',
+    delay: '0s',
   },
   {
     to: '/register?role=creator',
     word: 'I take photos.',
     line: 'Get booked. Get paid on delivery.',
     cta: 'Apply to join',
-    tint: 'linear-gradient(180deg, hsl(var(--surface)) 0%, hsl(var(--surface-2)) 45%, hsl(var(--neon-cyan) / 0.13) 100%)',
-    button: { background: 'hsl(var(--neon-cyan))', color: 'hsl(var(--ink))' },
+    hi: 'hsl(var(--neon-cyan))',
+    glow: 'hsl(var(--neon-cyan) / 0.35)',
+    delay: '1.3s',
   },
 ];
 
-/** Two doors, said plainly: one line each, one way through. */
+/** Two doors: a lime tile and a cyan tile, lit from the bottom edge. */
 export default function TwoDoors() {
   return (
-    <section className="max-w-[1240px] mx-auto px-5 md:px-10 py-[88px] md:py-[120px]">
+    <section className="max-w-[1040px] mx-auto px-3 sm:px-5 md:px-10 py-[88px] md:py-[120px]">
       <h2
-        className="text-center font-display text-white/50"
-        style={{ fontSize: 'clamp(20px, 2.4vw, 28px)' }}
+        className="text-center font-display font-medium leading-[1.08] tracking-[-0.02em] text-white/70"
+        style={{ fontSize: 'clamp(22px, 2.6vw, 34px)' }}
       >
         Which one are you?
       </h2>
 
-      <div className="mt-10 md:mt-14 grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+      <div className="mt-8 md:mt-8 grid grid-cols-2 gap-2 md:gap-[14px]">
         {TILES.map((tile) => (
-          <Surface
-            as={Link}
+          <Link
             key={tile.to}
             to={tile.to}
-            hover
-            className="group flex flex-col justify-between min-h-[240px] md:min-h-[300px] p-7 md:p-10"
-            style={{ background: tile.tint, borderRadius: 20 }}
+            className="group flex flex-col items-center text-center overflow-hidden rounded-[18px] md:rounded-3xl px-2.5 pt-7 pb-7 md:px-6 md:pt-11 md:pb-11 min-h-[300px] md:min-h-[420px] transition-transform duration-300 hover:-translate-y-1"
+            style={{ background: `radial-gradient(80% 60% at 50% 100%, ${tile.glow}, hsl(var(--surface)) 70%)` }}
           >
             <p
-              className="font-display font-normal leading-[1.02] tracking-[-0.02em] text-white"
-              style={{ fontSize: 'clamp(28px, 4vw, 46px)' }}
+              className="stelli-shimmer font-display font-medium tracking-[-0.03em] leading-[1.05] pb-[.06em]"
+              style={{
+                fontSize: 'clamp(26px, 4vw, 56px)',
+                '--shimmer-hi': tile.hi,
+                '--shimmer-spread': '30px',
+                animationDelay: tile.delay,
+              }}
             >
               {tile.word}
             </p>
 
-            <div className="mt-8">
-              <p className="text-[14px] md:text-[15px] leading-relaxed text-white/45 max-w-[300px]">{tile.line}</p>
-              <span
-                className="mt-6 inline-flex items-center rounded-full px-6 py-3 text-[13px] font-semibold transition-transform duration-300 group-hover:-translate-y-0.5"
-                style={tile.button}
-              >
-                {tile.cta}
-              </span>
-            </div>
-          </Surface>
+            <p
+              className="mt-2.5 text-white/85 max-w-[300px] leading-[1.4]"
+              style={{ fontSize: 'clamp(13px, 1.3vw, 17px)' }}
+            >
+              {tile.line}
+            </p>
+
+            <span
+              className="mt-5 inline-flex items-center rounded-[980px] font-medium text-ink whitespace-nowrap text-[12px] px-3.5 py-2 md:text-[14px] md:px-[18px] md:py-[9px] transition-transform duration-300 group-hover:scale-[1.04]"
+              style={{ background: tile.hi }}
+            >
+              {tile.cta}
+            </span>
+          </Link>
         ))}
       </div>
     </section>
