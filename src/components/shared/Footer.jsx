@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Instagram } from 'lucide-react';
 import StelliWordmark from './StelliWordmark';
+import IchigoPopup from './IchigoPopup';
 
 const LINKS = [
   { to: '/creators', text: 'Browse creators' },
@@ -28,9 +29,9 @@ const LINK = 'font-body text-[13px] text-white/60 hover:text-white transition-co
 /** The footer: one floating sheet of liquid glass, and very little else. */
 export default function Footer() {
   return (
-    <footer className="relative bg-ink px-4 md:px-10 pb-6 md:pb-8 pt-2 overflow-hidden">
+    <footer className="relative bg-ink px-4 md:px-10 pb-6 md:pb-8 pt-2">
       {/* one soft lime light behind the glass, and nothing else */}
-      <div aria-hidden className="absolute inset-0 pointer-events-none">
+      <div aria-hidden className="absolute inset-0 overflow-hidden pointer-events-none">
         <div
           className="absolute rounded-full"
           style={{
@@ -89,7 +90,7 @@ export default function Footer() {
               >
                 <Instagram className="w-4 h-4" />
               </a>
-              <p className="text-[12px] text-white/35">one time, one meeting</p>
+              <IchigoPopup />
             </div>
           </div>
         </div>
