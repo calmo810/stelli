@@ -1,5 +1,6 @@
 import React from 'react';
 import HeroVideo from '@/components/home/HeroVideo';
+import BornTo from '@/components/home/BornTo';
 import TwoDoors from '@/components/home/TwoDoors';
 import MeetCreators from '@/components/home/MeetCreators';
 import HowItWorks from '@/components/home/HowItWorks';
@@ -13,6 +14,7 @@ export default function Home() {
         <StarSprinkle />
         <HeroVideo />
       </div>
+      <BornTo />
       <TwoDoors />
       <MeetCreators />
       <HowItWorks />

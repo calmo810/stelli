@@ -151,7 +151,17 @@ export async function markBookingPaid(base44, session) {
     ? await base44.asServiceRole.entities.Quote.get(quoteId).catch(() => null)
     : null;
 
-  const price = Number(quote?.amount || 0);
+  // The price the checkout was built from — quote plus the add-ons the client
+  // ticked. Sessions from before it was recorded rebuild it the same way.
+  const addOnTotal =
+    quote && booking.quote_id === quote.id
+      ? (booking.picked_add_ons || []).reduce((sum, addOn) => sum + (Number(addOn?.price) || 0), 0)
+      : 0;
+  const recordedPrice = Number(session?.metadata?.price);
+  const price =
+    Number.isFinite(recordedPrice) && recordedPrice > 0
+      ? recordedPrice
+      : Math.round((Number(quote?.amount || 0) + addOnTotal) * 100) / 100;
   const charged = Number(session.amount_total || 0) / 100;
   const tax = Number(session.total_details?.amount_tax || 0) / 100;
   const now = new Date().toISOString();
@@ -209,9 +219,12 @@ export async function markBookingPaid(base44, session) {
   return { paid: true, charged, tax, needsReview };
 }
 
+/**
+ * Sends money back to the client. With no amount it refunds whatever is still
+ * left on the charge, so a founder can finish off a partly refunded booking.
+ */
 export async function refundBooking(base44, booking, amount, note) {
   if (!booking) return { refunded: false, reason: 'not-found' };
-  if (booking.refunded_at) return { refunded: false, reason: 'already-refunded' };
 
   const reference = booking.stripe_payment_intent_id || booking.stripe_charge_id;
   if (!reference) return { refunded: false, reason: 'no-charge' };
@@ -223,8 +236,13 @@ export async function refundBooking(base44, booking, amount, note) {
       ? Number(booking.amount_charged)
       : clientTotal(booking.total_price);
 
-  const refundAmount = Number(amount || 0) > 0 ? Number(amount) : charged;
+  const alreadyRefunded = Number(booking.refund_amount || 0);
+  const remaining = Math.round((charged - alreadyRefunded) * 100) / 100;
+  if (remaining <= 0) return { refunded: false, reason: 'already-refunded' };
+
+  const refundAmount = Math.min(Number(amount || 0) > 0 ? Number(amount) : remaining, remaining);
   const cents = toCents(refundAmount);
+  const totalRefunded = Math.round((alreadyRefunded + refundAmount) * 100) / 100;
 
   const params = new URLSearchParams();
   params.set(booking.stripe_payment_intent_id ? 'payment_intent' : 'charge', reference);
@@ -232,11 +250,27 @@ export async function refundBooking(base44, booking, amount, note) {
   params.set('metadata[booking_id]', booking.id);
   params.set('metadata[base44_app_id]', secrets.get('BASE44_APP_ID') || '');
 
-  // Keyed by the amount, so a second, different refund is never blocked.
-  const refund = await stripePost('refunds', params, `refund-${booking.id}-${cents}`);
+  // Keyed by what was refunded before plus this amount: a retry of the same
+  // refund is a no-op, while a later, second refund still goes through.
+  const refund = await stripePost(
+    'refunds',
+    params,
+    `refund-${booking.id}-${toCents(alreadyRefunded)}-${cents}`
+  );
+
+  const now = new Date().toISOString();
+
+  // The refund is recorded before anything else can fail, so a retry never
+  // sends the client's money twice.
+  await base44.asServiceRole.entities.Booking.update(booking.id, {
+    refund_amount: totalRefunded,
+    refunded_at: now,
+    payment_status: toCents(totalRefunded) >= toCents(charged) ? 'refunded' : 'partially_refunded',
+    flagged_for_review: false,
+    flag_reason: note || '',
+  });
 
   // A refund after the creator was already paid pulls their share back.
-  let reversalId = booking.stripe_transfer_reversal_id || '';
   if (booking.stripe_transfer_id && charged > 0) {
     const share =
       Math.round(Number(booking.creator_payout || 0) * (refundAmount / charged) * 100) / 100;
@@ -246,31 +280,32 @@ export async function refundBooking(base44, booking, amount, note) {
       reversalParams.set('amount', String(reversalCents));
       reversalParams.set('metadata[booking_id]', booking.id);
       reversalParams.set('metadata[base44_app_id]', secrets.get('BASE44_APP_ID') || '');
-      const reversal = await stripePost(
-        `transfers/${booking.stripe_transfer_id}/reversals`,
-        reversalParams,
-        `reversal-${booking.id}-${reversalCents}`
-      );
-      reversalId = reversal.id;
+      try {
+        const reversal = await stripePost(
+          `transfers/${booking.stripe_transfer_id}/reversals`,
+          reversalParams,
+          `reversal-${booking.id}-${toCents(alreadyRefunded)}-${reversalCents}`
+        );
+        await base44.asServiceRole.entities.Booking.update(booking.id, {
+          stripe_transfer_reversal_id: reversal.id,
+        });
+      } catch (error) {
+        // The client has their money back; getting the creator's share back
+        // is now a founder's call.
+        console.error('Transfer reversal failed for booking', booking.id, '-', error.message);
+        await base44.asServiceRole.entities.Booking.update(booking.id, {
+          flagged_for_review: true,
+          flag_reason: `Refunded ${money(refundAmount)} but could not pull back the creator's ${money(share)}: ${error.message}`,
+        });
+      }
     }
   }
-
-  const now = new Date().toISOString();
-
-  await base44.asServiceRole.entities.Booking.update(booking.id, {
-    refund_amount: refundAmount,
-    refunded_at: now,
-    payment_status: cents >= toCents(charged) ? 'refunded' : 'partially_refunded',
-    stripe_transfer_reversal_id: reversalId,
-    flagged_for_review: false,
-    flag_reason: note || '',
-  });
 
   await sendEmail(
     base44,
     booking.client_email,
     'Refund issued',
-    `$${refundAmount.toLocaleString()} has been refunded for the ${booking.event_date} shoot. It reaches your card in a few business days.`
+    `${money(refundAmount)} has been refunded for the ${booking.event_date} shoot. It reaches your card in a few business days.`
   );
 
   return { refunded: true, refundId: refund.id, amount: refundAmount };

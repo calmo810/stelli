@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { secrets } from 'base44:runtime';
 import { BOOKING_LABEL } from '../../shared/bookingContract.ts';
-import { clientTotal, serviceFee, stripePost, toCents } from '../../shared/stripe.ts';
+import { clientTotal, serviceFee, stripeGet, stripePost, toCents } from '../../shared/stripe.ts';
 import { safeOrigin } from '../../shared/origins.ts';
 
 export default async function (req) {
@@ -77,6 +77,39 @@ export default async function (req) {
     const appId = secrets.get('BASE44_APP_ID') || '';
     const eventLabel = booking.event_description || 'Shoot';
 
+    // Which add-ons this checkout is for, so re-picking two of the same price
+    // still opens a checkout with the right lines.
+    const addOnKey = pickedAddOns.map((addOn) => addOn.name).join('|').slice(0, 500);
+
+    // A checkout already open for this exact quote is handed back instead of
+    // opening a second one, so the client can never pay the same booking twice.
+    if (booking.stripe_checkout_session_id) {
+      const open = await stripeGet(`checkout/sessions/${booking.stripe_checkout_session_id}`).catch(
+        () => null
+      );
+      if (
+        open?.status === 'open' &&
+        open.url &&
+        open.metadata?.quote_id === quote.id &&
+        (open.metadata?.add_ons || '') === addOnKey &&
+        Number(open.amount_total) === toCents(total)
+      ) {
+        return Response.json({ url: open.url, sessionId: open.id, price, fee, total });
+      }
+      // Paid, but the webhook has not landed yet. A completed session that is
+      // unpaid is a bank payment that failed, and the client may pay again.
+      if (open?.status === 'complete' && open.payment_status === 'paid') {
+        return Response.json({ error: 'This booking is already paid.' }, { status: 409 });
+      }
+      // Anything still open no longer matches, so it is closed before a new one
+      // opens — only one checkout is ever payable.
+      if (open?.status === 'open') {
+        await stripePost(`checkout/sessions/${open.id}/expire`, new URLSearchParams()).catch(
+          (error) => console.error('Could not expire stale checkout', open.id, '-', error.message)
+        );
+      }
+    }
+
     const body = new URLSearchParams();
     body.set('mode', 'payment');
     body.set('success_url', `${base}/messages/${bookingId}?payment=success`);
@@ -111,12 +144,24 @@ export default async function (req) {
     body.set('metadata[base44_app_id]', appId);
     body.set('metadata[booking_id]', bookingId);
     body.set('metadata[quote_id]', quote.id);
+    // The price the fee and the creator's share are worked out from, fixed now
+    // so the webhook never has to rebuild it.
+    body.set('metadata[price]', String(price));
+    body.set('metadata[add_ons]', addOnKey);
     body.set('payment_intent_data[transfer_group]', transferGroup);
     body.set('payment_intent_data[metadata][base44_app_id]', appId);
     body.set('payment_intent_data[metadata][booking_id]', bookingId);
     body.set('payment_intent_data[metadata][quote_id]', quote.id);
 
-    const session = await stripePost('checkout/sessions', body, `booking-checkout-${quote.id}`);
+    // Keyed by the quote and the checkout it replaces: a double click shares one
+    // session, while paying again after an expired or failed checkout opens a
+    // fresh one. The origin is part of it because it changes the parameters.
+    const attempt = booking.stripe_checkout_session_id || 'first';
+    const session = await stripePost(
+      'checkout/sessions',
+      body,
+      `booking-checkout-${quote.id}-${attempt}-${new URL(base).hostname}`
+    );
 
     // Kept so a later quote can close this session instead of leaving it payable.
     await base44.asServiceRole.entities.Booking.update(bookingId, {
