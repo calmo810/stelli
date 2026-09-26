@@ -38,7 +38,7 @@ export default function TwoDoors() {
           <Link
             key={tile.to}
             to={tile.to}
-            className="group flex flex-col items-center text-center overflow-hidden rounded-[18px] md:rounded-3xl px-2.5 pt-6 pb-6 md:px-6 md:pt-8 md:pb-8 min-h-[210px] md:min-h-[290px] transition-transform duration-300 hover:-translate-y-1"
+            className="group flex flex-col items-center justify-center text-center overflow-hidden rounded-[18px] md:rounded-3xl px-2.5 py-6 md:px-6 md:py-8 min-h-[210px] md:min-h-[290px] transition-transform duration-300 hover:-translate-y-1"
             style={{ background: `radial-gradient(80% 60% at 50% 100%, ${tile.glow}, hsl(var(--surface)) 70%)` }}
           >
             <p
