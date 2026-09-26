@@ -2,6 +2,10 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 
+/**
+ * Every page that is not the home page carries the same way out, pinned to the
+ * top-left of the content measure so it never drifts between pages.
+ */
 export default function BackButton() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -19,14 +23,17 @@ export default function BackButton() {
   };
 
   return (
-    <button
-      onClick={handleBack}
-      className="fixed top-20 left-4 md:left-8 z-[55] inline-flex items-center gap-2 px-4 py-2.5 label-mono text-[10px] bg-ink/90 backdrop-blur border border-white/15 text-white/70 hover:text-neon-lime hover:border-neon-lime/50 transition-colors shadow-lg"
-      style={{ borderRadius: 4 }}
-      aria-label="Go back"
-    >
-      <ArrowLeft className="w-3.5 h-3.5" />
-      Back
-    </button>
+    <div className="pointer-events-none fixed inset-x-0 top-[70px] z-[55]">
+      <div className="mx-auto flex max-w-[1240px] px-5 md:px-10">
+        <button
+          onClick={handleBack}
+          aria-label="Go back"
+          className="pointer-events-auto inline-flex items-center gap-2 rounded-xl border border-white/10 bg-[#1a1c24]/85 px-4 py-2.5 text-white/80 backdrop-blur-md transition-colors hover:border-neon-lime/50 hover:text-white"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          <span className="label-mono text-[10px] font-semibold">Back</span>
+        </button>
+      </div>
+    </div>
   );
 }
