@@ -176,8 +176,8 @@
   /* ---------------------------------------------------------------
      Dashboard stack. A quick sub-page opens as a sheet on top of the
      dashboard, which stays visible in the peek strip above it — that
-     strip is the way back. --stack-top is the fixed header (64px bar +
-     52px back row) so the sheet never covers the nav.
+     strip is the way back. The sheet starts below the fixed nav bar so it
+     never covers it.
      --------------------------------------------------------------- */
   .stack-parent {
     transform-origin: 50% 0;
@@ -195,7 +195,7 @@
     position: fixed;
     left: 0;
     right: 0;
-    top: 116px;
+    top: 64px;
     height: 52px;
     z-index: 45;
     display: flex;
@@ -228,7 +228,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    top: 168px;
+    top: 116px;
     z-index: 46;
     overflow-y: auto;
     overscroll-behavior: contain;
