@@ -4,6 +4,7 @@ import { AnimatePresence } from 'framer-motion';
 import { Menu } from 'lucide-react';
 import MenuOverlay from './MenuOverlay';
 import StelliWordmark from './StelliWordmark';
+import BackButton from './BackButton';
 
 export default function Navbar() {
   const [open, setOpen] = useState(false);
@@ -21,7 +22,8 @@ export default function Navbar() {
     setOpen(false);
   }, [location.pathname]);
 
-  const solid = scrolled || location.pathname !== '/';
+  const isHome = location.pathname === '/';
+  const solid = scrolled || !isHome;
 
   return (
     <>
@@ -48,6 +50,14 @@ export default function Navbar() {
             </button>
           </div>
         </div>
+
+        {!isHome && (
+          <div className="border-t border-white/[0.06]">
+            <div className="mx-auto flex h-[52px] max-w-[1240px] items-center px-5 md:px-10">
+              <BackButton />
+            </div>
+          </div>
+        )}
       </header>
 
       <AnimatePresence>

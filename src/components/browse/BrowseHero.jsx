@@ -23,7 +23,7 @@ export default function BrowseHero({ creators = [], onFind }) {
   const faces = creators.slice(0, 5).map((creator) => cardImages(creator)[0]).filter(Boolean);
 
   return (
-    <header className="pt-8 md:pt-12">
+    <header className="pt-2 md:pt-4">
       <div
         className="inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-white/[0.02] px-3.5 py-2 label-mono text-[11px] text-white/50"
         style={{ opacity: 0, animation: `stelliFade .8s ${EASE_OUT} forwards` }}
