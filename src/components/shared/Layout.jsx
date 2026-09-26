@@ -6,10 +6,13 @@ import Footer from './Footer';
 import PageTransition from './PageTransition';
 import LegalUpdateBanner from '@/components/legal/LegalUpdateBanner';
 import RoleGate from '@/components/RoleGate';
+import { pageParent } from '@/lib/stackRoutes';
 
 export default function Layout() {
   const location = useLocation();
   const isHome = location.pathname === '/';
+  // A sheet opens over its dashboard without remounting it.
+  const transitionKey = pageParent(location.pathname) || location.pathname;
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
@@ -18,7 +21,7 @@ export default function Layout() {
       <main className={`flex-1 ${isHome ? '' : 'pt-[116px]'}`}>
         <RoleGate>
           <AnimatePresence mode="wait" initial={false}>
-            <PageTransition key={location.pathname}>
+            <PageTransition key={transitionKey}>
               <Outlet />
             </PageTransition>
           </AnimatePresence>

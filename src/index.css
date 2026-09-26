@@ -172,6 +172,101 @@
     border: 1px solid rgba(255, 255, 255, 0.14);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 20px 50px -24px rgba(0, 0, 0, 0.6);
   }
+
+  /* ---------------------------------------------------------------
+     Dashboard stack. A quick sub-page opens as a sheet on top of the
+     dashboard, which stays visible in the peek strip above it — that
+     strip is the way back. --stack-top is the fixed header (64px bar +
+     52px back row) so the sheet never covers the nav.
+     --------------------------------------------------------------- */
+  .stack-parent {
+    transform-origin: 50% 0;
+    transition: transform .6s cubic-bezier(.32, .72, 0, 1), border-radius .6s cubic-bezier(.32, .72, 0, 1), filter .6s cubic-bezier(.32, .72, 0, 1);
+  }
+  .stack-parent.is-pushed {
+    transform: translateY(12px) scale(.93);
+    border-radius: 24px;
+    filter: brightness(.55);
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .stack-peek {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 116px;
+    height: 52px;
+    z-index: 45;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border: 0;
+    background: none;
+    cursor: pointer;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .stack-peek-chev {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .12);
+    transition: transform .3s cubic-bezier(.32, .72, 0, 1), background .2s;
+  }
+  .stack-peek:hover .stack-peek-chev {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, .2);
+  }
+
+  .stack-sheet {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 168px;
+    z-index: 46;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: hsl(var(--ink));
+    border-top: 1px solid rgba(255, 255, 255, .12);
+    border-radius: 28px 28px 0 0;
+    box-shadow: 0 -30px 60px -20px rgba(0, 0, 0, .7);
+    transform: translateY(105%);
+    transition: transform .6s cubic-bezier(.32, .72, 0, 1);
+  }
+  .stack-sheet.is-open {
+    transform: translateY(0);
+  }
+  .stack-sheet.is-dragging {
+    transition: none;
+  }
+
+  .stack-grab {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    padding: 12px 0 6px;
+    background: linear-gradient(hsl(var(--ink)) 70%, transparent);
+    cursor: grab;
+    touch-action: none;
+  }
+  .stack-grab:active {
+    cursor: grabbing;
+  }
+  .stack-grab span {
+    display: block;
+    width: 44px;
+    height: 5px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, .22);
+  }
 }
 
 @keyframes marquee {

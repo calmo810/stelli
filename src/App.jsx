@@ -14,6 +14,12 @@ import ForCreators from './pages/ForCreators';
 import CreatorApplication from './pages/CreatorApplication';
 import ClientDashboard from './pages/ClientDashboard';
 import LensmanDashboard from './pages/LensmanDashboard';
+import RequestsSheet from './components/dashboard/sheets/RequestsSheet';
+import UpcomingSheet from './components/dashboard/sheets/UpcomingSheet';
+import DeliveriesSheet from './components/dashboard/sheets/DeliveriesSheet';
+import PayoutsSheet from './components/dashboard/sheets/PayoutsSheet';
+import BookingsSheet from './components/dashboard/sheets/BookingsSheet';
+import MessagesSheet from './components/dashboard/sheets/MessagesSheet';
 import Messages from './pages/Messages';
 import MessagesInbox from './pages/MessagesInbox';
 import AdminDashboard from './pages/AdminDashboard';
@@ -82,8 +88,18 @@ const AuthenticatedApp = () => {
         <Route path="/how-it-works" element={<HowItWorks />} />
         <Route path="/for-creators" element={<ForCreators />} />
         <Route path="/apply" element={<CreatorApplication />} />
-        <Route path="/client-dashboard" element={<ClientDashboard />} />
-        <Route path="/lensman-dashboard" element={<LensmanDashboard />} />
+        {/* Dashboards are the parent page; these quick sub-pages open as sheets over them. */}
+        <Route path="/client-dashboard" element={<ClientDashboard />}>
+          <Route path="bookings" element={<BookingsSheet />} />
+          <Route path="messages" element={<MessagesSheet />} />
+        </Route>
+        <Route path="/lensman-dashboard" element={<LensmanDashboard />}>
+          <Route path="requests" element={<RequestsSheet />} />
+          <Route path="upcoming" element={<UpcomingSheet />} />
+          <Route path="deliveries" element={<DeliveriesSheet />} />
+          <Route path="payouts" element={<PayoutsSheet />} />
+          <Route path="messages" element={<MessagesSheet />} />
+        </Route>
         <Route path="/edit-profile" element={<EditProfile />} />
         <Route path="/account-settings" element={<AccountSettings />} />
         <Route path="/portal/messages" element={<MessagesInbox />} />
