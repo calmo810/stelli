@@ -12,13 +12,16 @@ export default function IchigoCard({ pointerRight = 28 }) {
   return (
     <div
       id="ichigo-note"
-      className="ichigo-card relative w-[min(330px,calc(100vw-2.5rem))] rounded-[20px] border border-white/[0.14] bg-white/[0.055] p-5 backdrop-blur-2xl backdrop-saturate-150"
-      style={{ boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18), 0 30px 70px -34px rgba(0,0,0,0.95)' }}
+      className="ichigo-card relative z-[100] w-[min(330px,calc(100vw-2.5rem))] rounded-[20px] border border-white/[0.14] p-5"
+      style={{
+        background: 'rgb(16, 22, 40)',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18), 0 30px 70px -34px rgba(0,0,0,0.95)',
+      }}
     >
       <span
         aria-hidden
-        className="absolute -bottom-[7px] h-3.5 w-3.5 rotate-45 rounded-[2px] border-b border-r border-white/[0.14] bg-[rgba(255,255,255,0.09)]"
-        style={{ right: pointerRight }}
+        className="absolute -bottom-[7px] h-3.5 w-3.5 rotate-45 rounded-[2px] border-b border-r border-white/[0.14]"
+        style={{ right: pointerRight, background: 'rgb(16, 22, 40)' }}
       />
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">

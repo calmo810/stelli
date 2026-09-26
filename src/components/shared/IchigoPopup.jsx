@@ -53,7 +53,7 @@ export default function IchigoPopup() {
   return (
     <div
       ref={wrapRef}
-      className="relative"
+      className="relative z-[100]"
       onPointerEnter={(event) => {
         if (event.pointerType === 'mouse') setOpen(true);
       }}
@@ -85,7 +85,7 @@ export default function IchigoPopup() {
       </button>
 
       {open && (
-        <div className="absolute bottom-full z-30 pb-3" style={{ right: -nudge }}>
+        <div className="absolute bottom-full z-[100] pb-3" style={{ right: -nudge }}>
           <IchigoCard pointerRight={nudge + 28} />
         </div>
       )}
