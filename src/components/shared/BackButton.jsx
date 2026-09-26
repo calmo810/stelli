@@ -2,7 +2,12 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 
-export default function BackButton() {
+/**
+ * The way out of every page that is not the home page. It sits in the page's own
+ * flow — never pinned — and on a page that opens with a photo it rides on the
+ * photo itself.
+ */
+export default function BackButton({ variant = 'default', className = '' }) {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -18,15 +23,18 @@ export default function BackButton() {
     else navigate('/');
   };
 
+  const look = variant === 'hero'
+    ? 'glass rounded-full px-4 py-2.5 text-white hover:bg-white/20'
+    : 'rounded-full border border-white/10 bg-white/[0.06] px-4 py-2.5 text-white/80 hover:border-neon-lime/50 hover:text-white';
+
   return (
     <button
       onClick={handleBack}
-      className="fixed top-20 left-4 md:left-8 z-[55] inline-flex items-center gap-2 px-4 py-2.5 label-mono text-[10px] bg-ink/90 backdrop-blur border border-white/15 text-white/70 hover:text-neon-lime hover:border-neon-lime/50 transition-colors shadow-lg"
-      style={{ borderRadius: 4 }}
       aria-label="Go back"
+      className={`inline-flex items-center gap-2 transition-colors ${look} ${className}`}
     >
-      <ArrowLeft className="w-3.5 h-3.5" />
-      Back
+      <ArrowLeft className="h-3.5 w-3.5" />
+      <span className="label-mono text-[10px] font-semibold">Back</span>
     </button>
   );
 }

@@ -2,9 +2,9 @@ import React from 'react';
 
 const DEFAULT_RATIO = 'aspect-[4/5] sm:aspect-[3/2]';
 
-export default function ProfileCover({ src, focal, ratioClass = DEFAULT_RATIO }) {
+export default function ProfileCover({ src, focal, ratioClass = DEFAULT_RATIO, children }) {
   if (!src) {
-    return <div className={`w-full ${ratioClass} bg-surface-2`} />;
+    return <div className={`relative w-full ${ratioClass} bg-surface-2`}>{children}</div>;
   }
 
   return (
@@ -19,6 +19,7 @@ export default function ProfileCover({ src, focal, ratioClass = DEFAULT_RATIO })
         className="absolute inset-0 pointer-events-none"
         style={{ background: 'linear-gradient(to top, hsl(var(--ink)) 0%, rgba(10,18,38,0.3) 45%, transparent 75%)' }}
       />
+      {children}
     </div>
   );
 }

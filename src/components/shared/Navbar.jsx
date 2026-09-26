@@ -21,7 +21,8 @@ export default function Navbar() {
     setOpen(false);
   }, [location.pathname]);
 
-  const solid = scrolled || location.pathname !== '/';
+  const isHome = location.pathname === '/';
+  const solid = scrolled || !isHome;
 
   return (
     <>
@@ -48,6 +49,7 @@ export default function Navbar() {
             </button>
           </div>
         </div>
+
       </header>
 
       <AnimatePresence>

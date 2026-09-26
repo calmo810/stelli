@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useLocation, useNavigationType } from "react-router-dom";
+import { isSheetRoute } from "@/lib/stackRoutes";
 
 const getHashId = (hash) => {
   const rawId = hash.slice(1);
@@ -17,6 +18,8 @@ export default function ScrollToTop() {
 
   useEffect(() => {
     if (navigationType === "POP") return;
+    // Opening a sheet keeps the dashboard underneath exactly where it was.
+    if (isSheetRoute(pathname)) return;
 
     if (hash) {
       const id = getHashId(hash);

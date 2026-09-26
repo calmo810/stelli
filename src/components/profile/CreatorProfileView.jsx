@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft, Lock } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import ProfileCover from '@/components/profile/ProfileCover';
+import BackButton from '@/components/shared/BackButton';
 import StyleTagChips from '@/components/profile/StyleTagChips';
 import PromptBlock from '@/components/profile/PromptBlock';
 import DoesntShoot from '@/components/profile/DoesntShoot';
@@ -101,13 +102,17 @@ export default function CreatorProfileView({ creatorId, adminPanel = null }) {
     <div className="min-h-screen bg-ink pb-32 lg:pb-24">
       {adminPanel}
 
-      <div className="max-w-[1500px] mx-auto px-5 md:px-10 pt-24 mb-6">
+      <div className="max-w-[1500px] mx-auto px-5 md:px-10 pt-4 md:pt-6 mb-6">
         <Link to="/creators" className="inline-flex items-center gap-2 label-mono text-[10px] text-white/35 hover:text-neon-lime transition-colors">
           <ArrowLeft className="w-3.5 h-3.5" /> All creators
         </Link>
       </div>
 
-      <ProfileCover src={cover} focal={focal} ratioClass={COVER_RATIO[creator.profile_theme] || COVER_RATIO.night_flash} />
+      <ProfileCover src={cover} focal={focal} ratioClass={COVER_RATIO[creator.profile_theme] || COVER_RATIO.night_flash}>
+        <div className="absolute left-5 top-5 md:left-10 md:top-7">
+          <BackButton variant="hero" />
+        </div>
+      </ProfileCover>
 
       <div className="max-w-[1500px] mx-auto px-5 md:px-10 pt-10">
         <div className="grid lg:grid-cols-[1fr_340px] gap-12 lg:gap-16 items-start">
