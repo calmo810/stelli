@@ -13,13 +13,35 @@ export const PROMPTS = [
   "You'll know it's my photo because…",
   'I got into this because…',
   'Worst shoot I ever survived…',
+  // Offered by the profile wizard.
+  'My dream shoot is…',
+  'Clients always tell me…',
+  'My style in three words…',
+  "The shot I'm proudest of…",
+  'You should book me if…',
 ];
 
 export const STYLE_TAGS = ['grad', 'portraits', 'outdoor', 'campus', 'couples', 'film', 'bright', 'events', 'flash', 'nightlife', 'editorial', 'moody'];
 export const ALL_STYLE_TAGS = STYLE_TAGS;
 
-export const LIMITS = { one_liner: 80, prompt_answer: 200, dont_shoot: 120, bio: 400 };
+export const LIMITS = { one_liner: 90, prompt_answer: 200, dont_shoot: 140, bio: 400 };
 export const ACCENTS = ['lime', 'cyan', 'magenta'];
+export const TIER_LEVELS = ['low', 'mid', 'high'];
+
+/** The creator's packages, exactly as the profile wizard collects them. */
+export function cleanPricingTiers(tiers) {
+  if (!Array.isArray(tiers)) return [];
+  return tiers
+    .slice(0, 3)
+    .map((tier, i) => ({
+      tier: TIER_LEVELS[i] || 'low',
+      name: String(tier?.name || '').trim().slice(0, 28),
+      price: Math.max(0, Math.round(Number(tier?.price) || 0)),
+      duration: String(tier?.duration || '').trim().slice(0, 12),
+      includes: String(tier?.includes || '').trim().slice(0, 60),
+    }))
+    .filter((tier) => tier.price > 0);
+}
 
 export const CONTACT_MESSAGE =
   'Contact details stay private until a booking is confirmed — keep this part about your work.';
@@ -65,8 +87,8 @@ function cleanTags(tags) {
   if (!Array.isArray(tags)) return [];
   const seen = [];
   for (const tag of tags) {
-    const value = String(tag || '').trim().toLowerCase();
-    if (ALL_STYLE_TAGS.includes(value) && !seen.includes(value)) seen.push(value);
+    const value = String(tag || '').trim().toLowerCase().slice(0, 24);
+    if (value && !seen.includes(value)) seen.push(value);
   }
   return seen.slice(0, 3);
 }
@@ -136,6 +158,10 @@ export function buildProfilePatch(body = {}) {
     patch.pinned_images = body.pinned_images
       .filter((url) => typeof url === 'string' && url)
       .slice(0, 3);
+  }
+
+  if (Array.isArray(body.pricing_tiers)) {
+    patch.pricing_tiers = cleanPricingTiers(body.pricing_tiers);
   }
 
   return { patch, errors };

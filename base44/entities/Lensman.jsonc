@@ -48,7 +48,7 @@
     },
     "prompt_question": {
       "type": "string",
-      "description": "One of the six fixed profile prompts"
+      "description": "One of the fixed profile prompts"
     },
     "prompt_answer": {
       "type": "string",
@@ -92,6 +92,35 @@
         "type": "string"
       },
       "description": "Ordered list of up to three portfolio images shown larger on the public profile"
+    },
+    "pricing_tiers": {
+      "type": "array",
+      "description": "The packages the creator offers, collected by the profile wizard",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tier": {
+            "type": "string",
+            "enum": [
+              "low",
+              "mid",
+              "high"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          },
+          "duration": {
+            "type": "string"
+          },
+          "includes": {
+            "type": "string"
+          }
+        }
+      }
     },
     "profile_theme": {
       "type": "string",

@@ -11,7 +11,7 @@ import Home from './pages/Home';
 import BookingFlow from './pages/BookingFlow';
 import HowItWorks from './pages/HowItWorks';
 import ForCreators from './pages/ForCreators';
-import CreatorApplication from './pages/CreatorApplication';
+import ProfileWizard from './pages/ProfileWizard';
 import ClientDashboard from './pages/ClientDashboard';
 import LensmanDashboard from './pages/LensmanDashboard';
 import RequestsSheet from './components/dashboard/sheets/RequestsSheet';
@@ -38,7 +38,6 @@ import CreatorProfile from './pages/CreatorProfile';
 import Faq from './pages/Faq';
 import Onboarding from './pages/Onboarding';
 import Portal from './pages/Portal';
-import EditProfile from './pages/EditProfile';
 import AccountSettings from './pages/AccountSettings';
 import AdminRoute from '@/components/AdminRoute';
 import LegacyRedirect from '@/components/LegacyRedirect';
@@ -75,6 +74,8 @@ const AuthenticatedApp = () => {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/oauth/consent" element={<OAuthConsent />} />
       <Route path="/onboarding" element={<Onboarding />} />
+      <Route path="/apply" element={<ProfileWizard />} />
+      <Route path="/edit-profile" element={<ProfileWizard />} />
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
         <Route path="/browse" element={<Navigate to="/creators" replace />} />
@@ -87,7 +88,6 @@ const AuthenticatedApp = () => {
         <Route path="/request-sent/:bookingId" element={<RequestSent />} />
         <Route path="/how-it-works" element={<HowItWorks />} />
         <Route path="/for-creators" element={<ForCreators />} />
-        <Route path="/apply" element={<CreatorApplication />} />
         {/* Dashboards are the parent page; these quick sub-pages open as sheets over them. */}
         <Route path="/client-dashboard" element={<ClientDashboard />}>
           <Route path="bookings" element={<BookingsSheet />} />
@@ -100,7 +100,6 @@ const AuthenticatedApp = () => {
           <Route path="payouts" element={<PayoutsSheet />} />
           <Route path="messages" element={<MessagesSheet />} />
         </Route>
-        <Route path="/edit-profile" element={<EditProfile />} />
         <Route path="/account-settings" element={<AccountSettings />} />
         <Route path="/portal/messages" element={<MessagesInbox />} />
         <Route path="/messages/:bookingId" element={<Messages />} />
