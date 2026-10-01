@@ -58,8 +58,10 @@
   backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
   border-bottom:1px solid var(--line);
 }
-.wordmark{font-weight:800;font-size:20px;letter-spacing:-.01em}
-.wordmark span{color:var(--accent)}
+.wordmark-img{
+  height:30px;width:auto;display:block;
+  filter:drop-shadow(0 0 14px color-mix(in srgb,var(--lime) 38%, transparent));
+}
 .top-right{display:flex;align-items:center;gap:18px}
 .save-state{font-size:12px;color:var(--faint);display:flex;align-items:center;gap:6px}
 .save-state .d{width:6px;height:6px;border-radius:50%;background:var(--faint);transition:background .3s}
@@ -398,7 +400,7 @@
 /* mobile preview button (top bar) + sheet */
 .top-preview{display:none;align-items:center;gap:6px;color:var(--accent)}
 @media(max-width:980px){.top-preview{display:inline-flex}}
-@media(max-width:520px){.save-state .t{display:none}.topbar{padding:14px 18px}.top-right{gap:14px}}
+@media(max-width:520px){.save-state .t{display:none}.topbar{padding:14px 18px}.top-right{gap:14px}.wordmark-img{height:25px}}
 .sheet-back{position:fixed;inset:0;z-index:80;background:rgba(5,7,12,.6);backdrop-filter:blur(6px);animation:pwFade .25s both}
 .sheet{
   position:fixed;left:0;right:0;bottom:0;z-index:81;max-height:92vh;overflow-y:auto;

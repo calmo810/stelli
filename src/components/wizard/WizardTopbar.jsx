@@ -1,14 +1,13 @@
 import React from 'react';
 import { Eye } from 'lucide-react';
+import { LOGO_URL } from '@/components/shared/StelliWordmark';
 
 /** The wizard's own bar: the wordmark, the draft state, and the way out. */
 export default function WizardTopbar({ w }) {
   const building = w.view === 'wizard' || w.view === 'preview';
   return (
     <div className="topbar">
-      <div className="wordmark">
-        stelli<span>.</span>
-      </div>
+      <img src={LOGO_URL} alt="Stelli" className="wordmark-img" />
       <div className="top-right">
         {building && (
           <span className={`save-state ${w.saveState === 'Draft saved' ? 'ok' : ''}`}>
