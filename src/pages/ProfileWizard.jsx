@@ -3,8 +3,8 @@ import '@/styles/profileWizard.css';
 import { STEPS } from '@/lib/wizardData';
 import useWizard from '@/hooks/useWizard';
 import WizardTopbar from '@/components/wizard/WizardTopbar';
-import WizardChapters from '@/components/wizard/WizardChapters';
 import WizardCard from '@/components/wizard/WizardCard';
+import WizardFooter from '@/components/wizard/WizardFooter';
 import WizardSide from '@/components/wizard/WizardSide';
 import WizardWelcome from '@/components/wizard/WizardWelcome';
 import WizardReview from '@/components/wizard/WizardReview';
@@ -68,12 +68,12 @@ export default function ProfileWizard() {
         {w.view === 'wizard' && (
           <div className="wiz">
             <main>
-              <WizardChapters step={w.step} maxStep={w.maxStep} onJump={(index) => w.goStep(index, { jump: true })} />
               <WizardCard w={w}>
                 <StepBody w={w} />
               </WizardCard>
             </main>
             <WizardSide w={w} />
+            <WizardFooter w={w} />
           </div>
         )}
 

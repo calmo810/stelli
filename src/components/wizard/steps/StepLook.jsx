@@ -5,9 +5,9 @@ const THEMES = [
   { v: 'clean', l: 'Clean' },
 ];
 const ACCENTS = [
-  { v: 'lime', l: 'Lime', sw: '#d6f344' },
-  { v: 'cyan', l: 'Cyan', sw: '#4fd8e0' },
-  { v: 'magenta', l: 'Magenta', sw: '#e356c4' },
+  { v: 'lime', l: 'Lime', sw: '#C4F82A' },
+  { v: 'cyan', l: 'Cyan', sw: '#2AE8F8' },
+  { v: 'magenta', l: 'Magenta', sw: '#F82AC4' },
 ];
 const GALLERIES = [
   { v: 'hero', l: 'Hero Grid' },
