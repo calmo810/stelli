@@ -8,7 +8,13 @@ import Pill from '@/components/shared/Pill';
 export default function QuoteCard({ quote, booking, role, onChanged }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [picked, setPicked] = useState([]);
+  // Coming back to an accepted quote, the picker starts from what was already
+  // chosen, so the total shown is the total that will be charged.
+  const [picked, setPicked] = useState(() =>
+    quote.status === 'accepted' && booking?.quote_id === quote.id
+      ? (booking.picked_add_ons || []).map((addOn) => addOn.name)
+      : []
+  );
 
   const expired = quote.expires_at && new Date(quote.expires_at) < new Date();
   const dead = expired || ['declined', 'expired'].includes(quote.status);

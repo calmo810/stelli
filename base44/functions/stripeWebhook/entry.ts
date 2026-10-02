@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { secrets } from 'base44:runtime';
 import { notifyBoth, sendEmail } from '../../shared/notify.ts';
 import { markBookingPaid, releaseWaitingPayouts } from '../../shared/payouts.ts';
+import { eventMatchesMode, money, stripeGet } from '../../shared/stripe.ts';
 
 /** Anything older than this is a replay and is refused. */
 const SIGNATURE_TOLERANCE_SECONDS = 300;
@@ -101,6 +102,12 @@ export default async function (req) {
     const event = JSON.parse(payload);
     const object = event?.data?.object || {};
 
+    // A test event while running live (or the reverse) is acknowledged and
+    // ignored, so the two can share endpoints without touching real bookings.
+    if (!eventMatchesMode(event)) {
+      return Response.json({ received: true, ignored: 'mode-mismatch' });
+    }
+
     // Paid by card: the money is held. Paid by bank: it has to clear first.
     if (event.type === 'checkout.session.completed') {
       const bookingId = object?.metadata?.booking_id;
@@ -150,15 +157,41 @@ export default async function (req) {
         });
         const booking = matches[0];
         if (booking) {
+          const refunded = Number(charge.amount_refunded || 0) / 100;
+          // Stelli tags every refund it makes. An untagged one was done by hand
+          // in the Stripe Dashboard; if the creator was already paid, nothing
+          // pulled their share back, so a founder has to look.
+          let needsReview = false;
+          if (booking.stripe_transfer_id) {
+            const latest = await stripeGet(
+              `refunds?payment_intent=${encodeURIComponent(charge.payment_intent)}&limit=1`
+            ).catch(() => null);
+            needsReview = Boolean(latest?.data?.[0]) && !latest.data[0].metadata?.booking_id;
+          }
+
           await base44.asServiceRole.entities.Booking.update(booking.id, {
-            refund_amount: Number(charge.amount_refunded || 0) / 100,
+            refund_amount: refunded,
             refunded_at: new Date().toISOString(),
             ...(charge.refunded === true
               ? { payment_status: 'refunded' }
               : booking.payment_status === 'held'
                 ? { payment_status: 'partially_refunded' }
                 : {}),
+            ...(needsReview
+              ? {
+                  flagged_for_review: true,
+                  flag_reason: `${money(refunded)} was refunded in the Stripe Dashboard after the creator was paid. Reverse their transfer if needed.`,
+                }
+              : {}),
           });
+
+          if (needsReview) {
+            await emailAdmins(
+              base44,
+              'Refund made outside Stelli',
+              `${money(refunded)} was refunded in Stripe on the ${booking.event_date} shoot after the creator was already paid. Check whether their transfer should be reversed.`
+            );
+          }
         }
       }
     } else if (event.type === 'charge.dispute.created') {
@@ -188,10 +221,16 @@ export default async function (req) {
           stripe_payment_intent_id: dispute.payment_intent,
         });
         // The flag stays on, so a founder clears it by hand.
-        if (matches[0]) {
-          await base44.asServiceRole.entities.Booking.update(matches[0].id, {
+        const booking = matches[0];
+        if (booking) {
+          await base44.asServiceRole.entities.Booking.update(booking.id, {
             dispute_status: dispute.status,
           });
+          await emailAdmins(
+            base44,
+            dispute.status === 'lost' ? 'Card dispute lost' : 'Card dispute closed',
+            `The card dispute on the ${booking.event_date} shoot closed as "${dispute.status}". Release or refund the held money from the founder queue.`
+          );
         }
       }
     } else if (event.type === 'account.updated') {

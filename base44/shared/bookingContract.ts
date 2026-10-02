@@ -104,3 +104,31 @@ export async function createContractForBooking(base44, { booking, quote, lensman
 
   return contract;
 }
+
+/**
+ * Brings an unpaid booking's contract in line with the price the client is
+ * about to pay — a re-picked set of add-ons or a newer accepted quote. The
+ * creator already offered every add-on on the quote, so their side stands.
+ */
+export async function syncContractTerms(base44, contract, { booking, quote }) {
+  const amount = Number(quote.amount) || 0;
+  const includedEdits = Number(quote.included_edits) || 30;
+  const addOns = (quote.add_ons || []).map(
+    (addOn) => `${addOn.name}${addOn.price ? ` (+$${addOn.price})` : ''}`
+  );
+
+  const unchanged =
+    Number(contract.total_paid) === amount &&
+    Number(contract.included_edited_photos) === includedEdits &&
+    JSON.stringify(contract.add_ons || []) === JSON.stringify(addOns);
+  if (unchanged) return contract;
+
+  const creatorName = contract.creator_name || booking.lensman_name || 'Creator';
+  return base44.asServiceRole.entities.BookingContract.update(contract.id, {
+    creator_fee: amount,
+    add_ons: addOns,
+    total_paid: amount,
+    included_edited_photos: includedEdits,
+    contract_text: buildContractText({ booking, creatorName, amount, includedEdits, addOns }),
+  });
+}
