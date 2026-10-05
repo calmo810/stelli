@@ -13,7 +13,9 @@
           "call": "invoke_backend_function",
           "with": {
             "function_name": "releasePayouts",
-            "args": {}
+            "args": {
+              "sweep_token": "c599cd07f5c7a7d88094fa9dcd2ab8aff64edc7632ef264ffe54bd7af2f55908"
+            }
           },
           "then": "end",
           "x-base44": {
