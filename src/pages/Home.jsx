@@ -2,7 +2,7 @@ import React from 'react';
 import HeroVideo from '@/components/home/HeroVideo';
 import TwoDoors from '@/components/home/TwoDoors';
 import MeetCreators from '@/components/home/MeetCreators';
-import HowItWorks from '@/components/home/HowItWorks';
+import CaseStudy from '@/components/home/CaseStudy';
 import FaqButton from '@/components/home/FaqButton';
 import StarSprinkle from '@/components/home/StarSprinkle';
 
@@ -15,7 +15,7 @@ export default function Home() {
       </div>
       <TwoDoors />
       <MeetCreators />
-      <HowItWorks />
+      <CaseStudy />
       <FaqButton />
     </div>
   );
