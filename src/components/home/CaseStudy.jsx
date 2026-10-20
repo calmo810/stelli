@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { LOGO_URL } from '@/components/shared/StelliWordmark';
 
 /* Homepage "how it works" section, told as a case study:
    the old way (an illustrative, fictional social profile) vs. the Stelli way.
@@ -96,7 +97,7 @@ const CSS = `
 .cs-new{height:100%;color:#fff;padding:18px 22px;position:relative;overflow:hidden;font-family:var(--font-body)}
 .cs-new::before{content:"";position:absolute;width:420px;height:420px;right:-160px;top:-180px;border-radius:50%;background:radial-gradient(closest-side,hsl(var(--neon-lime)/.16),transparent)}
 .cs-nav{display:flex;align-items:center;justify-content:space-between;position:relative}
-.cs-logo{font-family:var(--font-display);font-size:19px}.cs-logo span{color:hsl(var(--neon-lime))}
+.cs-logo{display:block;height:24px;width:auto}
 .cs-links{display:flex;gap:16px;font-size:11px;color:rgba(255,255,255,.5);align-items:center}
 .cs-pill{background:hsl(var(--neon-lime));color:hsl(var(--ink));padding:6px 12px;border-radius:999px;font-weight:600}
 .cs-kick{margin-top:26px;font-family:var(--font-mono);font-size:10px;letter-spacing:.16em;color:hsl(var(--neon-cyan));position:relative}
@@ -153,7 +154,7 @@ const CSS = `
 .cs-pn::before{content:"";position:absolute;width:260px;height:260px;right:-120px;top:-110px;border-radius:50%;background:radial-gradient(closest-side,hsl(var(--neon-lime)/.18),transparent)}
 .cs-pn-body{position:relative;padding:4px 12px 0}
 .cs-pn-nav{display:flex;align-items:center;justify-content:space-between}
-.cs-pn-nav .cs-logo{font-size:16px}
+.cs-pn-nav .cs-logo{height:19px}
 .cs-pn-nav .cs-pill{font-size:9px;padding:4px 9px}
 .cs-pn .cs-kick{margin-top:12px;font-size:8px}
 .cs-pn-card{margin-top:8px;height:118px;border-radius:12px;position:relative;overflow:hidden;background:linear-gradient(165deg,#d9c3a5,#8a6a52 60%,#3b2c27)}
@@ -346,7 +347,7 @@ function Phones() {
                   <div className="cs-sbar" style={{ position: 'relative' }}><span>9:41</span><span>●●●</span></div>
                   <div className="cs-pn-body">
                     <div className="cs-pn-nav">
-                      <div className="cs-logo">stelli<span>.</span></div>
+                      <img src={LOGO_URL} alt="Stelli" className="cs-logo" />
                       <span className="cs-pill">Book</span>
                     </div>
                     <p className="cs-kick">BOOKING CONFIRMED</p>
@@ -472,7 +473,7 @@ export default function CaseStudy() {
                 <div className="cs-vp">
                   <div className="cs-new">
                     <nav className="cs-nav">
-                      <div className="cs-logo">stelli<span>.</span></div>
+                      <img src={LOGO_URL} alt="Stelli" className="cs-logo" />
                       <div className="cs-links"><span>Creators</span><span>How it works</span><span className="cs-pill">Book</span></div>
                     </nav>
                     <p className="cs-kick">NEW YORK · BOOKING CONFIRMED</p>
