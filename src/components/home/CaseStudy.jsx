@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LOGO_URL } from '@/components/shared/StelliWordmark';
 
@@ -33,16 +33,18 @@ const CSS = `
 .cs-rig{position:relative;transform-style:preserve-3d}
 .cs-rig--l{transform:rotateY(16deg) rotateX(4deg) rotateZ(-1deg)}
 .cs-rig--r{transform:rotateY(-16deg) rotateX(4deg) rotateZ(1deg)}
-.cs-float{animation:csFloat 7s ease-in-out infinite}
+.cs-float{animation:csFloat 7s ease-in-out infinite;will-change:transform;backface-visibility:hidden}
 .cs-delay{animation-delay:-3.5s}
 @keyframes csFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
 .cs-shadow{position:relative}
 .cs-shadow::after{content:"";position:absolute;left:10%;right:10%;bottom:-64px;height:40px;border-radius:50%;
-  background:radial-gradient(closest-side,rgba(0,0,0,.7),transparent);filter:blur(8px);animation:csShadow 7s ease-in-out infinite}
-.cs-glow::before{content:"";position:absolute;left:5%;right:5%;bottom:-40px;height:60px;border-radius:50%;
-  background:radial-gradient(closest-side,hsl(var(--neon-lime)/.16),transparent);filter:blur(14px)}
-.cs-delay.cs-shadow::after,.cs-shadow.cs-delay::after{animation-delay:-3.5s}
-@keyframes csShadow{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.88);opacity:.65}}
+  background:radial-gradient(closest-side,rgba(0,0,0,.55),transparent);pointer-events:none}
+.cs-go{cursor:pointer;outline:none}
+.cs-go .cs-browser,.cs-go .cs-phone{transition:box-shadow .3s ease,transform .3s ease}
+.cs-go:hover .cs-browser--new,.cs-go:focus-visible .cs-browser--new{box-shadow:0 0 0 1px hsl(var(--neon-lime)/.6),0 30px 60px -12px rgba(0,0,0,.6),0 80px 140px -40px rgba(0,0,0,.8)}
+.cs-go:hover .cs-phone--new,.cs-go:focus-visible .cs-phone--new{box-shadow:inset 0 0 0 1px hsl(var(--neon-lime)/.7),0 30px 50px -14px rgba(0,0,0,.7),0 60px 90px -30px rgba(0,0,0,.8)}
+.cs-go-hint{display:inline-flex;align-items:center;gap:6px;margin-top:14px;font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:hsl(var(--neon-lime));opacity:.75;transition:opacity .3s}
+.cs-go:hover .cs-go-hint{opacity:1}
 
 .cs-label{display:flex;align-items:center;gap:10px;margin:0 0 16px 6px}
 .cs-label i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.3);flex:none}
@@ -129,7 +131,7 @@ const CSS = `
 .cs-phone{flex:none;width:${PHONE_W}px;height:${PHONE_H}px;transform:scale(var(--s,.8));transform-origin:top center;
   border-radius:32px;padding:6px;background:#1c2233;
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),0 30px 50px -14px rgba(0,0,0,.7),0 60px 90px -30px rgba(0,0,0,.8)}
-.cs-phone--new{box-shadow:inset 0 0 0 1px hsl(var(--neon-lime)/.35),0 0 40px -6px hsl(var(--neon-lime)/.25),0 30px 50px -14px rgba(0,0,0,.7),0 60px 90px -30px rgba(0,0,0,.8)}
+.cs-phone--new{box-shadow:inset 0 0 0 1px hsl(var(--neon-lime)/.35),0 30px 50px -14px rgba(0,0,0,.7),0 60px 90px -30px rgba(0,0,0,.8)}
 .cs-screen{position:relative;width:100%;height:100%;border-radius:26px;overflow:hidden;font-family:var(--font-body)}
 .cs-notch{position:absolute;top:7px;left:50%;transform:translateX(-50%);width:62px;height:17px;border-radius:999px;background:#05070d;z-index:4}
 .cs-sbar{height:30px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-size:10px;font-weight:600}
@@ -193,7 +195,7 @@ const CSS = `
   .cs-ml{display:inline;margin-right:8px;text-decoration:none}
 }
 @media (prefers-reduced-motion:reduce){
-  .cs-float,.cs-shadow::after,.cs-typing span{animation:none!important}
+  .cs-float,.cs-typing span{animation:none!important}
 }
 `;
 
@@ -277,8 +279,22 @@ function Flow() {
   return <canvas ref={ref} />;
 }
 
+/* Makes the Stelli mockup act like a real link to the creators page. */
+function useGoProps() {
+  const navigate = useNavigate();
+  const go = () => navigate('/creators');
+  return {
+    role: 'link',
+    tabIndex: 0,
+    'aria-label': 'Browse creators',
+    onClick: go,
+    onKeyDown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } },
+  };
+}
+
 /* Two phone mockups that scale to fit their columns. */
 function Phones() {
+  const goProps = useGoProps();
   const ref = useRef(null);
   useEffect(() => {
     const el = ref.current;
@@ -339,7 +355,7 @@ function Phones() {
       <div className="cs-pcol">
         <p className="cs-label cs-label--on label-mono text-[9px] text-white/70"><i />The Stelli way</p>
         <div className="cs-tilt-r">
-          <div className="cs-float cs-shadow cs-glow cs-delay">
+          <div className="cs-float cs-shadow cs-delay cs-go" {...goProps}>
             <div className="cs-pfit">
               <div className="cs-phone cs-phone--new">
                 <div className="cs-screen cs-pn">
@@ -370,6 +386,7 @@ function Phones() {
 }
 
 export default function CaseStudy() {
+  const goProps = useGoProps();
   return (
     <section
       id="how-it-works"
@@ -466,7 +483,7 @@ export default function CaseStudy() {
           </div>
 
           <div className="cs-rig cs-rig--r">
-            <div className="cs-float cs-shadow cs-glow cs-delay">
+            <div className="cs-float cs-shadow cs-delay cs-go" {...goProps}>
               <p className="cs-label cs-label--on label-mono text-[10px] text-white/70"><i />The Stelli way</p>
               <div className="cs-browser cs-browser--new">
                 <div className="cs-chrome"><div className="cs-dots"><span /><span /><span /></div><div className="cs-url">🔒 getstelli.com</div></div>
