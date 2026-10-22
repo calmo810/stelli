@@ -26,10 +26,17 @@ export default function QuoteCard({ quote, booking, role, onChanged }) {
     setPicked((prev) => (prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]));
 
   const acceptAndPay = async () => {
-    if (window.self !== window.top) {
-      setError('Checkout only works in the published app. Open it in a new tab to pay.');
+    // Stripe Checkout has to open as a top-level page. When the app is running in a
+    // frame the tab is opened here, in the click itself, before anything is awaited —
+    // a popup blocker would drop it otherwise.
+    const isFramed = window.self !== window.top;
+    const checkoutTab = isFramed ? window.open('', '_blank') : null;
+    if (isFramed && !checkoutTab) {
+      setError('Allow popups to continue to checkout.');
       return;
     }
+    if (checkoutTab) checkoutTab.opener = null;
+
     setBusy(true);
     setError('');
     try {
@@ -38,6 +45,7 @@ export default function QuoteCard({ quote, booking, role, onChanged }) {
         pickedAddOns: chosen,
       });
       if (acceptedQuote.data?.error) {
+        checkoutTab?.close();
         setError(acceptedQuote.data.error);
         return;
       }
@@ -46,11 +54,17 @@ export default function QuoteCard({ quote, booking, role, onChanged }) {
         origin: window.location.origin,
       });
       if (checkout.data?.url) {
-        window.location.href = checkout.data.url;
+        if (checkoutTab) {
+          checkoutTab.location.replace(checkout.data.url);
+        } else {
+          window.location.assign(checkout.data.url);
+        }
       } else {
+        checkoutTab?.close();
         setError(checkout.data?.error || 'Payment could not be started.');
       }
     } catch (e) {
+      checkoutTab?.close();
       setError(e?.response?.data?.error || 'We could not accept this quote. Please try again.');
     } finally {
       setBusy(false);
