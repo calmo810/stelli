@@ -11,8 +11,11 @@ export default function MyAgreements({ role = 'client' }) {
     queryFn: () => base44.entities.BookingContract.list('-created_at'),
   });
 
+  // Nothing signed yet means nothing to show.
+  if (!isLoading && !contracts.length) return null;
+
   return (
-    <section>
+    <section className="mt-8">
       <div className="mb-2.5 flex items-baseline justify-between pl-1.5 pr-1.5">
         <h3 className="text-[13px] font-semibold text-white/50">Agreements</h3>
         {contracts.length > 0 && <span className="text-[12px] text-white/35">{contracts.length} signed</span>}
@@ -20,7 +23,7 @@ export default function MyAgreements({ role = 'client' }) {
 
       {isLoading ? (
         <div className="glass h-[58px] animate-pulse rounded-3xl" />
-      ) : contracts.length ? (
+      ) : (
         <div className="glass overflow-hidden rounded-3xl">
           {contracts.map((contract, i) => (
             <Link
@@ -41,10 +44,6 @@ export default function MyAgreements({ role = 'client' }) {
               <ChevronRight className="h-4 w-4 shrink-0 text-white/35" strokeWidth={2.4} />
             </Link>
           ))}
-        </div>
-      ) : (
-        <div className="glass rounded-3xl px-[18px] py-3.5">
-          <p className="text-[14px] text-white/50">Booking contracts will appear here after agreement review.</p>
         </div>
       )}
     </section>
