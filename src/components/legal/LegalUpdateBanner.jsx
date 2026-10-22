@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { LEGAL_VERSION } from '@/lib/legalDocuments';
+import { PRIVACY_VERSION, TERMS_VERSION } from '@/lib/legalDocuments';
 import { Checkbox } from '@/components/ui/checkbox';
+
+/** Each document's current version, so updating one doesn't re-prompt the other. */
+const REQUIRED_VERSIONS = { terms: TERMS_VERSION, privacy: PRIVACY_VERSION };
 
 export default function LegalUpdateBanner() {
   const [needed, setNeeded] = useState([]);
@@ -16,9 +19,12 @@ export default function LegalUpdateBanner() {
       const authenticated = await base44.auth.isAuthenticated();
       if (!authenticated) return;
       const acceptances = await base44.entities.AgreementAcceptance.list('-accepted_at');
-      const missing = ['terms', 'privacy'].filter(
-        (type) => !acceptances.some((a) => a.document_type === type && a.document_version === LEGAL_VERSION)
-      );
+      const missing = Object.entries(REQUIRED_VERSIONS)
+        .filter(
+          ([type, version]) =>
+            !acceptances.some((a) => a.document_type === type && a.document_version === version)
+        )
+        .map(([type]) => type);
       if (active) setNeeded(missing);
     }
     load();
@@ -31,7 +37,10 @@ export default function LegalUpdateBanner() {
     setSaving(true);
     await Promise.all(
       needed.map((documentType) =>
-        base44.functions.invoke('recordAgreementAcceptance', { documentType, documentVersion: LEGAL_VERSION })
+        base44.functions.invoke('recordAgreementAcceptance', {
+          documentType,
+          documentVersion: REQUIRED_VERSIONS[documentType],
+        })
       )
     );
     setNeeded([]);

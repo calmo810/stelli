@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Check, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { PRIVACY_VERSION, TERMS_VERSION } from '@/lib/legalDocuments';
 
 const fieldClass =
   'w-full border border-white/10 bg-white/[0.03] px-4 py-3 font-body text-[14px] text-white outline-none transition-colors placeholder:text-white/25 focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan';
@@ -67,8 +68,8 @@ export default function CreatorApplication() {
     onSuccess: async () => {
       if (await base44.auth.isAuthenticated()) {
         await Promise.all([
-          base44.functions.invoke('recordAgreementAcceptance', { documentType: 'terms', documentVersion: '2026-09-10' }),
-          base44.functions.invoke('recordAgreementAcceptance', { documentType: 'privacy', documentVersion: '2026-09-10' }),
+          base44.functions.invoke('recordAgreementAcceptance', { documentType: 'terms', documentVersion: TERMS_VERSION }),
+          base44.functions.invoke('recordAgreementAcceptance', { documentType: 'privacy', documentVersion: PRIVACY_VERSION }),
         ]);
       }
       setDone(true);

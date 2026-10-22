@@ -10,6 +10,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { toast } from "@/components/ui/use-toast";
+import { PRIVACY_VERSION, TERMS_VERSION } from "@/lib/legalDocuments";
 import { safeReturnTo } from "@/lib/authReturnTo";
 
 // Honor ?returnTo= (used by the MCP consent flow), else the app's portal.
@@ -103,8 +104,8 @@ export default function Register() {
       localStorage.setItem('stelli_next_step_prompt', accountType);
       try {
         await Promise.all([
-          base44.functions.invoke('recordAgreementAcceptance', { documentType: 'terms', documentVersion: '2026-09-10' }),
-          base44.functions.invoke('recordAgreementAcceptance', { documentType: 'privacy', documentVersion: '2026-09-10' }),
+          base44.functions.invoke('recordAgreementAcceptance', { documentType: 'terms', documentVersion: TERMS_VERSION }),
+          base44.functions.invoke('recordAgreementAcceptance', { documentType: 'privacy', documentVersion: PRIVACY_VERSION }),
         ]);
       } catch {
         localStorage.setItem('stelli_pending_legal_acceptance', 'true');

@@ -17,7 +17,7 @@
     },
     "content": {
       "type": "string",
-      "description": "Full document content"
+      "description": "Full document text, or a URL to the published document when it is too long to store inline"
     },
     "effective_date": {
       "type": "string",

@@ -7,6 +7,7 @@ import {
   freshState, defaultTiers, isReady, missingReqs, strength, activeTiers,
   buildPayload, slugify, validEmail, shareUrl, shareLabel,
 } from '@/lib/wizardData';
+import { PRIVACY_VERSION, TERMS_VERSION } from '@/lib/legalDocuments';
 
 const DRAFT_KEY = 'stelli_profile_draft_v2';
 
@@ -300,8 +301,8 @@ export default function useWizard() {
       if (problem) throw new Error(problem);
       if (!lensman) {
         await Promise.all([
-          base44.functions.invoke('recordAgreementAcceptance', { documentType: 'terms', documentVersion: '2026-09-10' }),
-          base44.functions.invoke('recordAgreementAcceptance', { documentType: 'privacy', documentVersion: '2026-09-10' }),
+          base44.functions.invoke('recordAgreementAcceptance', { documentType: 'terms', documentVersion: TERMS_VERSION }),
+          base44.functions.invoke('recordAgreementAcceptance', { documentType: 'privacy', documentVersion: PRIVACY_VERSION }),
         ]);
       }
       clearDraft();
