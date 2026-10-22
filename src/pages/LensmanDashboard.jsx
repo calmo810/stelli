@@ -1,18 +1,28 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Sparkles } from 'lucide-react';
-import PayoutNotice from '@/components/dashboard/PayoutNotice';
+import { base44 } from '@/api/base44Client';
 import PendingBanner from '@/components/dashboard/PendingBanner';
+import PayoutsCard from '@/components/dashboard/PayoutsCard';
 import AgeConfirmGate from '@/components/dashboard/AgeConfirmGate';
 import MyAgreements from '@/components/dashboard/MyAgreements';
 import DashboardShell from '@/components/dashboard/DashboardShell';
-import DashboardStack from '@/components/dashboard/stack/DashboardStack';
-import StackTile from '@/components/dashboard/StackTile';
 import NeedsYou from '@/components/dashboard/NeedsYou';
+import ShootList from '@/components/dashboard/ShootList';
 import CopyLinkPill from '@/components/dashboard/CopyLinkPill';
 import GlassRows from '@/components/shared/GlassRows';
 import useCreatorDashboard from '@/hooks/useCreatorDashboard';
+import useThreads from '@/hooks/useThreads';
 import shortDate from '@/lib/shortDate';
 
+function SectionLabel({ children }) {
+  return <h3 className="mb-2.5 mt-8 pl-1.5 text-[13px] font-semibold text-white/50">{children}</h3>;
+}
+
+/**
+ * The creator portal: one page, top to bottom.
+ * A status note (only if something needs setting up), what needs you,
+ * your shoots, and a short list of everything else.
+ */
 export default function LensmanDashboard() {
   const {
     user,
@@ -22,8 +32,12 @@ export default function LensmanDashboard() {
     requests,
     upcoming,
     deliveries,
+    completed,
+    waitingTotal,
     payoutState,
   } = useCreatorDashboard();
+  const { unreadCount } = useThreads();
+  const [openingStripe, setOpeningStripe] = useState(false);
 
   // Creators who joined before the 18+ check existed confirm it once, here.
   if (myProfile && !myProfile.age_confirmed) {
@@ -35,7 +49,7 @@ export default function LensmanDashboard() {
   const needs = [
     ...requests.map((b) => ({
       id: b.id,
-      title: `${b.client_name || 'Someone'} wants ${b.event_type || 'photos'}`,
+      title: `${b.client_name || 'Someone'} wants ${b.event_type ? b.event_type.replace(/_/g, ' ') : 'photos'}`,
       meta: [shortDate(b.event_date), b.location].filter(Boolean).join(' · '),
       action: 'Quote',
       to: `/messages/${b.id}`,
@@ -51,72 +65,89 @@ export default function LensmanDashboard() {
       })),
   ];
 
+  const openStripe = async () => {
+    setOpeningStripe(true);
+    try {
+      const response = await base44.functions.invoke('startPayoutSetup', {
+        origin: window.location.origin,
+        action: 'dashboard',
+      });
+      if (response.data?.url) window.open(response.data.url, '_blank', 'noopener');
+    } finally {
+      setOpeningStripe(false);
+    }
+  };
+
+  // Only one note at the top, and only when something is off.
+  let note = null;
+  if (myProfile?.under_review) {
+    note = (
+      <PendingBanner tone="neon-magenta".replace('neon-', '')>
+        Your profile is under review by the Stelli team after a cancellation.
+      </PendingBanner>
+    );
+  } else if (myProfile?.status === 'pending') {
+    note = <PendingBanner />;
+  } else if (myProfile && !myProfile.payouts_enabled) {
+    note = (
+      <div className="mt-5">
+        <PayoutsCard
+          profile={myProfile}
+          needsInfo={payoutState?.needsInfo}
+          waitingTotal={waitingTotal}
+          onRefresh={refetchProfile}
+        />
+      </div>
+    );
+  }
+
   return (
-    <DashboardStack parentPath="/lensman-dashboard">
-      <DashboardShell>
-        <h1
-          className="font-display font-medium text-white"
-          style={{ fontSize: 40, letterSpacing: '-0.02em', lineHeight: 1.05 }}
-        >
-          Hey, {firstName}.
-        </h1>
-        <p className="mt-1.5 text-[16px] text-white/60">Your requests, shoots and payouts in one place.</p>
+    <DashboardShell>
+      <h1
+        className="font-display font-medium text-white"
+        style={{ fontSize: 40, letterSpacing: '-0.02em', lineHeight: 1.05 }}
+      >
+        Hey, {firstName}.
+      </h1>
 
-        <PayoutNotice state={payoutState} onRefresh={refetchProfile} />
-        {myProfile?.status === 'pending' && <PendingBanner />}
-        {myProfile?.under_review && (
-          <div className="glass mt-4 rounded-[22px] px-[18px] py-4" style={{ borderColor: 'hsl(var(--neon-magenta) / 0.5)' }}>
-            <p className="text-[13px] leading-relaxed text-white/70">
-              Your profile is under review by the Stelli team after a cancellation.
-            </p>
-          </div>
-        )}
+      {note}
 
-        <div className="mt-5 grid grid-cols-2 gap-3.5">
-          <StackTile
-            to="/lensman-dashboard/requests"
-            label="Requests"
-            value={requests.length ? `${requests.length} new` : 'None'}
-            hot={requests.length > 0}
-          />
-          <StackTile to="/lensman-dashboard/upcoming" label="Upcoming shoots" value={upcoming.length} />
-          <StackTile to="/lensman-dashboard/deliveries" label="Deliveries" value={deliveries.length} />
-          <StackTile
-            to="/lensman-dashboard/payouts"
-            label="Payouts"
-            value={myProfile?.payouts_enabled ? 'On' : 'Set up'}
-          />
-        </div>
+      <SectionLabel>To do</SectionLabel>
+      <NeedsYou
+        items={needs}
+        empty={{
+          icon: Sparkles,
+          title: "You're all caught up.",
+          body: 'Share your profile to get your next booking.',
+          cta: myProfile ? <CopyLinkPill creator={myProfile} /> : null,
+        }}
+      />
 
-        <h3 className="mb-2.5 mt-8 pl-1.5 text-[13px] font-semibold text-white/50">Needs you</h3>
-        <NeedsYou
-          items={needs}
-          empty={{
-            icon: Sparkles,
-            title: "You're all caught up.",
-            body: 'Share your profile to get your next booking.',
-            cta: myProfile ? <CopyLinkPill creator={myProfile} /> : null,
-          }}
-        />
+      <SectionLabel>Your shoots</SectionLabel>
+      <ShootList
+        role="lensman"
+        active={[...requests, ...upcoming, ...deliveries]}
+        past={completed}
+        isLoading={isLoading}
+        emptyText="New requests and booked shoots will show up here."
+      />
 
-        {isLoading && <div className="mt-8 h-24 animate-pulse rounded-[28px] bg-white/[0.06]" />}
+      <MyAgreements role="lensman" />
 
-        <div className="mt-8">
-          <MyAgreements role="lensman" />
-        </div>
-
-        <GlassRows
-          className="mt-8"
-          rows={[
-            { label: 'Your profile', to: '/edit-profile' },
-            ...(myProfile
-              ? [{ label: 'Your public page', href: `/creators/${myProfile.slug || myProfile.id}`, external: true }]
-              : []),
-            { label: 'Messages', to: '/lensman-dashboard/messages' },
-            { label: 'Account', to: '/account-settings' },
-          ]}
-        />
-      </DashboardShell>
-    </DashboardStack>
+      <GlassRows
+        className="mt-8"
+        rows={[
+          { label: 'Messages', to: '/messages', value: unreadCount ? `${unreadCount} new` : undefined },
+          { label: 'Edit profile', to: '/edit-profile' },
+          ...(myProfile
+            ? [{ label: 'View public page', href: `/creators/${myProfile.slug || myProfile.id}`, external: true }]
+            : []),
+          ...(myProfile?.payouts_enabled
+            ? [{ label: 'Payouts', value: 'On', onClick: openStripe, disabled: openingStripe }]
+            : []),
+          { label: 'Account', to: '/account-settings' },
+        ]}
+      />
+    </DashboardShell>
   );
 }
