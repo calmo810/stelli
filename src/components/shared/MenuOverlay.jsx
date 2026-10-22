@@ -15,7 +15,6 @@ const SHARED_LINKS = [
   { label: 'How it works', to: '/how-it-works' },
   { label: 'FAQ', to: '/faq' },
   { label: 'Terms & Conditions', to: '/terms' },
-  { label: 'Privacy Policy', to: '/privacy' },
 ];
 
 export default function MenuOverlay({ onClose }) {
