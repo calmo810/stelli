@@ -77,8 +77,8 @@ export default function Footer() {
             <p className="label-mono text-[9px] text-white/30">© {new Date().getFullYear()} Stelli · Elon, NC</p>
 
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-              <a href="mailto:hello@getstelli.com" className={LINK}>
-                hello@getstelli.com
+              <a href="mailto:getstelli@gmail.com" className={LINK}>
+                getstelli@gmail.com
               </a>
               <a
                 href="https://instagram.com/getstelli"

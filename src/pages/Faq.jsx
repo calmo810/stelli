@@ -28,10 +28,10 @@ export default function Faq() {
       <p className="mt-[26px] text-center text-[14px] text-white/50">
         Something else?{' '}
         <a
-          href="mailto:hello@getstelli.com"
+          href="mailto:getstelli@gmail.com"
           className="font-medium text-neon-lime hover:underline hover:underline-offset-4"
         >
-          Email hello@getstelli.com
+          Email getstelli@gmail.com
         </a>
       </p>
     </section>
