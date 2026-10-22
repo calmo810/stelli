@@ -11,8 +11,7 @@ const LINKS = [
   { to: '/register?role=client', text: 'Sign up' },
   { to: '/register?role=creator', text: 'Shoot with Stelli' },
   { to: '/portal', text: 'Your portal' },
-  { to: '/terms', text: 'Terms' },
-  { to: '/privacy', text: 'Privacy' },
+  { to: '/terms', text: 'Terms & Conditions' },
 ];
 
 const PANEL = {

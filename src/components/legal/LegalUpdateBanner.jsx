@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { PRIVACY_VERSION, TERMS_VERSION } from '@/lib/legalDocuments';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -53,15 +53,16 @@ export default function LegalUpdateBanner() {
     <div className="fixed inset-0 z-[80] flex items-end md:items-center justify-center bg-[#0a0f1e]/85 backdrop-blur-sm px-4 py-6">
       <div className="max-w-xl w-full border p-6 md:p-8" style={{ background: 'hsl(var(--surface))', borderColor: 'rgba(255,255,255,0.14)', borderRadius: 4 }}>
         <p className="label-mono text-[9px] text-white/40 mb-4">Updated legal terms</p>
-        <h2 className="font-heading text-3xl font-semibold mb-4 text-white">We've updated our Terms.</h2>
+        <h2 className="font-heading text-3xl font-semibold mb-4 text-white">
+          We have new Terms and Conditions.
+        </h2>
         <p className="font-body text-sm leading-relaxed mb-6 text-white/55">
-          Review and accept to continue using Stelli.
+          You must accept them to continue using Stelli.
         </p>
         <label className="flex items-start gap-3 mb-6 cursor-pointer">
           <Checkbox checked={checked} onCheckedChange={setChecked} className="mt-1" />
           <span className="font-body text-sm leading-relaxed text-white/70">
-            I agree to Stelli's <Link to="/terms" className="underline">Terms and Conditions</Link> and{' '}
-            <Link to="/privacy" className="underline">Privacy Policy</Link>.
+            I agree to Stelli's Terms and Conditions and Privacy Policy.
           </span>
         </label>
         <button
