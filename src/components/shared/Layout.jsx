@@ -7,7 +7,6 @@ import Footer from './Footer';
 import PageTransition from './PageTransition';
 import LegalUpdateBanner from '@/components/legal/LegalUpdateBanner';
 import RoleGate from '@/components/RoleGate';
-import { pageParent } from '@/lib/stackRoutes';
 
 export default function Layout() {
   const location = useLocation();
@@ -16,8 +15,8 @@ export default function Layout() {
   const isCreatorProfile = /^\/creators\/[^/]+$/.test(location.pathname);
   // Messages is a full-height chat screen: it brings its own back arrow and needs no footer.
   const isMessages = /^\/(portal\/)?messages(\/[^/]+)?$/.test(location.pathname);
-  // A sheet opens over its dashboard without remounting it; so does switching conversations.
-  const transitionKey = isMessages ? '/messages' : pageParent(location.pathname) || location.pathname;
+  // Switching conversations doesn't remount the messages screen.
+  const transitionKey = isMessages ? '/messages' : location.pathname;
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
