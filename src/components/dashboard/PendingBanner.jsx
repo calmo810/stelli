@@ -1,15 +1,11 @@
 import React from 'react';
-import { Clock } from 'lucide-react';
 
-/** Slim notice at the top of a creator's dashboard while they wait for review. */
-export default function PendingBanner() {
+/** One quiet line at the top of the dashboard. Used for review states. */
+export default function PendingBanner({ children = 'Your profile is under review. It goes live once we approve it.', tone = 'cyan' }) {
   return (
-    <div
-      className="mb-6 flex items-center gap-3 px-4 py-3 text-xs"
-      style={{ background: 'rgba(26,39,68,0.06)', border: '1px solid rgba(26,39,68,0.14)', color: 'rgba(26,39,68,0.65)' }}
-    >
-      <Clock className="w-3.5 h-3.5 shrink-0" />
-      Your profile is under review. It goes live once we approve it.
+    <div className="glass mt-5 flex items-center gap-3.5 rounded-[22px] px-[18px] py-4">
+      <span aria-hidden className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: `hsl(var(--neon-${tone}))` }} />
+      <p className="text-[14px] leading-snug text-white/70">{children}</p>
     </div>
   );
 }
