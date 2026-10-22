@@ -7,15 +7,12 @@ import { markBookingPaid, releaseWaitingPayouts } from '../../shared/payouts.ts'
 const SIGNATURE_TOLERANCE_SECONDS = 300;
 
 /**
- * Stelli points two Stripe endpoints at this one function — one for its own
- * account and one for connected accounts — and each signs with its own secret.
+ * Every Stripe endpoint pointed at this function is a platform endpoint that
+ * signs with the platform account's own signing secret — one in test mode and
+ * one in live. Only names that are actually registered belong here: a name
+ * with no stored value can never verify anything.
  */
-const WEBHOOK_SECRET_NAMES = [
-  'STRIPE_TEST_WEBHOOK_SECRET',
-  'STRIPE_WEBHOOK_SECRET',
-  'STRIPE_TEST_CONNECT_WEBHOOK_SECRET',
-  'STRIPE_CONNECT_WEBHOOK_SECRET',
-];
+const WEBHOOK_SECRET_NAMES = ['STRIPE_TEST_WEBHOOK_SECRET', 'STRIPE_WEBHOOK_SECRET'];
 
 function parseSignatureHeader(header) {
   const parsed = { timestamp: null, signatures: [] };

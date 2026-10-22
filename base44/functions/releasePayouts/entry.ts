@@ -1,35 +1,24 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
-import { secrets } from 'base44:runtime';
 import { releaseBooking } from '../../shared/payouts.ts';
 
 /**
  * The nightly sweep: delivered bookings whose 48 hour window has closed with
  * no problem reported get paid out.
  *
- * Only two callers may run it: the scheduled "Release Payouts" workflow, which
- * presents the shared sweep token, and a signed-in founder. Everyone else —
- * anonymous requests included — is turned away before a single booking is read.
+ * The scheduled "Release Payouts" workflow calls it as an app admin, and a
+ * signed-in founder may run it by hand. Everyone else — anonymous requests
+ * included — is turned away before a single booking is read.
+ *
+ * The workflow carries no token: no secret is ever written into its
+ * configuration, where anyone reading the app's source could take it.
  */
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
 
-    const body = await req.json().catch(() => ({}));
-    const presented = typeof body?.sweep_token === 'string' ? body.sweep_token : '';
-    const expected = secrets.get('PAYOUT_SWEEP_TOKEN') || '';
-
-    let authorized = Boolean(expected) && presented === expected;
-    if (!authorized) {
-      try {
-        const user = await base44.auth.me();
-        authorized = Boolean(user && user.role === 'admin');
-      } catch {
-        authorized = false;
-      }
-    }
-    if (!authorized) {
-      return Response.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const user = await base44.auth.me();
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (user.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
 
     const delivered = await base44.asServiceRole.entities.Booking.filter({
       status: 'delivered',
