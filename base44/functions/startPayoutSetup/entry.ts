@@ -1,16 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { secrets } from 'base44:runtime';
-import { stripeGet, stripePost } from '../../shared/stripe.ts';
+import { stripeGet, stripePost, stripeV2Post } from '../../shared/stripe.ts';
 import { releaseWaitingPayouts } from '../../shared/payouts.ts';
 import { loadCreatorContact } from '../../shared/creatorOwner.ts';
 import { safeOrigin } from '../../shared/origins.ts';
-
-const PUBLISHED_ORIGIN = 'https://getstelli.base44.app';
-
-/** Stripe's merchant category code for photography studios. */
-const PHOTOGRAPHY_MCC = '7221';
-
-const PRODUCT_DESCRIPTION = 'Photography and videography booked through Stelli.';
 
 function splitName(fullName) {
   const parts = String(fullName || '').trim().split(/\s+/).filter(Boolean);
@@ -90,26 +83,41 @@ export default async function (req) {
 
     if (!accountId) {
       const { first, last } = splitName(contact?.full_name);
-      const params = new URLSearchParams();
-      params.set('type', 'express');
-      params.set('country', 'US');
-      params.set('business_type', 'individual');
-      // Creators never take payments themselves, so transfers is all they need.
-      params.set('capabilities[transfers][requested]', 'true');
-      // Everything Stelli already knows, so they type as little as possible.
-      params.set('email', contact?.email || user.email || '');
-      if (first) params.set('individual[first_name]', first);
-      if (last) params.set('individual[last_name]', last);
-      if (contact?.phone) params.set('individual[phone]', contact.phone);
-      params.set('business_profile[url]', `${PUBLISHED_ORIGIN}/creators/${lensman.slug || lensman.id}`);
-      params.set('business_profile[mcc]', PHOTOGRAPHY_MCC);
-      params.set('business_profile[product_description]', PRODUCT_DESCRIPTION);
-      params.set('metadata[base44_app_id]', secrets.get('BASE44_APP_ID') || '');
-      params.set('metadata[lensman_id]', lensman.id);
 
-      // No idempotency key here: the saved stripe_account_id is what prevents a
-      // second account, and a fixed key would reject any later parameter change.
-      const account = await stripePost('accounts', params);
+      const individual = {};
+      if (first) individual.given_name = first;
+      if (last) individual.surname = last;
+      if (contact?.phone) individual.phone = contact.phone;
+
+      // New connected accounts are created with Accounts v2, which is what
+      // Stripe now expects from Connect platforms.
+      const account = await stripeV2Post('core/accounts', {
+        // Everything Stelli already knows, so they type as little as possible.
+        contact_email: contact?.email || user.email || '',
+        display_name: contact?.full_name || lensman.display_name || '',
+        identity: {
+          country: 'us',
+          entity_type: 'individual',
+          ...(Object.keys(individual).length ? { individual } : {}),
+        },
+        // Creators never take payments themselves, so transfers is all they need.
+        configuration: {
+          recipient: {
+            capabilities: { stripe_balance: { stripe_transfers: { requested: true } } },
+          },
+        },
+        // Stelli carries the fees and the losses; a creator is only ever paid.
+        defaults: {
+          responsibilities: { fees_collector: 'application', losses_collector: 'application' },
+        },
+        // The Express dashboard is where they manage their own bank and tax details.
+        dashboard: 'express',
+        metadata: {
+          base44_app_id: secrets.get('BASE44_APP_ID') || '',
+          lensman_id: lensman.id,
+        },
+      });
+
       accountId = account.id;
 
       await base44.asServiceRole.entities.Lensman.update(lensman.id, {
@@ -117,13 +125,17 @@ export default async function (req) {
       });
     }
 
-    const linkParams = new URLSearchParams();
-    linkParams.set('account', accountId);
-    linkParams.set('type', 'account_onboarding');
-    linkParams.set('refresh_url', `${base}/lensman-dashboard?payouts=refresh`);
-    linkParams.set('return_url', `${base}/lensman-dashboard?payouts=done`);
-
-    const link = await stripePost('account_links', linkParams);
+    const link = await stripeV2Post('core/account_links', {
+      account: accountId,
+      use_case: {
+        type: 'account_onboarding',
+        account_onboarding: {
+          configurations: ['recipient'],
+          refresh_url: `${base}/lensman-dashboard?payouts=refresh`,
+          return_url: `${base}/lensman-dashboard?payouts=done`,
+        },
+      },
+    });
 
     return Response.json({ url: link.url, accountId });
   } catch (error) {
