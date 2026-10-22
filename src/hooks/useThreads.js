@@ -14,6 +14,7 @@ export default function useThreads() {
   const { data = { bookings: [], messages: [], creators: [] }, isLoading } = useQuery({
     queryKey: ['messages-inbox', user?.id, user?.email],
     enabled: !!user?.id || !!user?.email,
+    refetchInterval: 8000,
     queryFn: async () => {
       const byId = user?.id ? await base44.entities.Booking.filter({ creator_id: user.id }, '-updated_date') : [];
       const asClient = user?.email ? await base44.entities.Booking.filter({ client_email: user.email }, '-updated_date') : [];
@@ -38,7 +39,8 @@ export default function useThreads() {
         if (!role) return null;
 
         const threadMessages = data.messages.filter((m) => m.booking_id === booking.id);
-        const latest = threadMessages[0];
+        // The preview line is the last thing a person said, not a system notice.
+        const latest = threadMessages.find((m) => m.kind !== 'system') || threadMessages[0];
         const creator = creatorById.get(booking.lensman_id);
         const otherName = role === 'lensman' ? booking.client_name : booking.lensman_name || creator?.display_name;
         const otherPhoto = role === 'client' ? creator?.profile_image : '';
@@ -56,6 +58,7 @@ export default function useThreads() {
           otherName,
           otherPhoto,
           unread,
+          latestIsMine: !!latest && latest.sender_role === role,
           sortDate: new Date(
             latest?.created_date || booking.updated_date || booking.created_date || 0
           ).getTime(),

@@ -21,7 +21,6 @@ import PayoutsSheet from './components/dashboard/sheets/PayoutsSheet';
 import BookingsSheet from './components/dashboard/sheets/BookingsSheet';
 import MessagesSheet from './components/dashboard/sheets/MessagesSheet';
 import Messages from './pages/Messages';
-import MessagesInbox from './pages/MessagesInbox';
 import AdminDashboard from './pages/AdminDashboard';
 import MemoryAlbum from './pages/MemoryAlbum';
 import Terms from './pages/Terms';
@@ -101,7 +100,8 @@ const AuthenticatedApp = () => {
           <Route path="messages" element={<MessagesSheet />} />
         </Route>
         <Route path="/account-settings" element={<AccountSettings />} />
-        <Route path="/portal/messages" element={<MessagesInbox />} />
+        <Route path="/portal/messages" element={<Navigate to="/messages" replace />} />
+        <Route path="/messages" element={<Messages />} />
         <Route path="/messages/:bookingId" element={<Messages />} />
         <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
         <Route path="/album/:bookingId" element={<MemoryAlbum />} />
