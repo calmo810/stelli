@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -14,12 +14,6 @@ import ForCreators from './pages/ForCreators';
 import ProfileWizard from './pages/ProfileWizard';
 import ClientDashboard from './pages/ClientDashboard';
 import LensmanDashboard from './pages/LensmanDashboard';
-import RequestsSheet from './components/dashboard/sheets/RequestsSheet';
-import UpcomingSheet from './components/dashboard/sheets/UpcomingSheet';
-import DeliveriesSheet from './components/dashboard/sheets/DeliveriesSheet';
-import PayoutsSheet from './components/dashboard/sheets/PayoutsSheet';
-import BookingsSheet from './components/dashboard/sheets/BookingsSheet';
-import MessagesSheet from './components/dashboard/sheets/MessagesSheet';
 import Messages from './pages/Messages';
 import AdminDashboard from './pages/AdminDashboard';
 import MemoryAlbum from './pages/MemoryAlbum';
@@ -39,6 +33,12 @@ import Portal from './pages/Portal';
 import AccountSettings from './pages/AccountSettings';
 import AdminRoute from '@/components/AdminRoute';
 import LegacyRedirect from '@/components/LegacyRedirect';
+
+// Old portal sub-pages now live on the one portal page. Keep any ?query (e.g. Stripe's payout return).
+const ToPortal = ({ to }) => {
+  const { search } = useLocation();
+  return <Navigate to={`${to}${search}`} replace />;
+};
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -86,18 +86,13 @@ const AuthenticatedApp = () => {
         <Route path="/request-sent/:bookingId" element={<RequestSent />} />
         <Route path="/how-it-works" element={<HowItWorks />} />
         <Route path="/for-creators" element={<ForCreators />} />
-        {/* Dashboards are the parent page; these quick sub-pages open as sheets over them. */}
-        <Route path="/client-dashboard" element={<ClientDashboard />}>
-          <Route path="bookings" element={<BookingsSheet />} />
-          <Route path="messages" element={<MessagesSheet />} />
-        </Route>
-        <Route path="/lensman-dashboard" element={<LensmanDashboard />}>
-          <Route path="requests" element={<RequestsSheet />} />
-          <Route path="upcoming" element={<UpcomingSheet />} />
-          <Route path="deliveries" element={<DeliveriesSheet />} />
-          <Route path="payouts" element={<PayoutsSheet />} />
-          <Route path="messages" element={<MessagesSheet />} />
-        </Route>
+        {/* Each portal is one page. Old sub-page links fold back into it. */}
+        <Route path="/client-dashboard" element={<ClientDashboard />} />
+        <Route path="/client-dashboard/messages" element={<Navigate to="/messages" replace />} />
+        <Route path="/client-dashboard/*" element={<ToPortal to="/client-dashboard" />} />
+        <Route path="/lensman-dashboard" element={<LensmanDashboard />} />
+        <Route path="/lensman-dashboard/messages" element={<Navigate to="/messages" replace />} />
+        <Route path="/lensman-dashboard/*" element={<ToPortal to="/lensman-dashboard" />} />
         <Route path="/account-settings" element={<AccountSettings />} />
         <Route path="/portal/messages" element={<Navigate to="/messages" replace />} />
         <Route path="/messages" element={<Messages />} />
