@@ -14,6 +14,8 @@ export default function Layout() {
   const isHome = location.pathname === '/';
   // A creator profile carries its own back button, up on the cover photo.
   const isCreatorProfile = /^\/creators\/[^/]+$/.test(location.pathname);
+  // A thread is a chat: its pinned message box would otherwise sit on the footer.
+  const isThread = /^\/messages\/[^/]+$/.test(location.pathname);
   // A sheet opens over its dashboard without remounting it.
   const transitionKey = pageParent(location.pathname) || location.pathname;
 
@@ -35,7 +37,7 @@ export default function Layout() {
           </AnimatePresence>
         </RoleGate>
       </main>
-      <Footer />
+      {!isThread && <Footer />}
       <LegalUpdateBanner />
     </div>
   );
