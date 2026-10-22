@@ -11,23 +11,27 @@ const PUBLISHED_ORIGIN = 'https://getstelli.base44.app';
  * Contact details live in CreatorContact, so this reads that record for the
  * address to write to.
  *
- * The workflow calls this server-side with no user, and an anonymous caller
- * looks the same from in here, so the endpoint is built not to need the
- * caller's word for anything: the status comes from the record, and each
- * status is emailed once. Replaying the call sends nothing.
+ * The workflow calls this as an app admin, and so must anyone invoking it by
+ * hand: without that check an anonymous caller could read a creator's vetting
+ * state straight off the response, and probe which profiles exist. The status
+ * itself always comes from the record, never from the caller, and each status
+ * is emailed once — replaying the call sends nothing.
  */
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
 
-    // A signed-in user must be a founder.
+    // Founders only. An anonymous caller gets no status to read here.
     let user = null;
     try {
       user = await base44.auth.me();
     } catch {
       user = null;
     }
-    if (user && user.role !== 'admin') {
+    if (!user) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    if (user.role !== 'admin') {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 

@@ -263,6 +263,10 @@
       "type": "string",
       "description": "URL to the final edited gallery, pasted by the creator"
     },
+    "album_token": {
+      "type": "string",
+      "description": "Random code that unlocks the shareable memory album. The booking ID alone is not enough to open it."
+    },
     "delivered_at": {
       "type": "string",
       "format": "date-time",

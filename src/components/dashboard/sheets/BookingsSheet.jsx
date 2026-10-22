@@ -52,7 +52,13 @@ export default function BookingsSheet() {
           <BookingCard booking={booking} role="client" />
           {booking.delivery_link && (
             <div className="flex justify-end">
-              <Link to={`/album/${booking.id}`}>
+              <Link
+                to={
+                  booking.album_token
+                    ? `/album/${booking.id}?t=${booking.album_token}`
+                    : `/album/${booking.id}`
+                }
+              >
                 <Pill tone="glass">Memory album</Pill>
               </Link>
             </div>

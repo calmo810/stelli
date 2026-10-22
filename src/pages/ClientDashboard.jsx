@@ -31,7 +31,7 @@ export default function ClientDashboard() {
       title: `${b.lensman_name || 'Your creator'} delivered your photos`,
       meta: `Shot ${shortDate(b.event_date)}`,
       action: 'View',
-      to: `/album/${b.id}`,
+      to: b.album_token ? `/album/${b.id}?t=${b.album_token}` : `/album/${b.id}`,
     })),
   ];
 

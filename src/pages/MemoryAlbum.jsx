@@ -10,15 +10,20 @@ export default function MemoryAlbum() {
   const { bookingId } = useParams();
   const [copied, setCopied] = useState(false);
 
+  // The album is unlocked by the token in the link, not by the booking ID alone.
+  const token = new URLSearchParams(window.location.search).get('t') || '';
+
   const { data: booking, isLoading } = useQuery({
-    queryKey: ['album-booking', bookingId],
+    queryKey: ['album-booking', bookingId, token],
     queryFn: async () => {
-      const response = await base44.functions.invoke('getAlbumBooking', { bookingId });
+      const response = await base44.functions.invoke('getAlbumBooking', { bookingId, token });
       return response.data?.booking || null;
     },
   });
 
-  const shareLink = `${window.location.origin}/album/${bookingId}`;
+  const shareLink = booking?.album_token
+    ? `${window.location.origin}/album/${bookingId}?t=${booking.album_token}`
+    : `${window.location.origin}/album/${bookingId}`;
 
   const copyLink = () => {
     navigator.clipboard.writeText(shareLink);
