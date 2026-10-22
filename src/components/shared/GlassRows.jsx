@@ -18,6 +18,13 @@ export default function GlassRows({ rows, className = '' }) {
           i ? ' border-t border-white/[0.08]' : ''
         }`;
 
+        if (row.onClick) {
+          return (
+            <button key={row.label} type="button" onClick={row.onClick} disabled={row.disabled} className={`w-full text-left disabled:opacity-50 ${cls}`}>
+              {inner}
+            </button>
+          );
+        }
         if (row.to) {
           return (
             <Link key={row.label} to={row.to} className={cls}>
