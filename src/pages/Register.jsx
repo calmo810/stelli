@@ -78,7 +78,7 @@ export default function Register() {
       return;
     }
     if (!legalAgreed) {
-      setError("Please accept Stelli's Terms and Privacy Policy to continue.");
+      setError("Please accept Stelli's Terms and Conditions to continue.");
       return;
     }
     setLoading(true);
@@ -138,7 +138,7 @@ export default function Register() {
       return;
     }
     if (!legalAgreed) {
-      setError("Please accept Stelli's Terms and Privacy Policy to continue.");
+      setError("Please accept Stelli's Terms and Conditions to continue.");
       return;
     }
     localStorage.setItem('stelli_pending_account_type', accountType);
@@ -309,7 +309,7 @@ export default function Register() {
         <label className="flex items-start gap-3 rounded-lg border border-border p-3 cursor-pointer">
           <Checkbox checked={legalAgreed} onCheckedChange={setLegalAgreed} className="mt-0.5" />
           <span className="text-xs leading-relaxed text-muted-foreground">
-            I agree to Stelli's <Link to="/terms" className="text-primary underline">Terms and Conditions</Link> and <Link to="/privacy" className="text-primary underline">Privacy Policy</Link>.
+            I agree to Stelli's <Link to="/terms" className="text-primary underline">Terms and Conditions</Link>.
           </span>
         </label>
         <Button type="submit" className="w-full h-12 font-medium" disabled={loading || !legalAgreed || !accountType}>

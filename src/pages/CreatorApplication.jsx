@@ -138,7 +138,7 @@ export default function CreatorApplication() {
           <label className="flex items-start gap-3 border p-4 cursor-pointer" style={{ borderColor: 'rgba(255,255,255,0.12)', borderRadius: 4 }}>
             <Checkbox checked={legalAgreed} onCheckedChange={setLegalAgreed} className="mt-0.5" />
             <span className="font-body text-[12px] leading-relaxed text-white/55">
-              I agree to Stelli's <Link to="/terms" className="text-white underline">Terms and Conditions</Link> and <Link to="/privacy" className="text-white underline">Privacy Policy</Link>.
+              I agree to Stelli's <Link to="/terms" className="text-white underline">Terms and Conditions</Link>.
             </span>
           </label>
 

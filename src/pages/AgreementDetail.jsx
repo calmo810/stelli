@@ -45,7 +45,7 @@ export default function AgreementDetail() {
                 <label className="flex items-start gap-3 cursor-pointer mb-5">
                   <Checkbox checked={agreed} onCheckedChange={setAgreed} className="mt-1 border-[#F2DCA9]" />
                   <span className="text-sm leading-relaxed" style={{ color: 'rgba(240,237,230,0.72)' }}>
-                    I agree to this booking agreement and Stelli's <Link to="/terms" className="underline">Terms and Conditions</Link> and <Link to="/privacy" className="underline">Privacy Policy</Link>.
+                    I agree to this booking agreement and Stelli's <Link to="/terms" className="underline">Terms and Conditions</Link>.
                   </span>
                 </label>
                 <Button onClick={() => acceptContract.mutate()} disabled={!agreed || acceptContract.isPending} className="rounded-full bg-[#F2DCA9] text-[#10182d]">Accept agreement</Button>

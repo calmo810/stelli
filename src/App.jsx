@@ -24,7 +24,6 @@ import Messages from './pages/Messages';
 import AdminDashboard from './pages/AdminDashboard';
 import MemoryAlbum from './pages/MemoryAlbum';
 import Terms from './pages/Terms';
-import Privacy from './pages/Privacy';
 import AgreementDetail from './pages/AgreementDetail';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -106,7 +105,6 @@ const AuthenticatedApp = () => {
         <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
         <Route path="/album/:bookingId" element={<MemoryAlbum />} />
         <Route path="/terms" element={<Terms />} />
-        <Route path="/privacy" element={<Privacy />} />
         <Route path="/agreements/:contractId" element={<AgreementDetail />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />

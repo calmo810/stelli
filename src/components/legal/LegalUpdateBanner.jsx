@@ -47,7 +47,7 @@ export default function LegalUpdateBanner() {
     setSaving(false);
   };
 
-  if (!needed.length || ['/terms', '/privacy'].includes(location.pathname)) return null;
+  if (!needed.length || location.pathname === '/terms') return null;
 
   return (
     <div className="fixed inset-0 z-[80] flex items-end md:items-center justify-center bg-[#0a0f1e]/85 backdrop-blur-sm px-4 py-6">
@@ -62,7 +62,7 @@ export default function LegalUpdateBanner() {
         <label className="flex items-start gap-3 mb-6 cursor-pointer">
           <Checkbox checked={checked} onCheckedChange={setChecked} className="mt-1" />
           <span className="font-body text-sm leading-relaxed text-white/70">
-            I agree to Stelli's Terms and Conditions and Privacy Policy.
+            I agree to Stelli's Terms and Conditions.
           </span>
         </label>
         <button
