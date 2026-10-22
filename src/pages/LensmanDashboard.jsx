@@ -82,7 +82,7 @@ export default function LensmanDashboard() {
   let note = null;
   if (myProfile?.under_review) {
     note = (
-      <PendingBanner tone="neon-magenta".replace('neon-', '')>
+      <PendingBanner tone="magenta">
         Your profile is under review by the Stelli team after a cancellation.
       </PendingBanner>
     );
