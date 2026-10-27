@@ -7,19 +7,23 @@ export const SERVICE_FEE_RATE = 0.14;
 export const HOLD_HOURS = 48;
 
 /**
- * Development runs against the test keys, so no real card is ever charged
- * while we build. Drop STRIPE_TEST_SECRET_KEY to go live.
+ * Stelli takes real payments, so the live keys come first. The test keys are
+ * only a fallback for a build that has no live key stored.
  */
 export function stripeKey() {
-  return secrets.get('STRIPE_TEST_SECRET_KEY') || secrets.get('STRIPE_SECRET_KEY');
+  return secrets.get('STRIPE_SECRET_KEY') || secrets.get('STRIPE_TEST_SECRET_KEY');
 }
 
 export function stripeMode() {
-  return secrets.get('STRIPE_TEST_SECRET_KEY') ? 'test' : 'live';
+  return secrets.get('STRIPE_SECRET_KEY') ? 'live' : 'test';
 }
 
 export function webhookSecret() {
-  return secrets.get('STRIPE_TEST_WEBHOOK_SECRET') || secrets.get('STRIPE_WEBHOOK_SECRET');
+  return (
+    secrets.get('STRIPE_LIVE_WEBHOOK_SECRET') ||
+    secrets.get('STRIPE_WEBHOOK_SECRET') ||
+    secrets.get('STRIPE_TEST_WEBHOOK_SECRET')
+  );
 }
 
 /** What the client is charged on top of the quote. */

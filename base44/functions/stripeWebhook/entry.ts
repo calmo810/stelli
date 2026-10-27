@@ -12,7 +12,11 @@ const SIGNATURE_TOLERANCE_SECONDS = 300;
  * one in live. Only names that are actually registered belong here: a name
  * with no stored value can never verify anything.
  */
-const WEBHOOK_SECRET_NAMES = ['STRIPE_TEST_WEBHOOK_SECRET', 'STRIPE_WEBHOOK_SECRET'];
+const WEBHOOK_SECRET_NAMES = [
+  'STRIPE_LIVE_WEBHOOK_SECRET',
+  'STRIPE_WEBHOOK_SECRET',
+  'STRIPE_TEST_WEBHOOK_SECRET',
+];
 
 function parseSignatureHeader(header) {
   const parsed = { timestamp: null, signatures: [] };
