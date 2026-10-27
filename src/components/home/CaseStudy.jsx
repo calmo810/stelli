@@ -493,7 +493,7 @@ export default function CaseStudy() {
                       <img src={LOGO_URL} alt="Stelli" className="cs-logo" />
                       <div className="cs-links"><span>Creators</span><span>How it works</span><span className="cs-pill">Book</span></div>
                     </nav>
-                    <p className="cs-kick">NEW YORK · BOOKING CONFIRMED</p>
+                    <p className="cs-kick">ELON · BOOKING CONFIRMED</p>
                     <h3 className="cs-h1">You’re the star.<br /><em>We just bring the camera.</em></h3>
                     <div className="cs-book">
                       <div className="cs-creator"><span className="tag">Maya R. · <span className="star">★</span> 4.9</span></div>
