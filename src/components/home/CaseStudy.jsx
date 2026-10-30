@@ -15,13 +15,6 @@ const RISE = {
   transition: { duration: 0.8, ease: [0.2, 0.8, 0.2, 1] },
 };
 
-const STEPS = [
-  { n: '01', step: 'Request', was: 'Left on seen.', now: 'Pick a creator. Send a date.' },
-  { n: '02', step: 'Quote', was: '“DM for rates.”', now: 'Approve the price before you pay.' },
-  { n: '03', step: 'Book', was: 'A handshake. Pay and hope.', now: 'Contract built in. Payment held.' },
-  { n: '04', step: 'Photos', was: '“Sending them soon.”', now: 'In 2–3 days. Edits within a week.' },
-];
-
 const PHONE_W = 200;
 const PHONE_H = 432;
 
@@ -172,27 +165,9 @@ const CSS = `
   display:grid;place-items:center;background:hsl(var(--neon-lime));color:hsl(var(--ink));font-size:15px;font-weight:700;
   box-shadow:0 0 0 5px hsl(var(--ink)),0 0 30px hsl(var(--neon-lime)/.5)}
 
-/* ---------- steps table ---------- */
-.cs-table{border:1px solid rgba(255,255,255,.09);border-radius:24px;overflow:hidden;
-  background:linear-gradient(145deg,rgba(255,255,255,.025),transparent 45%),hsl(var(--surface))}
-.cs-row{display:grid;grid-template-columns:150px 1fr 1fr;gap:20px;align-items:center;padding:24px 32px;border-bottom:1px solid rgba(255,255,255,.06)}
-.cs-row:last-child{border-bottom:none}
-.cs-row--head{padding:16px 32px;background:rgba(255,255,255,.02)}
-.cs-num{display:flex;align-items:baseline;gap:12px}
-.cs-num b{font-family:var(--font-display);font-style:italic;font-weight:400;font-size:22px;color:hsl(var(--neon-lime));letter-spacing:0}
-.cs-was{color:rgba(255,255,255,.35);text-decoration:line-through;text-decoration-color:rgba(255,255,255,.2)}
-.cs-now{color:#fff;font-weight:500;display:flex;align-items:center;gap:12px}
-.cs-now::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:hsl(var(--neon-lime));box-shadow:0 0 14px hsl(var(--neon-lime))}
-.cs-ml{display:none}
-
 @media (max-width:1100px){
   .cs-stage{display:none}
   .cs-phones{display:grid}
-}
-@media (max-width:700px){
-  .cs-row--head{display:none}
-  .cs-row{grid-template-columns:1fr;gap:8px;padding:20px}
-  .cs-ml{display:inline;margin-right:8px;text-decoration:none}
 }
 @media (prefers-reduced-motion:reduce){
   .cs-float,.cs-typing span{animation:none!important}
@@ -516,34 +491,8 @@ export default function CaseStudy() {
         <Phones />
       </div>
 
-      {/* How it works: four steps, each one fixing a pain */}
       <div className="max-w-[980px] mx-auto mt-[90px] md:mt-[150px]">
-        <motion.div {...RISE} className="text-center mb-10 md:mb-12">
-          <p className="label-mono text-[10px] text-white/45">how it works</p>
-          <h3
-            className="mt-4 font-display font-normal text-white"
-            style={{ fontSize: 'clamp(30px, 4.5vw, 52px)', lineHeight: 1, letterSpacing: '-0.02em' }}
-          >
-            Four steps. That’s it.
-          </h3>
-        </motion.div>
-
-        <motion.ol {...RISE} className="cs-table m-0 p-0 list-none">
-          <li className="cs-row cs-row--head label-mono text-[10px] text-white/35" aria-hidden>
-            <span>Step</span>
-            <span>The old way</span>
-            <span className="text-neon-lime">With Stelli</span>
-          </li>
-          {STEPS.map((r) => (
-            <li key={r.step} className="cs-row font-body text-[15px]">
-              <span className="cs-num"><b>{r.n}</b><span className="label-mono text-[10px] text-white/60">{r.step}</span></span>
-              <span className="cs-was"><span className="cs-ml label-mono text-[9px] text-white/30">before</span>{r.was}</span>
-              <span className="cs-now">{r.now}</span>
-            </li>
-          ))}
-        </motion.ol>
-
-        <motion.div {...RISE} className="flex flex-col items-center gap-7 mt-12">
+        <motion.div {...RISE} className="flex flex-col items-center gap-7">
           <Link
             to="/creators"
             className="inline-flex items-center justify-center rounded-full px-8 py-4 label-mono text-[11px] font-semibold transition-transform duration-300 hover:-translate-y-0.5"
