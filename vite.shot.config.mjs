@@ -1,0 +1,1 @@
+export default { root: '/app', build: { outDir: '/app/dist' }, preview: { port: 4174, strictPort: true, proxy: { '/api': { target: 'https://getstelli.base44.app', changeOrigin: true, secure: true } } } };
