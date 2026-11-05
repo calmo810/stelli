@@ -97,7 +97,8 @@
 @media (max-width: 760px) {
   .cp-who { grid-template-columns: auto minmax(0, 1fr); gap: 14px; }
   .cp-avatar { width: 64px; height: 64px; font-size: 24px; }
-  .cp-actions { grid-column: 1 / -1; }
+  .cp-who > div:nth-child(2) { align-self: center; }
+  .cp-cta { grid-column: 1 / -1; }
   .cp-actions .cp-btn-lime { flex: 1; }
   .cp-draft { text-align: left; }
 }
