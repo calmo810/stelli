@@ -17,6 +17,12 @@
     --muted-tone: 225 18% 61%;
     --stelli-blue: 225 100% 40%;
 
+    /* iOS WebView: the notch at the top, the home bar at the bottom, and the
+       room the mobile tab bar takes out of the screen. */
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --tabbar-h: calc(58px + var(--safe-bottom));
+
     /* shadcn-compatible tokens (dark by default) */
     --background: 225 50% 8%;
     --foreground: 0 0% 100%;
@@ -105,6 +111,8 @@
     scroll-behavior: smooth;
     color-scheme: dark;
     -webkit-text-size-adjust: 100%;
+    /* The WebView wrapper must not rubber-band the page itself. */
+    overscroll-behavior-y: none;
   }
   /* Smooth-scroll engine owns the scroll; native smoothing would fight it. */
   html.lenis-on {
@@ -116,6 +124,7 @@
 
   body {
     @apply bg-background text-foreground font-body;
+    overscroll-behavior-y: none;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -159,6 +168,25 @@
   textarea:focus-visible {
     outline: 2px solid hsl(var(--neon-lime));
     outline-offset: 3px;
+  }
+
+  /* Taps on controls and cards never leave a grey selection wash behind on iOS.
+     Text fields are left alone so typing and copying still behave. */
+  button,
+  [role='button'],
+  [role='menuitem'],
+  [role='tab'],
+  a,
+  .glass {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  input,
+  textarea,
+  select {
+    -webkit-user-select: text;
+    user-select: text;
   }
 }
 
@@ -290,7 +318,7 @@
     position: fixed;
     left: 0;
     right: 0;
-    top: 64px;
+    top: calc(64px + var(--safe-top));
     height: 52px;
     z-index: 45;
     display: flex;
@@ -323,7 +351,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    top: 116px;
+    top: calc(116px + var(--safe-top));
     z-index: 46;
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -361,6 +389,67 @@
     height: 5px;
     border-radius: 5px;
     background: rgba(255, 255, 255, .22);
+  }
+
+  /* ---------------------------------------------------------------
+     Phones. One row of four doors along the bottom, clear of the home
+     bar; every fixed bar starts below the notch.
+     --------------------------------------------------------------- */
+  .nav-offset {
+    padding-top: calc(4rem + var(--safe-top));
+  }
+
+  .tabbar-gap {
+    padding-bottom: var(--tabbar-h);
+  }
+
+  .chat-screen {
+    height: calc(100dvh - 4rem - var(--safe-top) - var(--tabbar-h));
+  }
+
+  .tabbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 44;
+    display: flex;
+    align-items: stretch;
+    padding-bottom: var(--safe-bottom);
+    background: hsl(var(--ink) / 0.94);
+    -webkit-backdrop-filter: blur(20px) saturate(1.5);
+    backdrop-filter: blur(20px) saturate(1.5);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .tabbar-item {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 58px;
+    background: none;
+    border: 0;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    transition: color .2s ease;
+  }
+  .tabbar-item.is-active {
+    color: hsl(var(--neon-lime));
+  }
+  .tabbar-item:active {
+    color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+/* The tab bar is a phone thing: from 768px up it takes no room at all. */
+@media (min-width: 768px) {
+  :root {
+    --tabbar-h: 0px;
   }
 }
 

@@ -29,6 +29,7 @@ export default function Navbar() {
       <header
         className="fixed top-0 inset-x-0 z-50 transition-colors duration-500"
         style={{
+          paddingTop: 'var(--safe-top)',
           background: solid ? 'hsl(var(--ink) / 0.88)' : 'transparent',
           backdropFilter: solid ? 'blur(14px)' : 'none',
           borderBottom: solid ? '1px solid rgba(255,255,255,0.08)' : '1px solid transparent',
