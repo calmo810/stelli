@@ -102,6 +102,27 @@ export default async function (req) {
     const event = JSON.parse(payload);
     const object = event?.data?.object || {};
 
+    // One-off payments taken by a founder outside the booking flow.
+    const oneOffId = object?.metadata?.one_off_charge_id;
+    if (oneOffId && event.type.startsWith('checkout.session.')) {
+      const status =
+        event.type === 'checkout.session.async_payment_failed'
+          ? 'failed'
+          : object.payment_status === 'paid'
+            ? 'paid'
+            : event.type === 'checkout.session.completed'
+              ? 'processing'
+              : null;
+      if (status) {
+        await base44.asServiceRole.entities.OneOffCharge.update(oneOffId, {
+          status,
+          stripe_payment_intent_id: object.payment_intent || '',
+          ...(status === 'paid' ? { paid_at: new Date().toISOString() } : {}),
+        });
+      }
+      return Response.json({ received: true });
+    }
+
     // Paid by card: the money is held. Paid by bank: it has to clear first.
     if (event.type === 'checkout.session.completed') {
       const bookingId = object?.metadata?.booking_id;
