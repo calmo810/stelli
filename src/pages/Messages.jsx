@@ -14,7 +14,7 @@ export default function Messages() {
   const { threads, unreadCount, isLoading } = useThreads();
 
   return (
-    <div className="mx-auto flex h-[calc(100dvh-4rem)] w-full max-w-[1240px] lg:px-6 lg:py-5">
+    <div className="mx-auto flex chat-screen w-full max-w-[1240px] lg:h-[calc(100dvh-4rem)] lg:px-6 lg:py-5">
       <div className="flex min-h-0 w-full overflow-hidden lg:rounded-[32px] lg:border lg:border-white/[0.08] lg:bg-white/[0.02]">
         <aside
           className={`min-h-0 w-full shrink-0 border-white/[0.08] lg:flex lg:w-[380px] lg:border-r ${

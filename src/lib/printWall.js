@@ -27,7 +27,9 @@ export function printClass(settings) {
 /** Row height for a given wall width: big on desktop, still readable on a phone. */
 export function rowHeightFor(width, compact) {
   if (compact) return Math.max(92, Math.min(150, width * 0.2));
-  return Math.max(138, Math.min(236, width * 0.2));
+  // Three rows plus room for shadows should fit a laptop screen without scrolling.
+  const byHeight = typeof window !== 'undefined' ? window.innerHeight * 0.235 : 236;
+  return Math.max(138, Math.min(236, width * 0.2, byHeight));
 }
 
 function dress(el, photo, i, settings, label) {
