@@ -25,6 +25,8 @@ export const STYLE_TAGS = ['grad', 'portraits', 'outdoor', 'campus', 'couples', 
 export const ALL_STYLE_TAGS = STYLE_TAGS;
 
 export const LIMITS = { one_liner: 90, prompt_answer: 200, dont_shoot: 140, bio: 400 };
+/** Same ceiling the wizard enforces, so a save never trims a portfolio. */
+export const MAX_PORTFOLIO_IMAGES = 12;
 export const ACCENTS = ['lime', 'cyan', 'magenta'];
 export const TIER_LEVELS = ['low', 'mid', 'high'];
 
@@ -162,6 +164,21 @@ export function buildProfilePatch(body = {}) {
 
   if (Array.isArray(body.pricing_tiers)) {
     patch.pricing_tiers = cleanPricingTiers(body.pricing_tiers);
+  }
+
+  // Every photo uploaded in the wizard belongs to this profile — the face photo
+  // and the portfolio alike. Signup saves through this same patch, so they land
+  // on the profile that is submitted for review.
+  if (typeof body.profile_image === 'string') {
+    const value = body.profile_image.trim();
+    if (value) patch.profile_image = value;
+  }
+
+  if (Array.isArray(body.portfolio_images)) {
+    patch.portfolio_images = body.portfolio_images
+      .filter((url) => typeof url === 'string' && url.trim())
+      .map((url) => url.trim())
+      .slice(0, MAX_PORTFOLIO_IMAGES);
   }
 
   return { patch, errors };
