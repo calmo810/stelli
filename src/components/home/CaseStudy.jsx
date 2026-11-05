@@ -404,14 +404,6 @@ export default function CaseStudy() {
         </span>
       </motion.h2>
 
-      <motion.div
-        {...RISE}
-        className="max-w-[900px] mx-auto mt-10 md:mt-14 flex flex-wrap items-center justify-center gap-x-[.45em] gap-y-2 text-center text-white"
-        style={{ fontFamily: 'var(--font-sans)', fontSize: 'clamp(19px, 2.3vw, 30px)', lineHeight: 1.3, fontWeight: 500, letterSpacing: '-0.02em' }}
-      >
-        <img src={LOGO_URL} alt="Stelli" className="block w-auto" style={{ height: '2.6em', marginTop: '-.2em' }} />
-      </motion.div>
-
       <div className="mt-[48px] md:mt-[90px]">
         {/* Desktop: floating browsers */}
         <motion.div {...RISE} className="cs-stage" aria-label="The old way compared with the Stelli way">
