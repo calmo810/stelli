@@ -18,6 +18,8 @@ export default function SmoothImage({ className = '', style, priority = false, o
       ref={ref}
       decoding="async"
       loading={priority ? 'eager' : 'lazy'}
+      // React 18 only passes the lowercase attribute through to the DOM.
+      // eslint-disable-next-line react/no-unknown-property
       fetchpriority={priority ? 'high' : 'auto'}
       draggable={false}
       {...props}
