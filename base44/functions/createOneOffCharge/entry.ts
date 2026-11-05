@@ -47,8 +47,9 @@ export default async function (req) {
 
     const body = new URLSearchParams();
     body.set('mode', 'payment');
-    body.set('success_url', `${base}/admin?charge=paid`);
-    body.set('cancel_url', `${base}/admin?charge=cancelled`);
+    // The payer may be a client, so they come back to the public home page.
+    body.set('success_url', `${base}/?payment=success`);
+    body.set('cancel_url', `${base}/?payment=cancelled`);
     if (email) body.set('customer_email', email);
     body.set('line_items[0][quantity]', '1');
     body.set('line_items[0][price_data][currency]', 'usd');
