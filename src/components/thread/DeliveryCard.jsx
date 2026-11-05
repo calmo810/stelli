@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import { Loader2, Link2, Image as ImageIcon, AlertTriangle } from 'lucide-react';
 import { safeHref } from '@/lib/safeHref';
 import Pill from '@/components/shared/Pill';
