@@ -77,6 +77,8 @@ export default function CreatorCard({ creator, index = 0, onOpen }) {
       const x = (event.clientX - rect.left) / rect.width - 0.5;
       const y = (event.clientY - rect.top) / rect.height - 0.5;
       innerRef.current.style.transform = `rotateY(${x * 8}deg) rotateX(${-y * 8}deg)`;
+      innerRef.current.style.setProperty('--mx', `${(x + 0.5) * 100}%`);
+      innerRef.current.style.setProperty('--my', `${(y + 0.5) * 100}%`);
     });
   };
 
@@ -113,10 +115,12 @@ export default function CreatorCard({ creator, index = 0, onOpen }) {
     >
       <div
         ref={innerRef}
-        className="absolute inset-0 overflow-hidden rounded-[22px] bg-surface transition-transform duration-[250ms] ease-out"
+        className="absolute inset-0 overflow-hidden rounded-[22px] bg-surface transition-[transform,box-shadow] duration-300 ease-out"
         style={{
           transformStyle: 'preserve-3d',
-          boxShadow: active ? `0 0 0 1px ${accent}, 0 34px 70px -28px ${accent}` : 'none',
+          boxShadow: active
+            ? `0 0 0 1px ${accent}, 0 34px 70px -28px ${accent}`
+            : 'inset 0 1px 0 rgba(255,255,255,.08), inset 0 0 0 1px rgba(255,255,255,.06), 0 24px 48px -28px rgba(0,0,0,.7)',
         }}
       >
         {images.map((url, i) => (
@@ -139,6 +143,7 @@ export default function CreatorCard({ creator, index = 0, onOpen }) {
               'linear-gradient(180deg, rgba(12,16,32,.35) 0%, transparent 22%, transparent 42%, rgba(12,16,32,.94) 100%)',
           }}
         />
+        <span aria-hidden="true" className={`sheen z-[2] ${active ? 'is-on' : ''}`} />
 
         <div
           className={`absolute left-3.5 right-3.5 top-3.5 z-[3] flex gap-1 transition-opacity duration-300 ${
