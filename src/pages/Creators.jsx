@@ -28,10 +28,10 @@ export default function Creators() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-ink text-white">
-      <div className="relative z-[1] mx-auto max-w-[1240px] px-5 pb-32 md:px-10">
+      <div className="relative z-[1] mx-auto max-w-[1240px] px-5 pt-24 pb-24 md:px-10 md:pt-32 md:pb-32">
         <BrowseHero creators={creators} onFind={scrollToBrowse} />
 
-        <div ref={browseRef} className="mb-7 mt-12 scroll-mt-6 md:mt-14">
+        <div ref={browseRef} className="mb-7 mt-16 scroll-mt-6 md:mt-20">
           <BrowseFilters
             filters={BROWSE_FILTERS}
             value={filter}
