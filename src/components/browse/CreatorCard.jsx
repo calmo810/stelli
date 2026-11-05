@@ -21,6 +21,7 @@ export default function CreatorCard({ creator, index = 0, onOpen }) {
   const [inView, setInView] = useState(false);
   const [active, setActive] = useState(false);
   const [current, setCurrent] = useState(0);
+  const [loadedImages, setLoadedImages] = useState(() => new Set());
   const cardRef = useRef(null);
   const innerRef = useRef(null);
   const frameRef = useRef(0);
@@ -49,6 +50,11 @@ export default function CreatorCard({ creator, index = 0, onOpen }) {
     observer.observe(node);
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    if (!inView || loadedImages.has(current)) return;
+    setLoadedImages((loaded) => new Set(loaded).add(current));
+  }, [inView, current, loadedImages]);
 
   useEffect(() => {
     if (!active || images.length < 2 || reduced.current) return undefined;
@@ -131,7 +137,7 @@ export default function CreatorCard({ creator, index = 0, onOpen }) {
             key={`${url}-${i}`}
             className={`absolute inset-0 bg-cover bg-center ${i === current ? 'opacity-100' : 'opacity-0'}`}
             style={{
-              backgroundImage: cssUrl(url),
+              backgroundImage: loadedImages.has(i) ? cssUrl(url) : 'none',
               transform: active && i === current ? 'scale(1.07)' : 'scale(1.02)',
               transition: 'opacity .7s, transform 1.6s ' + EASE_OUT,
             }}
