@@ -62,7 +62,7 @@ export function PhotoViewer({ photos, index, fromEl, onClose, onStep }) {
     };
     if (img.complete) go();
     else img.addEventListener('load', go, { once: true });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   if (!photo) return null;
@@ -171,7 +171,7 @@ export default function PrintWall({
       engine.destroy();
       engineRef.current = null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [key, useGrid]);
 
   if (!photos.length) return null;

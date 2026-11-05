@@ -14,7 +14,7 @@ export default function WizardProfilePreview({ s }) {
       ordered.length
         ? ordered.filter((item) => item.src).map((item) => ({ src: item.src }))
         : Array.from({ length: 6 }, (_, i) => ({ bg: PH[i % PH.length] })),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     [ordered.map((item) => item.src).join('|')]
   );
   const settings = useMemo(
