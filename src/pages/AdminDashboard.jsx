@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Star, Calendar, DollarSign } from 'lucide-react';
+import { Star, Calendar, DollarSign, ClipboardCheck } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
 import RatingDisplay from '@/components/RatingDisplay';
 import { PayCreatorPanel, OneOffChargePanel } from '@/components/admin/FounderPayments';
+import AdminOverview from '@/components/admin/AdminOverview';
+import AdminApplications from '@/components/admin/AdminApplications';
 
 const SURFACE = { background: 'hsl(var(--surface))', borderRadius: 4 };
 const CARD = 'border border-white/10';
@@ -26,15 +28,29 @@ function Pill({ children, tone = 'cyan' }) {
 
 export default function AdminDashboard() {
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState('overview');
+  const [creatorSearch, setCreatorSearch] = useState('');
+  const [bookingSearch, setBookingSearch] = useState('');
+  const [bookingStatus, setBookingStatus] = useState('all');
 
-  const { data: lensmen = [] } = useQuery({
+  const { data: lensmen = [], isLoading: loadingLensmen, isError: lensmenError } = useQuery({
     queryKey: ['admin-lensmen'],
     queryFn: () => base44.entities.Lensman.list('-created_date'),
   });
 
-  const { data: bookings = [], isLoading: loadingBookings } = useQuery({
+  const { data: creatorContacts = [], isLoading: loadingContacts, isError: contactsError } = useQuery({
+    queryKey: ['admin-creator-contacts'],
+    queryFn: () => base44.entities.CreatorContact.list('-created_date', 500),
+  });
+
+  const { data: bookings = [], isLoading: loadingBookings, isError: bookingsError } = useQuery({
     queryKey: ['admin-bookings'],
     queryFn: () => base44.entities.Booking.list('-created_date'),
+  });
+
+  const reviewApplication = useMutation({
+    mutationFn: ({ lensmanId, status }) => base44.entities.Lensman.update(lensmanId, { status }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-lensmen'] }),
   });
 
   const decidePayout = useMutation({
@@ -55,12 +71,31 @@ export default function AdminDashboard() {
     )
     .sort((a, b) => needsDecision(a) - needsDecision(b));
   const approved = lensmen.filter(l => l.status === 'approved');
+  const pendingApplications = lensmen.filter((lensman) => lensman.status === 'pending');
+  const filteredCreators = useMemo(() => {
+    const term = creatorSearch.trim().toLowerCase();
+    return approved.filter((lensman) =>
+      !term || [lensman.display_name, ...(lensman.neighborhoods || []), ...(lensman.specialties || [])]
+        .some((value) => String(value || '').toLowerCase().includes(term))
+    );
+  }, [approved, creatorSearch]);
+  const bookingStatuses = [...new Set(bookings.map((booking) => booking.status).filter(Boolean))];
+  const filteredBookings = useMemo(() => {
+    const term = bookingSearch.trim().toLowerCase();
+    return bookings.filter((booking) => {
+      const matchesStatus = bookingStatus === 'all' || booking.status === bookingStatus;
+      const matchesSearch = !term || [booking.client_name, booking.lensman_name, booking.event_type, booking.event_date]
+        .some((value) => String(value || '').toLowerCase().includes(term));
+      return matchesStatus && matchesSearch;
+    });
+  }, [bookings, bookingSearch, bookingStatus]);
   const totalRevenue = bookings.filter(b => b.status === 'completed').reduce((sum, b) => sum + (b.total_price || 0), 0);
 
   const stats = [
     { icon: Star, label: 'Active lensmen', value: approved.length, color: 'hsl(var(--neon-lime))' },
     { icon: Calendar, label: 'Total bookings', value: bookings.length, color: 'hsl(var(--neon-magenta))' },
     { icon: DollarSign, label: 'Revenue', value: `$${totalRevenue.toLocaleString()}`, color: 'hsl(var(--neon-lime))' },
+    { icon: ClipboardCheck, label: 'Applications to review', value: loadingLensmen ? '—' : pendingApplications.length, color: 'hsl(var(--neon-cyan))' },
   ];
 
   return (
@@ -72,13 +107,13 @@ export default function AdminDashboard() {
             <h1 className="font-heading text-white font-semibold leading-[0.95] mb-3" style={{ fontSize: 'clamp(36px, 5vw, 64px)' }}>
               Admin
             </h1>
-            <p className="font-body text-[13px] text-white/45">Manage lensmen and track bookings.</p>
+            <p className="font-body text-[13px] text-white/45">Review creator applications, monitor bookings, and keep operations moving.</p>
           </motion.div>
         </div>
       </div>
 
       <div className="max-w-[1400px] mx-auto px-5 md:px-10 py-10">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 mb-10">
           {stats.map((stat, i) => (
             <div key={i} className={`${CARD} p-5 text-center`} style={SURFACE}>
               <stat.icon className="w-4 h-4 mx-auto mb-3" style={{ color: stat.color }} strokeWidth={1.6} />
@@ -88,8 +123,14 @@ export default function AdminDashboard() {
           ))}
         </div>
 
-        <Tabs defaultValue="lensmen">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-transparent border border-white/10 rounded-none p-1 mb-8 h-auto flex-wrap">
+            <TabsTrigger value="overview" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-lime data-[state=active]:text-ink">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="applications" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-cyan data-[state=active]:text-ink">
+              Applications ({pendingApplications.length})
+            </TabsTrigger>
             <TabsTrigger value="lensmen" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-lime data-[state=active]:text-ink">
               Active lensmen ({approved.length})
             </TabsTrigger>
@@ -107,6 +148,31 @@ export default function AdminDashboard() {
             </TabsTrigger>
           </TabsList>
 
+          <TabsContent value="overview">
+            <AdminOverview
+              activeCreators={approved.length}
+              pendingCount={pendingApplications.length}
+              bookingCount={bookings.length}
+              heldCount={heldFunds.length}
+              bookings={bookings}
+              isLoading={loadingBookings}
+              onOpenTab={setActiveTab}
+            />
+          </TabsContent>
+
+          <TabsContent value="applications">
+            <AdminApplications
+              applications={pendingApplications}
+              contacts={creatorContacts}
+              isLoading={loadingLensmen || loadingContacts}
+              isError={lensmenError || contactsError}
+              isSaving={reviewApplication.isPending}
+              savingId={reviewApplication.variables?.lensmanId}
+              saveError={reviewApplication.isError}
+              onDecision={(application, status) => reviewApplication.mutate({ lensmanId: application.id, status })}
+            />
+          </TabsContent>
+
           <TabsContent value="pay">
             <PayCreatorPanel lensmen={lensmen} />
           </TabsContent>
@@ -116,7 +182,21 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="lensmen" className="space-y-3">
-            {approved.map(l => (
+            <label className="relative block w-full sm:max-w-[360px]">
+              <span className="sr-only">Search active creators</span>
+              <input
+                type="search"
+                value={creatorSearch}
+                onChange={(event) => setCreatorSearch(event.target.value)}
+                placeholder="Search name, specialty, or area…"
+                className="w-full rounded border border-white/15 bg-white/[0.03] px-4 py-3 text-[13px] text-white placeholder:text-white/35 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neon-lime"
+              />
+            </label>
+            {lensmenError ? (
+              <p role="alert" className="border border-neon-magenta/30 p-4 text-[13px] text-white/70">Creator profiles could not be loaded. Refresh the page and try again.</p>
+            ) : loadingLensmen ? (
+              Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-20" />)
+            ) : filteredCreators.length ? filteredCreators.map(l => (
               <div key={l.id} className={`${CARD} p-5 flex items-center justify-between gap-4`} style={SURFACE}>
                 <div>
                   <h3 className="font-heading text-[18px] font-semibold text-white leading-tight">{l.display_name || 'Stelli creator'}</h3>
@@ -131,14 +211,43 @@ export default function AdminDashboard() {
                   )}
                 </div>
               </div>
-            ))}
+            )) : (
+              <p className="font-body text-[13px] text-center py-16 text-white/40">
+                {approved.length ? 'No creators match that search.' : 'No approved creators yet.'}
+              </p>
+            )}
           </TabsContent>
 
           <TabsContent value="bookings" className="space-y-3">
-            {loadingBookings ? (
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <label className="relative block min-w-0 flex-1">
+                <span className="sr-only">Search bookings</span>
+                <input
+                  type="search"
+                  value={bookingSearch}
+                  onChange={(event) => setBookingSearch(event.target.value)}
+                  placeholder="Search client, creator, event, or date…"
+                  className="w-full rounded border border-white/15 bg-white/[0.03] px-4 py-3 text-[13px] text-white placeholder:text-white/35 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neon-lime"
+                />
+              </label>
+              <label className="block sm:w-[220px]">
+                <span className="sr-only">Filter bookings by status</span>
+                <select
+                  value={bookingStatus}
+                  onChange={(event) => setBookingStatus(event.target.value)}
+                  className="w-full rounded border border-white/15 bg-surface px-4 py-3 text-[13px] text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neon-lime"
+                >
+                  <option value="all">All statuses</option>
+                  {bookingStatuses.map((status) => <option key={status} value={status}>{status.replace(/_/g, ' ')}</option>)}
+                </select>
+              </label>
+            </div>
+            {bookingsError ? (
+              <p role="alert" className="border border-neon-magenta/30 p-4 text-[13px] text-white/70">Bookings could not be loaded. Refresh the page and try again.</p>
+            ) : loadingBookings ? (
               Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-20" />)
-            ) : bookings.length > 0 ? (
-              bookings.map(b => (
+            ) : filteredBookings.length > 0 ? (
+              filteredBookings.map(b => (
                 <div key={b.id} className={`${CARD} p-5 flex items-center justify-between gap-4`} style={SURFACE}>
                   <div>
                     <h3 className="font-heading text-[18px] font-semibold text-white capitalize leading-tight">
@@ -155,7 +264,9 @@ export default function AdminDashboard() {
                 </div>
               ))
             ) : (
-              <p className="font-body text-[13px] text-center py-20 text-white/35">No bookings yet</p>
+              <p className="font-body text-[13px] text-center py-20 text-white/35">
+                {bookings.length ? 'No bookings match those filters.' : 'No bookings yet.'}
+              </p>
             )}
           </TabsContent>
 
