@@ -20,7 +20,7 @@ export default function ProfileGallery({ pinned = [], rest = [], galleryStyle, a
           <p className="label-mono text-[9px] text-white/30 mb-5">Selected work</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {pinned.map((src, i) => (
-              <div key={src} className="relative overflow-hidden" style={{ borderRadius: 4 }}>
+              <div key={src} className="relative overflow-hidden" style={{ borderRadius: 4, clipPath: 'inset(0 round 4px)' }}>
                 <SmoothImage src={src} alt="" className="w-full aspect-[4/5] object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(.16,1,.3,1)] hover:scale-[1.03]" />
                 <span className="absolute top-3 left-3 label-mono text-[9px]" style={{ color: accent }}>
                   {String(i + 1).padStart(2, '0')}
