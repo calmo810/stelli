@@ -135,6 +135,8 @@ export default function FaqThread() {
   return (
     <div className="fq-stage" onPointerMove={onMove} onPointerLeave={onLeave}>
       <div className="fq-glow" aria-hidden="true" />
+      <div className="fq-floor" aria-hidden="true" />
+      <div className="fq-rise">
       <div ref={tiltRef} className="fq-tilt">
         <div className="fq-phone">
           <span className="fq-btn l action" aria-hidden="true" />
@@ -266,6 +268,7 @@ export default function FaqThread() {
             <span className="fq-home" aria-hidden="true" />
           </div>
         </div>
+      </div>
       </div>
     </div>
   );
