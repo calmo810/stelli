@@ -118,6 +118,7 @@ export default function CreatorCard({ creator, index = 0, onOpen }) {
         className="absolute inset-0 overflow-hidden rounded-[22px] bg-surface transition-[transform,box-shadow] duration-300 ease-out"
         style={{
           transformStyle: 'preserve-3d',
+          clipPath: 'inset(0 round 22px)',
           boxShadow: active
             ? `0 0 0 1px ${accent}, 0 34px 70px -28px ${accent}`
             : 'inset 0 1px 0 rgba(255,255,255,.08), inset 0 0 0 1px rgba(255,255,255,.06), 0 24px 48px -28px rgba(0,0,0,.7)',
