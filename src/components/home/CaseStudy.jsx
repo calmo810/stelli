@@ -22,14 +22,14 @@ export default function CaseStudy() {
       className="cs relative w-[calc(100%-28px)] md:w-[min(1380px,calc(100%-48px))] mx-auto py-[60px] md:py-[100px]"
     >
       {/* Header */}
-      <motion.div {...RISE} className="flex items-center justify-center gap-3 mb-5 label-mono text-[10px] text-white/60">
-        <span className="w-[6px] h-[6px] rounded-full bg-neon-lime shadow-[0_0_18px_hsl(var(--neon-lime))]" />
+      <motion.div {...RISE} className="flex items-center justify-center gap-3 mb-5 label-mono text-[13px] text-white/60">
+        <span className="w-[8px] h-[8px] rounded-full bg-neon-lime shadow-[0_0_18px_hsl(var(--neon-lime))]" />
         <span className="inline-flex items-center gap-[.7em]">
           <span>the</span>
-          <img src={LOGO_URL} alt="Stelli" className="h-[22px] w-auto -mt-[4px]" />
+          <img src={LOGO_URL} alt="Stelli" className="h-[29px] w-auto -mt-[5px]" />
           <span>way</span>
         </span>
-        <span className="w-[6px] h-[6px] rounded-full bg-neon-lime shadow-[0_0_18px_hsl(var(--neon-lime))]" />
+        <span className="w-[8px] h-[8px] rounded-full bg-neon-lime shadow-[0_0_18px_hsl(var(--neon-lime))]" />
       </motion.div>
 
       <motion.h2
