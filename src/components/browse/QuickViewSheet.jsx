@@ -84,7 +84,7 @@ export default function QuickViewSheet({ creator, onClose }) {
           <X className="h-4 w-4" />
         </button>
 
-        <div className="no-scrollbar clear-both flex snap-x snap-mandatory gap-2.5 overflow-x-auto px-[22px] pb-1 pt-[18px]">
+        <div className="no-scrollbar clear-both flex snap-x snap-mandatory scroll-px-[22px] gap-2.5 overflow-x-auto px-[22px] pb-1 pt-[18px]">
           {images.map((url, i) => (
             <div
               key={`${url}-${i}`}
