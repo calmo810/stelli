@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Check, ShieldCheck, Star, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
+import { PhotoViewer } from './PrintWall';
 
 function Stars({ rating = 0 }) {
   const r = Math.round(rating);
@@ -26,8 +27,14 @@ const titleFor = (shoot) => (shoot.event_type ? shoot.event_type.replace(/_/g, '
  * Past Stelli shoots, with the review left for each. Only shoots both the
  * client and the creator agreed to share. With none, nothing renders at all.
  */
-export default function PastShoots({ lensmanId, firstName, onOpenPhotos }) {
+export default function PastShoots({ lensmanId, firstName }) {
   const [openId, setOpenId] = useState(null);
+  const [viewer, setViewer] = useState(null); // { photos, index, fromEl }
+  const closeViewer = useCallback(() => setViewer(null), []);
+  const stepViewer = useCallback(
+    (d) => setViewer((v) => (v ? { ...v, fromEl: null, index: (v.index + d + v.photos.length) % v.photos.length } : v)),
+    []
+  );
   const { data: shoots = [] } = useQuery({
     queryKey: ['past-shoots', lensmanId],
     enabled: !!lensmanId,
@@ -40,11 +47,11 @@ export default function PastShoots({ lensmanId, firstName, onOpenPhotos }) {
 
   const open = shoots.find((s) => s.id === openId);
   useEffect(() => {
-    if (!open) return undefined;
+    if (!open || viewer) return undefined;
     const onKey = (e) => e.key === 'Escape' && setOpenId(null);
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [open]);
+  }, [open, viewer]);
 
   if (!shoots.length) return null;
 
@@ -120,7 +127,7 @@ export default function PastShoots({ lensmanId, firstName, onOpenPhotos }) {
             </div>
             <div className="mt-[18px] grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))' }}>
               {open.photos.map((src, i) => (
-                <button key={src} type="button" className="overflow-hidden rounded-[10px]" style={{ aspectRatio: '4 / 5', cursor: 'zoom-in' }} onClick={() => onOpenPhotos?.(open.photos, i)} aria-label={`Open photo ${i + 1}`}>
+                <button key={src} type="button" className="overflow-hidden rounded-[10px]" style={{ aspectRatio: '4 / 5', cursor: 'zoom-in' }} onClick={(e) => setViewer({ photos: open.photos.map((src) => ({ src })), index: i, fromEl: e.currentTarget })} aria-label={`Open photo ${i + 1}`}>
                   <img src={src} alt="" className="h-full w-full object-cover" />
                 </button>
               ))}
@@ -134,6 +141,10 @@ export default function PastShoots({ lensmanId, firstName, onOpenPhotos }) {
             )}
           </div>
         </div>
+      )}
+
+      {viewer && (
+        <PhotoViewer photos={viewer.photos} index={viewer.index} fromEl={viewer.fromEl} onClose={closeViewer} onStep={stepViewer} />
       )}
     </section>
   );
