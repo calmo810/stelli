@@ -112,21 +112,28 @@ export default function MeetCreators() {
                 className="group depth shrink-0 snap-start relative overflow-hidden aspect-[4/5] transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-1.5"
                 style={{ width: CARD_WIDTH, borderRadius: CARD_RADIUS, background: CARD_BG, isolation: 'isolate' }}
               >
-                {image && (
-                  <div className="absolute inset-0 transition-transform duration-[1400ms] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.06]">
-                    <SmoothImage
-                      src={image}
-                      alt={displayNameOf(creator)}
-                      className="absolute inset-0 w-full h-full object-cover"
-                    />
-                  </div>
-                )}
-                <span aria-hidden className="sheen z-[1]" />
-                <span
-                  aria-hidden
-                  className="absolute inset-0"
-                  style={{ background: 'linear-gradient(to top, hsl(var(--ink) / 0.9) 0%, transparent 50%)' }}
-                />
+                {/* A hard rounded mask: overflow + radius alone lets the zoomed
+                    photo's corners poke out mid-animation in Chrome and Safari. */}
+                <div
+                  className="absolute inset-0 overflow-hidden"
+                  style={{ borderRadius: CARD_RADIUS, clipPath: `inset(0 round ${CARD_RADIUS}px)`, transform: 'translateZ(0)' }}
+                >
+                  {image && (
+                    <div className="absolute inset-0 transition-transform duration-[1400ms] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.06]">
+                      <SmoothImage
+                        src={image}
+                        alt={displayNameOf(creator)}
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <span aria-hidden className="sheen z-[1]" />
+                  <span
+                    aria-hidden
+                    className="absolute inset-0"
+                    style={{ background: 'linear-gradient(to top, hsl(var(--ink) / 0.9) 0%, transparent 50%)' }}
+                  />
+                </div>
                 <div className="absolute left-[22px] right-[22px] bottom-[22px] z-10">
                   <p className="font-display font-medium text-white leading-none" style={{ fontSize: 30 }}>
                     {displayNameOf(creator)}
