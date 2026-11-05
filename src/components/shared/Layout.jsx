@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import Navbar from './Navbar';
@@ -31,7 +31,10 @@ export default function Layout() {
         <RoleGate>
           <AnimatePresence mode="wait" initial={false}>
             <PageTransition key={transitionKey}>
-              <Outlet />
+              {/* Pages load on demand; the nav and footer stay put while they do. */}
+              <Suspense fallback={<div className="min-h-[70vh]" />}>
+                <Outlet />
+              </Suspense>
             </PageTransition>
           </AnimatePresence>
         </RoleGate>
