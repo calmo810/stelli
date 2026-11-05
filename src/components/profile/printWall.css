@@ -1,0 +1,109 @@
+/*
+ * Prints: every photo becomes the same 4:5 print, so any portfolio (3 photos
+ * or 12, any shape) hangs evenly. The creator picks layout, curve, frame, mat
+ * and captions in their profile editor; clients only ever see the result.
+ * Everything is prefixed pw- so it never collides with site classes.
+ */
+.pw {
+  --pw-accent: hsl(var(--neon-cyan));
+  --pw-ease: cubic-bezier(.16, 1, .3, 1);
+  --pw-surface: hsl(var(--surface));
+  --pw-paper: linear-gradient(165deg, rgba(255,255,255,.34), rgba(255,255,255,0) 42%, rgba(0,0,0,.05)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  .16 0 0 0 -.04'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  position: relative;
+}
+.pw [hidden] { display: none !important; }
+
+/* ---------- the wall ---------- */
+.pw-wall {
+  position: relative;
+  perspective: 1500px; perspective-origin: 50% 45%;
+  overflow: hidden; cursor: grab; touch-action: pan-y; user-select: none; -webkit-user-select: none; outline: none;
+  /* fade every edge, so neither the room light nor a print's shadow ever ends in a line */
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent), linear-gradient(180deg, transparent, #000 9%, #000 88%, transparent);
+  -webkit-mask-composite: source-in;
+          mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent), linear-gradient(180deg, transparent, #000 9%, #000 88%, transparent);
+          mask-composite: intersect;
+}
+.pw-wall.is-dragging { cursor: grabbing; }
+.pw-wall:focus-visible .pw-hint { outline: 2px solid hsl(var(--neon-lime)); outline-offset: 3px; }
+/* the room: a soft light on the wall and a faint floor glow, both fading out well inside the edges */
+.pw-room {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(48% 40% at 50% 46%, hsl(225 40% 18% / .85), hsl(225 40% 16% / .35) 55%, transparent 100%),
+    radial-gradient(36% 16% at 50% 84%, color-mix(in srgb, var(--pw-accent) 9%, transparent), transparent 100%);
+}
+.pw-rows { position: absolute; inset: 0; transform-style: preserve-3d; pointer-events: none; }
+.pw-card {
+  pointer-events: auto;
+  position: absolute; left: 50%; top: 50%;
+  border-radius: 10px; overflow: hidden; background: var(--pw-surface);
+  /* three layers: contact, near and ambient. The ambient one is wide but faint, so it reads as soft at any size */
+  box-shadow: 0 1px 1px rgba(0,0,0,.28), 0 calc(var(--row) * .045) calc(var(--row) * .09) calc(var(--row) * -.045) rgba(0,0,0,.5), 0 calc(var(--row) * .15) calc(var(--row) * .28) calc(var(--row) * -.13) rgba(0,0,0,.62);
+  will-change: transform, opacity; backface-visibility: hidden; outline: 1px solid transparent;
+  cursor: zoom-in;
+}
+.pw-wall.is-dragging .pw-card { cursor: grabbing; }
+.pw-shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgba(4,7,16,var(--sl,0)), rgba(4,7,16,var(--sr,0))); }
+.pw-gloss { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(112deg, transparent 38%, rgba(255,255,255,.15) 47%, rgba(255,255,255,.04) 53%, transparent 62%); background-size: 320% 100%; background-position: var(--gx, 50%) 0; }
+.pw-card::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; box-shadow: inset 0 0 0 1.5px var(--pw-accent); opacity: var(--hv, 0); }
+
+/* ---------- a print ---------- */
+.pw-print { --mat: #f2f1ec; --matInk: #141824; }
+.pw-print .pw-ph { position: absolute; inset: 0; overflow: hidden; background-size: cover; }
+.pw-print .pw-ph img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+.pw-print .pw-lab { position: absolute; left: 0; right: 0; bottom: 0; line-height: 1.15; text-align: left; pointer-events: none; display: flex; flex-direction: column; gap: .34em; }
+.pw-print .pw-lab b { display: block; font-family: var(--font-display); font-weight: 500; font-size: calc(var(--row) * .072); letter-spacing: -.015em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pw-print .pw-lab span { display: flex; align-items: center; gap: .5em; font-size: calc(var(--row) * .036); font-weight: 600; letter-spacing: .13em; text-transform: uppercase; white-space: nowrap; overflow: hidden; }
+.pw-print .pw-lab span::before { content: ""; width: 1em; height: 1em; flex: none; background: currentColor; clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%); }
+.pw-bleed .pw-lab { padding: 32% 7.5% 6.5%; background: linear-gradient(to top, rgba(6,10,22,.86), rgba(6,10,22,.38) 55%, rgba(6,10,22,0)); color: #fff; }
+.pw-bleed .pw-lab span { color: var(--pw-accent); }
+.pw-mat { background: var(--pw-paper), var(--mat); }
+.pw-card.pw-mat { box-shadow: inset 0 1px 0 rgba(255,255,255,.55), inset 0 -1px 0 rgba(0,0,0,.08), 0 1px 1px rgba(0,0,0,.28), 0 calc(var(--row) * .045) calc(var(--row) * .09) calc(var(--row) * -.045) rgba(0,0,0,.5), 0 calc(var(--row) * .15) calc(var(--row) * .28) calc(var(--row) * -.13) rgba(0,0,0,.62); }
+.pw-mat .pw-ph { inset: 6.5% 6.5% 20.5% 6.5%; border-radius: 2px; clip-path: inset(0 round 2px); }
+.pw-mat .pw-ph::after { content: ""; position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 1px 3px rgba(0,0,0,.35), inset 0 0 0 1px rgba(0,0,0,.14); }
+.pw-mat .pw-lab { padding: 0 7% 5.6%; color: var(--matInk); }
+.pw-mat .pw-lab span { color: color-mix(in srgb, var(--matInk) 58%, transparent); }
+.pw-nocap .pw-lab { display: none; }
+.pw-nocap.pw-mat .pw-ph { inset: 6.5%; }
+
+/* ---------- controls ---------- */
+.pw-hint { position: absolute; right: max(28px, 4%); bottom: 14px; display: flex; gap: 4px; align-items: center; z-index: 5; padding: 4px; border-radius: 999px; background: rgba(14,20,38,.62); backdrop-filter: blur(16px) saturate(1.4); -webkit-backdrop-filter: blur(16px) saturate(1.4); border: 1px solid rgba(255,255,255,.1); box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 8px 22px -12px rgba(0,0,0,.7); }
+.pw-hint span { font-size: 12px; color: rgba(255,255,255,.45); padding: 0 8px; white-space: nowrap; }
+.pw-round { width: 34px; height: 34px; border-radius: 50%; border: 0; background: rgba(255,255,255,.07); color: #fff; cursor: pointer; display: grid; place-items: center; transition: background .2s, transform .3s var(--pw-ease); }
+.pw-round:hover { background: rgba(255,255,255,.16); }
+.pw-round:active { transform: scale(.92); }
+.pw-round svg { width: 15px; height: 15px; }
+@media (hover: none) { .pw-hint { display: none; } }
+.pw-compact .pw-hint { display: none; }
+
+/* ---------- grid ---------- */
+.pw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 14px; padding: 18px 0 6px; }
+.pw-compact .pw-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 6px 0; }
+.pw-shot { --row: 260px; position: relative; display: block; width: 100%; aspect-ratio: 4 / 5; padding: 0; border: 0; cursor: zoom-in; border-radius: 12px; overflow: hidden; background-color: var(--pw-surface);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), 0 1px 1px rgba(0,0,0,.25), 0 14px 26px -18px rgba(0,0,0,.7);
+  transition: transform .6s var(--pw-ease), box-shadow .6s var(--pw-ease); }
+.pw-shot:hover { transform: translateY(-4px); box-shadow: inset 0 0 0 1px rgba(255,255,255,.08), 0 1px 1px rgba(0,0,0,.25), 0 22px 34px -20px rgba(0,0,0,.8); }
+.pw-shot .pw-ph img { transition: transform 1.2s var(--pw-ease); }
+.pw-shot:hover .pw-ph img { transform: scale(1.04); }
+.pw-compact .pw-shot { --row: 120px; border-radius: 8px; }
+
+/* ---------- photo viewer ---------- */
+.pw-lb { position: fixed; inset: 0; z-index: 80; background: rgba(5,8,18,.95); display: grid; place-items: center; padding: max(64px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(80px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+.pw-lb img { max-width: 100%; max-height: 100%; border-radius: 10px; box-shadow: 0 30px 70px -24px rgba(0,0,0,.9); }
+.pw-lb button { position: absolute; width: 46px; height: 46px; border-radius: 50%; border: 1px solid rgba(255,255,255,.15); background: rgba(255,255,255,.08); color: #fff; cursor: pointer; display: grid; place-items: center; }
+.pw-lb button:hover { background: rgba(255,255,255,.16); }
+.pw-lb svg { width: 20px; height: 20px; }
+.pw-lb .pw-x { top: calc(12px + env(safe-area-inset-top, 0px)); right: calc(12px + env(safe-area-inset-right, 0px)); }
+.pw-lb .pw-p { left: calc(12px + env(safe-area-inset-left, 0px)); top: 50%; translate: 0 -50%; }
+.pw-lb .pw-n { right: calc(12px + env(safe-area-inset-right, 0px)); top: 50%; translate: 0 -50%; }
+.pw-lb .pw-c { position: absolute; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); left: 0; right: 0; text-align: center; color: rgba(255,255,255,.45); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+
+@media (max-width: 760px) {
+  .pw-wall { perspective: 1000px;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent), linear-gradient(180deg, transparent, #000 8%, #000 90%, transparent);
+            mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent), linear-gradient(180deg, transparent, #000 8%, #000 90%, transparent); }
+  .pw-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .pw-shot { border-radius: 10px; }
+}
