@@ -87,6 +87,7 @@ const CSS = `
 .cs-typing span:nth-child(2){animation-delay:.2s}.cs-typing span:nth-child(3){animation-delay:.4s}
 @keyframes csBlink{0%,60%,100%{opacity:.3}30%{opacity:1}}
 .cs-note{position:absolute;font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;background:#fff;color:#c2410c;border:1px solid #f2d3c4;padding:5px 8px;border-radius:6px;box-shadow:0 8px 20px -8px rgba(0,0,0,.35);white-space:nowrap;z-index:3}
+.cs-note--flow,.cs-pnote--flow{position:static;align-self:flex-end;margin:2px 0 4px;box-shadow:0 4px 12px -6px rgba(0,0,0,.25)}
 .cs-note::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:#ef6b3a;margin-right:6px;vertical-align:1px}
 
 .cs-new{height:100%;color:#fff;padding:18px 22px;position:relative;overflow:hidden;font-family:var(--font-body)}
@@ -315,9 +316,9 @@ function Phones() {
                     <div className="cs-bub">how much for 2 hrs?</div>
                     <div className="cs-seen">Seen · 3 days ago</div>
                     <div className="cs-bub">hello??</div>
+                    <span className="cs-pnote cs-pnote--flow">Left on seen</span>
                   </div>
                   <span className="cs-pnote" style={{ right: 8, top: 112 }}>No pricing</span>
-                  <span className="cs-pnote" style={{ left: 10, bottom: 92 }}>Left on seen</span>
                 </div>
               </div>
             </div>
@@ -440,12 +441,12 @@ export default function CaseStudy() {
                         <div className="cs-seen">Seen · 3 days ago</div>
                         <div className="cs-bub">hello??</div>
                         <div className="cs-bub">event is in 2 days 😭</div>
+                        <span className="cs-note cs-note--flow">Left on seen</span>
                         <div className="cs-typing"><span /><span /><span /></div>
                       </div>
                     </aside>
                   </div>
                   <span className="cs-note" style={{ left: 18, top: 150 }}>No pricing</span>
-                  <span className="cs-note" style={{ right: 24, top: 236 }}>Left on seen</span>
                   <span className="cs-note" style={{ left: 120, bottom: 24 }}>No contract</span>
                 </div>
               </div>
