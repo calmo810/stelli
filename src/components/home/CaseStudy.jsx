@@ -373,8 +373,11 @@ export default function CaseStudy() {
       {/* Header */}
       <motion.div {...RISE} className="flex items-center justify-center gap-3 mb-5 label-mono text-[10px] text-white/60">
         <span className="w-[6px] h-[6px] rounded-full bg-neon-lime shadow-[0_0_18px_hsl(var(--neon-lime))]" />
-        <img src={LOGO_URL} alt="Stelli" className="h-[16px] w-auto" />
-        <span>the Stelli way</span>
+        <span className="inline-flex items-center gap-[.7em]">
+          <span>the</span>
+          <img src={LOGO_URL} alt="Stelli" className="h-[22px] w-auto -mt-[4px]" />
+          <span>way</span>
+        </span>
         <span className="w-[6px] h-[6px] rounded-full bg-neon-lime shadow-[0_0_18px_hsl(var(--neon-lime))]" />
       </motion.div>
 
