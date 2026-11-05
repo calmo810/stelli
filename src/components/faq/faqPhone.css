@@ -138,8 +138,7 @@
 .fq-field .ph { color: rgba(255,255,255,.32); }
 .fq-field .caret { display: inline-block; width: 1.5px; height: 18px; margin-left: 1px; background: var(--lime); vertical-align: -3px; animation: fqBlink 1s steps(1) infinite; }
 .fq-send { width: 26px; height: 26px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--lime); color: hsl(var(--ink));
-  transform: scale(0); transition: transform .3s cubic-bezier(.3,1.6,.5,1); }
-.fq-send.on { transform: scale(1); }
+  animation: fqPopIn .32s cubic-bezier(.3,1.6,.5,1) both; }
 .fq-mic { color: rgba(255,255,255,.4); padding-right: 6px; }
 .fq-home { position: absolute; z-index: 20; bottom: calc(var(--w) * .022); left: 50%; translate: -50% 0; width: 36%; height: 5px; border-radius: 99px; background: rgba(255,255,255,.88); }
 
@@ -148,6 +147,7 @@
 @keyframes fqFade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes fqDot { 0%, 60%, 100% { opacity: .35; transform: none; } 30% { opacity: 1; transform: translateY(-3px); } }
 @keyframes fqBlink { 50% { opacity: 0; } }
+@keyframes fqPopIn { from { transform: scale(0); } to { transform: scale(1); } }
 
 @media (max-width: 480px) {
   .fq-stage { --w: min(372px, calc(100vw - 40px), calc((100svh - 130px) * 0.462)); margin-top: 26px; }
