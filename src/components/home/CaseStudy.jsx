@@ -384,9 +384,9 @@ export default function CaseStudy() {
       <motion.h2
         {...RISE}
         className="max-w-[980px] mx-auto text-center font-display font-normal text-white"
-        style={{ fontSize: 'clamp(36px, 6.4vw, 88px)', lineHeight: 1.22, letterSpacing: '-0.03em' }}
+        style={{ fontSize: 'clamp(36px, 6.4vw, 88px)', lineHeight: 0.95, letterSpacing: '-0.03em' }}
       >
-        From <em className="text-white/45 mr-[.14em]">“wait, are you free?”</em>
+        From <em className="relative z-10 mr-[.14em]" style={{ color: '#7a7e88' }}>“wait, are you free?”</em>
         <br />
         to{' '}
         <span className="relative inline-block italic text-ink px-[.26em] pb-[.07em] ml-[.34em]" style={{ transform: 'rotate(-1.7deg)' }}>
