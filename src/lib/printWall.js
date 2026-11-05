@@ -89,7 +89,7 @@ export function createWall({ wall, rowsEl, photos, settings, label, onOpen, comp
     rowsEl.textContent = '';
     const n = photos.length;
     if (!n) return;
-    const single = settings.layout === 'strip' || compact && n < 4;
+    const single = settings.layout === 'strip' || (compact && n < 4);
     const rowCount = single ? 1 : 3;
     vw = wall.clientWidth;
     rowH = rowHeightFor(vw, compact) * (single ? 1.45 : 1);
