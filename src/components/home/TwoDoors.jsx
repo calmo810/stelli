@@ -18,7 +18,7 @@ const TILES = [
     cta: 'Apply to join',
     hi: 'hsl(var(--neon-cyan))',
     glow: 'hsl(var(--neon-cyan) / 0.35)',
-    delay: '1.3s',
+    delay: '0s',
   },
 ];
 
