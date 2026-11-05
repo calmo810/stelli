@@ -1,8 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import SmoothImage from '@/components/shared/SmoothImage';
 
-// Full-bleed hero still: Elon University.
-const POSTER = 'https://commons.wikimedia.org/wiki/Special:FilePath/Alamance_Building,_Elon_University.jpg';
+// Full-bleed hero still: Elon University. Served at 4K wide, with smaller
+// renditions for phones so they stay fast without going soft.
+const POSTER_BASE = 'https://commons.wikimedia.org/wiki/Special:FilePath/Alamance_Building,_Elon_University.jpg';
+const POSTER = `${POSTER_BASE}?width=3840`;
+const POSTER_SRCSET = [1280, 1920, 2560, 3840].map((w) => `${POSTER_BASE}?width=${w} ${w}w`).join(', ');
 
 // Every phrase reads on from "Need a photographer for".
 const PHRASES = [
@@ -80,6 +84,34 @@ function usePrefersReducedMotion() {
 export default function HeroVideo() {
   const reduced = usePrefersReducedMotion();
   const [typer, setTyper] = useState(EMPTY_TYPER);
+  const parallaxRef = useRef(null);
+  const copyRef = useRef(null);
+
+  // Scroll parallax: the photo sinks slower than the page and the copy lifts
+  // and fades, so the hero hands off to the next section instead of cutting.
+  useEffect(() => {
+    if (reduced) return undefined;
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const y = Math.min(window.scrollY, window.innerHeight);
+      const p = y / window.innerHeight;
+      if (parallaxRef.current) parallaxRef.current.style.transform = `translate3d(0, ${y * 0.32}px, 0)`;
+      if (copyRef.current) {
+        copyRef.current.style.transform = `translate3d(0, ${y * -0.12}px, 0)`;
+        copyRef.current.style.opacity = String(Math.max(0, 1 - p * 1.4));
+      }
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      cancelAnimationFrame(frame);
+    };
+  }, [reduced]);
 
   useEffect(() => {
     if (reduced) return undefined;
@@ -115,22 +147,33 @@ export default function HeroVideo() {
     <section className="relative w-full overflow-hidden bg-ink" style={{ height: '100svh', minHeight: 600 }}>
       <style>{`@keyframes stelliCaretBlink { 50% { opacity: 0 } }`}</style>
 
-      <img
-        src={POSTER}
-        alt="Elon University campus"
-        className="absolute inset-0 w-full h-full object-cover"
-      />
+      <div ref={parallaxRef} className="absolute inset-0 will-change-transform">
+        <div className="absolute inset-0 ken-burns">
+          <SmoothImage
+            priority
+            src={POSTER}
+            srcSet={POSTER_SRCSET}
+            sizes="100vw"
+            alt="Elon University campus"
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        </div>
+      </div>
 
-      {/* ink scrim, bottom up */}
+      {/* Layered scrim: a deep floor for the copy, a soft vignette for depth,
+          and a faint lime bloom so the photo sits inside the brand. */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background:
-            'linear-gradient(to top, hsl(var(--ink) / 0.92) 0%, hsl(var(--ink) / 0.55) 50%, hsl(var(--ink) / 0.35) 100%)',
+          background: [
+            'linear-gradient(to top, hsl(var(--ink)) 0%, hsl(var(--ink) / 0.86) 18%, hsl(var(--ink) / 0.5) 48%, hsl(var(--ink) / 0.28) 78%, hsl(var(--ink) / 0.45) 100%)',
+            'radial-gradient(120% 90% at 50% 40%, transparent 55%, hsl(var(--ink) / 0.55) 100%)',
+            'radial-gradient(60% 40% at 50% 100%, hsl(var(--neon-lime) / 0.07), transparent 70%)',
+          ].join(', '),
         }}
       />
 
-      <div className="absolute inset-0 flex items-end justify-center text-center px-5 md:px-10 pb-16 sm:pb-[88px]">
+      <div ref={copyRef} className="absolute inset-0 flex items-end justify-center text-center px-5 md:px-10 pb-16 sm:pb-[88px] will-change-transform">
         <div className="w-full max-w-[900px]">
           <h1
             className="font-display"
@@ -155,15 +198,27 @@ export default function HeroVideo() {
           <div className="flex flex-wrap justify-center" style={{ marginTop: 40, gap: 12 }}>
             <Link
               to="/creators"
-              className="label-mono text-[11px] font-semibold w-full sm:w-auto text-center transition-transform duration-300 hover:-translate-y-0.5"
-              style={{ ...BUTTON, background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))' }}
+              className="label-mono text-[11px] font-semibold w-full sm:w-auto text-center transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-0.5"
+              style={{
+                ...BUTTON,
+                background: 'hsl(var(--neon-lime))',
+                color: 'hsl(var(--ink))',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,.45), 0 10px 30px -10px hsl(var(--neon-lime) / 0.55)',
+              }}
             >
               Book a creator
             </Link>
             <Link
               to="/register?role=creator"
-              className="label-mono text-[11px] font-semibold w-full sm:w-auto text-center"
-              style={{ ...BUTTON, border: '1px solid rgba(255,255,255,0.35)', color: '#fff' }}
+              className="label-mono text-[11px] font-semibold w-full sm:w-auto text-center transition-colors duration-300 hover:bg-white/10"
+              style={{
+                ...BUTTON,
+                border: '1px solid rgba(255,255,255,0.3)',
+                color: '#fff',
+                background: 'rgba(255,255,255,0.04)',
+                backdropFilter: 'blur(12px) saturate(1.4)',
+                WebkitBackdropFilter: 'blur(12px) saturate(1.4)',
+              }}
             >
               Shoot with Stelli
             </Link>
