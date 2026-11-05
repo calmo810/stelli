@@ -420,8 +420,9 @@ export default function CaseStudy() {
                 d="M3 13 C 60 6, 120 15, 180 9 S 260 6, 297 10"
                 fill="none"
                 stroke="hsl(var(--neon-lime))"
-                strokeWidth="3.2"
+                strokeWidth="2.6"
                 strokeLinecap="round"
+                vectorEffect="non-scaling-stroke"
                 opacity=".9"
               />
             </svg>
