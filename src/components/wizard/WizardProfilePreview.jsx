@@ -1,32 +1,32 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { PH, PROMPTS, activeTiers, orderedPortfolio } from '@/lib/wizardData';
-
-function Tile({ item }) {
-  if (item?.src) return <img src={item.src} alt="" />;
-  return <div className="ph" style={{ background: PH[(item?.ph || 0) % PH.length] }} />;
-}
-
-const GALLERY_COUNT = { hero: 5, ordered: 6, contact: 8 };
-const GALLERY_CLASS = { hero: 'g-hero', ordered: 'g-ordered', contact: 'g-contact' };
+import PrintWall from '@/components/profile/PrintWall';
+import { accentColor, printLabel } from '@/lib/profilePresets';
 
 /** The creator's public page, exactly as the wizard shows it while they build. */
 export default function WizardProfilePreview({ s }) {
   const ordered = orderedPortfolio(s);
   const tiers = activeTiers(s);
   const from = tiers.length ? Math.min(...tiers.map((tier) => Number(tier.price))) : null;
-  const count = GALLERY_COUNT[s.gallery];
-  const tiles = ordered.length
-    ? ordered.slice(0, count)
-    : Array.from({ length: count }, (_, i) => ({ ph: i }));
+  // The same prints the public page hangs, with soft placeholders until photos are added.
+  const photos = useMemo(
+    () =>
+      ordered.length
+        ? ordered.filter((item) => item.src).map((item) => ({ src: item.src }))
+        : Array.from({ length: 6 }, (_, i) => ({ bg: PH[i % PH.length] })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [ordered.map((item) => item.src).join('|')]
+  );
+  const settings = useMemo(
+    () => ({ layout: s.layout, curve: s.curve, frame: s.frame, mat: s.mat, captions: s.captions }),
+    [s.layout, s.curve, s.frame, s.mat, s.captions]
+  );
+  const label = useMemo(() => printLabel(s.name.trim() || 'Your Name'), [s.name]);
   const tags = s.tags.length ? s.tags.join(' · ') : 'your · style · tags';
   const initial = (s.name.trim()[0] || '?').toUpperCase();
 
   return (
     <div className={`profile theme-${s.theme} acc-${s.accent}`}>
-      <div className="p-hero">
-        <Tile item={ordered[0] || { ph: 0 }} />
-      </div>
-
       <div className="p-id">
         <div className="p-ava">{s.photo ? <img src={s.photo} alt="" /> : initial}</div>
         <div className="p-name">{s.name.trim() || 'Your name'}</div>
@@ -67,13 +67,7 @@ export default function WizardProfilePreview({ s }) {
 
       <div className="p-section">
         <div className="p-sec-label">Portfolio</div>
-        <div className={`p-gallery ${GALLERY_CLASS[s.gallery]}`}>
-          {tiles.map((item, i) => (
-            <div key={i} className="g-tile" data-n={String(i + 1).padStart(2, '0')}>
-              <Tile item={item} />
-            </div>
-          ))}
-        </div>
+        <PrintWall compact photos={photos} settings={settings} label={label} accent={accentColor(s.accent)} name="Your" />
       </div>
 
       {s.bio.trim() && (
