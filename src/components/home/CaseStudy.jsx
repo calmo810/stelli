@@ -402,39 +402,11 @@ export default function CaseStudy() {
 
       <motion.div
         {...RISE}
-        className="stelli-display max-w-[720px] mx-auto mt-8 md:mt-10 text-center text-white"
-        style={{ fontSize: 'clamp(19px, 2.3vw, 30px)', lineHeight: 1.3, fontWeight: 400 }}
+        className="max-w-[900px] mx-auto mt-8 md:mt-10 flex flex-wrap items-center justify-center gap-x-[.45em] gap-y-2 text-center text-white"
+        style={{ fontFamily: 'var(--font-sans)', fontSize: 'clamp(19px, 2.3vw, 30px)', lineHeight: 1.3, fontWeight: 500, letterSpacing: '-0.02em' }}
       >
-        <p>
-          Great photos.{' '}
-          <span className="relative inline-block text-white/45">
-            Terrible booking experiences.
-            {/* a quick brush strike through the old way */}
-            <svg
-              aria-hidden
-              viewBox="0 0 300 20"
-              preserveAspectRatio="none"
-              className="absolute left-[-3%] top-[46%] w-[106%] h-[.5em] pointer-events-none"
-            >
-              <path
-                d="M3 13 C 60 6, 120 15, 180 9 S 260 6, 297 10"
-                fill="none"
-                stroke="hsl(var(--neon-lime))"
-                strokeWidth="2.6"
-                strokeLinecap="round"
-                vectorEffect="non-scaling-stroke"
-                opacity=".9"
-              />
-            </svg>
-          </span>
-        </p>
-        <p className="mt-2 md:mt-3">
-          We built{' '}
-          <span className="stelli-brush mx-[.08em]" style={{ fontSize: '1.45em', verticalAlign: '-.06em' }}>
-            Stelli
-          </span>{' '}
-          to change that.
-        </p>
+        <span>Great photos, easy booking. That&rsquo;s</span>
+        <img src={LOGO_URL} alt="Stelli" className="block w-auto" style={{ height: '2.6em', marginTop: '-.2em' }} />
       </motion.div>
 
       <div className="mt-[48px] md:mt-[90px]">
