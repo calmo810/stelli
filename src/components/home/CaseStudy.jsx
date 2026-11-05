@@ -69,11 +69,6 @@ export default function CaseStudy() {
           >
             Book a creator →
           </Link>
-          <div className="flex items-center justify-center gap-3 label-mono text-[10px] text-white/30 text-center">
-            <span className="w-[28px] h-px bg-white/10" />
-            <span>you bring the moment · we bring the camera</span>
-            <span className="w-[28px] h-px bg-white/10" />
-          </div>
         </motion.div>
       </div>
     </section>
