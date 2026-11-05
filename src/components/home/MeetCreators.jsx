@@ -95,7 +95,7 @@ export default function MeetCreators() {
         <div
           ref={trackRef}
           onScroll={sync}
-          className="max-w-[1440px] mx-auto px-5 md:px-10 mt-9 flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar scroll-smooth pt-2 pb-16"
+          className="max-w-[1440px] mx-auto px-5 md:px-10 mt-9 flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-px-5 md:scroll-px-10 no-scrollbar scroll-smooth pt-2 pb-16"
         >
           {shown.map((creator) => {
             const image = coverImage(creator);
