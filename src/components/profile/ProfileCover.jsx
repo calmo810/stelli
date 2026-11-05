@@ -1,4 +1,5 @@
 import React from 'react';
+import SmoothImage from '@/components/shared/SmoothImage';
 
 const DEFAULT_RATIO = 'aspect-[4/5] sm:aspect-[3/2]';
 
@@ -9,7 +10,8 @@ export default function ProfileCover({ src, focal, ratioClass = DEFAULT_RATIO, c
 
   return (
     <div className={`relative w-full ${ratioClass} overflow-hidden bg-surface-2`}>
-      <img
+      <SmoothImage
+        priority
         src={src}
         alt=""
         className="absolute inset-0 w-full h-full object-cover"
