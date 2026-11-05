@@ -16,11 +16,12 @@ const LINKS = [
 
 const PANEL = {
   borderRadius: 28,
-  background: 'rgba(255,255,255,0.055)',
-  border: '1px solid rgba(255,255,255,0.12)',
-  backdropFilter: 'blur(24px) saturate(170%)',
-  WebkitBackdropFilter: 'blur(24px) saturate(170%)',
-  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.18), 0 30px 70px -34px rgba(0,0,0,0.95)',
+  // Solid surface + a static gradient tint. No backdrop-filter or blurred
+  // glow behind it — that combination repainted on scroll and flickered.
+  background:
+    'radial-gradient(120% 140% at 85% 120%, hsl(var(--neon-lime) / 0.07), transparent 55%), #10162a',
+  border: '1px solid rgba(255,255,255,0.09)',
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
 };
 
 const LINK = 'font-body text-[13px] text-white/60 hover:text-white transition-colors whitespace-nowrap';
@@ -29,29 +30,7 @@ const LINK = 'font-body text-[13px] text-white/60 hover:text-white transition-co
 export default function Footer() {
   return (
     <footer className="relative bg-ink px-4 md:px-10 pb-6 md:pb-8 pt-2">
-      {/* one soft lime light behind the glass, and nothing else */}
-      <div aria-hidden className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div
-          className="absolute rounded-full"
-          style={{
-            width: 560,
-            height: 320,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            bottom: '-60%',
-            background: 'hsl(var(--neon-lime) / 0.22)',
-            filter: 'blur(100px)',
-          }}
-        />
-      </div>
-
       <div className="relative max-w-[1500px] mx-auto" style={PANEL}>
-        <div
-          aria-hidden
-          className="absolute left-6 right-6 top-0 h-px"
-          style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent)' }}
-        />
-
         <div className="px-6 md:px-10 py-9 md:py-11">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div>
@@ -72,7 +51,7 @@ export default function Footer() {
 
           <div
             className="mt-9 pt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-            style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}
+            style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
           >
             <p className="label-mono text-[9px] text-white/30">© {new Date().getFullYear()} Stelli · Elon, NC</p>
 
