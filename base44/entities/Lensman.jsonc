@@ -141,6 +141,54 @@
       "default": "hero_grid",
       "description": "How portfolio images are arranged"
     },
+    "wall_layout": {
+      "type": "string",
+      "enum": [
+        "wall",
+        "strip",
+        "grid"
+      ],
+      "default": "wall",
+      "description": "How the public profile hangs the portfolio: a curved wall of prints, one long strip, or a plain grid. Set by the creator."
+    },
+    "wall_curve": {
+      "type": "string",
+      "enum": [
+        "flat",
+        "soft",
+        "full"
+      ],
+      "default": "soft",
+      "description": "How much the wall of prints curves around the viewer. Set by the creator."
+    },
+    "print_frame": {
+      "type": "string",
+      "enum": [
+        "mat",
+        "bleed"
+      ],
+      "default": "mat",
+      "description": "Whether each print sits on a paper mat or runs edge to edge. Set by the creator."
+    },
+    "print_mat": {
+      "type": "string",
+      "enum": [
+        "mixed",
+        "paper",
+        "sky",
+        "blush",
+        "lilac",
+        "mint",
+        "ink"
+      ],
+      "default": "mixed",
+      "description": "Mat colour for the prints. Mixed rotates through the soft colours. Set by the creator."
+    },
+    "show_captions": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether each print shows its small number caption. Set by the creator."
+    },
     "neighborhoods": {
       "type": "array",
       "items": {
