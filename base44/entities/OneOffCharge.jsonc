@@ -1,0 +1,70 @@
+{
+  "name": "OneOffCharge",
+  "properties": {
+    "amount": {
+      "description": "Amount in US dollars",
+      "type": "number"
+    },
+    "checkout_url": {
+      "type": "string"
+    },
+    "created_by_email": {
+      "type": "string"
+    },
+    "customer_email": {
+      "description": "Optional payer email for the receipt",
+      "type": "string"
+    },
+    "description": {
+      "description": "What the charge is for, shown on the Stripe payment page",
+      "maxLength": 300,
+      "type": "string"
+    },
+    "paid_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "status": {
+      "default": "open",
+      "enum": [
+        "open",
+        "processing",
+        "paid",
+        "failed"
+      ],
+      "type": "string"
+    },
+    "stripe_checkout_session_id": {
+      "type": "string"
+    },
+    "stripe_payment_intent_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "amount"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}

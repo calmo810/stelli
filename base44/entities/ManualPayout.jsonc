@@ -1,0 +1,85 @@
+{
+  "name": "ManualPayout",
+  "properties": {
+    "amount": {
+      "description": "Amount in US dollars",
+      "type": "number"
+    },
+    "creator_user_id": {
+      "description": "Account that owns the creator profile, so the creator can see money waiting for them",
+      "type": "string"
+    },
+    "lensman_id": {
+      "description": "Creator profile being paid",
+      "type": "string"
+    },
+    "lensman_name": {
+      "description": "Creator display name at the time of payment",
+      "type": "string"
+    },
+    "note": {
+      "description": "Founder note, e.g. which shoot this covers",
+      "maxLength": 500,
+      "type": "string"
+    },
+    "paid_by_email": {
+      "description": "Founder who created the payout",
+      "type": "string"
+    },
+    "sent_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "status": {
+      "default": "waiting",
+      "description": "waiting = held on Stelli's balance until the creator can be paid; sent = transferred to their Stripe account",
+      "enum": [
+        "waiting",
+        "sent",
+        "failed"
+      ],
+      "type": "string"
+    },
+    "stripe_transfer_id": {
+      "type": "string"
+    },
+    "waiting_reason": {
+      "description": "Why it has not gone out yet",
+      "type": "string"
+    }
+  },
+  "required": [
+    "lensman_id",
+    "amount"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.creator_user_id": "{{user.id}}"
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "type": "object"
+}
