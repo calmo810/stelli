@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { format, isThisWeek, isThisYear, isToday, isYesterday } from 'date-fns';
 import { ArrowLeft, Loader2, MessageCircle, Search } from 'lucide-react';
 import { statusChip } from '@/lib/threadStatus';
+import PullToRefresh from '@/components/shared/PullToRefresh';
 
 const CHIP_TONE = {
   REQUESTED: 'cyan',
@@ -38,9 +39,10 @@ function preview(thread) {
 }
 
 /** Every conversation, newest first. Tap one to open it. */
-export default function ConversationList({ threads, activeId, isLoading, unreadCount }) {
+export default function ConversationList({ threads, activeId, isLoading, unreadCount, onRefresh }) {
   const [tab, setTab] = useState('all');
   const [query, setQuery] = useState('');
+  const listRef = useRef(null);
 
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -101,7 +103,8 @@ export default function ConversationList({ threads, activeId, isLoading, unreadC
         )}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-4 sm:px-3">
+      <PullToRefresh className="min-h-0 flex-1" onRefresh={onRefresh} scrollRef={listRef}>
+      <div ref={listRef} className="h-full overflow-y-auto px-2 pb-4 sm:px-3">
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
             <Loader2 className="h-5 w-5 animate-spin text-neon-lime" />
@@ -175,6 +178,7 @@ export default function ConversationList({ threads, activeId, isLoading, unreadC
           </ul>
         )}
       </div>
+      </PullToRefresh>
     </div>
   );
 }

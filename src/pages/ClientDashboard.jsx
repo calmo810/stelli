@@ -8,6 +8,8 @@ import NeedsYou from '@/components/dashboard/NeedsYou';
 import ShootList from '@/components/dashboard/ShootList';
 import GlassRows from '@/components/shared/GlassRows';
 import Pill from '@/components/shared/Pill';
+import PullToRefresh from '@/components/shared/PullToRefresh';
+import { useQueryClient } from '@tanstack/react-query';
 import useClientDashboard from '@/hooks/useClientDashboard';
 import useThreads from '@/hooks/useThreads';
 import shortDate from '@/lib/shortDate';
@@ -23,6 +25,15 @@ function SectionLabel({ children }) {
 export default function ClientDashboard() {
   const { user, upcoming, awaiting, past, quoteFor, isLoading } = useClientDashboard();
   const { unreadCount } = useThreads();
+  const queryClient = useQueryClient();
+
+  // A pull at the top reloads the dashboard and the inbox together.
+  const refreshAll = () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['client-bookings'] }),
+      queryClient.invalidateQueries({ queryKey: ['client-quotes'] }),
+      queryClient.invalidateQueries({ queryKey: ['messages-inbox'] }),
+    ]);
 
   const firstName = (user?.full_name || '').split(' ')[0] || 'there';
 
@@ -48,6 +59,7 @@ export default function ClientDashboard() {
   ];
 
   return (
+    <PullToRefresh onRefresh={refreshAll}>
     <DashboardShell>
       <h1
         className="font-display font-medium text-white"
@@ -93,5 +105,6 @@ export default function ClientDashboard() {
         ]}
       />
     </DashboardShell>
+    </PullToRefresh>
   );
 }
