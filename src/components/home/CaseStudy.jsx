@@ -409,7 +409,6 @@ export default function CaseStudy() {
         className="max-w-[900px] mx-auto mt-10 md:mt-14 flex flex-wrap items-center justify-center gap-x-[.45em] gap-y-2 text-center text-white"
         style={{ fontFamily: 'var(--font-sans)', fontSize: 'clamp(19px, 2.3vw, 30px)', lineHeight: 1.3, fontWeight: 500, letterSpacing: '-0.02em' }}
       >
-        <span>Great photos, easy booking. That&rsquo;s</span>
         <img src={LOGO_URL} alt="Stelli" className="block w-auto" style={{ height: '2.6em', marginTop: '-.2em' }} />
       </motion.div>
 
