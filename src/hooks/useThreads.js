@@ -11,27 +11,35 @@ export default function useThreads() {
     retry: false,
   });
 
-  const { data = { bookings: [], messages: [], creators: [] }, isLoading, refetch } = useQuery({
+  const { data: creators = [], isLoading: creatorsLoading } = useQuery({
+    queryKey: ['messages-creators'],
+    queryFn: () => base44.entities.Lensman.list('-updated_date', 100),
+    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data = { bookings: [], messages: [] }, isLoading, refetch } = useQuery({
     queryKey: ['messages-inbox', user?.id, user?.email],
     enabled: !!user?.id || !!user?.email,
     refetchInterval: 8000,
     queryFn: async () => {
-      const byId = user?.id ? await base44.entities.Booking.filter({ creator_id: user.id }, '-updated_date') : [];
-      const asClient = user?.email ? await base44.entities.Booking.filter({ client_email: user.email }, '-updated_date') : [];
+      const [byId, asClient, messages] = await Promise.all([
+        user?.id ? base44.entities.Booking.filter({ creator_id: user.id }, '-updated_date') : [],
+        user?.email ? base44.entities.Booking.filter({ client_email: user.email }, '-updated_date') : [],
+        base44.entities.Message.list('-created_date', 300),
+      ]);
       const seen = new Set();
       const bookings = [...byId, ...asClient].filter((b) => {
         if (seen.has(b.id)) return false;
         seen.add(b.id);
         return true;
       });
-      const messages = await base44.entities.Message.list('-created_date', 300);
-      const creators = await base44.entities.Lensman.list('-updated_date', 100);
-      return { bookings, messages, creators };
+      return { bookings, messages };
     },
   });
 
   const threads = useMemo(() => {
-    const creatorById = new Map(data.creators.map((creator) => [creator.id, creator]));
+    const creatorById = new Map(creators.map((creator) => [creator.id, creator]));
 
     return data.bookings
       .map((booking) => {
@@ -66,13 +74,13 @@ export default function useThreads() {
       })
       .filter(Boolean)
       .sort((a, b) => b.sortDate - a.sortDate);
-  }, [data, user]);
+  }, [data, user, creators]);
 
   return {
     user,
     threads,
     unreadCount: threads.filter((t) => t.unread).length,
-    isLoading: isLoading || userLoading,
+    isLoading: isLoading || userLoading || creatorsLoading,
     refetch,
   };
 }
