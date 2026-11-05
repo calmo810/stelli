@@ -381,7 +381,7 @@ export default function CaseStudy() {
       <motion.h2
         {...RISE}
         className="max-w-[980px] mx-auto text-center font-display font-normal text-white"
-        style={{ fontSize: 'clamp(36px, 6.4vw, 88px)', lineHeight: 0.95, letterSpacing: '-0.03em' }}
+        style={{ fontSize: 'clamp(36px, 6.4vw, 88px)', lineHeight: 1.22, letterSpacing: '-0.03em' }}
       >
         From <em className="text-white/45 mr-[.14em]">“wait, are you free?”</em>
         <br />
@@ -403,7 +403,7 @@ export default function CaseStudy() {
 
       <motion.div
         {...RISE}
-        className="max-w-[900px] mx-auto mt-8 md:mt-10 flex flex-wrap items-center justify-center gap-x-[.45em] gap-y-2 text-center text-white"
+        className="max-w-[900px] mx-auto mt-10 md:mt-14 flex flex-wrap items-center justify-center gap-x-[.45em] gap-y-2 text-center text-white"
         style={{ fontFamily: 'var(--font-sans)', fontSize: 'clamp(19px, 2.3vw, 30px)', lineHeight: 1.3, fontWeight: 500, letterSpacing: '-0.02em' }}
       >
         <span>Great photos, easy booking. That&rsquo;s</span>
