@@ -1,5 +1,6 @@
 import React from 'react';
-import { DURATIONS, TIER_LEVELS } from '@/lib/wizardData';
+import { TIER_LEVELS } from '@/lib/wizardData';
+import DurationPicker from '@/components/wizard/DurationPicker';
 
 export default function StepPricing({ w }) {
   const setTier = (index, changes) => {
@@ -59,11 +60,10 @@ export default function StepPricing({ w }) {
                 </div>
                 <div>
                   <span className="mini-lbl">Length</span>
-                  <select className="inp" value={tier.duration} onChange={(event) => setTier(i, { duration: event.target.value })}>
-                    {DURATIONS.map((duration) => (
-                      <option key={duration}>{duration}</option>
-                    ))}
-                  </select>
+                  <DurationPicker
+                    value={tier.duration}
+                    onChange={(duration) => setTier(i, { duration })}
+                  />
                 </div>
                 <div className="full">
                   <span className="mini-lbl">What's included</span>

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format, isToday, isYesterday } from 'date-fns';
 import { Loader2, Lock } from 'lucide-react';
 import { viewerRole, firstName } from '@/lib/threadStatus';
@@ -37,6 +37,8 @@ const sameDay = (a, b) => new Date(a).toDateString() === new Date(b).toDateStrin
 export default function ChatView({ bookingId }) {
   const [params] = useSearchParams();
   const [quoting, setQuoting] = useState(false);
+  // While a message is on its way the cache holds the bubble, so no poll may replace it.
+  const [sending, setSending] = useState(false);
   const queryClient = useQueryClient();
   const scroller = useRef(null);
   const firstScroll = useRef(true);
@@ -69,7 +71,7 @@ export default function ChatView({ bookingId }) {
     queryKey: ['thread-messages', bookingId],
     queryFn: () => base44.entities.Message.filter({ booking_id: bookingId }, 'created_date'),
     enabled: !!bookingId,
-    refetchInterval: 4000,
+    refetchInterval: sending ? false : 4000,
   });
 
   const { data: quotes = [] } = useQuery({
@@ -121,19 +123,51 @@ export default function ChatView({ bookingId }) {
     }
   }, [items.length, systemNotices.length, booking]);
 
-  const sendMessage = async (text) => {
-    const res = await base44.functions.invoke('sendMessage', { bookingId, content: text });
-    const sent = res?.data?.message || res?.message;
-    if (sent) {
+  const sendMessage = useMutation({
+    mutationFn: async (text) => {
+      const res = await base44.functions.invoke('sendMessage', { bookingId, content: text });
+      const sent = res?.data?.message || res?.message;
+      if (!sent) throw new Error('That message did not send. Try again.');
+      return sent;
+    },
+
+    // The bubble lands in the thread the moment you send, faded until the server answers.
+    onMutate: (text) => {
+      const key = ['thread-messages', bookingId];
+      const previous = queryClient.getQueryData(key) || [];
+      const optimistic = {
+        id: `pending-${Date.now()}`,
+        booking_id: bookingId,
+        sender_role: role,
+        sender_name: user?.full_name || '',
+        kind: 'chat',
+        content: text,
+        created_date: new Date().toISOString(),
+        pending: true,
+      };
+      setSending(true);
+      queryClient.setQueryData(key, [...previous, optimistic]);
+      // Your own message always scrolls into view.
+      firstScroll.current = true;
+      return { previous };
+    },
+
+    onError: (_error, _text, context) => {
+      if (context?.previous) queryClient.setQueryData(['thread-messages', bookingId], context.previous);
+    },
+
+    onSuccess: (sent) => {
       queryClient.setQueryData(['thread-messages', bookingId], (old = []) =>
-        old.some((m) => m.id === sent.id) ? old : [...old, sent]
+        old.map((m) => (m.pending ? sent : m))
       );
-    }
-    // Your own message always scrolls into view.
-    firstScroll.current = true;
-    await queryClient.invalidateQueries({ queryKey: ['thread-messages', bookingId] });
-    queryClient.invalidateQueries({ queryKey: ['messages-inbox'] });
-  };
+    },
+
+    onSettled: () => {
+      setSending(false);
+      queryClient.invalidateQueries({ queryKey: ['thread-messages', bookingId] });
+      queryClient.invalidateQueries({ queryKey: ['messages-inbox'] });
+    },
+  });
 
   const refreshBooking = () => {
     queryClient.invalidateQueries({ queryKey: ['booking', bookingId] });
@@ -259,7 +293,7 @@ export default function ChatView({ bookingId }) {
 
       <ThreadComposer
         booking={booking}
-        onSend={sendMessage}
+        onSend={sendMessage.mutateAsync}
         suggestions={role === 'lensman' && myMessageCount === 0 ? CREATOR_SUGGESTIONS : []}
         placeholder={
           role === 'client' ? `Message ${firstName(creatorName)}...` : `Message ${firstName(booking.client_name)}...`

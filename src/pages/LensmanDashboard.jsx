@@ -11,6 +11,8 @@ import NeedsYou from '@/components/dashboard/NeedsYou';
 import ShootList from '@/components/dashboard/ShootList';
 import CopyLinkPill from '@/components/dashboard/CopyLinkPill';
 import GlassRows from '@/components/shared/GlassRows';
+import PullToRefresh from '@/components/shared/PullToRefresh';
+import { useQueryClient } from '@tanstack/react-query';
 import useCreatorDashboard from '@/hooks/useCreatorDashboard';
 import useThreads from '@/hooks/useThreads';
 import shortDate from '@/lib/shortDate';
@@ -39,6 +41,17 @@ export default function LensmanDashboard() {
   } = useCreatorDashboard();
   const { unreadCount } = useThreads();
   const [openingStripe, setOpeningStripe] = useState(false);
+  const queryClient = useQueryClient();
+
+  // A pull at the top reloads the creator's shoots, profile, payouts and inbox together.
+  const refreshAll = () =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['lensman-bookings'] }),
+      queryClient.invalidateQueries({ queryKey: ['my-lensman-profile'] }),
+      queryClient.invalidateQueries({ queryKey: ['waiting-payouts'] }),
+      queryClient.invalidateQueries({ queryKey: ['waiting-manual-payouts'] }),
+      queryClient.invalidateQueries({ queryKey: ['messages-inbox'] }),
+    ]);
 
   // Creators who joined before the 18+ check existed confirm it once, here.
   if (myProfile && !myProfile.age_confirmed) {
@@ -103,6 +116,7 @@ export default function LensmanDashboard() {
   }
 
   return (
+    <PullToRefresh onRefresh={refreshAll}>
     <DashboardShell>
       <h1
         className="font-display font-medium text-white"
@@ -152,5 +166,6 @@ export default function LensmanDashboard() {
         ]}
       />
     </DashboardShell>
+    </PullToRefresh>
   );
 }
