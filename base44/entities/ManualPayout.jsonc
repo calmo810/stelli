@@ -5,6 +5,11 @@
       "description": "Amount in US dollars",
       "type": "number"
     },
+    "attempts": {
+      "default": 0,
+      "description": "Transfer attempts so far",
+      "type": "number"
+    },
     "creator_user_id": {
       "description": "Account that owns the creator profile, so the creator can see money waiting for them",
       "type": "string"
@@ -52,6 +57,7 @@
     "lensman_id",
     "amount"
   ],
+  "type": "object",
   "rls": {
     "create": {
       "user_condition": {
@@ -80,6 +86,5 @@
         "role": "admin"
       }
     }
-  },
-  "type": "object"
+  }
 }
