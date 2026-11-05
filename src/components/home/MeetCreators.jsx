@@ -6,6 +6,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import SmoothImage from '@/components/shared/SmoothImage';
 import { coverImage, displayNameOf } from '@/lib/profilePresets';
+import { APPROVED_CREATORS_QUERY_KEY } from '@/lib/creatorBrowse';
 
 const CARD_WIDTH = 'clamp(260px, 28vw, 420px)';
 const CARD_RADIUS = 24;
@@ -29,7 +30,7 @@ export default function MeetCreators() {
   const [edges, setEdges] = useState({ start: true, end: false });
 
   const { data: creators = [], isLoading } = useQuery({
-    queryKey: ['meet-the-creators'],
+    queryKey: APPROVED_CREATORS_QUERY_KEY,
     queryFn: () => base44.entities.Lensman.filter({ status: 'approved' }),
   });
 
