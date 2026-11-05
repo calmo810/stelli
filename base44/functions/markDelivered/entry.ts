@@ -1,7 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { notifyBoth } from '../../shared/notify.ts';
 import { releaseDueFrom } from '../../shared/payouts.ts';
-import { viewerRole } from '../../shared/bookingAccess.ts';
+import { viewerRole, creatorEmail } from '../../shared/bookingAccess.ts';
+import { openPhotoRelease } from '../../shared/photoRelease.ts';
 
 /**
  * Delivery happens in two steps: the unedited set first (no status change),
@@ -72,6 +73,10 @@ export default async function (req) {
       'Your photos are ready',
       `${booking.lensman_name || 'Your creator'} delivered your final edits.\n\nOpen them here: ${link}\n\nYou have 48 hours to report a problem. After that the payment is released to your creator.`
     );
+
+    // A new photo release agreement opens in both portals. Nothing is public
+    // until the client and the creator both say yes.
+    await openPhotoRelease(base44, { ...booking, ...updated, creator_email: creatorEmail(booking) });
 
     return Response.json({ booking: updated, step: 'final' });
   } catch (error) {
