@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..800;1,14..32,300..800&family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..800;1,14..32,300..800&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,400..700,0..100,0..1;1,9..144,400..700,0..100,0..1&family=Kaushan+Script&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -54,7 +54,9 @@
     --font-body: var(--font-sans);
     --font-mono: var(--font-sans);
     --font-hand: var(--font-sans);
-    --font-script: var(--font-sans);
+    /* Stelli Brush: the dry-brush script that echoes the hand-drawn logo.
+       Accent words only, never full sentences. */
+    --font-script: 'Kaushan Script', 'Brush Script MT', cursive;
 
     /* legacy aliases kept so older screens keep rendering */
     --gold: 75 94% 57%;
@@ -212,6 +214,25 @@
   .ken-burns {
     animation: stelliKenBurns 28s cubic-bezier(.45, 0, .55, 1) infinite alternate;
     will-change: transform;
+  }
+
+  /* Stelli Display: Fraunces cut with its soft, slightly wonky optical axes so
+     headlines feel drawn rather than typeset. */
+  .stelli-display {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+    font-variation-settings: 'SOFT' 60, 'WONK' 1;
+    letter-spacing: -0.025em;
+  }
+  /* Stelli Brush: one or two accent words at a time. */
+  .stelli-brush {
+    font-family: var(--font-script);
+    font-weight: 400;
+    letter-spacing: 0;
+    color: hsl(var(--neon-lime));
+    display: inline-block;
+    transform: rotate(-4deg);
+    line-height: 1;
   }
 
   .label-mono {
