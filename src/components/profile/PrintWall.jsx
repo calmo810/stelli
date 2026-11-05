@@ -8,7 +8,7 @@ const reducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /** The full-screen photo viewer. Opens by growing out of the print that was clicked. */
-function Viewer({ photos, index, fromEl, onClose, onStep }) {
+export function PhotoViewer({ photos, index, fromEl, onClose, onStep }) {
   const imgRef = useRef(null);
   const boxRef = useRef(null);
   const closeRef = useRef(null);
@@ -206,7 +206,7 @@ export default function PrintWall({
       )}
 
       {open && !compact && (
-        <Viewer photos={photos} index={open.index} fromEl={open.fromEl} onClose={close} onStep={stepBy} />
+        <PhotoViewer photos={photos} index={open.index} fromEl={open.fromEl} onClose={close} onStep={stepBy} />
       )}
     </div>
   );
