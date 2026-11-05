@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { X, LogOut } from 'lucide-react';
 import { useAuth } from '@/lib/AuthContext';
+import { LOGO_URL } from '@/components/shared/StelliWordmark';
 
 const PUBLIC_LINKS = [
   { label: 'Sign up as a Client', to: '/register?role=client', accent: 'lime' },
@@ -55,7 +56,9 @@ export default function MenuOverlay({ onClose }) {
     >
       <div className="min-h-full flex flex-col px-6 md:px-14 py-6">
         <div className="flex items-center justify-between">
-          <Link to="/" onClick={onClose} className="font-heading text-2xl font-semibold text-white">Stelli</Link>
+          <Link to="/" onClick={onClose} aria-label="Stelli home" className="block">
+            <img src={LOGO_URL} alt="Stelli" className="h-[34px] w-auto" />
+          </Link>
           <button onClick={onClose} aria-label="Close menu" className="text-white/70 hover:text-neon-lime transition-colors">
             <X className="w-7 h-7" />
           </button>
