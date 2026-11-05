@@ -5,7 +5,7 @@ export default function Faq() {
   return (
     <section
       aria-labelledby="askTitle"
-      className="min-h-screen bg-ink px-5 pb-24 pt-4 text-white md:px-10 md:pb-32 md:pt-6"
+      className="min-h-screen overflow-x-clip bg-ink px-5 pb-24 pt-4 text-white md:px-10 md:pb-32 md:pt-6"
     >
       <div className="text-center">
         <h1
@@ -20,12 +20,12 @@ export default function Faq() {
             </span>
           </span>
         </h1>
-        <p className="mt-3 text-[15px] text-white/55">Tap a question.</p>
+        <p className="mt-3 text-[15px] text-white/55">Tap a question on the phone. Stelli texts you back.</p>
       </div>
 
       <FaqThread />
 
-      <p className="mt-[26px] text-center text-[14px] text-white/50">
+      <p className="mt-2 text-center text-[14px] text-white/50">
         Something else?{' '}
         <a
           href="mailto:getstelli@gmail.com"
