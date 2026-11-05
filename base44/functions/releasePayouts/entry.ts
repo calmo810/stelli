@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { releaseBooking } from '../../shared/payouts.ts';
+import { sweepManualPayouts } from '../../shared/manualPayouts.ts';
 
 /**
  * The nightly sweep: delivered bookings whose 48 hour window has closed with
@@ -44,8 +45,16 @@ export default async function (req) {
       }
     }
 
+    // Founder payouts still waiting on setup or on the balance clearing.
+    let manual = { checked: 0, sent: 0 };
+    try {
+      manual = await sweepManualPayouts(base44);
+    } catch (error) {
+      console.error('Manual payout sweep failed:', error.message);
+    }
+
     // Counts only — never booking identifiers or per-booking detail.
-    return Response.json({ checked: delivered.length, due: due.length, released });
+    return Response.json({ checked: delivered.length, due: due.length, released, manual });
   } catch (error) {
     console.error('releasePayouts error:', error.message);
     return Response.json({ error: error.message }, { status: 500 });
