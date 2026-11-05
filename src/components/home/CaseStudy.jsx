@@ -371,8 +371,9 @@ export default function CaseStudy() {
       <style>{CSS}</style>
 
       {/* Header */}
-      <motion.div {...RISE} className="flex items-center justify-center gap-3 mb-5 label-mono text-[10px] text-white/45">
+      <motion.div {...RISE} className="flex items-center justify-center gap-3 mb-5 label-mono text-[10px] text-white/60">
         <span className="w-[6px] h-[6px] rounded-full bg-neon-lime shadow-[0_0_18px_hsl(var(--neon-lime))]" />
+        <img src={LOGO_URL} alt="Stelli" className="h-[16px] w-auto" />
         <span>the Stelli way</span>
         <span className="w-[6px] h-[6px] rounded-full bg-neon-lime shadow-[0_0_18px_hsl(var(--neon-lime))]" />
       </motion.div>
@@ -382,10 +383,10 @@ export default function CaseStudy() {
         className="max-w-[980px] mx-auto text-center font-display font-normal text-white"
         style={{ fontSize: 'clamp(36px, 6.4vw, 88px)', lineHeight: 0.95, letterSpacing: '-0.03em' }}
       >
-        From <em className="text-white/45">“wait, are you free?”</em>
+        From <em className="text-white/45 mr-[.14em]">“wait, are you free?”</em>
         <br />
         to{' '}
-        <span className="relative inline-block italic text-ink px-[.24em] pb-[.07em] ml-[.08em]" style={{ transform: 'rotate(-1.7deg)' }}>
+        <span className="relative inline-block italic text-ink px-[.26em] pb-[.07em] ml-[.34em]" style={{ transform: 'rotate(-1.7deg)' }}>
           <span
             aria-hidden
             className="absolute -z-10"
