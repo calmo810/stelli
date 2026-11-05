@@ -2,6 +2,11 @@
   "name": "AgreementAcceptance",
   "type": "object",
   "properties": {
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional note about this acceptance record"
+    },
     "user_id": {
       "type": "string",
       "description": "ID of the user who accepted the document"

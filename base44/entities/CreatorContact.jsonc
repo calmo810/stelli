@@ -2,6 +2,11 @@
   "name": "CreatorContact",
   "type": "object",
   "properties": {
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional note describing this contact record"
+    },
     "lensman_id": {
       "type": "string",
       "description": "The creator profile this private record belongs to"

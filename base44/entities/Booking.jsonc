@@ -2,6 +2,11 @@
   "name": "Booking",
   "type": "object",
   "properties": {
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional note describing this booking record"
+    },
     "lensman_id": {
       "type": "string",
       "description": "ID of the booked lensman"

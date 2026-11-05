@@ -2,6 +2,11 @@
   "name": "Quote",
   "type": "object",
   "properties": {
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional note describing this quote record"
+    },
     "booking_id": {
       "type": "string",
       "description": "Booking this quote answers"

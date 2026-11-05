@@ -2,6 +2,11 @@
   "name": "Review",
   "type": "object",
   "properties": {
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Optional note describing this review record"
+    },
     "booking_id": {
       "type": "string",
       "description": "ID of the related booking"
