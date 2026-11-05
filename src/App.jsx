@@ -1,6 +1,7 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
+import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
@@ -9,29 +10,29 @@ import ScrollToTop from './components/ScrollToTop';
 import SmoothScroll from './components/shared/SmoothScroll';
 import Layout from './components/shared/Layout';
 import Home from './pages/Home';
-import BookingFlow from './pages/BookingFlow';
-import HowItWorks from './pages/HowItWorks';
-import ForCreators from './pages/ForCreators';
-import ProfileWizard from './pages/ProfileWizard';
-import ClientDashboard from './pages/ClientDashboard';
-import LensmanDashboard from './pages/LensmanDashboard';
-import Messages from './pages/Messages';
-import AdminDashboard from './pages/AdminDashboard';
-import MemoryAlbum from './pages/MemoryAlbum';
-import Terms from './pages/Terms';
-import AgreementDetail from './pages/AgreementDetail';
+const BookingFlow = lazy(() => import('./pages/BookingFlow'));
+const HowItWorks = lazy(() => import('./pages/HowItWorks'));
+const ForCreators = lazy(() => import('./pages/ForCreators'));
+const ProfileWizard = lazy(() => import('./pages/ProfileWizard'));
+const ClientDashboard = lazy(() => import('./pages/ClientDashboard'));
+const LensmanDashboard = lazy(() => import('./pages/LensmanDashboard'));
+const Messages = lazy(() => import('./pages/Messages'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const MemoryAlbum = lazy(() => import('./pages/MemoryAlbum'));
+const Terms = lazy(() => import('./pages/Terms'));
+const AgreementDetail = lazy(() => import('./pages/AgreementDetail'));
 import Login from './pages/Login';
 import Register from './pages/Register';
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import OAuthConsent from './pages/OAuthConsent';
-import RequestSent from './pages/RequestSent';
-import Creators from './pages/Creators';
-import CreatorProfile from './pages/CreatorProfile';
-import Faq from './pages/Faq';
-import Onboarding from './pages/Onboarding';
-import Portal from './pages/Portal';
-import AccountSettings from './pages/AccountSettings';
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const OAuthConsent = lazy(() => import('./pages/OAuthConsent'));
+const RequestSent = lazy(() => import('./pages/RequestSent'));
+const Creators = lazy(() => import('./pages/Creators'));
+const CreatorProfile = lazy(() => import('./pages/CreatorProfile'));
+const Faq = lazy(() => import('./pages/Faq'));
+const Onboarding = lazy(() => import('./pages/Onboarding'));
+const Portal = lazy(() => import('./pages/Portal'));
+const AccountSettings = lazy(() => import('./pages/AccountSettings'));
 import AdminRoute from '@/components/AdminRoute';
 import LegacyRedirect from '@/components/LegacyRedirect';
 
@@ -66,6 +67,7 @@ const AuthenticatedApp = () => {
 
   // Render the main app
   return (
+    <Suspense fallback={<div className="min-h-screen bg-background" />}>
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
@@ -105,6 +107,7 @@ const AuthenticatedApp = () => {
       </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
+    </Suspense>
   );
 };
 
