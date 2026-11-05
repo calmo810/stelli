@@ -400,12 +400,41 @@ export default function CaseStudy() {
         </span>
       </motion.h2>
 
-      <motion.p
+      <motion.div
         {...RISE}
-        className="max-w-[470px] mx-auto mt-6 text-center font-body text-[14px] md:text-[16px] leading-[1.6] text-white/45"
+        className="stelli-display max-w-[720px] mx-auto mt-8 md:mt-10 text-center text-white"
+        style={{ fontSize: 'clamp(19px, 2.3vw, 30px)', lineHeight: 1.3, fontWeight: 400 }}
       >
-        Great photos. Terrible booking experiences. We built Stelli to change that.
-      </motion.p>
+        <p>
+          Great photos.{' '}
+          <span className="relative inline-block text-white/45">
+            Terrible booking experiences.
+            {/* a quick brush strike through the old way */}
+            <svg
+              aria-hidden
+              viewBox="0 0 300 20"
+              preserveAspectRatio="none"
+              className="absolute left-[-3%] top-[46%] w-[106%] h-[.5em] pointer-events-none"
+            >
+              <path
+                d="M3 13 C 60 6, 120 15, 180 9 S 260 6, 297 10"
+                fill="none"
+                stroke="hsl(var(--neon-lime))"
+                strokeWidth="3.2"
+                strokeLinecap="round"
+                opacity=".9"
+              />
+            </svg>
+          </span>
+        </p>
+        <p className="mt-2 md:mt-3">
+          We built{' '}
+          <span className="stelli-brush mx-[.08em]" style={{ fontSize: '1.45em', verticalAlign: '-.06em' }}>
+            Stelli
+          </span>{' '}
+          to change that.
+        </p>
+      </motion.div>
 
       <div className="mt-[48px] md:mt-[90px]">
         {/* Desktop: floating browsers */}
