@@ -1,0 +1,192 @@
+import React, { useRef, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { ImagePlus, Loader2, X } from 'lucide-react';
+import { base44 } from '@/api/base44Client';
+import shortDate from '@/lib/shortDate';
+
+const MAX_PHOTOS = 6;
+
+const shootName = (r) => (r.event_type ? r.event_type.replace(/_/g, ' ') : 'shoot');
+
+function statusText(r, role) {
+  const mine = role === 'client' ? r.client_decision : r.creator_decision;
+  const theirs = role === 'client' ? r.creator_decision : r.client_decision;
+  const other = role === 'client' ? r.lensman_name || 'your creator' : (r.client_name || 'your client').split(' ')[0];
+  if (mine === 'declined') return 'You kept this shoot private.';
+  if (theirs === 'declined') return `${other} kept this shoot private.`;
+  if (mine === 'approved' && theirs === 'approved') return 'Shared on the profile. You can take it down any time.';
+  if (mine === 'approved') return `You said yes. Waiting on ${other}.`;
+  return null;
+}
+
+/** The creator picks which photos from the shoot would be shown. */
+function PhotoPicker({ photos, setPhotos }) {
+  const input = useRef(null);
+  const [busy, setBusy] = useState(false);
+  const add = async (files) => {
+    setBusy(true);
+    try {
+      const room = MAX_PHOTOS - photos.length;
+      const urls = [];
+      for (const file of [...files].slice(0, room)) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        if (file_url) urls.push(file_url);
+      }
+      setPhotos([...photos, ...urls]);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="mt-3 flex flex-wrap gap-2">
+      {photos.map((src) => (
+        <div key={src} className="relative h-[72px] w-[58px] overflow-hidden rounded-lg">
+          <img src={src} alt="" className="h-full w-full object-cover" />
+          <button
+            type="button"
+            aria-label="Remove photo"
+            onClick={() => setPhotos(photos.filter((p) => p !== src))}
+            className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full bg-black/60 text-white"
+          >
+            <X className="h-3 w-3" strokeWidth={2.6} />
+          </button>
+        </div>
+      ))}
+      {photos.length < MAX_PHOTOS && (
+        <button
+          type="button"
+          onClick={() => input.current?.click()}
+          disabled={busy}
+          className="grid h-[72px] w-[58px] place-items-center rounded-lg border border-dashed border-white/25 text-white/55 transition-colors hover:border-white/50 hover:text-white"
+          aria-label="Add photos from this shoot"
+        >
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+        </button>
+      )}
+      <input ref={input} type="file" accept="image/*" multiple hidden onChange={(e) => e.target.files?.length && add(e.target.files)} />
+    </div>
+  );
+}
+
+function ReleaseCard({ release: r, role }) {
+  const queryClient = useQueryClient();
+  const [photos, setPhotos] = useState(r.photos || []);
+  const [saving, setSaving] = useState(null);
+  const [error, setError] = useState('');
+  const mine = role === 'client' ? r.client_decision : r.creator_decision;
+  const pending = !mine || mine === 'pending';
+  const status = statusText(r, role);
+  const other = role === 'client' ? r.lensman_name || 'your creator' : (r.client_name || 'your client').split(' ')[0];
+
+  const answer = async (decision) => {
+    setSaving(decision);
+    setError('');
+    try {
+      const res = await base44.functions.invoke('respondPhotoRelease', {
+        releaseId: r.id,
+        decision,
+        ...(role === 'lensman' ? { photos } : {}),
+      });
+      if (res.data?.error) throw new Error(res.data.error);
+      await queryClient.invalidateQueries({ queryKey: ['photo-releases'] });
+    } catch (e) {
+      setError(e?.response?.data?.error || e.message || 'Something went wrong. Try again.');
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  return (
+    <div className="glass rounded-[20px] px-4 py-3.5">
+      <b className="block text-[15px] font-semibold capitalize text-white">
+        {pending ? `Share your ${shootName(r)} on Stelli?` : `${shootName(r)} · photo release`}
+      </b>
+      <small className="mt-0.5 block text-[13px] text-white/55">
+        {[shortDate(r.event_date), role === 'client' ? r.lensman_name : r.client_name].filter(Boolean).join(' · ')}
+      </small>
+
+      {pending ? (
+        <>
+          <p className="mt-2.5 text-[13.5px] leading-relaxed text-white/70">
+            {role === 'client'
+              ? `Can this shoot appear under Past Stelli shoots on ${other}'s page? Photos ${other} picks and your review would show publicly, with your first name only.`
+              : `Can this shoot appear under Past Stelli shoots on your page? Pick up to ${MAX_PHOTOS} photos to show. ${other} is asked too.`}
+          </p>
+          {role === 'lensman' && <PhotoPicker photos={photos} setPhotos={setPhotos} />}
+          <p className="mt-2.5 text-[12px] text-white/40">Nothing shows unless you both say yes. Either of you can take it down later.</p>
+          <div className="mt-3 flex gap-2">
+            <button
+              type="button"
+              disabled={!!saving || (role === 'lensman' && !photos.length)}
+              onClick={() => answer('approved')}
+              className="flex-1 rounded-full bg-neon-lime py-2.5 text-[13.5px] font-semibold text-ink transition-opacity disabled:opacity-40"
+            >
+              {saving === 'approved' ? 'Saving…' : 'Yes, share it'}
+            </button>
+            <button
+              type="button"
+              disabled={!!saving}
+              onClick={() => answer('declined')}
+              className="flex-1 rounded-full border border-white/20 py-2.5 text-[13.5px] font-semibold text-white/75 transition-colors hover:bg-white/[0.06] disabled:opacity-40"
+            >
+              {saving === 'declined' ? 'Saving…' : 'Keep private'}
+            </button>
+          </div>
+        </>
+      ) : (
+        <div className="mt-2 flex items-center justify-between gap-3">
+          <p className="text-[13px] text-white/60">{status}</p>
+          {mine === 'approved' ? (
+            <button type="button" disabled={!!saving} onClick={() => answer('declined')} className="shrink-0 text-[12.5px] font-semibold text-white/55 hover:text-white">
+              {saving ? 'Saving…' : 'Take down'}
+            </button>
+          ) : (
+            <button
+              type="button"
+              disabled={!!saving || (role === 'lensman' && !photos.length)}
+              onClick={() => answer('approved')}
+              className="shrink-0 text-[12.5px] font-semibold text-neon-lime disabled:opacity-40"
+            >
+              {saving ? 'Saving…' : 'Share instead'}
+            </button>
+          )}
+        </div>
+      )}
+      {error && <p className="mt-2 text-[12.5px] text-neon-magenta">{error}</p>}
+    </div>
+  );
+}
+
+/**
+ * Photo releases: a separate agreement for each delivered booking, asking
+ * whether the shoot may appear on the creator's public page. Each side answers
+ * from their own portal. Renders nothing when there are none.
+ */
+export default function PhotoReleases({ role, user }) {
+  const { data: releases = [] } = useQuery({
+    queryKey: ['photo-releases', role, user?.id],
+    enabled: !!user?.id,
+    queryFn: () => base44.entities.PhotoRelease.list('-created_date').catch(() => []),
+  });
+
+  const mineList = releases.filter((r) =>
+    role === 'client'
+      ? r.client_id === user.id || r.client_email === user.email
+      : r.creator_id === user.id || r.creator_email === user.email
+  );
+  if (!mineList.length) return null;
+
+  const key = role === 'client' ? 'client_decision' : 'creator_decision';
+  const sorted = [...mineList].sort((a, b) => (a[key] === 'pending' ? -1 : 0) - (b[key] === 'pending' ? -1 : 0));
+
+  return (
+    <section className="mt-8">
+      <h3 className="mb-2.5 pl-1.5 text-[13px] font-semibold text-white/50">Photo releases</h3>
+      <div className="space-y-2">
+        {sorted.map((r) => (
+          <ReleaseCard key={r.id} release={r} role={role} />
+        ))}
+      </div>
+    </section>
+  );
+}
