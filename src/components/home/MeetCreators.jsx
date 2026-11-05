@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import SmoothImage from '@/components/shared/SmoothImage';
 import { coverImage, displayNameOf } from '@/lib/profilePresets';
 
 const CARD_WIDTH = 'clamp(260px, 28vw, 420px)';
@@ -103,16 +104,24 @@ export default function MeetCreators() {
                 key={creator.id}
                 data-card
                 to={`/creators/${creator.slug || creator.id}`}
-                className="group shrink-0 snap-start relative overflow-hidden aspect-[4/5] transition-transform duration-500 hover:scale-[1.02]"
-                style={{ width: CARD_WIDTH, borderRadius: CARD_RADIUS, background: CARD_BG }}
+                onPointerMove={(event) => {
+                  const rect = event.currentTarget.getBoundingClientRect();
+                  event.currentTarget.style.setProperty('--mx', `${event.clientX - rect.left}px`);
+                  event.currentTarget.style.setProperty('--my', `${event.clientY - rect.top}px`);
+                }}
+                className="group depth shrink-0 snap-start relative overflow-hidden aspect-[4/5] transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-1.5"
+                style={{ width: CARD_WIDTH, borderRadius: CARD_RADIUS, background: CARD_BG, isolation: 'isolate' }}
               >
                 {image && (
-                  <img
-                    src={image}
-                    alt={displayNameOf(creator)}
-                    className="absolute inset-0 w-full h-full object-cover"
-                  />
+                  <div className="absolute inset-0 transition-transform duration-[1400ms] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.06]">
+                    <SmoothImage
+                      src={image}
+                      alt={displayNameOf(creator)}
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  </div>
                 )}
+                <span aria-hidden className="sheen z-[1]" />
                 <span
                   aria-hidden
                   className="absolute inset-0"
@@ -133,11 +142,12 @@ export default function MeetCreators() {
           <Link
             data-card
             to="/register?role=creator"
-            className="shrink-0 snap-start relative flex flex-col justify-between aspect-[4/5] transition-transform duration-500 hover:scale-[1.02]"
+            className="shrink-0 snap-start relative flex flex-col justify-between aspect-[4/5] transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-1.5"
             style={{
               width: CARD_WIDTH,
               borderRadius: CARD_RADIUS,
-              background: 'hsl(var(--neon-lime))',
+              background: 'radial-gradient(120% 80% at 20% 0%, hsl(75 100% 72%), hsl(var(--neon-lime)) 55%, hsl(75 85% 48%))',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,.5), 0 30px 60px -30px hsl(var(--neon-lime) / 0.5)',
               color: 'hsl(var(--ink))',
               padding: 26,
             }}
