@@ -1,5 +1,7 @@
 import { galleryComposition } from '@/lib/profilePresets';
 
+export const APPROVED_CREATORS_QUERY_KEY = ['approved-creators'];
+
 /** The brand accents a creator can carry, mapped to their design tokens. */
 const ACCENT_TOKENS = {
   lime: '--neon-lime',
