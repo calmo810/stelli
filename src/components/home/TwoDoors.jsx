@@ -38,9 +38,20 @@ export default function TwoDoors() {
           <Link
             key={tile.to}
             to={tile.to}
-            className="group flex flex-col items-center justify-center text-center overflow-hidden rounded-[18px] md:rounded-3xl px-2.5 py-6 md:px-6 md:py-8 min-h-[210px] md:min-h-[290px] transition-transform duration-300 hover:-translate-y-1"
-            style={{ background: `radial-gradient(80% 60% at 50% 100%, ${tile.glow}, hsl(var(--surface)) 70%)` }}
+            onPointerMove={(event) => {
+              const rect = event.currentTarget.getBoundingClientRect();
+              event.currentTarget.style.setProperty('--mx', `${event.clientX - rect.left}px`);
+              event.currentTarget.style.setProperty('--my', `${event.clientY - rect.top}px`);
+            }}
+            className="group depth relative flex flex-col items-center justify-center text-center overflow-hidden rounded-[18px] md:rounded-3xl px-2.5 py-6 md:px-6 md:py-8 min-h-[210px] md:min-h-[290px] transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-1.5"
+            style={{
+              background: [
+                `radial-gradient(80% 60% at 50% 100%, ${tile.glow}, transparent 70%)`,
+                'linear-gradient(180deg, hsl(var(--surface-2)), hsl(var(--surface)) 60%)',
+              ].join(', '),
+            }}
           >
+            <span aria-hidden className="sheen" />
             <p
               className="stelli-shimmer font-display font-medium tracking-[-0.03em] leading-[1.05] pb-[.06em]"
               style={{
