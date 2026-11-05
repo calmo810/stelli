@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArrowDown } from 'lucide-react';
-import { cardImages, cssUrl } from '@/lib/creatorBrowse';
+import { cssUrl } from '@/lib/creatorBrowse';
+import { displayNameOf } from '@/lib/profilePresets';
 
 const EASE_OUT = 'cubic-bezier(.2,.7,.2,1)';
 
@@ -29,7 +30,12 @@ const FADE = (delay) => ({
  * line-rise entrance and one lime word on top.
  */
 export default function BrowseHero({ creators = [], onFind }) {
-  const faces = creators.slice(0, 5).map((creator) => cardImages(creator)[0]).filter(Boolean);
+  // Each creator's own profile photo, never a portfolio shot. No photo yet: their initial.
+  const faces = creators.slice(0, 5).map((creator) => ({
+    id: creator.id,
+    photo: creator.profile_image || '',
+    initial: (displayNameOf(creator) || '?').trim().charAt(0).toUpperCase(),
+  }));
 
   return (
     <header>
@@ -61,16 +67,19 @@ export default function BrowseHero({ creators = [], onFind }) {
         {faces.length > 0 && (
           <div className="flex items-center gap-4" style={FADE(0.8)}>
             <div className="flex">
-              {faces.map((url, i) => (
+              {faces.map((face, i) => (
                 <span
-                  key={url}
-                  className="h-[38px] w-[38px] rounded-full border-2 border-ink bg-surface-2 bg-cover bg-center first:ml-0 -ml-3"
+                  key={face.id}
+                  aria-hidden="true"
+                  className="grid h-[38px] w-[38px] place-items-center rounded-full border-2 border-ink bg-surface-2 bg-cover bg-center text-[14px] font-semibold text-white/70 first:ml-0 -ml-3"
                   style={{
-                    backgroundImage: cssUrl(url),
+                    backgroundImage: face.photo ? cssUrl(face.photo) : undefined,
                     transform: 'scale(0)',
                     animation: `stelliPop .5s cubic-bezier(.34,1.56,.64,1) ${0.9 + i * 0.08}s forwards`,
                   }}
-                />
+                >
+                  {!face.photo && face.initial}
+                </span>
               ))}
             </div>
             <p className="text-[13px] leading-[1.35] text-white/45">
