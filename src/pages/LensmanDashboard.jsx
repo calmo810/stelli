@@ -5,6 +5,7 @@ import PendingBanner from '@/components/dashboard/PendingBanner';
 import PayoutsCard from '@/components/dashboard/PayoutsCard';
 import AgeConfirmGate from '@/components/dashboard/AgeConfirmGate';
 import MyAgreements from '@/components/dashboard/MyAgreements';
+import PhotoReleases from '@/components/dashboard/PhotoReleases';
 import DashboardShell from '@/components/dashboard/DashboardShell';
 import NeedsYou from '@/components/dashboard/NeedsYou';
 import ShootList from '@/components/dashboard/ShootList';
@@ -131,6 +132,8 @@ export default function LensmanDashboard() {
         isLoading={isLoading}
         emptyText="New requests and booked shoots will show up here."
       />
+
+      <PhotoReleases role="lensman" user={user} />
 
       <MyAgreements role="lensman" />
 
