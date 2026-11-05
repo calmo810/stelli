@@ -11,7 +11,7 @@ export default function useThreads() {
     retry: false,
   });
 
-  const { data = { bookings: [], messages: [], creators: [] }, isLoading } = useQuery({
+  const { data = { bookings: [], messages: [], creators: [] }, isLoading, refetch } = useQuery({
     queryKey: ['messages-inbox', user?.id, user?.email],
     enabled: !!user?.id || !!user?.email,
     refetchInterval: 8000,
@@ -73,5 +73,6 @@ export default function useThreads() {
     threads,
     unreadCount: threads.filter((t) => t.unread).length,
     isLoading: isLoading || userLoading,
+    refetch,
   };
 }

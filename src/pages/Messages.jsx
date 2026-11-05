@@ -11,7 +11,7 @@ import ChatView from '@/components/thread/ChatView';
  */
 export default function Messages() {
   const { bookingId } = useParams();
-  const { threads, unreadCount, isLoading } = useThreads();
+  const { threads, unreadCount, isLoading, refetch } = useThreads();
 
   return (
     <div className="mx-auto flex chat-screen w-full max-w-[1240px] lg:h-[calc(100dvh-4rem)] lg:px-6 lg:py-5">
@@ -27,6 +27,7 @@ export default function Messages() {
               activeId={bookingId}
               isLoading={isLoading}
               unreadCount={unreadCount}
+              onRefresh={refetch}
             />
           </div>
         </aside>

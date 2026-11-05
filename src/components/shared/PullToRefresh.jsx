@@ -10,7 +10,7 @@ import { Loader2 } from 'lucide-react';
 const THRESHOLD = 64;
 const MAX_PULL = 108;
 
-export default function PullToRefresh({ onRefresh, children, scrollRef }) {
+export default function PullToRefresh({ onRefresh, children, scrollRef, className = '' }) {
   const [pull, setPull] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const startY = useRef(null);
@@ -69,7 +69,7 @@ export default function PullToRefresh({ onRefresh, children, scrollRef }) {
 
   return (
     <div
-      className="relative"
+      className={`relative ${className}`}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
@@ -92,7 +92,9 @@ export default function PullToRefresh({ onRefresh, children, scrollRef }) {
         </span>
       </div>
 
-      <div style={{ transform: `translateY(${pull}px)`, transition: motion }}>{children}</div>
+      <div className="h-full" style={{ transform: `translateY(${pull}px)`, transition: motion }}>
+        {children}
+      </div>
 
       <span role="status" className="sr-only">
         {refreshing ? 'Refreshing' : ''}

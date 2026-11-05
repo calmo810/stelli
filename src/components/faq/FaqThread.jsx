@@ -251,10 +251,10 @@ export default function FaqThread() {
                       <i className="caret" />
                     </span>
                   ) : (
-                    <span className="ph">iMessage</span>
+                    <span className="ph">Message</span>
                   )}
                   {draft ? (
-                    <span className={`fq-send ${draft ? 'on' : ''}`}>
+                    <span className="fq-send">
                       <ArrowUp size={16} strokeWidth={3} />
                     </span>
                   ) : (
