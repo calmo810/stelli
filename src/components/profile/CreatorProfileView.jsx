@@ -161,7 +161,7 @@ export default function CreatorProfileView({ creatorId, adminPanel = null }) {
             </div>
             {creator.one_liner && <p className="cp-line">{creator.one_liner}</p>}
           </div>
-          <div>
+          <div className="cp-cta">
             <div className="cp-actions">
               <Link ref={ctaRef} to={`/book/${creator.id}`} className="cp-btn cp-btn-lime">
                 {bookingLabel}
