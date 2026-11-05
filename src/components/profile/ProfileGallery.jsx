@@ -1,4 +1,5 @@
 import React from 'react';
+import SmoothImage from '@/components/shared/SmoothImage';
 
 const REST_LAYOUTS = {
   ordered_grid: 'grid grid-cols-2 lg:grid-cols-3 gap-4',
@@ -20,7 +21,7 @@ export default function ProfileGallery({ pinned = [], rest = [], galleryStyle, a
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {pinned.map((src, i) => (
               <div key={src} className="relative overflow-hidden" style={{ borderRadius: 4 }}>
-                <img src={src} alt="" className="w-full aspect-[4/5] object-cover" />
+                <SmoothImage src={src} alt="" className="w-full aspect-[4/5] object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(.16,1,.3,1)] hover:scale-[1.03]" />
                 <span className="absolute top-3 left-3 label-mono text-[9px]" style={{ color: accent }}>
                   {String(i + 1).padStart(2, '0')}
                 </span>
@@ -40,7 +41,7 @@ export default function ProfileGallery({ pinned = [], rest = [], galleryStyle, a
                 className={`overflow-hidden ${galleryStyle === 'hero_grid' && i === 0 ? 'col-span-2' : ''}`}
                 style={{ borderRadius: 4 }}
               >
-                <img
+                <SmoothImage
                   src={src}
                   alt=""
                   className={`w-full object-cover ${isSheet ? 'aspect-square' : i === 0 && galleryStyle === 'hero_grid' ? 'aspect-[16/9]' : 'aspect-[4/5]'}`}
