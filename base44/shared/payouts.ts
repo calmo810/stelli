@@ -10,6 +10,7 @@ import {
   HOLD_HOURS,
 } from './stripe.ts';
 import { notifyBoth, sendEmail } from './notify.ts';
+import { sendWaitingManualPayouts } from './manualPayouts.ts';
 
 const PUBLISHED_ORIGIN = 'https://getstelli.base44.app';
 
@@ -121,7 +122,18 @@ export async function releaseWaitingPayouts(base44, lensman) {
     }
   }
 
-  return { released: results.filter((result) => result.released).length, results };
+  // Founder payouts made outside a booking go out at the same moment.
+  let manualSent = 0;
+  try {
+    manualSent = (await sendWaitingManualPayouts(base44, lensman)).sent;
+  } catch (error) {
+    console.error('Waiting manual payouts failed for', lensman.id, '-', error.message);
+  }
+
+  return {
+    released: results.filter((result) => result.released).length + manualSent,
+    results,
+  };
 }
 
 /**
