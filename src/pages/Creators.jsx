@@ -6,15 +6,15 @@ import BrowseHero from '@/components/browse/BrowseHero';
 import BrowseFilters from '@/components/browse/BrowseFilters';
 import CreatorCard from '@/components/browse/CreatorCard';
 import QuickViewSheet from '@/components/browse/QuickViewSheet';
-import { BROWSE_FILTERS, matchesFilter } from '@/lib/creatorBrowse';
+import { APPROVED_CREATORS_QUERY_KEY, BROWSE_FILTERS, matchesFilter } from '@/lib/creatorBrowse';
 
 export default function Creators() {
   const [filter, setFilter] = useState('all');
   const [openCreator, setOpenCreator] = useState(null);
   const browseRef = useRef(null);
 
-  const { data: creators = [], isLoading } = useQuery({
-    queryKey: ['creators'],
+  const { data: creators = [], isLoading, isError, refetch } = useQuery({
+    queryKey: APPROVED_CREATORS_QUERY_KEY,
     queryFn: () => base44.entities.Lensman.filter({ status: 'approved' }),
   });
 
@@ -40,7 +40,18 @@ export default function Creators() {
           />
         </div>
 
-        {isLoading ? (
+        {isError ? (
+          <div role="alert" className="py-16 text-center">
+            <p className="text-white/70">We couldn’t load creators. Please try again.</p>
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="mt-4 rounded-full border border-white/25 px-5 py-2 text-sm text-white transition-colors hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neon-lime"
+            >
+              Try again
+            </button>
+          </div>
+        ) : isLoading ? (
           <div
             className="grid grid-cols-1 gap-[22px] pb-8 sm:grid-cols-2 lg:grid-cols-3"
             aria-label="Loading creators"
