@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Sparkles } from 'lucide-react';
 import MyAgreements from '@/components/dashboard/MyAgreements';
+import PhotoReleases from '@/components/dashboard/PhotoReleases';
 import DashboardShell from '@/components/dashboard/DashboardShell';
 import NeedsYou from '@/components/dashboard/NeedsYou';
 import ShootList from '@/components/dashboard/ShootList';
@@ -78,6 +79,8 @@ export default function ClientDashboard() {
         isLoading={isLoading}
         emptyText="Shoots you request will show up here."
       />
+
+      <PhotoReleases role="client" user={user} />
 
       <MyAgreements role="client" />
 
