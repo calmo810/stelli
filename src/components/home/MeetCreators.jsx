@@ -95,7 +95,7 @@ export default function MeetCreators() {
         <div
           ref={trackRef}
           onScroll={sync}
-          className="max-w-[1440px] mx-auto px-5 md:px-10 mt-9 flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar scroll-smooth pt-2 pb-6"
+          className="max-w-[1440px] mx-auto px-5 md:px-10 mt-9 flex gap-4 overflow-x-auto snap-x snap-mandatory no-scrollbar scroll-smooth pt-2 pb-16"
         >
           {shown.map((creator) => {
             const image = coverImage(creator);
@@ -164,7 +164,9 @@ export default function MeetCreators() {
         </div>
       )}
 
-      <div className="max-w-[1440px] mx-auto px-5 md:px-10 hidden sm:flex justify-end gap-2.5">
+      {/* The rail's extra bottom room lets card shadows fade out fully; the
+          arrows tuck back up into it so the spacing reads the same. */}
+      <div className="relative z-10 -mt-10 max-w-[1440px] mx-auto px-5 md:px-10 hidden sm:flex justify-end gap-2.5">
         <button
           type="button"
           onClick={() => scroll(-1)}
