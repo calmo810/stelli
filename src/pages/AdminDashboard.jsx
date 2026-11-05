@@ -7,6 +7,7 @@ import { Star, Calendar, DollarSign } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
 import RatingDisplay from '@/components/RatingDisplay';
+import { PayCreatorPanel, OneOffChargePanel } from '@/components/admin/FounderPayments';
 
 const SURFACE = { background: 'hsl(var(--surface))', borderRadius: 4 };
 const CARD = 'border border-white/10';
@@ -98,7 +99,21 @@ export default function AdminDashboard() {
             <TabsTrigger value="flagged" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-magenta data-[state=active]:text-ink">
               Held funds ({heldFunds.length})
             </TabsTrigger>
+            <TabsTrigger value="pay" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-lime data-[state=active]:text-ink">
+              Pay creators
+            </TabsTrigger>
+            <TabsTrigger value="charge" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-lime data-[state=active]:text-ink">
+              One-off payments
+            </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="pay">
+            <PayCreatorPanel lensmen={lensmen} />
+          </TabsContent>
+
+          <TabsContent value="charge">
+            <OneOffChargePanel />
+          </TabsContent>
 
           <TabsContent value="lensmen" className="space-y-3">
             {approved.map(l => (
