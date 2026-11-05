@@ -176,3 +176,26 @@ export const SHARE_HOST = 'https://getstelli.base44.app';
 export function shareUrl(creator) {
   return `${SHARE_HOST}/functions/shareProfile?id=${creator?.id || ''}`;
 }
+/** How the creator chose to hang their work. Clients only ever see the result. */
+export function displaySettings(creator) {
+  return {
+    layout: ['wall', 'strip', 'grid'].includes(creator?.wall_layout) ? creator.wall_layout : 'wall',
+    curve: ['flat', 'soft', 'full'].includes(creator?.wall_curve) ? creator.wall_curve : 'soft',
+    frame: creator?.print_frame === 'bleed' ? 'bleed' : 'mat',
+    mat: creator?.print_mat || 'mixed',
+    captions: creator?.show_captions !== false,
+  };
+}
+
+/** "Emily Novak" → "E. Novak", for the small print captions. */
+export function captionName(name) {
+  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+  if (parts.length < 2) return parts[0] || 'Stelli';
+  return `${parts[0][0]}. ${parts[parts.length - 1]}`;
+}
+
+/** Caption for print i: a plate number, never an invented title. */
+export function printLabel(name) {
+  const short = captionName(name);
+  return (i) => ({ title: `No. ${String(i + 1).padStart(2, '0')}`, meta: `${short} · Elon` });
+}
