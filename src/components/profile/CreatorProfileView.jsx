@@ -1,25 +1,13 @@
-import React from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Lock } from 'lucide-react';
+import { Check, ChevronLeft, Lock, Share, Star } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import ProfileCover from '@/components/profile/ProfileCover';
-import BackButton from '@/components/shared/BackButton';
-import StyleTagChips from '@/components/profile/StyleTagChips';
-import PromptBlock from '@/components/profile/PromptBlock';
-import DoesntShoot from '@/components/profile/DoesntShoot';
-import ProfileGallery from '@/components/profile/ProfileGallery';
-import ProfileBookingBar from '@/components/profile/ProfileBookingBar';
-import ShareProfileButton from '@/components/profile/ShareProfileButton';
-import ReviewsList from '@/components/profile/ReviewsList';
-import RatingDisplay from '@/components/RatingDisplay';
-import { accentColor, coverImage, focalPoint, galleryComposition, displayNameOf } from '@/lib/profilePresets';
-
-const COVER_RATIO = {
-  night_flash: 'aspect-[4/5] sm:aspect-[3/2]',
-  clean_portfolio: 'aspect-[4/5] sm:aspect-[2/1]',
-};
+import PrintWall from '@/components/profile/PrintWall';
+import PastShoots from '@/components/profile/PastShoots';
+import { accentColor, displayNameOf, displaySettings, galleryComposition, printLabel, shareUrl } from '@/lib/profilePresets';
+import './creatorProfile.css';
 
 function hasBookingDraft(creatorId, viewerKey) {
   try {
@@ -30,18 +18,47 @@ function hasBookingDraft(creatorId, viewerKey) {
   }
 }
 
+function ShareButton({ creator }) {
+  const [copied, setCopied] = useState(false);
+  const copy = async () => {
+    const url = shareUrl(creator);
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      window.prompt('Copy this profile link', url);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2200);
+  };
+  return (
+    <button
+      type="button"
+      className="cp-btn cp-btn-ghost"
+      aria-label={copied ? 'Link copied' : 'Share profile'}
+      onClick={copy}
+      style={copied ? { background: 'hsl(var(--neon-lime) / .22)' } : undefined}
+    >
+      {copied ? <Check strokeWidth={2.4} /> : <Share strokeWidth={2} />}
+    </button>
+  );
+}
+
 /**
- * The public creator profile, exactly as a client sees it. Shared by the public
- * route and the admin application review, which drops its private panel in via
- * `adminPanel`.
+ * The public creator profile, exactly as a client sees it: who they are, their
+ * work hung the way THEY chose in their editor, past shoots both sides agreed
+ * to share, and how booking works. Shared by the public route and the admin
+ * application review, which drops its private panel in via `adminPanel`.
  */
 export default function CreatorProfileView({ creatorId, adminPanel = null }) {
+  const ctaRef = useRef(null);
+  const [barOn, setBarOn] = useState(false);
+  const [seeAll, setSeeAll] = useState(false);
+
   const { data: creator, isLoading } = useQuery({
     queryKey: ['creator', creatorId],
     enabled: !!creatorId,
     queryFn: async () => {
-      // The route carries either the profile link name or the record ID, so
-      // old links keep working alongside the generated ones.
+      // The route carries either the profile link name or the record ID.
       if (/^[a-f0-9]{24}$/i.test(creatorId)) {
         const byId = await base44.entities.Lensman.filter({ id: creatorId }).catch(() => []);
         if (byId[0]) return byId[0];
@@ -49,12 +66,6 @@ export default function CreatorProfileView({ creatorId, adminPanel = null }) {
       const bySlug = await base44.entities.Lensman.filter({ slug: creatorId }).catch(() => []);
       return bySlug[0];
     },
-  });
-
-  const { data: reviews = [] } = useQuery({
-    queryKey: ['creator-reviews', creatorId],
-    enabled: !!creatorId,
-    queryFn: () => base44.entities.Review.filter({ lensman_id: creatorId }, '-created_date'),
   });
 
   const { data: viewer } = useQuery({
@@ -69,10 +80,25 @@ export default function CreatorProfileView({ creatorId, adminPanel = null }) {
     retry: false,
   });
 
+  // The floating booking bar shows once the main button scrolls away.
+  useEffect(() => {
+    const el = ctaRef.current;
+    if (!el) return undefined;
+    const io = new IntersectionObserver(([entry]) => setBarOn(!entry.isIntersecting));
+    io.observe(el);
+    return () => io.disconnect();
+  }, [creator?.id]);
+
+  const name = displayNameOf(creator);
+  const photos = useMemo(() => galleryComposition(creator).all.map((src) => ({ src })), [creator]);
+  const settings = useMemo(() => displaySettings(creator), [creator]);
+  const label = useMemo(() => printLabel(name), [name]);
+
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-ink px-5 md:px-10 pt-32 pb-24 max-w-[1500px] mx-auto">
-        <Skeleton className="h-[420px] w-full" />
+      <div className="min-h-screen bg-ink px-5 md:px-10 pt-24 pb-24 max-w-[1180px] mx-auto">
+        <Skeleton className="h-[84px] w-[60%] rounded-full" />
+        <Skeleton className="h-[520px] w-full mt-10 rounded-3xl" />
       </div>
     );
   }
@@ -81,123 +107,188 @@ export default function CreatorProfileView({ creatorId, adminPanel = null }) {
     return (
       <div className="min-h-screen bg-ink flex items-center justify-center px-6">
         <div className="text-center">
-          <p className="font-heading text-4xl text-white mb-3">Creator not found.</p>
-          <Link to="/creators" className="label-mono text-[10px] text-neon-lime neon-underline">Back to browse</Link>
+          <p className="font-display text-4xl text-white mb-3">Creator not found.</p>
+          <Link to="/creators" className="text-[13px] font-semibold text-neon-lime">
+            Back to all creators
+          </Link>
         </div>
       </div>
     );
   }
 
   const accent = accentColor(creator.accent_color);
-  const cover = coverImage(creator);
-  const focal = focalPoint(creator);
-  const { pinned, rest } = galleryComposition(creator);
-  const tags = (creator.style_tags || []).slice(0, 3);
-  const name = displayNameOf(creator);
   const firstName = String(name).trim().split(' ')[0];
   const hasDraft = hasBookingDraft(creator.id, viewer?.id || 'guest');
-  const bookingLabel = creator.booking_cta || 'Request a date';
+  const bookingLabel = hasDraft ? 'Return to your request' : creator.booking_cta || 'Request a date';
+  const specialties = (creator.specialties || []).filter(Boolean);
+  const tags = (creator.style_tags || []).slice(0, 3);
+  const spots = (creator.neighborhoods || []).filter(Boolean);
+  const shoots = Number(creator.completed_shoots) || 0;
+  const reviews = Number(creator.review_count) || 0;
+  const rating = Number(creator.avg_rating) || 0;
+  const isNew = shoots === 0 && reviews === 0;
+  const useGrid = settings.layout === 'grid';
 
   return (
-    <div className="min-h-screen bg-ink pb-32 lg:pb-24">
+    <div className="cp min-h-screen bg-ink pb-28" style={{ '--cp-accent': accent }}>
       {adminPanel}
 
-      <div className="max-w-[1500px] mx-auto px-5 md:px-10 pt-4 md:pt-6 mb-6">
-        <Link to="/creators" className="inline-flex items-center gap-2 label-mono text-[10px] text-white/35 hover:text-neon-lime transition-colors">
-          <ArrowLeft className="w-3.5 h-3.5" /> All creators
+      <div className="cp-wrap">
+        <Link to="/creators" className="cp-back">
+          <ChevronLeft className="h-[15px] w-[15px]" strokeWidth={2.2} />
+          All creators
         </Link>
+
+        <section className="cp-who" aria-label={`About ${name}`}>
+          {creator.profile_image ? (
+            <img className="cp-avatar" src={creator.profile_image} alt={name} />
+          ) : (
+            <div className="cp-avatar" aria-hidden>{(name[0] || '?').toUpperCase()}</div>
+          )}
+          <div className="min-w-0">
+            <p className="cp-eyebrow">{creator.market === 'ELON' || !creator.market ? 'Elon' : creator.market} · Photographer</p>
+            <h1>{name}</h1>
+            <div className="cp-facts">
+              {isNew && <span className="cp-new">New to Stelli</span>}
+              {reviews > 0 && rating > 0 && (
+                <span className="cp-rating">
+                  <Star strokeWidth={0} />
+                  <b className="text-white">{rating.toFixed(1)}</b> · {reviews} {reviews === 1 ? 'review' : 'reviews'}
+                </span>
+              )}
+              {shoots > 0 && <span>{shoots} Stelli {shoots === 1 ? 'shoot' : 'shoots'}</span>}
+              {specialties.length > 0 && <span>{specialties.join(' · ')}</span>}
+            </div>
+            {creator.one_liner && <p className="cp-line">{creator.one_liner}</p>}
+          </div>
+          <div>
+            <div className="cp-actions">
+              <Link ref={ctaRef} to={`/book/${creator.id}`} className="cp-btn cp-btn-lime">
+                {bookingLabel}
+              </Link>
+              <ShareButton creator={creator} />
+            </div>
+            {hasDraft && <p className="cp-draft">Your in-progress request is saved.</p>}
+          </div>
+        </section>
+
+        <div className="cp-workbar">
+          <h2>
+            Work<small>{photos.length} {photos.length === 1 ? 'photo' : 'photos'}</small>
+          </h2>
+          {!useGrid && photos.length > 1 && (
+            <div className="cp-seg" role="group" aria-label="How to show the work">
+              <button type="button" aria-pressed={!seeAll} onClick={() => setSeeAll(false)}>
+                {settings.layout === 'strip' ? 'Strip' : 'Wall'}
+              </button>
+              <button type="button" aria-pressed={seeAll} onClick={() => setSeeAll(true)}>
+                See all
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      <ProfileCover src={cover} focal={focal} ratioClass={COVER_RATIO[creator.profile_theme] || COVER_RATIO.night_flash}>
-        <div className="absolute left-5 top-5 md:left-10 md:top-7">
-          <BackButton variant="hero" />
+      {photos.length ? (
+        <div className={useGrid || seeAll ? 'cp-wrap' : 'cp-wallgap'}>
+          <PrintWall photos={photos} settings={settings} label={label} accent={accent} name={`${name}'s`} showAll={seeAll} />
         </div>
-      </ProfileCover>
+      ) : (
+        <div className="cp-wrap">
+          <div className="cp-nowork">{firstName} hasn't added work yet.</div>
+        </div>
+      )}
 
-      <div className="max-w-[1500px] mx-auto px-5 md:px-10 pt-10">
-        <div className="grid lg:grid-cols-[1fr_340px] gap-12 lg:gap-16 items-start">
-          <div className="space-y-12 min-w-0">
-            <header>
-              <p className="label-mono text-[9px] mb-4" style={{ color: accent }}>
-                {creator.market || 'ELON'} · {creator.specialties?.join(' / ') || 'Photography'}
-              </p>
-              <h1
-                className="font-heading font-semibold text-white leading-[0.95]"
-                style={{ fontSize: 'clamp(38px, 6vw, 78px)' }}
-              >
-                {name}
-              </h1>
-              <p className="font-heading font-normal text-white/60 mt-3" style={{ fontSize: 'clamp(15px, 1.6vw, 21px)' }}>
-                {creator.one_liner || tags.join(' · ')}
-              </p>
+      <div className="cp-wrap">
+        <PastShoots lensmanId={creator.id} firstName={firstName} />
 
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-6">
-                <span className="flex items-center gap-1.5">
-                  <RatingDisplay rating={creator.avg_rating} reviewCount={creator.review_count} color={accent} />
-                  {creator.review_count > 0 && (
-                    <span className="font-body text-[12px] text-white/35">({creator.review_count} reviews)</span>
-                  )}
-                </span>
-                <span className="label-mono text-[9px] text-white/40">{creator.completed_shoots || 0} shoots completed</span>
-                <span className="label-mono text-[9px] text-white/40">
-                  {creator.neighborhoods?.[0] || creator.market || 'ELON'}
-                </span>
-              </div>
-
-              <StyleTagChips tags={tags} accent={accent} className="mt-6" />
-
-              <DoesntShoot line={creator.dont_shoot} />
-
+        <div className="cp-details" id="book">
+          {(creator.bio || tags.length > 0 || (creator.prompt_question && creator.prompt_answer) || creator.dont_shoot || creator.equipment) && (
+            <div className="cp-box">
               {creator.bio && (
-                <p className="font-body text-[14px] leading-[1.9] text-white/50 max-w-2xl mt-7">{creator.bio}</p>
+                <>
+                  <h3>About {firstName}</h3>
+                  <p className="cp-bio">{creator.bio}</p>
+                </>
               )}
-            </header>
+              {creator.prompt_question && creator.prompt_answer && (
+                <>
+                  <h3>{creator.prompt_question}</h3>
+                  <p className="cp-prompt">
+                    <q>{creator.prompt_answer}</q>
+                  </p>
+                </>
+              )}
+              {tags.length > 0 && (
+                <>
+                  <h3>Style</h3>
+                  <div className="cp-chips">
+                    {tags.map((t) => (
+                      <span key={t} className="cp-chip">{t}</span>
+                    ))}
+                  </div>
+                </>
+              )}
+              {creator.equipment && (
+                <>
+                  <h3>In the bag</h3>
+                  <p className="cp-bio">{creator.equipment}</p>
+                </>
+              )}
+              {creator.dont_shoot && (
+                <>
+                  <h3>Doesn't shoot</h3>
+                  <p className="cp-bio">{creator.dont_shoot}</p>
+                </>
+              )}
+            </div>
+          )}
 
-            <ProfileGallery pinned={pinned} galleryStyle={creator.gallery_style} accent={accent} />
-
-            <PromptBlock question={creator.prompt_question} answer={creator.prompt_answer} accent={accent} />
-
-            <ProfileGallery rest={rest} galleryStyle={creator.gallery_style} />
-
-            <section>
-              <p className="label-mono text-[9px] text-white/30 mb-6">Reviews</p>
-              <ReviewsList reviews={reviews} />
-            </section>
+          <div className="cp-box">
+            <h3>How booking {firstName} works</h3>
+            <ol className="cp-steps">
+              <li>
+                <span>1</span>
+                <p><b>Send your date and idea.</b> No prices posted, no obligation.</p>
+              </li>
+              <li>
+                <span>2</span>
+                <p><b>{firstName} sends a private quote</b> in your messages.</p>
+              </li>
+              <li>
+                <span>3</span>
+                <p><b>Accept and pay.</b> Your payment is held until your photos are delivered.</p>
+              </li>
+            </ol>
+            <div className="cp-lock">
+              <Lock strokeWidth={2} />
+              {firstName}&apos;s phone and email unlock once your booking is confirmed.
+            </div>
           </div>
 
-          <aside className="lg:sticky lg:top-24 h-fit space-y-3">
-            <div className="border p-7" style={{ background: 'hsl(var(--surface))', borderColor: 'rgba(255,255,255,0.12)', borderRadius: 4 }}>
-              <p className="label-mono text-[9px] text-white/35 mb-6">Request a shoot</p>
-              <p className="font-body text-[13px] leading-relaxed text-white/50 mb-7">
-                Send your date, location and brief. {firstName} replies with a private quote — no price tags, no obligation.
-              </p>
-              <Link
-                to={`/book/${creator.id}`}
-                className="block w-full text-center label-mono text-[11px] font-semibold px-6 py-4 transition-transform duration-300 hover:-translate-y-0.5"
-                style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }}
-              >
-                {hasDraft ? 'Return to booking request' : bookingLabel}
-              </Link>
-              {hasDraft && (
-                <p className="font-body text-[11px] leading-relaxed text-white/35 mt-3 text-center">
-                  Your in-progress request is saved.
-                </p>
-              )}
-
-              <div className="mt-7 pt-6 border-t border-white/10 flex items-start gap-3">
-                <Lock className="w-4 h-4 shrink-0 mt-0.5 text-white/30" />
-                <p className="font-body text-[11px] leading-relaxed text-white/35">
-                  Contact details unlock for you once your booking is confirmed.
-                </p>
+          {spots.length > 0 && (
+            <div className="cp-box">
+              <h3>Where {firstName} shoots</h3>
+              <div className="cp-chips">
+                {spots.map((s) => (
+                  <span key={s} className="cp-chip">{s}</span>
+                ))}
               </div>
             </div>
-
-            <ShareProfileButton creator={creator} className="w-full" />
-          </aside>
+          )}
         </div>
       </div>
 
-      <ProfileBookingBar creatorId={creator.id} label={bookingLabel} />
+      <div className={`cp-bar ${barOn ? 'show' : ''}`} aria-hidden={!barOn}>
+        {creator.profile_image ? <img src={creator.profile_image} alt="" /> : <span className="cp-mini" />}
+        <div className="cp-t">
+          <b>{name}</b>
+          <small>Elon · Photographer</small>
+        </div>
+        <Link to={`/book/${creator.id}`} className="cp-btn cp-btn-lime" tabIndex={barOn ? 0 : -1}>
+          {hasDraft ? 'Return' : 'Request a date'}
+        </Link>
+      </div>
     </div>
   );
 }
