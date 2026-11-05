@@ -6,7 +6,8 @@ import { openPhotoRelease } from '../../shared/photoRelease.ts';
 
 /**
  * Delivery happens in two steps: the unedited set first (no status change),
- * then the final edits, which starts the 48 hour window before payout.
+ * then the final edits, which starts the 48 hour window before payout and
+ * opens the photo release agreement for both sides.
  */
 export default async function (req) {
   try {
