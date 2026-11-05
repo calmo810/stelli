@@ -13,6 +13,7 @@ export default function useThreads() {
 
   const { data: creators = [], isLoading: creatorsLoading } = useQuery({
     queryKey: ['messages-creators'],
+    enabled: !!user?.id || !!user?.email,
     queryFn: () => base44.entities.Lensman.list('-updated_date', 100),
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
