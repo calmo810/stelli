@@ -6,7 +6,7 @@ const SURFACE = { background: 'hsl(var(--surface))', borderRadius: 4 };
 
 function eventDate(value) {
   if (!value) return 'Date not set';
-  const parsed = new Date(value);
+  const parsed = new Date(/^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T12:00:00` : value);
   return Number.isNaN(parsed.getTime())
     ? value
     : parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
