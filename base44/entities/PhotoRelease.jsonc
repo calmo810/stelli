@@ -1,0 +1,132 @@
+{
+  "name": "PhotoRelease",
+  "type": "object",
+  "properties": {
+    "booking_id": {
+      "type": "string",
+      "description": "The delivered booking this release covers"
+    },
+    "lensman_id": {
+      "type": "string",
+      "description": "Creator profile whose public page would show the shoot"
+    },
+    "lensman_name": {
+      "type": "string",
+      "description": "Creator's display name, copied at delivery"
+    },
+    "creator_id": {
+      "type": "string",
+      "description": "User ID of the creator on the booking"
+    },
+    "creator_email": {
+      "type": "string",
+      "description": "Creator's account email on the booking"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "User ID of the client on the booking"
+    },
+    "client_email": {
+      "type": "string",
+      "description": "Client's account email on the booking"
+    },
+    "client_name": {
+      "type": "string",
+      "description": "Client's name, copied at delivery"
+    },
+    "event_type": {
+      "type": "string",
+      "description": "Kind of shoot, copied from the booking"
+    },
+    "event_date": {
+      "type": "string",
+      "description": "Shoot date, copied from the booking"
+    },
+    "photos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Photo URLs the creator wants to show from this shoot (up to 6)"
+    },
+    "client_decision": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "declined"
+      ],
+      "default": "pending",
+      "description": "The client's answer to showing this shoot publicly"
+    },
+    "client_decided_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "creator_decision": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "approved",
+        "declined"
+      ],
+      "default": "pending",
+      "description": "The creator's answer to showing this shoot publicly"
+    },
+    "creator_decided_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "review_id": {
+      "type": "string",
+      "description": "Review written for this booking, if any"
+    },
+    "agreement_version": {
+      "type": "string",
+      "default": "2026-11",
+      "description": "Version of the photo release wording both sides agreed to"
+    }
+  },
+  "required": [
+    "booking_id",
+    "lensman_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.client_id": "{{user.id}}"
+        },
+        {
+          "data.creator_id": "{{user.id}}"
+        },
+        {
+          "data.client_email": "{{user.email}}"
+        },
+        {
+          "data.creator_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
