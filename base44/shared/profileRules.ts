@@ -30,6 +30,14 @@ export const MAX_PORTFOLIO_IMAGES = 12;
 export const ACCENTS = ['lime', 'cyan', 'magenta'];
 export const TIER_LEVELS = ['low', 'mid', 'high'];
 
+/** How the creator hangs their public page. Only the creator sets these. */
+export const DISPLAY_OPTIONS = {
+  wall_layout: ['wall', 'strip', 'grid'],
+  wall_curve: ['flat', 'soft', 'full'],
+  print_frame: ['mat', 'bleed'],
+  print_mat: ['mixed', 'paper', 'sky', 'blush', 'lilac', 'mint', 'ink'],
+};
+
 /** The creator's packages, exactly as the profile wizard collects them. */
 export function cleanPricingTiers(tiers) {
   if (!Array.isArray(tiers)) return [];
@@ -146,6 +154,16 @@ export function buildProfilePatch(body = {}) {
   if (typeof body.accent_color === 'string' && body.accent_color) {
     if (ACCENTS.includes(body.accent_color)) patch.accent_color = body.accent_color;
     else errors.accent_color = 'Pick one of the three accents.';
+  }
+
+  for (const [field, allowed] of Object.entries(DISPLAY_OPTIONS)) {
+    if (typeof body[field] !== 'string' || !body[field]) continue;
+    if (allowed.includes(body[field])) patch[field] = body[field];
+    else errors[field] = 'Pick one of the listed options.';
+  }
+
+  if (typeof body.show_captions === 'boolean') {
+    patch.show_captions = body.show_captions;
   }
 
   if (typeof body.cover_image === 'string') {
