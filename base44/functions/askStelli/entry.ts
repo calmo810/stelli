@@ -35,11 +35,13 @@ export default async function (req: Request) {
     return Response.json({ bubbles: null });
   }
   const db = base44.asServiceRole.entities;
+  let question = '';
+  let sessionId = 'anon';
 
   try {
     const body = await req.json().catch(() => ({}));
-    const question = clean(body.question, MAX_QUESTION);
-    const sessionId = clean(body.sessionId, 64) || 'anon';
+    question = clean(body.question, MAX_QUESTION);
+    sessionId = clean(body.sessionId, 64) || 'anon';
     if (!question) return Response.json({ bubbles: null });
 
     const me = await base44.auth.me().catch(() => null);
@@ -147,6 +149,10 @@ Reply as Stelli.`;
     return Response.json({ bubbles, links });
   } catch (error) {
     console.error('askStelli error:', (error as Error).message);
+    if (question) {
+      // the phone shows its written fallback; log it so the miss is visible
+      await db.FaqQuestion.create({ session_id: sessionId, question, source: 'fallback' }).catch(() => {});
+    }
     return Response.json({ bubbles: null });
   }
 }
