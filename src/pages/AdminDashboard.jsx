@@ -10,6 +10,7 @@ import RatingDisplay from '@/components/RatingDisplay';
 import { PayCreatorPanel, OneOffChargePanel } from '@/components/admin/FounderPayments';
 import AdminOverview from '@/components/admin/AdminOverview';
 import AdminApplications from '@/components/admin/AdminApplications';
+import AdminFaqQuestions from '@/components/admin/AdminFaqQuestions';
 
 const SURFACE = { background: 'hsl(var(--surface))', borderRadius: 4 };
 const CARD = 'border border-white/10';
@@ -146,6 +147,9 @@ export default function AdminDashboard() {
             <TabsTrigger value="charge" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-lime data-[state=active]:text-ink">
               One-off payments
             </TabsTrigger>
+            <TabsTrigger value="faq" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-cyan data-[state=active]:text-ink">
+              FAQ chat
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview">
@@ -179,6 +183,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="charge">
             <OneOffChargePanel />
+          </TabsContent>
+
+          <TabsContent value="faq">
+            <AdminFaqQuestions />
           </TabsContent>
 
           <TabsContent value="lensmen" className="space-y-3">
