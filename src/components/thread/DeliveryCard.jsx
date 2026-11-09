@@ -31,10 +31,6 @@ export default function DeliveryCard({ booking, role, onChanged }) {
   const windowOpen = delivered && booking.release_due_at && new Date(booking.release_due_at) > new Date();
 
   const post = async () => {
-    if (!link.trim()) {
-      setError('Paste a link first.');
-      return;
-    }
     setBusy(true);
     setError('');
     try {
@@ -175,9 +171,14 @@ export default function DeliveryCard({ booking, role, onChanged }) {
             type="url"
             value={link}
             onChange={(e) => setLink(e.target.value)}
-            placeholder={step === 'unedited' ? 'Paste the unedited gallery link' : 'Paste the final edits link'}
+            placeholder="Gallery link (optional)"
             className={fieldClass}
           />
+          <p className="text-[12px] leading-relaxed text-white/40">
+            {step === 'unedited'
+              ? 'Photos you add above reach your client on their own. A link is optional.'
+              : 'Photos you add above are delivered to your client. A link is optional.'}
+          </p>
 
           <Pill as="button" type="button" tone="lime" onClick={post} disabled={busy} className="w-full py-4">
             {busy && <Loader2 className="h-4 w-4 animate-spin" />}
