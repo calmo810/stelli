@@ -20,7 +20,7 @@ export default function Faq() {
             </span>
           </span>
         </h1>
-        <p className="mt-3 text-[15px] text-white/55">Tap a question on the phone. Stelli texts you back.</p>
+        <p className="mt-3 text-[15px] text-white/55">Tap a question or type your own. Stelli texts you back.</p>
       </div>
 
       <FaqThread />
