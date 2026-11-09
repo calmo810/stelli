@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { viewerRole } from '../../shared/bookingAccess.ts';
+import { signedDeliveryPhotos } from '../../shared/deliveryPhotos.ts';
 
 /**
  * Read for a shareable memory album. Returns only what the album shows — never
@@ -63,6 +64,7 @@ export default async function (req) {
         delivered_at: booking.delivered_at || '',
         album_token: albumToken,
       },
+      photos: await signedDeliveryPhotos(base44, booking.id),
     });
   } catch (error) {
     console.error('getAlbumBooking error:', error.message);

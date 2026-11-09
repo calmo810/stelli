@@ -4,6 +4,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { Loader2, Link2, Image as ImageIcon, AlertTriangle } from 'lucide-react';
 import { safeHref } from '@/lib/safeHref';
 import Pill from '@/components/shared/Pill';
+import DeliveryPhotos from '@/components/thread/DeliveryPhotos';
 import { fieldClass } from '@/lib/glassField';
 
 const stepPill = (active) => ({
@@ -126,6 +127,8 @@ export default function DeliveryCard({ booking, role, onChanged }) {
           </div>
         </div>
       </div>
+
+      <DeliveryPhotos booking={booking} role={role} onChanged={onChanged} />
 
       {delivered && windowOpen && !booking.problem_reported_at && (
         <p className="mt-4 text-[12px] text-white/45">

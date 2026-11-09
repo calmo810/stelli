@@ -1,0 +1,80 @@
+{
+  "name": "DeliveryPhoto",
+  "type": "object",
+  "properties": {
+    "booking_id": {
+      "type": "string",
+      "description": "The booking this photo was delivered on"
+    },
+    "creator_id": {
+      "type": "string",
+      "description": "User ID of the creator who uploaded the photo"
+    },
+    "creator_email": {
+      "type": "string",
+      "description": "Creator's account email on the booking"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "User ID of the client on the booking"
+    },
+    "client_email": {
+      "type": "string",
+      "description": "Client's account email on the booking"
+    },
+    "file_uri": {
+      "type": "string",
+      "description": "Private storage path of the photo. It is only ever shown through a signed link."
+    },
+    "name": {
+      "type": "string",
+      "description": "Original file name"
+    },
+    "position": {
+      "type": "number",
+      "description": "Order of the photo in the delivered gallery"
+    }
+  },
+  "required": [
+    "booking_id",
+    "file_uri"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.creator_id": "{{user.id}}"
+        },
+        {
+          "data.client_id": "{{user.id}}"
+        },
+        {
+          "data.creator_email": "{{user.email}}"
+        },
+        {
+          "data.client_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

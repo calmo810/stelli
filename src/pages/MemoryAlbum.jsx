@@ -13,13 +13,19 @@ export default function MemoryAlbum() {
   // The album is unlocked by the token in the link, not by the booking ID alone.
   const token = new URLSearchParams(window.location.search).get('t') || '';
 
-  const { data: booking, isLoading } = useQuery({
+  const { data: album, isLoading } = useQuery({
     queryKey: ['album-booking', bookingId, token],
     queryFn: async () => {
       const response = await base44.functions.invoke('getAlbumBooking', { bookingId, token });
-      return response.data?.booking || null;
+      return {
+        booking: response.data?.booking || null,
+        photos: response.data?.photos || [],
+      };
     },
   });
+
+  const booking = album?.booking || null;
+  const photos = album?.photos || [];
 
   const shareLink = booking?.album_token
     ? `${window.location.origin}/album/${bookingId}?t=${booking.album_token}`
@@ -56,23 +62,56 @@ export default function MemoryAlbum() {
             <div className="border border-white/10 p-10 text-center" style={{ borderRadius: 4 }}>
               <p className="font-body text-[13px] text-white/45">Loading your gallery…</p>
             </div>
-          ) : booking?.delivery_link ? (
-            <a
-              href={safeHref(booking.delivery_link)}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center justify-center gap-3 w-full py-5 label-mono text-[11px] font-semibold transition-transform hover:-translate-y-0.5"
-              style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }}
-            >
-              <ExternalLink className="w-4 h-4" /> Open your gallery
-            </a>
           ) : (
-            <div className="border border-white/10 p-10 text-center" style={{ borderRadius: 4 }}>
-              <ImageOff className="w-6 h-6 mx-auto mb-4 text-white/30" />
-              <p className="font-body text-[13px] text-white/50">
-                Your gallery isn't ready yet. We'll email you the moment your creator delivers it.
-              </p>
-            </div>
+            <>
+              {photos.length > 0 && (
+                <>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {photos.map((photo) => (
+                      <a
+                        key={photo.id}
+                        href={photo.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="group block overflow-hidden"
+                        style={{ borderRadius: 4, background: 'hsl(var(--surface))' }}
+                      >
+                        <img
+                          src={photo.url}
+                          alt={photo.name || 'Delivered photo'}
+                          loading="lazy"
+                          className="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                        />
+                      </a>
+                    ))}
+                  </div>
+                  <p className="mt-3 font-body text-[11px] text-white/35">
+                    {photos.length} photo{photos.length === 1 ? '' : 's'} · tap one to open it full size.
+                  </p>
+                </>
+              )}
+
+              {booking?.delivery_link ? (
+                <a
+                  href={safeHref(booking.delivery_link)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={`flex items-center justify-center gap-3 w-full py-5 label-mono text-[11px] font-semibold transition-transform hover:-translate-y-0.5 ${
+                    photos.length ? 'mt-6' : ''
+                  }`}
+                  style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }}
+                >
+                  <ExternalLink className="w-4 h-4" /> {photos.length ? 'Open the full gallery' : 'Open your gallery'}
+                </a>
+              ) : !photos.length ? (
+                <div className="border border-white/10 p-10 text-center" style={{ borderRadius: 4 }}>
+                  <ImageOff className="w-6 h-6 mx-auto mb-4 text-white/30" />
+                  <p className="font-body text-[13px] text-white/50">
+                    Your photos aren't up yet. We'll email you the moment your creator delivers them.
+                  </p>
+                </div>
+              ) : null}
+            </>
           )}
 
           <div className="mt-12 pt-8 border-t border-white/10">
