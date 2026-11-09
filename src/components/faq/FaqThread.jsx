@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { FAQ_THREAD, FAQ_EMAIL, replyTo } from '@/lib/faqThread';
-import { askStelli, resetConversation } from '@/lib/askStelli';
+import { askStelli } from '@/lib/askStelli';
 import { LOGO_URL } from '@/components/shared/StelliWordmark';
 import './faqPhone.css';
 
@@ -13,6 +14,10 @@ import './faqPhone.css';
  *
  * Tap a suggested question (Apple Messages for Business-style quick replies) or
  * type your own: it sends, shows Delivered → Read, Stelli types, and answers.
+ * Tapped questions use the written answers; typed ones go to the Stelli AI
+ * (askStelli function), which can answer in a few bubbles and attach link cards
+ * to creators or pages. The chat is kept in this browser, so it's still there
+ * after a refresh or a return visit.
  */
 
 const DEVICE_W = 426; // 402pt screen + bezel + frame
@@ -23,7 +28,34 @@ const clock = (d) => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2
 const clockFull = (d) => d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 let uid = 0;
-const nextId = () => `m${++uid}`;
+const nextId = () => `m${Date.now().toString(36)}${++uid}`;
+
+const STORE = 'stelli-faq-chat-v1';
+const newSession = () =>
+  (typeof crypto !== 'undefined' && crypto.randomUUID?.()) || `s${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+function loadChat() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORE) || 'null');
+    if (!saved || !Array.isArray(saved.messages)) return null;
+    return saved;
+  } catch {
+    return null;
+  }
+}
+function saveChat(chat) {
+  try {
+    localStorage.setItem(STORE, JSON.stringify(chat));
+  } catch {
+    /* private mode or storage full: the chat just won't persist */
+  }
+}
+function forgetChat() {
+  try {
+    localStorage.removeItem(STORE);
+  } catch {
+    /* nothing to forget */
+  }
+}
 
 /* ---------- SF Symbol-style glyphs ---------- */
 const Chevron = () => (
@@ -96,6 +128,26 @@ function Linkified({ text }) {
   ));
 }
 
+const LinkChevron = () => (
+  <svg width="8" height="13" viewBox="0 0 8 13" aria-hidden="true">
+    <path d="m1.5 1.5 5 5-5 5" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+/* a link Stelli sends, drawn like an iMessage rich link */
+function LinkCard({ link, tail }) {
+  return (
+    <Link to={link.path} className={`ip-bubble ip-link${tail ? ' tail' : ''}`}>
+      <span className="ip-link-text">
+        <b>{link.label}</b>
+        <small>getstelli.com{link.path}</small>
+      </span>
+      <LinkChevron />
+      {tail && <Tail />}
+    </Link>
+  );
+}
+
 export default function FaqThread() {
   const [messages, setMessages] = useState([]);
   const [asked, setAsked] = useState(() => new Set());
@@ -106,6 +158,7 @@ export default function FaqThread() {
   const [now, setNow] = useState(() => new Date());
   const [opened, setOpened] = useState(null);
   const [scale, setScale] = useState(0.86);
+  const [restored, setRestored] = useState(false);
 
   const stageRef = useRef(null);
   const threadRef = useRef(null);
@@ -113,6 +166,23 @@ export default function FaqThread() {
   const timers = useRef([]);
   const queueEnd = useRef(0);
   const started = useRef(false);
+  const sessionId = useRef(null);
+  const messagesRef = useRef([]);
+  messagesRef.current = messages;
+
+  // pick the conversation back up if this browser has one
+  useLayoutEffect(() => {
+    const saved = loadChat();
+    sessionId.current = saved?.sessionId || newSession();
+    if (saved?.messages?.length) {
+      started.current = true;
+      setMessages(saved.messages.map((m) => ({ ...m, fresh: false, still: true })));
+      setAsked(new Set(saved.asked || []));
+      setOpened(saved.opened ? new Date(saved.opened) : new Date());
+      if (saved.receipt?.id) setReceipts({ [saved.receipt.id]: { read: true, at: new Date(saved.receipt.at) } });
+    }
+    setRestored(true);
+  }, []);
 
   const later = (fn, ms) => timers.current.push(setTimeout(fn, Math.max(0, ms)));
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
@@ -143,16 +213,17 @@ export default function FaqThread() {
   }, []);
 
   /** Stelli types for a beat, then the reply lands. Replies queue in order. */
-  const stelliSays = useCallback((text, { after = 900 } = {}) => {
+  const stelliSays = useCallback((say, { after = 900, typed } = {}) => {
     const t0 = Date.now();
     const quick = reducedMotion();
+    const isLink = typeof say !== 'string';
     const start = Math.max(t0 + (quick ? 0 : after), queueEnd.current);
-    const typeFor = quick ? 0 : Math.max(900, Math.min(2100, text.length * 17));
+    const typeFor = quick ? 0 : typed ?? (isLink ? 450 : Math.max(900, Math.min(2100, say.length * 17)));
     queueEnd.current = start + typeFor + 250;
     setPending((n) => n + 1);
     later(() => setTyping(true), start - t0);
     later(() => {
-      setMessages((all) => [...all, { id: nextId(), from: 'them', text }]);
+      setMessages((all) => [...all, isLink ? { id: nextId(), from: 'them', link: say } : { id: nextId(), from: 'them', text: say }]);
       setPending((n) => n - 1);
     }, start - t0 + typeFor);
   }, []);
@@ -176,34 +247,49 @@ export default function FaqThread() {
     return () => io.disconnect();
   }, [stelliSays]);
 
+  const pendingRef = useRef(0);
+  pendingRef.current = pending;
+
   const send = useCallback(
     async (text, answer) => {
       const clean = text.trim();
       if (!clean) return;
       const id = nextId();
       navigator.vibrate?.(8);
+      const history = messagesRef.current
+        .filter((m) => m.text)
+        .slice(-10)
+        .map((m) => ({ from: m.from, text: m.text }));
       setMessages((all) => [...all, { id, from: 'me', text: clean, fresh: true }]);
-      setReceipts((r) => ({ ...r, [id]: { read: false } }));
+      setReceipts({ [id]: { read: false } });
       later(() => setReceipts((r) => ({ ...r, [id]: { read: true, at: new Date() } })), reducedMotion() ? 0 : 750);
 
-      // A tapped suggestion already has its written answer. Anything typed goes
-      // to the Stelli agent, which reads the app before it answers.
+      // A tapped suggestion already has its written answer.
       if (answer) {
         setAsked((s) => new Set(s).add(clean));
         stelliSays(answer, { after: 1100 });
         return;
       }
 
+      // Anything typed goes to the Stelli AI. Stelli starts "typing" once the
+      // message is read, and keeps typing while the answer is on its way.
+      const sentAt = Date.now();
       setPending((n) => n + 1);
-      setTyping(true);
-      let reply = '';
-      try {
-        reply = await askStelli(clean);
-      } catch {
-        reply = '';
-      }
+      later(() => pendingRef.current > 0 && setTyping(true), reducedMotion() ? 0 : 950);
+      const ai = await askStelli(clean, { history, sessionId: sessionId.current });
+      const wait = reducedMotion() ? 0 : Math.max(0, 1500 - (Date.now() - sentAt));
       setPending((n) => n - 1);
-      stelliSays(reply || replyTo(clean).text, { after: 400 });
+
+      if (ai) {
+        ai.bubbles.forEach((b, i) =>
+          stelliSays(b, i === 0 ? { after: wait, typed: Math.min(700, b.length * 8) } : { after: 300 })
+        );
+        ai.links.forEach((l) => stelliSays(l, { after: 150 }));
+      } else {
+        const r = replyTo(clean);
+        if (r.faq) setAsked((s) => new Set(s).add(r.faq));
+        stelliSays(r.text, { after: wait, typed: 600 });
+      }
     },
     [stelliSays]
   );
@@ -219,7 +305,8 @@ export default function FaqThread() {
     timers.current.forEach(clearTimeout);
     timers.current = [];
     queueEnd.current = 0;
-    resetConversation();
+    forgetChat();
+    sessionId.current = newSession();
     setAsked(new Set());
     setReceipts({});
     setTyping(false);
@@ -229,6 +316,20 @@ export default function FaqThread() {
     setOpened(new Date());
     stelliSays(GREETING, { after: 300 });
   };
+
+  // keep the chat in this browser, so a refresh or return visit picks it back up
+  useEffect(() => {
+    if (!restored || !messages.length) return;
+    const lastMe = [...messages].reverse().find((m) => m.from === 'me');
+    const r = lastMe && receipts[lastMe.id];
+    saveChat({
+      sessionId: sessionId.current,
+      opened: opened?.toISOString(),
+      asked: [...asked],
+      receipt: r?.read ? { id: lastMe.id, at: r.at.toISOString() } : null,
+      messages: messages.slice(-60).map(({ id, from, text, link }) => ({ id, from, text, link })),
+    });
+  }, [restored, messages, asked, receipts, opened]);
 
   // the typing bubble stays up while replies are queued, and goes when the last lands
   useEffect(() => {
@@ -283,7 +384,7 @@ export default function FaqThread() {
                   return (
                     <React.Fragment key={m.id}>
                       <div
-                        className={`ip-row ${m.from === 'me' ? 'me' : 'them'}${gap ? ' gap' : ''}${m.fresh ? ' fresh' : ''}`}
+                        className={`ip-row ${m.from === 'me' ? 'me' : 'them'}${gap ? ' gap' : ''}${m.fresh ? ' fresh' : ''}${m.still ? ' still' : ''}`}
                       >
                         {m.typing ? (
                           <div className="ip-bubble ip-typing" aria-label="Stelli is typing">
@@ -291,6 +392,8 @@ export default function FaqThread() {
                             <i />
                             <i />
                           </div>
+                        ) : m.link ? (
+                          <LinkCard link={m.link} tail={tail} />
                         ) : (
                           <div className={`ip-bubble${tail ? ' tail' : ''}`}>
                             <Linkified text={m.text} />
@@ -327,14 +430,14 @@ export default function FaqThread() {
                       </button>
                     ))}
                     {remaining.length === 0 && (
-                      <>
-                        <a className="ip-reply" href={`mailto:${FAQ_EMAIL}`}>
-                          Email the team
-                        </a>
-                        <button type="button" className="ip-reply" onClick={reset}>
-                          Start over
-                        </button>
-                      </>
+                      <a className="ip-reply" href={`mailto:${FAQ_EMAIL}`}>
+                        Email the team
+                      </a>
+                    )}
+                    {(remaining.length === 0 || messages.length > 2) && (
+                      <button type="button" className="ip-reply quiet" onClick={reset}>
+                        Start over
+                      </button>
                     )}
                   </div>
                 )}
@@ -361,6 +464,7 @@ export default function FaqThread() {
                 </span>
                 <span className="ip-glass ip-name">
                   Stelli
+                  <span className="ip-ai" title="Stelli's assistant is AI">AI</span>
                   <svg width="6" height="10" viewBox="0 0 6 10" aria-hidden="true">
                     <path d="m1 1 4 4-4 4" stroke="currentColor" strokeWidth="1.6" fill="none" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
