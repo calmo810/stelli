@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { FAQ_THREAD, FAQ_EMAIL, replyTo } from '@/lib/faqThread';
+import { askStelli, resetConversation } from '@/lib/askStelli';
 import { LOGO_URL } from '@/components/shared/StelliWordmark';
 import './faqPhone.css';
 
@@ -176,7 +177,7 @@ export default function FaqThread() {
   }, [stelliSays]);
 
   const send = useCallback(
-    (text, answer) => {
+    async (text, answer) => {
       const clean = text.trim();
       if (!clean) return;
       const id = nextId();
@@ -185,9 +186,24 @@ export default function FaqThread() {
       setReceipts((r) => ({ ...r, [id]: { read: false } }));
       later(() => setReceipts((r) => ({ ...r, [id]: { read: true, at: new Date() } })), reducedMotion() ? 0 : 750);
 
-      const reply = answer ? { text: answer, faq: clean } : replyTo(clean);
-      if (reply.faq) setAsked((s) => new Set(s).add(reply.faq));
-      stelliSays(reply.text, { after: 1100 });
+      // A tapped suggestion already has its written answer. Anything typed goes
+      // to the Stelli agent, which reads the app before it answers.
+      if (answer) {
+        setAsked((s) => new Set(s).add(clean));
+        stelliSays(answer, { after: 1100 });
+        return;
+      }
+
+      setPending((n) => n + 1);
+      setTyping(true);
+      let reply = '';
+      try {
+        reply = await askStelli(clean);
+      } catch {
+        reply = '';
+      }
+      setPending((n) => n - 1);
+      stelliSays(reply || replyTo(clean).text, { after: 400 });
     },
     [stelliSays]
   );
@@ -203,6 +219,7 @@ export default function FaqThread() {
     timers.current.forEach(clearTimeout);
     timers.current = [];
     queueEnd.current = 0;
+    resetConversation();
     setAsked(new Set());
     setReceipts({});
     setTyping(false);
