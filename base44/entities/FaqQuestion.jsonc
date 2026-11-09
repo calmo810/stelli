@@ -1,0 +1,66 @@
+{
+  "name": "FaqQuestion",
+  "type": "object",
+  "properties": {
+    "session_id": {
+      "type": "string",
+      "description": "Anonymous id for one visitor's FAQ chat, kept in their browser"
+    },
+    "question": {
+      "type": "string",
+      "maxLength": 600,
+      "description": "What the visitor typed into the FAQ phone"
+    },
+    "answer": {
+      "type": "string",
+      "maxLength": 2000,
+      "description": "What Stelli replied, bubbles joined with line breaks"
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Site paths Stelli linked in the reply"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "ai",
+        "fallback"
+      ],
+      "default": "ai",
+      "description": "ai = answered by the model; fallback = model failed, keyword answer shown"
+    },
+    "signed_in": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the visitor was signed in"
+    }
+  },
+  "required": [
+    "question"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
