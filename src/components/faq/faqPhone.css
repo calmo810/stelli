@@ -1,170 +1,189 @@
 /*
- * The FAQ as a real phone: titanium frame, side buttons, Dynamic Island,
- * status bar, a messages thread with tails and receipts, and a suggestions
- * tray over the input bar. Prefixed fq- to stay out of site styles.
+ * The FAQ as iMessage on an iPhone 17 Pro (Deep Blue), dark mode, iOS 26.
+ * Everything inside .ip-device is in real iOS points: the screen is 402 × 874
+ * and the whole device is scaled to fit by FaqThread. Prefixed ip- to stay out
+ * of site styles.
  */
-.fq-stage {
-  --w: max(300px, min(372px, calc(100vw - 48px), calc((100svh - 160px) * 0.462)));
-  --lime: hsl(var(--neon-lime));
-  position: relative; display: grid; place-items: center;
-  margin-top: 40px; padding: 10px 0 30px;
-  perspective: 1600px;
+.ip-stage {
+  --blue: #0a84ff;
+  --blue-top: #2a91ff;
+  --gray-bubble: #262628;
+  --label-2: #8e8e93;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  margin-top: 36px;
+  padding: 4px 0 28px;
 }
-/* ambient light behind the phone. Each glow is a circle sized with closest-side,
-   so it reaches zero well inside its own box and can never show an edge. */
-.fq-glow { position: absolute; left: 50%; top: 50%; width: calc(var(--w) * 3.2); height: calc(var(--w) * 2.9); translate: -50% -50%; pointer-events: none; z-index: 0;
+.ip-glow {
+  position: absolute; left: 50%; top: 50%; translate: -50% -50%; pointer-events: none;
+  width: min(1100px, 150vw); height: 120%;
   background:
-    radial-gradient(closest-side circle at 36% 40%, hsl(var(--neon-lime) / .15), hsl(var(--neon-lime) / .05) 55%, transparent),
-    radial-gradient(closest-side circle at 66% 62%, hsl(var(--neon-cyan) / .13), hsl(var(--neon-cyan) / .04) 55%, transparent),
-    radial-gradient(closest-side circle at 50% 50%, hsl(var(--neon-magenta) / .05), transparent);
-  background-size: 70% 70%, 70% 70%, 100% 100%; background-repeat: no-repeat; background-position: 15% 22%, 85% 78%, center;
-  animation: fqBreathe 9s ease-in-out infinite alternate; }
-/* a soft contact shadow on the "floor" under the phone */
-.fq-floor { position: absolute; z-index: 0; left: 50%; bottom: 6px; translate: -50% 0; width: calc(var(--w) * .9); height: calc(var(--w) * .12); pointer-events: none;
-  background: radial-gradient(closest-side, rgba(0,0,0,.55), rgba(0,0,0,.25) 50%, transparent); }
-.fq-tilt { position: relative; z-index: 1; transform-style: preserve-3d; transition: transform .9s cubic-bezier(.16,1,.3,1); will-change: transform; }
-.fq-rise { animation: fqRise 1.2s cubic-bezier(.16,1,.3,1) both; transform-style: preserve-3d; }
+    radial-gradient(closest-side at 38% 42%, hsl(var(--neon-lime) / .13), transparent),
+    radial-gradient(closest-side at 64% 60%, hsl(var(--neon-cyan, 190 95% 55%) / .11), transparent);
+  filter: blur(10px);
+}
+.ip-fit { position: relative; z-index: 1; animation: ipRise 1s cubic-bezier(.16,1,.3,1) both; }
 
-/* ---------- the body ---------- */
-.fq-phone {
-  position: relative; width: var(--w); aspect-ratio: 9 / 19.5;
-  border-radius: calc(var(--w) * .165); padding: calc(var(--w) * .03);
+/* ---------- hardware ---------- */
+.ip-device {
+  position: absolute; top: 0; left: 0; transform-origin: 0 0;
+  width: 426px; height: 898px; border-radius: 70px; padding: 12px;
+  box-sizing: border-box;
   background:
-    linear-gradient(135deg, rgba(255,255,255,.22), rgba(255,255,255,0) 18%, rgba(255,255,255,0) 82%, rgba(255,255,255,.14)),
-    linear-gradient(160deg, #4a4d55 0%, #23252b 22%, #34373e 48%, #17181c 74%, #3b3e46 100%);
+    linear-gradient(90deg, rgba(255,255,255,.16), transparent 3%, transparent 97%, rgba(255,255,255,.12)),
+    linear-gradient(180deg, rgba(255,255,255,.14), transparent 4%, transparent 96%, rgba(0,0,0,.25)),
+    linear-gradient(155deg, #3a4a6b 0%, #222d45 30%, #2b3854 60%, #1a2236 100%);
   box-shadow:
-    inset 0 0 0 1px rgba(255,255,255,.28),
-    inset 0 0 0 calc(var(--w) * .008) #2a2c32,
-    inset 0 0 0 calc(var(--w) * .013) #08090b,
-    0 1px 1px rgba(0,0,0,.4),
-    0 18px 36px -18px rgba(0,0,0,.7),
-    0 60px 90px -40px rgba(0,0,0,.75);
+    inset 0 0 0 1px rgba(255,255,255,.22),
+    inset 0 0 0 2.5px #141b2b,
+    0 2px 2px rgba(0,0,0,.35),
+    0 30px 60px -20px rgba(0,0,0,.75),
+    0 80px 120px -50px rgba(0,0,0,.8);
 }
-/* side buttons, machined from the same titanium */
-.fq-btn { position: absolute; width: calc(var(--w) * .012); border-radius: 2px;
-  background: linear-gradient(90deg, #17181c, #50535b 45%, #2a2c31); box-shadow: 0 0 0 .5px rgba(0,0,0,.6); }
-.fq-btn.l { left: calc(var(--w) * -.009); }
-.fq-btn.r { right: calc(var(--w) * -.009); background: linear-gradient(270deg, #17181c, #50535b 45%, #2a2c31); }
-.fq-btn.action { top: 17%; height: 4.2%; }
-.fq-btn.vup { top: 25%; height: 7.6%; }
-.fq-btn.vdown { top: 34.5%; height: 7.6%; }
-.fq-btn.power { top: 28%; height: 11.5%; }
+.ip-btn { position: absolute; width: 4px; border-radius: 2px;
+  background: linear-gradient(90deg, #151c2c, #4a5a7c 50%, #253049); }
+.ip-btn.l { left: -3px; }
+.ip-btn.r { right: -3px; background: linear-gradient(270deg, #151c2c, #4a5a7c 50%, #253049); }
+.ip-btn.action { top: 150px; height: 36px; }
+.ip-btn.vup { top: 214px; height: 64px; }
+.ip-btn.vdown { top: 292px; height: 64px; }
+.ip-btn.power { top: 240px; height: 100px; }
+.ip-btn.camera { top: 500px; height: 58px; width: 3px; right: -2px; background: linear-gradient(270deg, #10151f, #2f3a52); }
 
-/* ---------- the screen ---------- */
-.fq-screen {
-  position: relative; height: 100%; overflow: hidden; isolation: isolate;
-  border-radius: calc(var(--w) * .137); background: #000; color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', var(--font-sans);
-  display: flex; flex-direction: column;
-  -webkit-font-smoothing: antialiased;
+.ip-screen {
+  position: relative; width: 402px; height: 874px; overflow: hidden; isolation: isolate;
+  border-radius: 58px; background: #000; color: #fff;
+  box-shadow: 0 0 0 8.5px #000;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro', var(--font-sans, Inter), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+  font-size: 17px; line-height: 22px; letter-spacing: -0.43px;
+  text-align: left;
 }
-/* the screen wakes up a beat after the phone lands */
-.fq-screen::before { content: ""; position: absolute; inset: 0; z-index: 40; background: #000; pointer-events: none; animation: fqWake .7s .55s ease-out both; }
-/* glass: a faint sweep of reflected light that moves with the tilt */
-.fq-glass { position: absolute; inset: 0; z-index: 30; pointer-events: none; border-radius: inherit;
-  background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.07) 42%, rgba(255,255,255,.015) 52%, transparent 60%);
-  background-size: 260% 100%; background-position: var(--gx, 60%) 0;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+.ip-screen *, .ip-screen *::before, .ip-screen *::after { box-sizing: border-box; }
+.ip-island { position: absolute; z-index: 30; top: 11px; left: 50%; translate: -50% 0;
+  width: 126px; height: 37px; border-radius: 20px; background: #000; }
+.ip-island::after { content: ""; position: absolute; right: 13px; top: 50%; translate: 0 -50%; width: 12px; height: 12px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #233154 0 18%, #0b1020 45%, #000 72%); }
+.ip-home { position: absolute; z-index: 30; bottom: 8px; left: 50%; translate: -50% 0;
+  width: 139px; height: 5px; border-radius: 3px; background: #fff; }
+
+/* ---------- status bar ---------- */
+.ip-status { position: absolute; z-index: 25; top: 0; left: 0; right: 0; height: 59px;
+  display: grid; grid-template-columns: 1fr 126px 1fr; align-items: center; pointer-events: none; }
+.ip-time { grid-column: 1; justify-self: center; font-size: 17px; font-weight: 600; letter-spacing: -0.4px; font-variant-numeric: tabular-nums; padding-left: 14px; }
+.ip-status-icons { grid-column: 3; justify-self: center; display: flex; align-items: center; gap: 6px; padding-right: 10px; }
+.ip-status-icons svg { display: block; }
+
+/* ---------- Liquid Glass ---------- */
+.ip-glass {
+  position: relative;
+  background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.04)), rgba(44,44,48,.55);
+  -webkit-backdrop-filter: blur(14px) saturate(180%);
+  backdrop-filter: blur(14px) saturate(180%);
+  box-shadow:
+    inset 0 .7px 0 rgba(255,255,255,.38),
+    inset 0 -.5px 0 rgba(255,255,255,.1),
+    inset 0 0 0 .6px rgba(255,255,255,.12),
+    0 8px 22px rgba(0,0,0,.35);
+  color: #fff;
 }
-.fq-island { position: absolute; z-index: 25; top: calc(var(--w) * .03); left: 50%; translate: -50% 0;
-  width: calc(var(--w) * .29); height: calc(var(--w) * .088); border-radius: 99px; background: #000;
-  box-shadow: inset 0 0 0 .5px rgba(255,255,255,.05); }
-.fq-island::after { content: ""; position: absolute; right: 18%; top: 50%; translate: 0 -50%; width: 22%; aspect-ratio: 1; border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #1d2742 0 20%, #0a0d16 45%, #000 70%); }
+/* the soft blur where content slides under the bars (iOS 26 "scroll edge effect") */
+.ip-edge { position: absolute; z-index: 18; left: 0; right: 0; pointer-events: none;
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.ip-edge.top { top: 0; height: 196px;
+  background: linear-gradient(#000 0%, rgba(0,0,0,.9) 45%, rgba(0,0,0,.55) 78%, transparent);
+  -webkit-mask-image: linear-gradient(#000 70%, transparent); mask-image: linear-gradient(#000 70%, transparent); }
+.ip-edge.bottom { bottom: 0; height: 120px;
+  background: linear-gradient(transparent, rgba(0,0,0,.55) 40%, rgba(0,0,0,.9));
+  -webkit-mask-image: linear-gradient(transparent, #000 45%); mask-image: linear-gradient(transparent, #000 45%); }
 
-.fq-status { position: relative; z-index: 20; height: calc(var(--w) * .15); flex: none;
-  display: flex; align-items: center; justify-content: space-between; padding: calc(var(--w) * .018) calc(var(--w) * .085) 0;
-  font-size: 15px; font-weight: 600; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
-.fq-status .icons { display: flex; align-items: center; gap: 6px; }
-.fq-status svg { display: block; }
+/* ---------- nav ---------- */
+.ip-nav { position: absolute; z-index: 22; top: 58px; left: 16px; right: 16px; height: 96px; display: flex; justify-content: space-between; align-items: flex-start; }
+.ip-circle { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; margin-top: 8px; }
+.ip-back svg { margin-left: -3px; }
+.ip-contact { position: absolute; left: 50%; translate: -50% 0; top: 0; display: flex; flex-direction: column; align-items: center; }
+.ip-avatar { width: 56px; height: 56px; border-radius: 50%; overflow: hidden; display: grid; place-items: center;
+  background: radial-gradient(120% 100% at 30% 15%, #2f4277, #0d1430 72%);
+  box-shadow: inset 0 0 0 .5px rgba(255,255,255,.2), 0 4px 14px rgba(0,0,0,.4); }
+.ip-avatar img { width: 80%; height: auto; display: block; }
+.ip-name { margin-top: -5px; height: 28px; padding: 0 11px 0 13px; border-radius: 14px; display: inline-flex; align-items: center; gap: 5px;
+  font-size: 13px; font-weight: 600; letter-spacing: -0.08px; }
+.ip-name svg { opacity: .55; }
 
-/* header: translucent, blurred, like the real thing */
-.fq-head { position: absolute; z-index: 15; top: 0; left: 0; right: 0; padding-top: calc(var(--w) * .15);
-  background: rgba(22,22,24,.72); backdrop-filter: blur(22px) saturate(1.8); -webkit-backdrop-filter: blur(22px) saturate(1.8);
-  border-bottom: .5px solid rgba(255,255,255,.12); }
-.fq-head-row { position: relative; height: 72px; display: flex; align-items: flex-start; justify-content: space-between; padding: 0 12px; }
-.fq-back { display: flex; align-items: center; color: var(--lime); font-size: 16px; gap: 2px; padding-top: 10px; }
-.fq-back b { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 99px; background: var(--lime); color: hsl(var(--ink)); font-size: 12.5px; font-weight: 700; display: grid; place-items: center; }
-.fq-who { position: absolute; left: 50%; translate: -50% 0; top: 2px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.fq-ava { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center;
-  background: radial-gradient(120% 100% at 30% 15%, #2b3b6b, #0d1430 70%); box-shadow: inset 0 0 0 .5px rgba(255,255,255,.18); overflow: hidden; }
-.fq-ava img { width: 82%; height: auto; display: block; }
-.fq-name { font-size: 11.5px; color: rgba(255,255,255,.85); display: inline-flex; align-items: center; gap: 1px; }
-.fq-name svg { opacity: .45; }
-.fq-video { color: var(--lime); padding-top: 12px; }
+/* ---------- thread ---------- */
+.ip-thread { position: absolute; inset: 0; z-index: 10; overflow-y: auto; overscroll-behavior: contain;
+  scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.ip-thread::-webkit-scrollbar { display: none; }
+.ip-thread-inner { min-height: 100%; display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 168px 16px 104px; }
+.ip-stamp { margin: 0 0 10px; text-align: center; font-size: 12px; line-height: 16px; color: var(--label-2); letter-spacing: 0; }
+.ip-stamp b { font-weight: 600; }
 
-/* thread */
-.fq-thread { flex: 1; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; padding: calc(var(--w) * .15 + 80px) 12px 10px;
-  display: flex; flex-direction: column; gap: 2px; scroll-behavior: smooth; }
-.fq-thread::-webkit-scrollbar { display: none; }
-.fq-stamp { align-self: center; font-size: 11px; color: rgba(255,255,255,.42); margin: auto 0 8px; padding-top: 6px; }
-.fq-stamp b { font-weight: 600; color: rgba(255,255,255,.55); }
-.fq-msg { position: relative; max-width: 76%; padding: 7px 12px 8px; font-size: 15.5px; line-height: 1.3; letter-spacing: -.005em; border-radius: 18px; word-wrap: break-word;
-  animation: fqIn .42s cubic-bezier(.16,1,.3,1) both; }
-.fq-msg + .fq-msg.gap, .fq-receipt + .fq-msg { margin-top: 8px; }
-.fq-them { align-self: flex-start; background: #262629; color: #fff; transform-origin: 0 100%; }
-.fq-me { align-self: flex-end; color: hsl(var(--ink)); background: linear-gradient(180deg, hsl(75 96% 64%), hsl(75 90% 53%)); transform-origin: 100% 100%; }
-.fq-me.sending { animation: fqSend .5s cubic-bezier(.2,.9,.25,1.05) both; }
-/* tails, drawn the way iOS does it: a curved stub and a mask of the background */
-.fq-msg.tail::before, .fq-msg.tail::after { content: ""; position: absolute; bottom: 0; height: 18px; }
-.fq-them.tail::before { left: -7px; width: 20px; background: #262629; border-bottom-right-radius: 16px 14px; }
-.fq-them.tail::after { left: -26px; width: 26px; background: #000; border-bottom-right-radius: 10px; }
-.fq-me.tail::before { right: -7px; width: 20px; background: hsl(75 90% 53%); border-bottom-left-radius: 16px 14px; }
-.fq-me.tail::after { right: -26px; width: 26px; background: #000; border-bottom-left-radius: 10px; }
-.fq-receipt { align-self: flex-end; font-size: 11px; color: rgba(255,255,255,.45); margin: 3px 4px 0 0; animation: fqFade .3s both; }
-.fq-receipt b { font-weight: 600; color: rgba(255,255,255,.6); }
-.fq-typing { display: inline-flex; gap: 4px; align-items: center; padding: 12px 14px; }
-.fq-typing i { width: 7.5px; height: 7.5px; border-radius: 50%; background: rgba(255,255,255,.5); animation: fqDot 1.25s infinite; }
-.fq-typing i:nth-child(2) { animation-delay: .18s; }
-.fq-typing i:nth-child(3) { animation-delay: .36s; }
+.ip-row { display: flex; margin-top: 2px; }
+.ip-row.gap { margin-top: 10px; }
+.ip-row.me { justify-content: flex-end; }
+.ip-bubble { position: relative; max-width: 288px; padding: 7px 13px 8px; border-radius: 19px; overflow-wrap: anywhere; }
+.them .ip-bubble { background: var(--gray-bubble); transform-origin: 0 100%; animation: ipIn .38s cubic-bezier(.2,.9,.3,1.15) both; }
+.me .ip-bubble { background: var(--blue); transform-origin: 100% 100%; }
+.me.fresh .ip-bubble { animation: ipSend .5s cubic-bezier(.2,.85,.25,1.05) both; }
+.ip-bubble a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 
-/* suggestions tray + input bar */
-.fq-dock { flex: none; position: relative; z-index: 10; padding: 8px 10px calc(var(--w) * .07);
-  background: linear-gradient(to top, #000 70%, rgba(0,0,0,0)); }
-.fq-tray-label { display: flex; justify-content: space-between; align-items: baseline; font-size: 11px; color: rgba(255,255,255,.4); padding: 0 4px 6px; letter-spacing: .02em; }
-.fq-tray-label button { background: none; border: 0; padding: 0; color: var(--lime); font-size: 11px; font-weight: 600; cursor: pointer; }
-.fq-tray { display: flex; flex-wrap: wrap; gap: 5px; }
-.fq-chip { display: inline-flex; align-items: center; gap: 4px; padding: 6px 10px; border-radius: 99px; cursor: pointer;
-  font-size: 12.5px; font-weight: 500; line-height: 1.15; text-align: left; letter-spacing: -.005em;
-  color: var(--lime); background: hsl(var(--neon-lime) / .1); border: 1px solid hsl(var(--neon-lime) / .38);
-  transition: background .25s, color .35s, border-color .35s, opacity .35s, transform .2s; }
-.fq-chip:hover:not(:disabled) { background: hsl(var(--neon-lime) / .18); }
-.fq-chip:active:not(:disabled) { transform: scale(.95); }
-.fq-chip:focus-visible { outline: 2px solid var(--lime); outline-offset: 2px; }
-.fq-chip:disabled { cursor: default; }
-.fq-chip.busy { opacity: .55; }
-/* asked: grayed out, with a quiet check, and it stays put so nothing jumps */
-.fq-chip.asked { color: rgba(255,255,255,.34); background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.1); }
-.fq-chip svg { width: 12px; height: 12px; flex: none; }
-.fq-chip.mail { color: hsl(var(--ink)); background: var(--lime); border-color: var(--lime); font-weight: 600; text-decoration: none; }
+.ip-tail { position: absolute; bottom: 0; width: 17px; height: 22px; pointer-events: none; }
+.me .ip-tail { right: -11px; fill: var(--blue); }
+.them .ip-tail { left: -11px; fill: var(--gray-bubble); transform: scaleX(-1); }
 
-.fq-input { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
-.fq-plus { width: 32px; height: 32px; flex: none; border-radius: 50%; background: #262629; display: grid; place-items: center; color: rgba(255,255,255,.55); }
-.fq-field { flex: 1; min-width: 0; min-height: 34px; border-radius: 18px; border: 1px solid rgba(255,255,255,.17); display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 4px 4px 4px 13px; font-size: 15.5px; }
-.fq-field span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.fq-field .ph { color: rgba(255,255,255,.32); }
-.fq-field .caret { display: inline-block; width: 1.5px; height: 18px; margin-left: 1px; background: var(--lime); vertical-align: -3px; animation: fqBlink 1s steps(1) infinite; }
-.fq-send { width: 26px; height: 26px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--lime); color: hsl(var(--ink));
-  animation: fqPopIn .32s cubic-bezier(.3,1.6,.5,1) both; }
-.fq-mic { color: rgba(255,255,255,.4); padding-right: 6px; }
-.fq-home { position: absolute; z-index: 20; bottom: calc(var(--w) * .022); left: 50%; translate: -50% 0; width: 36%; height: 5px; border-radius: 99px; background: rgba(255,255,255,.88); }
+.ip-receipt { margin: 3px 4px 0 0; text-align: right; font-size: 12px; line-height: 16px; color: var(--label-2); letter-spacing: 0;
+  animation: ipFade .3s both; }
+.ip-receipt b { font-weight: 600; }
 
-@keyframes fqIn { from { opacity: 0; transform: translateY(10px) scale(.92); } to { opacity: 1; transform: none; } }
-@keyframes fqSend { 0% { opacity: 0; transform: translateY(70px) scale(.7); } 60% { opacity: 1; } 100% { opacity: 1; transform: none; } }
-@keyframes fqFade { from { opacity: 0; } to { opacity: 1; } }
-@keyframes fqDot { 0%, 60%, 100% { opacity: .35; transform: none; } 30% { opacity: 1; transform: translateY(-3px); } }
-@keyframes fqBlink { 50% { opacity: 0; } }
-@keyframes fqRise { from { opacity: 0; transform: translateY(46px) rotateX(16deg) scale(.96); } to { opacity: 1; transform: none; } }
-@keyframes fqWake { to { opacity: 0; } }
-@keyframes fqBreathe { from { opacity: .75; } to { opacity: 1; } }
-@keyframes fqPopIn { from { transform: scale(0); } to { transform: scale(1); } }
+/* typing: three dots and the little "thought bubble" tail */
+.ip-typing { display: inline-flex; gap: 5px; align-items: center; height: 38px; padding: 0 14px; }
+.ip-typing i { width: 9px; height: 9px; border-radius: 50%; background: #8e8e93; animation: ipDot 1.3s infinite ease-in-out; }
+.ip-typing i:nth-child(2) { animation-delay: .17s; }
+.ip-typing i:nth-child(3) { animation-delay: .34s; }
+.ip-typing::before, .ip-typing::after { content: ""; position: absolute; border-radius: 50%; background: var(--gray-bubble); }
+.ip-typing::before { width: 14px; height: 14px; left: -2px; bottom: -2px; }
+.ip-typing::after { width: 7px; height: 7px; left: -8px; bottom: -8px; }
 
-@media (max-width: 480px) {
-  .fq-stage { --w: max(300px, min(372px, calc(100vw - 40px), calc((100svh - 170px) * 0.462))); margin-top: 22px; }
-  .fq-msg { font-size: 15px; }
+/* quick replies, the way Apple Messages for Business offers them */
+.ip-replies { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 14px; padding-left: 28px; }
+.ip-reply {
+  appearance: none; border: 0; cursor: pointer; font: inherit; text-decoration: none;
+  font-size: 15px; line-height: 20px; font-weight: 600; letter-spacing: -0.23px; color: #3d9bff;
+  padding: 8px 15px; border-radius: 18px;
+  background: rgba(10,132,255,.14);
+  box-shadow: inset 0 0 0 1px rgba(10,132,255,.42);
+  animation: ipPop .42s cubic-bezier(.2,.9,.3,1.2) both;
+  transition: background .2s, transform .15s;
+  -webkit-tap-highlight-color: transparent;
 }
+.ip-reply:hover { background: rgba(10,132,255,.24); }
+.ip-reply:active { transform: scale(.94); }
+.ip-reply:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+/* ---------- compose bar ---------- */
+.ip-compose { position: absolute; z-index: 24; left: 14px; right: 14px; bottom: 30px; margin: 0;
+  display: flex; align-items: flex-end; gap: 8px; }
+.ip-plus { flex: none; width: 40px; height: 40px; border-radius: 50%; border: 0; padding: 0; display: grid; place-items: center; cursor: pointer; color: #fff; }
+.ip-field { flex: 1; min-width: 0; height: 40px; border-radius: 20px; display: flex; align-items: center; gap: 6px; padding: 0 5px 0 16px; cursor: text; }
+.ip-field input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; color: #fff; padding: 0;
+  font: inherit; font-size: 17px; letter-spacing: -0.43px; caret-color: var(--blue); box-shadow: none; }
+.ip-field input::placeholder { color: rgba(235,235,245,.42); opacity: 1; }
+.ip-mic { color: rgba(235,235,245,.6); padding-right: 9px; display: grid; place-items: center; }
+.ip-send { flex: none; width: 30px; height: 30px; border-radius: 50%; border: 0; padding: 0; cursor: pointer;
+  background: var(--blue); display: grid; place-items: center; animation: ipPop .28s cubic-bezier(.3,1.5,.5,1) both; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+@keyframes ipIn { from { opacity: 0; transform: scale(.82) translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes ipSend { 0% { opacity: .2; transform: translateY(64px) scale(.9); } 55% { opacity: 1; } 100% { opacity: 1; transform: none; } }
+@keyframes ipPop { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: none; } }
+@keyframes ipFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ipDot { 0%, 70%, 100% { opacity: .4; transform: none; } 35% { opacity: 1; transform: translateY(-2px); } }
+@keyframes ipRise { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: none; } }
+
 @media (prefers-reduced-motion: reduce) {
-  .fq-msg, .fq-me.sending, .fq-receipt, .fq-rise, .fq-glow { animation: none; }
-  .fq-screen::before { display: none; }
-  .fq-tilt { transition: none; }
+  .ip-fit, .ip-bubble, .me.fresh .ip-bubble, .ip-receipt, .ip-reply, .ip-send { animation: none !important; }
+  .ip-typing i { animation: none; opacity: .7; }
 }
