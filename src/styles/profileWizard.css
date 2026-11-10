@@ -42,6 +42,8 @@
 /* ============ TOP BAR ============ */
 .topbar{
   position:sticky;top:0;z-index:40;
+  /* clear the notch so the wizard's own bar is never clipped by it */
+  padding-top:env(safe-area-inset-top, 0px);
   background:rgba(10,15,30,.92);
   backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
   border-bottom:1px solid var(--line);
@@ -137,6 +139,8 @@
 /* ============ ACTION BAR ============ */
 .foot{
   position:fixed;left:0;right:0;bottom:0;z-index:45;
+  /* ride above the home bar instead of sitting under it */
+  padding-bottom:env(safe-area-inset-bottom, 0px);
   background:rgba(10,15,30,.94);
   backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
   border-top:1px solid var(--line);
