@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { releaseBooking } from '../../shared/payouts.ts';
 import { pullBackPayout, refundBooking, refundStrayPayment } from '../../shared/refunds.ts';
 import { money } from '../../shared/money.ts';
+import { logAdminAction, requireAdmin } from '../../shared/audit.ts';
 
 /**
  * A founder's decision on a booking in the queue.
@@ -43,10 +44,8 @@ const REFUND_REASONS = {
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user || user.role !== 'admin') {
-      return Response.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const user = await requireAdmin(base44);
+    if (!user) return Response.json({ error: 'Forbidden' }, { status: 403 });
 
     const { bookingId, action, note, amount, actionId } = await req.json();
     if (!bookingId || !ACTIONS.includes(action)) {
@@ -60,6 +59,21 @@ export default async function (req) {
     const reason = String(note || '').trim().slice(0, 500);
     const key = String(actionId || '').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64);
 
+    // Every decision is answered in a sentence and written to the admin log:
+    // who, what, which booking, how much, and how it ended.
+    const done = async (payload, loggedAmount = 0) => {
+      await logAdminAction(base44, user, {
+        action,
+        summary: payload.message,
+        outcome: payload.ok ? 'ok' : payload.result?.error ? 'failed' : 'refused',
+        bookingId,
+        lensmanId: booking.lensman_id || '',
+        amount: loggedAmount,
+        details: { note: reason, actionId: key, reason: payload.result?.reason || '', result: payload.result || null },
+      });
+      return Response.json(payload);
+    };
+
     if (action === 'release') {
       // Runs through the same lock and rules as every payout: never twice,
       // never through an open card dispute. Clears the flag once money moved.
@@ -69,7 +83,7 @@ export default async function (req) {
         : result.reason === 'transfer-failed'
           ? `Stripe refused the payout: ${result.error}`
           : RELEASE_REASONS[result.reason] || 'Nothing was released.';
-      return Response.json({ ok: Boolean(result.released), message, result });
+      return done({ ok: Boolean(result.released), message, result }, result.amount || 0);
     }
 
     if (action === 'refund') {
@@ -102,7 +116,7 @@ export default async function (req) {
       } else {
         message = REFUND_REASONS[result.reason] || 'Nothing was refunded.';
       }
-      return Response.json({ ok: Boolean(result.refunded), message, result });
+      return done({ ok: Boolean(result.refunded), message, result }, result.amount || 0);
     }
 
     if (action === 'pull_back' || action === 'retry_reversal') {
@@ -118,7 +132,7 @@ export default async function (req) {
             : result.status === 'busy'
               ? REFUND_REASONS.busy
               : 'There is nothing to pull back on this booking.';
-      return Response.json({ ok: result.status === 'done', message, result });
+      return done({ ok: result.status === 'done', message, result }, result.reversed || 0);
     }
 
     if (action === 'refund_stray') {
@@ -128,7 +142,7 @@ export default async function (req) {
         : result.reason === 'refund-failed'
           ? `Stripe refused the refund: ${result.error}`
           : REFUND_REASONS[result.reason] || 'Nothing was refunded.';
-      return Response.json({ ok: Boolean(result.refunded), message, result });
+      return done({ ok: Boolean(result.refunded), message, result }, result.amount || 0);
     }
 
     // mark_reviewed: only for bookings where no money decision is still open.
@@ -139,7 +153,7 @@ export default async function (req) {
       ['needed', 'failed'].includes(fresh.reversal_status) ||
       (fresh.dispute_status && !['won', 'lost', 'warning_closed'].includes(fresh.dispute_status));
     if (stillOpen) {
-      return Response.json({
+      return done({
         ok: false,
         message: 'This booking still has money to decide on. Release, refund or pull back first.',
       });
@@ -148,7 +162,7 @@ export default async function (req) {
       flagged_for_review: false,
       flag_reason: reason || fresh.flag_reason || '',
     });
-    return Response.json({ ok: true, message: 'Marked as reviewed.' });
+    return done({ ok: true, message: 'Marked as reviewed.' });
   } catch (error) {
     console.error('releasePayout error:', error.message);
     return Response.json({ error: 'That did not go through. Nothing was changed.' }, { status: 500 });

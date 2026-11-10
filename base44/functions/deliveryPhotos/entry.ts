@@ -4,6 +4,7 @@ import { notifyBoth } from '../../shared/notify.ts';
 import { photoAddBlocker, photoRemoveBlocker } from '../../shared/bookingRules.ts';
 import { newAlbumToken } from '../../shared/albumAccess.ts';
 import { SITE_ORIGIN } from '../../shared/origins.ts';
+import { logAdminAction } from '../../shared/audit.ts';
 import {
   MAX_DELIVERY_PHOTOS,
   MAX_PHOTOS_PER_UPLOAD,
@@ -70,6 +71,15 @@ export default async function (req) {
       }
 
       await base44.asServiceRole.entities.DeliveryPhoto.delete(photoId);
+      if (role !== 'lensman') {
+        await logAdminAction(base44, user, {
+          action: 'remove_photo',
+          summary: `Removed a photo from ${booking.client_name || 'a client'}'s ${booking.event_date} album.`,
+          bookingId,
+          lensmanId: booking.lensman_id || '',
+          details: { photoId, name: photo.name || '' },
+        });
+      }
       return Response.json({ removed: photoId });
     }
 

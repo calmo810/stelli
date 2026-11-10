@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { releaseBooking } from '../../shared/payouts.ts';
 import { sweepManualPayouts } from '../../shared/manualPayouts.ts';
+import { logAdminAction } from '../../shared/audit.ts';
 
 /**
  * The hourly sweep: delivered bookings whose 48 hour window has closed with
@@ -64,6 +65,16 @@ export default async function (req) {
       manual = await sweepManualPayouts(base44);
     } catch (error) {
       console.error('Manual payout sweep failed:', error.message);
+    }
+
+    // A founder running it by hand is on the record. The hourly run (which has
+    // no email of its own) only logs when it actually did something.
+    if (released || failed || manual.sent) {
+      await logAdminAction(base44, user, {
+        action: 'run_sweep',
+        summary: `Payout sweep: ${released} released, ${failed} failed, ${waitingOnSetup} waiting on payout setup, ${manual.sent} manual payout(s) sent.`,
+        outcome: failed ? 'failed' : 'ok',
+      });
     }
 
     // Counts only — never booking identifiers or per-booking detail.

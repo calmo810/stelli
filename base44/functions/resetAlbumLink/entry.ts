@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { viewerRole } from '../../shared/bookingAccess.ts';
 import { newAlbumToken } from '../../shared/albumAccess.ts';
+import { logAdminAction } from '../../shared/audit.ts';
 
 /**
  * Cuts off a shared album link and issues a new one.
@@ -32,6 +33,15 @@ export default async function (req) {
       album_token: albumToken,
       album_token_reset_at: new Date().toISOString(),
     });
+
+    if (user.role === 'admin' && viewerRole(booking, user) !== 'client') {
+      await logAdminAction(base44, user, {
+        action: 'reset_album_link',
+        summary: `Reset the album link for ${booking.client_name || 'a client'}'s ${booking.event_date} shoot.`,
+        bookingId,
+        lensmanId: booking.lensman_id || '',
+      });
+    }
 
     return Response.json({ bookingId, album_token: albumToken });
   } catch (error) {

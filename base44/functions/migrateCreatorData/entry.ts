@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { logAdminAction } from '../../shared/audit.ts';
 
 /**
  * One-off data move for the CreatorContact split. Safe to run more than once.
@@ -132,6 +133,14 @@ export default async function (req) {
         });
       }
       report.messagesFixed += 1;
+    }
+
+    if (!dryRun) {
+      await logAdminAction(base44, user, {
+        action: 'migrate_data',
+        summary: `Ran the creator data migration across ${lensmen.length} profiles.`,
+        details: report,
+      });
     }
 
     return Response.json({ dryRun, creators: lensmen.length, ...report });

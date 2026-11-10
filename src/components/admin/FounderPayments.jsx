@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Copy, ExternalLink, Loader2 } from 'lucide-react';
+import ConfirmAction, { newActionId } from '@/components/admin/ConfirmAction';
 
 const SURFACE = { background: 'hsl(var(--surface))', borderRadius: 4 };
 const CARD = 'border border-white/10';
@@ -60,27 +61,91 @@ export function PayCreatorPanel({ lensmen }) {
     queryFn: () => base44.entities.ManualPayout.list('-created_date', 100),
   });
 
+  // One payout goes through three possible stops:
+  //   confirm  — "Send $50 to Maya. This can't be undone."
+  //   decide   — only if Maya has a booking Stelli is holding money for: is
+  //              this payout for that booking, or separate money on top?
+  //   confirm  — again, saying which.
+  // `pending.requestId` stays the same from the first tap to the last, so the
+  // server treats every send of this payout as the same one.
+  const [pending, setPending] = useState(null); // { requestId, bookingId, confirmSeparate, text }
+  const [decision, setDecision] = useState(null); // { message, heldBookings }
+  const [confirmError, setConfirmError] = useState('');
+
+  const lensman = lensmen.find((l) => l.id === lensmanId);
+  const name = lensman?.display_name || 'the creator';
+
   const pay = useMutation({
-    mutationFn: () =>
-      base44.functions.invoke('payCreator', { lensmanId, amount: Number(amount), note }),
-    onSuccess: (response) => {
-      const data = response.data || {};
-      const name = lensmen.find((l) => l.id === lensmanId)?.display_name || 'The creator';
+    mutationFn: async (request) => {
+      const response = await base44.functions.invoke('payCreator', {
+        lensmanId,
+        amount: Number(amount),
+        note,
+        requestId: request.requestId,
+        bookingId: request.bookingId || undefined,
+        confirmSeparate: Boolean(request.confirmSeparate),
+      });
+      if (response.data?.error) throw new Error(response.data.error);
+      return response.data || {};
+    },
+    onSuccess: (data) => {
+      if (data.needsDecision) {
+        // Nothing was paid. Ask which it is.
+        setDecision({ message: data.message, heldBookings: data.heldBookings || [] });
+        setPending((prev) => (prev ? { ...prev, awaitingDecision: true } : prev));
+        return;
+      }
       setMessage(
-        data.sent
-          ? `${money(amount)} sent to ${name}.`
-          : data.reason === 'no-payout-account'
-            ? `${money(amount)} is held for ${name}. It goes out once they set up payouts — they've been emailed.`
-            : `${money(amount)} is held for ${name} and will retry every hour.`
+        data.duplicate
+          ? 'That payout was already sent. Nothing was sent twice.'
+          : data.sent
+            ? `${money(amount)} sent to ${name}.`
+            : data.reason === 'no-payout-account'
+              ? `${money(amount)} is held for ${name}. It goes out once they set up payouts — they've been emailed.`
+              : `${money(amount)} is held for ${name} and will retry every hour.`
       );
+      setPending(null);
+      setDecision(null);
       setNote('');
       setAmount(String(DEFAULT_PAYOUT));
       queryClient.invalidateQueries({ queryKey: ['admin-manual-payouts'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-audit-log'] });
     },
-    onError: (error) => setMessage(errorText(error)),
+    // The dialog stays open with the same request ID, so trying again is safe.
+    onError: (error) => setConfirmError(errorText(error)),
   });
 
-  const lensman = lensmen.find((l) => l.id === lensmanId);
+  const startPay = () => {
+    setMessage('');
+    setConfirmError('');
+    setDecision(null);
+    setPending({
+      requestId: newActionId(),
+      text: `Send ${money(amount)} to ${name} from Stelli’s Stripe balance. This can’t be undone.`,
+    });
+  };
+
+  const choose = (booking) => {
+    setConfirmError('');
+    setPending((prev) => ({
+      ...prev,
+      awaitingDecision: false,
+      bookingId: booking ? booking.id : '',
+      confirmSeparate: !booking,
+      text: booking
+        ? `Send ${money(amount)} to ${name} as the payout for ${booking.client_name}’s ${booking.event_date} booking. The booking is marked paid, and the automatic payout of ${money(booking.creator_payout)} will not go out. This can’t be undone.`
+        : `Send ${money(amount)} to ${name} on top of the booking payout they will still receive automatically. This can’t be undone.`,
+    }));
+    setDecision(null);
+  };
+
+  const cancelPay = () => {
+    setPending(null);
+    setDecision(null);
+    setConfirmError('');
+  };
+
   const valid = lensmanId && Number(amount) >= 1;
   const waitingTotal = payouts
     .filter((p) => p.status === 'waiting')
@@ -150,19 +215,64 @@ export function PayCreatorPanel({ lensmen }) {
         )}
 
         <Button
-          onClick={() => {
-            setMessage('');
-            pay.mutate();
-          }}
-          disabled={!valid || pay.isPending}
+          onClick={startPay}
+          disabled={!valid || pay.isPending || Boolean(pending)}
           className="mt-6 w-full label-mono text-[10px] font-semibold"
           style={LIME_BUTTON}
         >
           {pay.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : `Pay ${money(amount || 0)}`}
         </Button>
 
-        {message && <p className="font-body text-[13px] text-white/70 mt-4">{message}</p>}
+        {decision && (
+          <div className="mt-5 border border-neon-cyan/40 p-4" style={{ borderRadius: 4 }}>
+            <p className="font-body text-[14px] leading-relaxed text-white/85">{decision.message}</p>
+            <p className="mt-1 font-body text-[12px] text-white/45">Nothing has been sent yet.</p>
+            <div className="mt-4 flex flex-col gap-2">
+              {decision.heldBookings.map((booking) => (
+                <button
+                  key={booking.id}
+                  type="button"
+                  onClick={() => choose(booking)}
+                  className="min-h-[48px] border border-white/15 px-4 py-3 text-left font-body text-[14px] text-white/85 transition-colors hover:bg-white/5"
+                  style={{ borderRadius: 4 }}
+                >
+                  It’s for {booking.client_name}’s {booking.event_date} booking
+                  <span className="mt-0.5 block text-[12px] text-white/45">
+                    Replaces the automatic payout of {money(booking.creator_payout)}
+                  </span>
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => choose(null)}
+                className="min-h-[48px] border border-white/15 px-4 py-3 text-left font-body text-[14px] text-white/85 transition-colors hover:bg-white/5"
+                style={{ borderRadius: 4 }}
+              >
+                It’s separate
+                <span className="mt-0.5 block text-[12px] text-white/45">
+                  Paid on top. The booking still pays out on its own.
+                </span>
+              </button>
+              <button type="button" onClick={cancelPay} className="min-h-[44px] font-body text-[13px] text-white/50 hover:text-white">
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+
+        {message && <p role="status" className="font-body text-[13px] text-white/70 mt-4">{message}</p>}
       </div>
+
+      <ConfirmAction
+        open={Boolean(pending) && !pending.awaitingDecision}
+        title={`Pay ${money(amount || 0)} to ${name}`}
+        message={pending?.text || ''}
+        confirmLabel="Yes, send it"
+        busy={pay.isPending}
+        error={confirmError}
+        onConfirm={() => pending && pay.mutate(pending)}
+        onCancel={cancelPay}
+      />
 
       <div>
         <div className="flex items-baseline justify-between mb-3">

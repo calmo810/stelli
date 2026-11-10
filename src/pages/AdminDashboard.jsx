@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
 import { Star, Calendar, DollarSign, ClipboardCheck } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
@@ -11,6 +10,9 @@ import { PayCreatorPanel, OneOffChargePanel } from '@/components/admin/FounderPa
 import AdminOverview from '@/components/admin/AdminOverview';
 import AdminApplications from '@/components/admin/AdminApplications';
 import AdminFaqQuestions from '@/components/admin/AdminFaqQuestions';
+import FounderQueueList from '@/components/admin/FounderQueueList';
+import AdminActivity from '@/components/admin/AdminActivity';
+import { founderQueue } from '@/lib/founderQueue';
 
 const SURFACE = { background: 'hsl(var(--surface))', borderRadius: 4 };
 const CARD = 'border border-white/10';
@@ -49,28 +51,25 @@ export default function AdminDashboard() {
     queryFn: () => base44.entities.Booking.list('-created_date'),
   });
 
+  // Approve / reject goes through the server, which checks the admin role,
+  // emails the creator once and writes the decision to the activity log.
   const reviewApplication = useMutation({
-    mutationFn: ({ lensmanId, status }) => base44.entities.Lensman.update(lensmanId, { status }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-lensmen'] }),
+    mutationFn: async ({ lensmanId, status }) => {
+      const response = await base44.functions.invoke('reviewCreator', {
+        lensmanId,
+        decision: status === 'approved' ? 'approve' : 'reject',
+      });
+      if (response.data?.error) throw new Error(response.data.error);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-lensmen'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-audit-log'] });
+    },
   });
 
-  const decidePayout = useMutation({
-    mutationFn: ({ bookingId, action }) => base44.functions.invoke('releasePayout', { bookingId, action }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-bookings'] }),
-  });
-
-  // One combined queue: anything a founder has to look at, plus money sitting on
-  // Stelli's balance because the creator has no payout account yet.
-  const needsDecision = (booking) =>
-    booking.flagged_for_review || booking.dispute_status ? 0 : 1;
-  const heldFunds = bookings
-    .filter(
-      (b) =>
-        b.flagged_for_review ||
-        Boolean(b.dispute_status) ||
-        (['held', 'partially_refunded'].includes(b.payment_status) && b.needs_payout_setup)
-    )
-    .sort((a, b) => needsDecision(a) - needsDecision(b));
+  // One combined queue: everything waiting on a founder, most urgent first.
+  const heldFunds = useMemo(() => founderQueue(bookings), [bookings]);
   const approved = lensmen.filter(l => l.status === 'approved');
   const pendingApplications = lensmen.filter((lensman) => lensman.status === 'pending');
   const filteredCreators = useMemo(() => {
@@ -90,12 +89,26 @@ export default function AdminDashboard() {
       return matchesStatus && matchesSearch;
     });
   }, [bookings, bookingSearch, bookingStatus]);
-  const totalRevenue = bookings.filter(b => b.status === 'completed').reduce((sum, b) => sum + (b.total_price || 0), 0);
+  // Stelli's fees on bookings that have paid out: what the client was charged
+  // (less tax and refunds) minus what the creator kept. Not the booking volume.
+  const feesEarned = bookings
+    .filter((b) => b.payment_status === 'released')
+    .reduce(
+      (sum, b) =>
+        sum +
+        (Number(b.amount_charged || 0) - Number(b.tax_amount || 0) - Number(b.refund_amount || 0)) -
+        (Number(b.creator_payout || 0) - Number(b.reversal_amount_done || 0)),
+      0
+    );
+  const feesEarnedLabel = Math.max(0, feesEarned).toLocaleString('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  });
 
   const stats = [
     { icon: Star, label: 'Active lensmen', value: approved.length, color: 'hsl(var(--neon-lime))' },
     { icon: Calendar, label: 'Total bookings', value: bookings.length, color: 'hsl(var(--neon-magenta))' },
-    { icon: DollarSign, label: 'Revenue', value: `$${totalRevenue.toLocaleString()}`, color: 'hsl(var(--neon-lime))' },
+    { icon: DollarSign, label: 'Fees earned', value: feesEarnedLabel, color: 'hsl(var(--neon-lime))' },
     { icon: ClipboardCheck, label: 'Applications to review', value: loadingLensmen ? '—' : pendingApplications.length, color: 'hsl(var(--neon-cyan))' },
   ];
 
@@ -139,7 +152,7 @@ export default function AdminDashboard() {
               Bookings ({bookings.length})
             </TabsTrigger>
             <TabsTrigger value="flagged" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-magenta data-[state=active]:text-ink">
-              Held funds ({heldFunds.length})
+              Needs you ({heldFunds.length})
             </TabsTrigger>
             <TabsTrigger value="pay" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-lime data-[state=active]:text-ink">
               Pay creators
@@ -149,6 +162,9 @@ export default function AdminDashboard() {
             </TabsTrigger>
             <TabsTrigger value="faq" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-cyan data-[state=active]:text-ink">
               FAQ chat
+            </TabsTrigger>
+            <TabsTrigger value="activity" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-cyan data-[state=active]:text-ink">
+              Activity
             </TabsTrigger>
           </TabsList>
 
@@ -187,6 +203,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="faq">
             <AdminFaqQuestions />
+          </TabsContent>
+
+          <TabsContent value="activity">
+            <AdminActivity />
           </TabsContent>
 
           <TabsContent value="lensmen" className="space-y-3">
@@ -278,67 +298,8 @@ export default function AdminDashboard() {
             )}
           </TabsContent>
 
-          <TabsContent value="flagged" className="space-y-4">
-            {heldFunds.length > 0 ? (
-              heldFunds.map(b => (
-                <div key={b.id} className={`${CARD} p-6`} style={SURFACE}>
-                  <div className="flex items-start justify-between gap-4 mb-4">
-                    <div>
-                      <h3 className="font-heading text-[20px] font-semibold text-white leading-tight">
-                        {b.client_name} → {b.lensman_name}
-                      </h3>
-                      <p className="label-mono text-[9px] text-white/40 mt-2">
-                        {b.event_date} · held ${Number(b.total_price || 0).toLocaleString()} · creator gets ${Number(b.creator_payout || 0).toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Pill tone="magenta">{b.payment_status}</Pill>
-                      {b.dispute_status && <Pill tone="cyan">{b.dispute_status}</Pill>}
-                    </div>
-                  </div>
-
-                  {b.flag_reason && (
-                    <p className="font-body text-[13px] leading-relaxed text-white/55 mb-5">{b.flag_reason}</p>
-                  )}
-
-                  {b.problem_note && (
-                    <p className="font-body text-[13px] leading-relaxed text-white/70 border-l-2 pl-4 mb-5" style={{ borderColor: 'hsl(var(--neon-magenta) / 0.5)' }}>
-                      {b.problem_note}
-                    </p>
-                  )}
-
-                  {b.flagged_for_review ? (
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => decidePayout.mutate({ bookingId: b.id, action: 'release' })}
-                        disabled={decidePayout.isPending}
-                        className="flex-1 label-mono text-[10px] font-semibold"
-                        style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }}
-                      >
-                        Release to creator
-                      </Button>
-                      <Button
-                        onClick={() => decidePayout.mutate({ bookingId: b.id, action: 'refund' })}
-                        disabled={decidePayout.isPending}
-                        variant="outline"
-                        className="flex-1 label-mono text-[10px] border-white/15 text-white/60 bg-transparent hover:bg-white/5 hover:text-white"
-                        style={{ borderRadius: 4 }}
-                      >
-                        Refund the client
-                      </Button>
-                    </div>
-                  ) : (
-                    <p className="label-mono text-[9px] text-white/35">
-                      {b.dispute_status
-                        ? 'Respond in Stripe before the deadline.'
-                        : 'Waiting on the creator to finish payout setup.'}
-                    </p>
-                  )}
-                </div>
-              ))
-            ) : (
-              <p className="font-body text-[13px] text-center py-20 text-white/35">Nothing needs a decision.</p>
-            )}
+          <TabsContent value="flagged">
+            <FounderQueueList bookings={bookings} />
           </TabsContent>
         </Tabs>
       </div>
