@@ -159,7 +159,9 @@ export function installFakeStripe({ livemode = true } = {}) {
         ? state.charges.get(intent.latest_charge)
         : state.charges.get(params.get('charge'));
       if (!charge) return fail('No such charge');
-      const amount = Number(params.get('amount'));
+      // No amount means "everything that is left", as at Stripe.
+      const amount = params.has('amount') ? Number(params.get('amount')) : charge.amount - charge.amount_refunded;
+      if (amount <= 0) return rememberFailure('Charge has already been refunded.');
       if (amount > charge.amount - charge.amount_refunded) {
         return rememberFailure('Refund amount is greater than the unrefunded amount on the charge');
       }

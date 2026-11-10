@@ -1,7 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { secrets } from 'base44:runtime';
-import { notifyBoth, sendEmail } from '../../shared/notify.ts';
 import { releaseWaitingPayouts } from '../../shared/payouts.ts';
+import { syncRefundFromStripe, syncReversalFromStripe } from '../../shared/refunds.ts';
+import { disputeClosed, disputeOpened } from '../../shared/disputes.ts';
 import {
   markBookingPaid,
   markCheckoutExpired,
@@ -79,16 +80,6 @@ async function signatureIsValid(payload, header) {
   return false;
 }
 
-async function emailAdmins(base44, subject, body) {
-  const admins = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
-  await notifyBoth(
-    base44,
-    admins.map((admin) => admin.email),
-    subject,
-    body
-  );
-}
-
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
@@ -139,7 +130,7 @@ export default async function (req) {
           status,
           stripe_payment_intent_id: object.payment_intent || '',
           ...(status === 'paid' ? { paid_at: new Date().toISOString() } : {}),
-        });
+        }).catch((error) => console.error('One-off charge', oneOffId, 'not updated -', error.message));
       }
       return Response.json({ received: true });
     }
@@ -161,58 +152,14 @@ export default async function (req) {
     } else if (event.type === 'checkout.session.expired') {
       await markCheckoutExpired(base44, object);
     } else if (event.type === 'charge.refunded') {
-      const charge = object;
-      // Found from the payment intent — charge metadata is not reliable.
-      if (charge?.payment_intent) {
-        const matches = await base44.asServiceRole.entities.Booking.filter({
-          stripe_payment_intent_id: charge.payment_intent,
-        });
-        const booking = matches[0];
-        if (booking) {
-          await base44.asServiceRole.entities.Booking.update(booking.id, {
-            refund_amount: Number(charge.amount_refunded || 0) / 100,
-            refunded_at: new Date().toISOString(),
-            ...(charge.refunded === true
-              ? { payment_status: 'refunded' }
-              : booking.payment_status === 'held'
-                ? { payment_status: 'partially_refunded' }
-                : {}),
-          });
-        }
-      }
+      // A refund made by the app or straight from the Stripe dashboard.
+      await syncRefundFromStripe(base44, object);
+    } else if (event.type === 'transfer.reversed') {
+      await syncReversalFromStripe(base44, object);
     } else if (event.type === 'charge.dispute.created') {
-      const dispute = object;
-      if (dispute?.payment_intent) {
-        const matches = await base44.asServiceRole.entities.Booking.filter({
-          stripe_payment_intent_id: dispute.payment_intent,
-        });
-        const booking = matches[0];
-        if (booking) {
-          await base44.asServiceRole.entities.Booking.update(booking.id, {
-            dispute_status: dispute.status,
-            flagged_for_review: true,
-            flag_reason: 'Card dispute opened. Respond in Stripe before the deadline.',
-          });
-          await emailAdmins(
-            base44,
-            'Card dispute opened',
-            `A client opened a card dispute on the ${booking.event_date} shoot (${dispute.status}). Respond in Stripe before the deadline.`
-          );
-        }
-      }
+      await disputeOpened(base44, object);
     } else if (event.type === 'charge.dispute.closed') {
-      const dispute = object;
-      if (dispute?.payment_intent) {
-        const matches = await base44.asServiceRole.entities.Booking.filter({
-          stripe_payment_intent_id: dispute.payment_intent,
-        });
-        // The flag stays on, so a founder clears it by hand.
-        if (matches[0]) {
-          await base44.asServiceRole.entities.Booking.update(matches[0].id, {
-            dispute_status: dispute.status,
-          });
-        }
-      }
+      await disputeClosed(base44, object);
     } else if (event.type === 'account.updated') {
       const account = object;
       const profiles = await base44.asServiceRole.entities.Lensman.filter({

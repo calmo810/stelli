@@ -404,6 +404,30 @@
     "payout_key_version": {
       "type": "number",
       "description": "Bumped each time Stripe definitively refuses the payout transfer, so the next attempt is not answered with the same stored refusal"
+    },
+    "reversal_status": {
+      "type": "string",
+      "description": "Where pulling the creator's payout back stands after a refund or a lost dispute: empty (nothing to pull back), needed, done or failed. Tracked separately from the refund itself so a failed pull-back can be retried."
+    },
+    "reversal_amount_due": {
+      "type": "number",
+      "description": "How much of the creator's payout should come back, in dollars"
+    },
+    "reversal_amount_done": {
+      "type": "number",
+      "description": "How much of the creator's payout has actually been pulled back, in dollars"
+    },
+    "reversal_error": {
+      "type": "string",
+      "description": "What Stripe said the last time pulling the payout back failed"
+    },
+    "reversal_attempts": {
+      "type": "number",
+      "description": "How many times pulling the payout back has failed"
+    },
+    "creator_payout_original": {
+      "type": "number",
+      "description": "The creator's payout before a partial refund or late cancellation reduced it, in dollars"
     }
   },
   "required": [
