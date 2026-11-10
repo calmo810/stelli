@@ -6,6 +6,7 @@ import { ArrowLeft } from 'lucide-react';
 import LoginEmailBox from '@/components/account/LoginEmailBox';
 import PasswordBox from '@/components/account/PasswordBox';
 import DeleteAccountCard from '@/components/account/DeleteAccountCard';
+import TwoFactorCard from '@/components/account/TwoFactorCard';
 import { isGoogleUser } from '@/lib/authProvider';
 
 export default function AccountSettings() {
@@ -48,6 +49,7 @@ export default function AccountSettings() {
         <div className="space-y-5">
           <LoginEmailBox email={user.email} googleUser={googleUser} />
           <PasswordBox user={user} googleUser={googleUser} />
+          <TwoFactorCard />
           <DeleteAccountCard />
         </div>
       </div>

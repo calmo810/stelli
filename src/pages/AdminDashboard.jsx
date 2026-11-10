@@ -122,6 +122,10 @@ export default function AdminDashboard() {
               Admin
             </h1>
             <p className="font-body text-[13px] text-white/45">Review creator applications, monitor bookings, and keep operations moving.</p>
+            <p className="mt-3 font-body text-[12px] text-white/40">
+              This page can move money. Keep two-factor sign-in on for this account.{' '}
+              <a href="/mfa?returnTo=%2Fadmin" className="underline underline-offset-4 hover:text-white">Set up or check</a>
+            </p>
           </motion.div>
         </div>
       </div>

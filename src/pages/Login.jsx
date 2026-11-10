@@ -8,6 +8,10 @@ import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { safeReturnTo } from "@/lib/authReturnTo";
+import { loginWithMfa } from "@/lib/authMfa";
+import { signInWithProvider } from "@/lib/authMfaFlow";
+import MfaFlow from "@/components/MfaFlow";
+import { MfaScreen } from "@/components/MfaParts";
 
 // Honor ?returnTo= (used by the MCP consent flow), else the app's portal.
 const afterAuth = () =>
@@ -29,13 +33,24 @@ export default function Login() {
     return () => { active = false; };
   }, []);
 
+  // Set when the password was right but the account needs a second step.
+  const [challenge, setChallenge] = useState(null);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
-      await base44.auth.loginViaEmailPassword(email, password);
-      window.location.href = afterAuth();
+      // The plain SDK call drops the "second step needed" answer and leaves the
+      // visitor signed out with no explanation. This one keeps it.
+      const result = await loginWithMfa(email, password);
+      if (result?.access_token) {
+        window.location.href = afterAuth();
+      } else if (result?.mfa_session_token) {
+        setChallenge(result);
+      } else {
+        setError("We couldn't sign you in. Try again.");
+      }
     } catch (err) {
       setError(err.message || "Invalid email or password");
     } finally {
@@ -44,8 +59,20 @@ export default function Login() {
   };
 
   const handleGoogle = () => {
-    base44.auth.loginWithProvider("google", afterAuth());
+    // Goes through /mfa when the app requires a second step; otherwise this is
+    // the same Google sign-in as before.
+    signInWithProvider("google", afterAuth()).catch(() =>
+      base44.auth.loginWithProvider("google", afterAuth())
+    );
   };
+
+  if (challenge) {
+    return (
+      <MfaScreen>
+        <MfaFlow challenge={challenge} returnTo={afterAuth()} />
+      </MfaScreen>
+    );
+  }
 
   return (
     <AuthLayout
