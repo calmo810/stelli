@@ -374,6 +374,36 @@
       "type": "string",
       "format": "date-time",
       "description": "When the stray payment arrived"
+    },
+    "payout_lock": {
+      "type": "string",
+      "description": "Set while a payout, refund, cancellation or problem report is working on this booking's money, so only one of them runs at a time. Empty when nothing is in progress."
+    },
+    "payout_lock_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When payout_lock was taken. A lock older than ten minutes was left by a run that died and may be taken over."
+    },
+    "payout_error": {
+      "type": "string",
+      "description": "What Stripe said the last time the payout to the creator failed. Empty once it goes through."
+    },
+    "payout_attempts": {
+      "type": "number",
+      "description": "How many times the payout to the creator has failed"
+    },
+    "payout_failed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the payout to the creator last failed"
+    },
+    "cancellation_payout_due": {
+      "type": "boolean",
+      "description": "A late client cancellation left the creator a share that has not been paid yet"
+    },
+    "payout_key_version": {
+      "type": "number",
+      "description": "Bumped each time Stripe definitively refuses the payout transfer, so the next attempt is not answered with the same stored refusal"
     }
   },
   "required": [

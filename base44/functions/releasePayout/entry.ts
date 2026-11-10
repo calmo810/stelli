@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
-import { releaseBooking, refundBooking } from '../../shared/payouts.ts';
+import { releaseBooking } from '../../shared/payouts.ts';
+import { refundBooking } from '../../shared/refunds.ts';
 
 /**
  * A founder deciding what happens to frozen money: release it to the creator
@@ -22,7 +23,10 @@ export default async function (req) {
     if (!booking) return Response.json({ error: 'Booking not found.' }, { status: 404 });
 
     if (action === 'release') {
-      const result = await releaseBooking(base44, { ...booking, flagged_for_review: false }, 'founder');
+      // A founder's decision may release a flagged booking. It runs through the
+      // same lock and rules as every payout: never twice, never through an
+      // open card dispute, and it clears the flag once the money has moved.
+      const result = await releaseBooking(base44, bookingId, 'founder');
       return Response.json({ result });
     }
 

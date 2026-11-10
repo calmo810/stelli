@@ -82,7 +82,7 @@ export async function stripePost(path, params, idempotencyKey) {
 
   if (!response.ok) {
     console.error(`Stripe ${path} failed:`, data?.error?.message);
-    throw new Error(data?.error?.message || 'Stripe request failed');
+    throw stripeError(response, data);
   }
 
   return data;
@@ -100,7 +100,7 @@ export async function stripeGet(path) {
 
   if (!response.ok) {
     console.error(`Stripe GET ${path} failed:`, data?.error?.message);
-    throw new Error(data?.error?.message || 'Stripe request failed');
+    throw stripeError(response, data);
   }
 
   return data;
@@ -122,8 +122,26 @@ export async function stripeV2Post(path, body) {
 
   if (!response.ok) {
     console.error(`Stripe v2 ${path} failed:`, data?.error?.message);
-    throw new Error(data?.error?.message || 'Stripe request failed');
+    throw stripeError(response, data);
   }
 
   return data;
+}
+
+/**
+ * A Stripe failure, with enough on it to decide what to do next.
+ *
+ * `definitive` means Stripe looked at the request and said no (a 4xx such as
+ * a restricted account or a missing balance): nothing was created, and a later
+ * attempt should use a fresh idempotency key. Anything else — a 5xx, a rate
+ * limit, a conflict — may or may not have gone through, so a retry must reuse
+ * the same key.
+ */
+function stripeError(response, data) {
+  const error = new Error(data?.error?.message || 'Stripe request failed');
+  error.status = response.status;
+  error.code = data?.error?.code || '';
+  error.definitive =
+    response.status >= 400 && response.status < 500 && ![409, 429].includes(response.status);
+  return error;
 }

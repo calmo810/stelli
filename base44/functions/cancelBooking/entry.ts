@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { viewerRole } from '../../shared/bookingAccess.ts';
-import { refundBooking, releaseBooking } from '../../shared/payouts.ts';
+import { releaseBooking } from '../../shared/payouts.ts';
+import { refundBooking } from '../../shared/refunds.ts';
 import { clientTotal } from '../../shared/stripe.ts';
 
 export default async function (req) {
