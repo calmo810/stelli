@@ -1,9 +1,30 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { viewerRole } from '../../shared/bookingAccess.ts';
-import { releaseBooking } from '../../shared/payouts.ts';
-import { refundBooking } from '../../shared/refunds.ts';
-import { clientTotal } from '../../shared/stripe.ts';
+import { cancellationPlan } from '../../shared/cancellation.ts';
+import { claimBooking, unlockBooking } from '../../shared/bookingLock.ts';
+import { refundHeld } from '../../shared/refunds.ts';
+import { releaseHeld } from '../../shared/payouts.ts';
+import { fromCents, money } from '../../shared/money.ts';
+import { emailAdmins, sendEmail } from '../../shared/notify.ts';
+import { hasContactDetails } from '../../shared/contactGuard.ts';
+import { isConfirmed } from '../../shared/bookingRules.ts';
 
+/**
+ * Either side cancelling a booking.
+ *
+ * What happens to the money is decided by shared/cancellation.ts (the 72 and
+ * 48 hour lines, measured in New York time) and nowhere else. This function
+ * only carries the plan out, with the booking locked so a payout or a refund
+ * can't run beside it:
+ *
+ *   1. the booking is marked cancelled, and flagged while a refund is owed;
+ *   2. the refund goes out; only when it has does the flag come off;
+ *   3. the creator's share of a late cancellation is paid.
+ *
+ * If the refund fails, the booking stays in the founder queue saying so — a
+ * cancelled booking with the client's money still on it is never left looking
+ * finished.
+ */
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
@@ -13,110 +34,152 @@ export default async function (req) {
     const { bookingId, reason } = await req.json();
     if (!bookingId) return Response.json({ error: 'Booking ID is required.' }, { status: 400 });
 
-    const booking = await base44.asServiceRole.entities.Booking.get(bookingId);
-    if (!booking) return Response.json({ error: 'Booking not found.' }, { status: 404 });
+    const Booking = base44.asServiceRole.entities.Booking;
+    const seen = await Booking.get(bookingId).catch(() => null);
+    if (!seen) return Response.json({ error: 'Booking not found.' }, { status: 404 });
 
-    const role = viewerRole(booking, user);
+    const role = viewerRole(seen, user);
     if (!role) return Response.json({ error: 'This booking is not yours.' }, { status: 403 });
-    if (['completed', 'cancelled'].includes(booking.status)) {
-      return Response.json({ error: 'This booking is already closed.' }, { status: 400 });
+
+    const claim = await claimBooking(base44, bookingId, 'cancel', { waitMs: 4000 });
+    if (!claim.won) {
+      return Response.json(
+        { error: 'This booking is being updated right now. Try again in a moment.' },
+        { status: 409 }
+      );
     }
 
-    const isClient = role === 'client';
-    const now = new Date();
-    const shootAt = new Date(`${booking.event_date}T${booking.event_time || '12:00'}`);
-    const hoursUntil = (shootAt.getTime() - now.getTime()) / 3600000;
+    try {
+      const booking = claim.booking;
+      const isClient = role === 'client';
+      const plan = cancellationPlan({ role, booking, nowMs: Date.now() });
+      if (!plan.allowed) return Response.json({ error: plan.message }, { status: 409 });
 
-    // Everything is worked out from what Stripe actually took. Bookings paid
-    // before amount_charged existed fall back to the quote plus the service fee.
-    const paid =
-      Number(booking.amount_charged || 0) > 0
-        ? Number(booking.amount_charged)
-        : clientTotal(booking.total_price);
+      const why = String(reason || '').trim().slice(0, 500);
+      const now = new Date().toISOString();
+      const refundOwed = plan.refundCents > 0;
+      const shareOwed = plan.creatorPayoutCents > 0;
 
-    // The creator walking away is always a full refund, and it puts them in
-    // front of a founder. A client cancelling late still owes the creator.
-    let refundAmount = 0;
-    let refundNote = 'No payment had been taken, so there is nothing to refund.';
-    let creatorShare = 0; // 1 = the full share, 0.5 = half, 0 = nothing
+      // 1. Cancelled. Flagged for as long as a refund is still owed.
+      const cancelledPatch = {
+        status: 'cancelled',
+        cancelled_at: now,
+        cancelled_by: isClient ? 'client' : 'creator',
+        cancellation_reason: why,
+        cancellation_payout_due: shareOwed,
+        ...(shareOwed
+          ? {
+              creator_payout: fromCents(plan.creatorPayoutCents),
+              creator_payout_original: booking.creator_payout_original || booking.creator_payout,
+            }
+          : {}),
+        ...(refundOwed
+          ? {
+              flagged_for_review: true,
+              flag_reason: `Cancelled. A refund of ${money(fromCents(plan.refundCents))} is on its way to the client.`,
+            }
+          : {}),
+      };
+      await Booking.update(bookingId, cancelledPatch);
 
-    if (booking.stripe_payment_intent_id || booking.stripe_charge_id) {
-      if (!isClient) {
-        refundAmount = paid;
-        refundNote = 'The creator cancelled, so the client is refunded in full.';
-      } else if (hoursUntil >= 72) {
-        refundAmount = paid;
-        refundNote = 'Cancelled 72 hours or more before the shoot, so the client is refunded in full.';
-      } else if (hoursUntil >= 48) {
-        refundAmount = Math.round(paid * 0.5 * 100) / 100;
-        creatorShare = 0.5;
-        refundNote = 'Cancelled between 48 and 72 hours before the shoot, so half is refunded.';
-      } else {
-        creatorShare = 1;
-        refundNote = 'Cancelled less than 48 hours before the shoot, so the creator keeps the full amount.';
-      }
-    }
-
-    const updated = await base44.asServiceRole.entities.Booking.update(bookingId, {
-      status: 'cancelled',
-      cancelled_at: now.toISOString(),
-      cancelled_by: isClient ? 'client' : 'creator',
-      cancellation_reason: (reason || '').trim(),
-      flagged_for_review: !isClient,
-      flag_reason: isClient ? '' : 'Creator cancelled — review the creator.',
-    });
-
-    if (refundAmount > 0) {
-      await refundBooking(base44, booking, refundAmount, refundNote);
-    }
-
-    // The creator is still paid their share of a late client cancellation.
-    if (creatorShare > 0) {
-      if (creatorShare < 1) {
-        const half = Math.round(Number(booking.creator_payout || 0) * creatorShare * 100) / 100;
-        await base44.asServiceRole.entities.Booking.update(bookingId, { creator_payout: half });
-      }
-      const fresh = await base44.asServiceRole.entities.Booking.get(bookingId);
-      await releaseBooking(base44, fresh, 'auto');
-    }
-
-    if (!isClient) {
-      const lensman = await base44.asServiceRole.entities.Lensman.get(booking.lensman_id).catch(() => null);
-      if (lensman) {
-        await base44.asServiceRole.entities.Lensman.update(lensman.id, { under_review: true });
-        const contacts = await base44.asServiceRole.entities.CreatorContact.filter({
-          lensman_id: lensman.id,
-        });
-        if (contacts[0]) {
-          await base44.asServiceRole.entities.CreatorContact.update(contacts[0].id, {
-            review_note: `Cancelled the ${booking.event_date} booking.`,
+      // 2. The refund.
+      let refundFailed = '';
+      if (refundOwed) {
+        const refund = await refundHeld(
+          base44,
+          { ...booking, ...cancelledPatch },
+          {
+            amountCents: plan.refundCents,
+            note: plan.note,
+            key: 'cancellation',
+            setCreatorPayoutCents: plan.creatorPayoutCents,
+            clearFlag: true,
+          }
+        );
+        if (!refund.refunded && refund.reason !== 'already-refunded') {
+          refundFailed = refund.error || refund.reason || 'unknown';
+          await Booking.update(bookingId, {
+            flagged_for_review: true,
+            flag_reason: `Cancelled, but the refund of ${money(fromCents(plan.refundCents))} to the client did not go through (${refundFailed}). Refund it from here.`,
           });
+          await emailAdmins(
+            base44,
+            'A cancellation refund failed',
+            `The ${booking.event_date} shoot was cancelled, but the refund of ${money(fromCents(plan.refundCents))} did not go through.\n\nStripe said: ${refundFailed}\n\nIt is in your queue on the admin page.`
+          );
         }
       }
-    }
 
-    await base44.asServiceRole.entities.Message.create({
-      booking_id: bookingId,
-      sender_name: 'Stelli',
-      sender_role: isClient ? 'client' : 'lensman',
-      client_email: booking.client_email,
-      lensman_email: booking.creator_email || booking.lensman_email || '',
-      content: `Booking cancelled by the ${isClient ? 'client' : 'creator'}.${reason ? ` Reason: ${reason}.` : ''} ${refundNote}`,
-      kind: 'system',
-    });
+      // 3. The creator's share of a late client cancellation.
+      if (shareOwed && !refundFailed) {
+        const fresh = await Booking.get(bookingId);
+        await releaseHeld(base44, fresh, 'auto');
+      }
 
-    const other = isClient ? booking.creator_email || booking.lensman_email : booking.client_email;
-    if (other) {
-      await base44.asServiceRole.integrations.Core.SendEmail({
-        to: other,
-        subject: `Booking cancelled — ${booking.event_date}`,
-        body: `The ${booking.event_date} shoot was cancelled by the ${isClient ? 'client' : 'creator'}.${reason ? `\n\nReason: ${reason}` : ''}\n\n${refundNote}`,
+      // A creator walking away always puts them in front of a founder.
+      if (!isClient) {
+        const lensman = await base44.asServiceRole.entities.Lensman.get(booking.lensman_id).catch(() => null);
+        if (lensman) {
+          await base44.asServiceRole.entities.Lensman.update(lensman.id, { under_review: true });
+          const contacts = await base44.asServiceRole.entities.CreatorContact.filter({ lensman_id: lensman.id });
+          if (contacts[0]) {
+            await base44.asServiceRole.entities.CreatorContact.update(contacts[0].id, {
+              review_note: `Cancelled the ${booking.event_date} booking.`,
+            });
+          }
+        }
+        if (!refundFailed) {
+          await Booking.update(bookingId, {
+            flagged_for_review: true,
+            flag_reason: 'The creator cancelled this booking. The client was refunded in full. Review the creator.',
+          });
+        }
+        await emailAdmins(
+          base44,
+          'A creator cancelled a booking',
+          `${booking.lensman_name || 'A creator'} cancelled the ${booking.event_date} shoot with ${booking.client_name || 'a client'}.${why ? `\n\nReason: ${why}` : ''}\n\nTheir profile is now under review. It is in your queue on the admin page.`
+        );
+      }
+
+      const who = isClient ? 'client' : 'creator';
+      // The reason is passed on, unless it would hand over contact details
+      // on a booking that was never confirmed.
+      const shareReason = why && (isConfirmed(booking) || !hasContactDetails(why)) ? ` Reason: ${why}` : '';
+      const clientLine = refundFailed
+        ? `${plan.note} The refund is being handled by a founder and will follow shortly.`
+        : plan.note;
+
+      await base44.asServiceRole.entities.Message.create({
+        booking_id: bookingId,
+        sender_name: 'Stelli',
+        sender_role: isClient ? 'client' : 'lensman',
+        client_id: booking.client_id || '',
+        creator_id: booking.creator_id || '',
+        client_email: booking.client_email,
+        lensman_email: booking.creator_email || booking.lensman_email || '',
+        content: `Booking cancelled by the ${who}.${shareReason} ${clientLine}`,
+        kind: 'system',
       });
-    }
 
-    return Response.json({ booking: updated, refundNote, refundAmount });
+      const other = isClient ? booking.creator_email || booking.lensman_email : booking.client_email;
+      await sendEmail(
+        base44,
+        other,
+        `Booking cancelled — ${booking.event_date}`,
+        `The ${booking.event_date} shoot was cancelled by the ${who}.${shareReason}\n\n${clientLine}`
+      );
+
+      return Response.json({
+        booking: { id: bookingId, status: 'cancelled' },
+        tier: plan.tier,
+        refundNote: clientLine,
+        refundAmount: refundFailed ? 0 : fromCents(plan.refundCents),
+      });
+    } finally {
+      await unlockBooking(base44, bookingId, claim.token);
+    }
   } catch (error) {
     console.error('cancelBooking error:', error.message);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: 'That did not go through. Try again.' }, { status: 500 });
   }
 }
