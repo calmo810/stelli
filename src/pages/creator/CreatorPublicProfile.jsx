@@ -3,7 +3,6 @@ import { Link, useOutletContext } from 'react-router-dom';
 import { ChevronRight, ExternalLink } from 'lucide-react';
 import CopyLinkPill from '@/components/dashboard/CopyLinkPill';
 import PhotoReleases from '@/components/dashboard/PhotoReleases';
-import SectionLabel from '@/components/creator/SectionLabel';
 
 function Row({ to, label, value }) {
   return (
@@ -112,7 +111,6 @@ export default function CreatorPublicProfile() {
         ))}
       </div>
 
-      <SectionLabel>Work you can show</SectionLabel>
       <PhotoReleases role="lensman" user={user} />
     </div>
   );

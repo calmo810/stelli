@@ -150,7 +150,7 @@ export default function CreatorOverview() {
         emptyText="Confirmed shoots will appear here."
       />
 
-      <SectionLabel action={viewAll('/lensman-dashboard/requests')}>Your work</SectionLabel>
+      <SectionLabel action={viewAll('/lensman-dashboard/requests')}>Profile performance</SectionLabel>
       <ProfilePerformance profile={myProfile} />
 
       <GlassRows

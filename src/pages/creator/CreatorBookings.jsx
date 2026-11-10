@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import SegmentedTabs from '@/components/dashboard/SegmentedTabs';
 import MyAgreements from '@/components/dashboard/MyAgreements';
-import SectionLabel from '@/components/creator/SectionLabel';
 import Pill from '@/components/shared/Pill';
 import UpcomingShoots from '@/components/creator/UpcomingShoots';
 
@@ -43,7 +42,6 @@ export default function CreatorBookings() {
         />
       </div>
 
-      <SectionLabel>Contracts</SectionLabel>
       <MyAgreements role="lensman" />
 
       <div className="mt-6">
