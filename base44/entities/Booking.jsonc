@@ -100,6 +100,14 @@
       "type": "number",
       "description": "Number of attendees"
     },
+    "budget": {
+      "type": "string",
+      "description": "What the client said they expect to spend, in their own words"
+    },
+    "duration": {
+      "type": "string",
+      "description": "How long the client expects the shoot to run"
+    },
     "total_price": {
       "type": "number",
       "description": "Quote plus the add-ons the client ticked"

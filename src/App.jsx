@@ -15,7 +15,14 @@ const HowItWorks = lazy(() => import('./pages/HowItWorks'));
 const ForCreators = lazy(() => import('./pages/ForCreators'));
 const ProfileWizard = lazy(() => import('./pages/ProfileWizard'));
 const ClientDashboard = lazy(() => import('./pages/ClientDashboard'));
-const LensmanDashboard = lazy(() => import('./pages/LensmanDashboard'));
+const CreatorPortal = lazy(() => import('./pages/creator/CreatorPortal'));
+const CreatorOverview = lazy(() => import('./pages/creator/CreatorOverview'));
+const CreatorRequests = lazy(() => import('./pages/creator/CreatorRequests'));
+const CreatorRequestDetail = lazy(() => import('./pages/creator/CreatorRequestDetail'));
+const CreatorBookings = lazy(() => import('./pages/creator/CreatorBookings'));
+const CreatorCalendar = lazy(() => import('./pages/creator/CreatorCalendar'));
+const CreatorEarnings = lazy(() => import('./pages/creator/CreatorEarnings'));
+const CreatorPublicProfile = lazy(() => import('./pages/creator/CreatorPublicProfile'));
 const Messages = lazy(() => import('./pages/Messages'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const MemoryAlbum = lazy(() => import('./pages/MemoryAlbum'));
@@ -93,9 +100,17 @@ const AuthenticatedApp = () => {
         <Route path="/client-dashboard" element={<ClientDashboard />} />
         <Route path="/client-dashboard/messages" element={<Navigate to="/messages" replace />} />
         <Route path="/client-dashboard/*" element={<ToPortal to="/client-dashboard" />} />
-        <Route path="/lensman-dashboard" element={<LensmanDashboard />} />
         <Route path="/lensman-dashboard/messages" element={<Navigate to="/messages" replace />} />
-        <Route path="/lensman-dashboard/*" element={<ToPortal to="/lensman-dashboard" />} />
+        <Route path="/lensman-dashboard" element={<CreatorPortal />}>
+          <Route index element={<CreatorOverview />} />
+          <Route path="requests" element={<CreatorRequests />} />
+          <Route path="requests/:bookingId" element={<CreatorRequestDetail />} />
+          <Route path="bookings" element={<CreatorBookings />} />
+          <Route path="calendar" element={<CreatorCalendar />} />
+          <Route path="earnings" element={<CreatorEarnings />} />
+          <Route path="profile" element={<CreatorPublicProfile />} />
+          <Route path="*" element={<Navigate to="/lensman-dashboard" replace />} />
+        </Route>
         <Route path="/account-settings" element={<AccountSettings />} />
         <Route path="/portal/messages" element={<Navigate to="/messages" replace />} />
         <Route path="/messages" element={<Messages />} />

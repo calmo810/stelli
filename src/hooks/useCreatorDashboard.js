@@ -9,7 +9,12 @@ const COMPLETED = ['delivered', 'completed'];
 export default function useCreatorDashboard() {
   const queryClient = useQueryClient();
 
-  const { data: user } = useQuery({ queryKey: ['me'], queryFn: () => base44.auth.me() });
+  // A visitor who is not signed in gets null rather than a failed query, so the
+  // workspace can offer them the sign-in door instead of spinning forever.
+  const { data: user, isLoading: userLoading } = useQuery({
+    queryKey: ['me'],
+    queryFn: () => base44.auth.me().catch(() => null),
+  });
 
   const { data: myProfile, refetch: refetchProfile } = useQuery({
     queryKey: ['my-lensman-profile', user?.id],
@@ -68,6 +73,7 @@ export default function useCreatorDashboard() {
 
   return {
     user,
+    userLoading,
     myProfile,
     refetchProfile,
     bookings,

@@ -39,7 +39,7 @@ export default function BookingFlow() {
   const { lensmanId } = useParams();
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({ event_date: '', event_time: '', location: '', event_type: '', event_description: '' });
+  const [form, setForm] = useState({ event_date: '', event_time: '', location: '', event_type: '', event_description: '', budget: '', duration: '' });
   const [account, setAccount] = useState({ first_name: '', email: '', password: '' });
   const [otp, setOtp] = useState('');
   const [stage, setStage] = useState('request');
@@ -98,6 +98,8 @@ export default function BookingFlow() {
       location: form.location,
       eventType: form.event_type,
       brief: form.event_description,
+      budget: form.budget,
+      duration: form.duration,
       clientName: account.first_name || user?.full_name || '',
     });
     return response.data?.booking;
@@ -224,6 +226,15 @@ export default function BookingFlow() {
               <Field label="Shoot type" optional>
                 <input type="text" placeholder="Portraits, senior photos, brand content" value={form.event_type} onChange={(e) => update('event_type', e.target.value)} className={fieldClass} />
               </Field>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <Field label="What you expect to spend" optional>
+                  <input type="text" placeholder="$200–300" value={form.budget} onChange={(e) => update('budget', e.target.value)} className={fieldClass} />
+                </Field>
+                <Field label="How long" optional>
+                  <input type="text" placeholder="2 hours" value={form.duration} onChange={(e) => update('duration', e.target.value)} className={fieldClass} />
+                </Field>
+              </div>
 
               {!user && stage === 'request' && (
                 <div className="pt-4 border-t border-white/10 space-y-5">

@@ -11,7 +11,7 @@ export default async function (req) {
       return Response.json({ error: 'Please sign in to send this request.' }, { status: 401 });
     }
 
-    const { lensmanId, eventDate, eventTime, location, eventType, brief, clientName } =
+    const { lensmanId, eventDate, eventTime, location, eventType, brief, clientName, budget, duration } =
       await req.json();
 
     if (!lensmanId || !eventDate || !brief || !brief.trim()) {
@@ -43,6 +43,8 @@ export default async function (req) {
       event_type: eventType || 'Custom shoot',
       location: location || '',
       event_description: brief.trim().slice(0, 2000),
+      budget: String(budget || '').trim().slice(0, 120),
+      duration: String(duration || '').trim().slice(0, 60),
       status: 'requested',
       payment_status: 'pending',
       client_last_read_at: new Date().toISOString(),
