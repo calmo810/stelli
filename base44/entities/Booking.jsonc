@@ -433,6 +433,10 @@
       "type": "string",
       "format": "date-time",
       "description": "When the album link was last reset, cutting off the previous link"
+    },
+    "manual_payout_id": {
+      "type": "string",
+      "description": "Set when a founder paid this booking's creator by hand. The automatic payout treats the booking as already paid."
     }
   },
   "required": [

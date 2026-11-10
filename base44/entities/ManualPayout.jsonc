@@ -51,6 +51,14 @@
     "waiting_reason": {
       "description": "Why it has not gone out yet",
       "type": "string"
+    },
+    "booking_id": {
+      "type": "string",
+      "description": "The booking this payout is for, if any. A payout for a booking is that booking's payout: the automatic path will not pay it again."
+    },
+    "request_id": {
+      "type": "string",
+      "description": "Set by the admin page for each confirmed payout, so the same confirmation sent twice creates one payout"
     }
   },
   "required": [
