@@ -147,7 +147,7 @@ export default function DeliveryCard({ booking, role, onChanged }) {
         </div>
       )}
 
-      {role === 'lensman' && (
+      {role === 'lensman' && !delivered && (
         <div className="mt-4 space-y-3">
           <div className="flex flex-wrap gap-2">
             {[

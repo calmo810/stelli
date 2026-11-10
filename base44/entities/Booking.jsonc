@@ -428,6 +428,11 @@
     "creator_payout_original": {
       "type": "number",
       "description": "The creator's payout before a partial refund or late cancellation reduced it, in dollars"
+    },
+    "album_token_reset_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the album link was last reset, cutting off the previous link"
     }
   },
   "required": [

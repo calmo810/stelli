@@ -1,8 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { viewerRole, creatorEmail } from '../../shared/bookingAccess.ts';
 import { notifyBoth } from '../../shared/notify.ts';
+import { photoAddBlocker, photoRemoveBlocker } from '../../shared/bookingRules.ts';
+import { newAlbumToken } from '../../shared/albumAccess.ts';
+import { SITE_ORIGIN } from '../../shared/origins.ts';
 import {
-  DELIVERABLE,
   MAX_DELIVERY_PHOTOS,
   MAX_PHOTOS_PER_UPLOAD,
   deliveryPhotoRows,
@@ -16,7 +18,12 @@ import {
  *
  *   list   — the booking's photos with signed links (either side of the booking)
  *   add    — the creator files newly uploaded photos against the booking
- *   remove — the creator takes one back before the client sees the album
+ *   remove — the creator takes one back, until the final edits are delivered
+ *
+ * Once the final edits are delivered the album is locked: the creator can no
+ * longer add to it or take photos out of it. What the client was handed, and
+ * had 48 hours to check, stays what they have. A founder can still remove a
+ * photo if one has to come down.
  */
 export default async function (req) {
   try {
@@ -52,6 +59,9 @@ export default async function (req) {
       const photoId = typeof body.photoId === 'string' ? body.photoId : '';
       if (!photoId) return Response.json({ error: 'Which photo?' }, { status: 400 });
 
+      const locked = user.role === 'admin' ? '' : photoRemoveBlocker(booking);
+      if (locked) return Response.json({ error: locked }, { status: 409 });
+
       const photo = await base44.asServiceRole.entities.DeliveryPhoto
         .get(photoId)
         .catch((e) => (e.status === 404 ? null : Promise.reject(e)));
@@ -67,12 +77,9 @@ export default async function (req) {
       return Response.json({ error: 'Unknown action.' }, { status: 400 });
     }
 
-    if (!DELIVERABLE.includes(booking.status)) {
-      return Response.json(
-        { error: 'Photos can go to the client once the shoot is paid for.' },
-        { status: 400 }
-      );
-    }
+    // Paid, not cancelled, and not yet finally delivered.
+    const addBlocker = photoAddBlocker(booking);
+    if (addBlocker) return Response.json({ error: addBlocker }, { status: 409 });
 
     const incoming = Array.isArray(body.files) ? body.files.slice(0, MAX_PHOTOS_PER_UPLOAD) : [];
     const cleaned = incoming
@@ -120,13 +127,18 @@ export default async function (req) {
     // The first hand-off gets an email; later batches show up quietly, so a
     // creator uploading forty photos does not send forty notifications.
     if (!existing.length && booking.client_email) {
+      // The link carries the album token, so it opens without signing in.
+      const albumToken = booking.album_token || newAlbumToken();
+      if (!booking.album_token) {
+        await base44.asServiceRole.entities.Booking.update(bookingId, { album_token: albumToken });
+      }
       await notifyBoth(
         base44,
         [booking.client_email],
         'New photos from your shoot',
         `${booking.lensman_name || 'Your creator'} added ${rows.length} photo${
           rows.length === 1 ? '' : 's'
-        } to your ${booking.event_date} shoot.\n\nOpen your album: https://getstelli.com/album/${booking.id}`
+        } to your ${booking.event_date} shoot.\n\nOpen your album: ${SITE_ORIGIN}/album/${booking.id}?t=${albumToken}`
       );
     }
 

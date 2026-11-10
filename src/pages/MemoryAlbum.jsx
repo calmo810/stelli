@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { ExternalLink, Copy, Check, ImageOff } from 'lucide-react';
 import { safeHref } from '@/lib/safeHref';
 
 export default function MemoryAlbum() {
   const { bookingId } = useParams();
+  const queryClient = useQueryClient();
   const [copied, setCopied] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [resetNote, setResetNote] = useState('');
 
   // The album is unlocked by the token in the link, not by the booking ID alone.
   const token = new URLSearchParams(window.location.search).get('t') || '';
@@ -20,16 +23,42 @@ export default function MemoryAlbum() {
       return {
         booking: response.data?.booking || null,
         photos: response.data?.photos || [],
+        canResetLink: Boolean(response.data?.canResetLink),
       };
     },
+    retry: false,
   });
 
   const booking = album?.booking || null;
   const photos = album?.photos || [];
 
-  const shareLink = booking?.album_token
-    ? `${window.location.origin}/album/${bookingId}?t=${booking.album_token}`
+  // The link only opens with its token. A guest already has theirs in the URL.
+  const shareToken = booking?.album_token || token;
+  const shareLink = shareToken
+    ? `${window.location.origin}/album/${bookingId}?t=${shareToken}`
     : `${window.location.origin}/album/${bookingId}`;
+
+  // The client can cut off a link that has gone somewhere it shouldn't.
+  const resetLink = async () => {
+    const sure = window.confirm(
+      'Reset the album link? The link you shared before will stop working for everyone. You will get a new one to share.'
+    );
+    if (!sure) return;
+    setResetting(true);
+    setResetNote('');
+    try {
+      const response = await base44.functions.invoke('resetAlbumLink', { bookingId });
+      const fresh = response.data?.album_token;
+      if (!fresh) throw new Error(response.data?.error || 'The link could not be reset.');
+      window.history.replaceState({}, '', `/album/${bookingId}?t=${fresh}`);
+      await queryClient.invalidateQueries({ queryKey: ['album-booking', bookingId] });
+      setResetNote('Done. The old link no longer works. Share the new one below.');
+    } catch (e) {
+      setResetNote(e?.response?.data?.error || e.message || 'The link could not be reset. Try again.');
+    } finally {
+      setResetting(false);
+    }
+  };
 
   const copyLink = () => {
     navigator.clipboard.writeText(shareLink);
@@ -129,6 +158,22 @@ export default function MemoryAlbum() {
                 {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
               </button>
             </div>
+            {album?.canResetLink && (
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={resetLink}
+                  disabled={resetting}
+                  className="font-body text-[12px] text-white/50 underline underline-offset-4 transition-colors hover:text-white disabled:opacity-50"
+                >
+                  {resetting ? 'Resetting…' : 'Reset this link'}
+                </button>
+                <p className="mt-1.5 font-body text-[11px] leading-relaxed text-white/35">
+                  Anyone with the link can see this album. If it has gone somewhere it shouldn’t, reset it and the old link stops working.
+                </p>
+                {resetNote && <p className="mt-2 font-body text-[12px] text-white/70">{resetNote}</p>}
+              </div>
+            )}
           </div>
         </motion.div>
       </div>

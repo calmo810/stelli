@@ -8,9 +8,6 @@
 export const MAX_DELIVERY_PHOTOS = 120;
 export const MAX_PHOTOS_PER_UPLOAD = 20;
 
-/** Shoots whose money is in escrow and are past the quote stage. */
-export const DELIVERABLE = ['confirmed', 'in_progress', 'awaiting_delivery', 'delivered', 'completed'];
-
 /** Rows for a booking's photos, oldest upload first. */
 export async function deliveryPhotoRows(base44, bookingId, limit = MAX_DELIVERY_PHOTOS) {
   const result = await base44.asServiceRole.entities.DeliveryPhoto
