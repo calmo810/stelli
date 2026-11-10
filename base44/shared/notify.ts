@@ -16,6 +16,21 @@ export async function notifyBoth(base44, emails, subject, body) {
   await Promise.all(recipients.map((to) => sendEmail(base44, to, subject, body)));
 }
 
+/** Tells every founder. Used when something needs a person. Never throws. */
+export async function emailAdmins(base44, subject, body) {
+  try {
+    const admins = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
+    await notifyBoth(
+      base44,
+      admins.map((admin) => admin?.email),
+      subject,
+      body
+    );
+  } catch (error) {
+    console.error('Founder notice failed -', error.message);
+  }
+}
+
 const BATCH_MS = 15 * 60 * 1000;
 
 /**

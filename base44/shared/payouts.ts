@@ -1,6 +1,6 @@
 import { secrets } from 'base44:runtime';
 import { creatorPayout, clientTotal, stripeGet, stripePost, HOLD_HOURS } from './stripe.ts';
-import { bookingBreakdown, chargeMatches, fromCents, money, toCents } from './money.ts';
+import { money, toCents } from './money.ts';
 import { notifyBoth, sendEmail } from './notify.ts';
 import { sendWaitingManualPayouts } from './manualPayouts.ts';
 
@@ -126,102 +126,6 @@ export async function releaseWaitingPayouts(base44, lensman) {
     released: results.filter((result) => result.released).length + manualSent,
     results,
   };
-}
-
-/**
- * Records a completed payment.
- *
- * Both the immediate card payment and the delayed bank payment land here, so
- * the money is worked out in exactly one place. It is safe to receive the same
- * payment twice: a repeat changes nothing and sends no emails. It only ever
- * touches the quote that was paid — never the other quotes on the booking.
- */
-export async function markBookingPaid(base44, session) {
-  const bookingId = session?.metadata?.booking_id;
-  if (!bookingId) return { paid: false, reason: 'no-booking' };
-
-  const booking = await base44.asServiceRole.entities.Booking.get(bookingId).catch(() => null);
-  if (!booking) return { paid: false, reason: 'not-found' };
-
-  // The same payment arriving again is not a second payment.
-  const repeat =
-    booking.stripe_payment_intent_id &&
-    booking.stripe_payment_intent_id === session.payment_intent &&
-    ['held', 'released', 'partially_refunded'].includes(booking.payment_status);
-  if (repeat) return { paid: false, reason: 'already-recorded' };
-
-  const quoteId = session?.metadata?.quote_id;
-  const quote = quoteId
-    ? await base44.asServiceRole.entities.Quote.get(quoteId).catch(() => null)
-    : null;
-
-  // One subtotal: the quote plus the add-ons the client picked when they
-  // accepted it. Fee and payout both come from it — never from the quote alone.
-  const breakdown = bookingBreakdown(quote?.amount, booking.picked_add_ons);
-  const charged = Number(session.amount_total || 0) / 100;
-  const tax = Number(session.total_details?.amount_tax || 0) / 100;
-  // What Stripe charged before tax, to compare with what the booking should cost.
-  const chargedBeforeTaxCents =
-    typeof session.amount_subtotal === 'number'
-      ? session.amount_subtotal
-      : Number(session.amount_total || 0) - Number(session.total_details?.amount_tax || 0);
-  const amountMismatch = !chargeMatches(breakdown, chargedBeforeTaxCents);
-  const now = new Date().toISOString();
-
-  // The charge itself, so the later transfer can be tied back to it.
-  let chargeId = '';
-  if (session.payment_intent) {
-    try {
-      const intent = await stripeGet(`payment_intents/${session.payment_intent}`);
-      chargeId = intent?.latest_charge || '';
-    } catch (error) {
-      console.error('Could not read the charge for session', session.id, '-', error.message);
-    }
-  }
-
-  // A newer quote replaced the one that was paid, or the booking was called
-  // off. The money still lands, but a founder decides what happens to it.
-  const replacedQuote = Boolean(booking.quote_id) && booking.quote_id !== quote?.id;
-  const needsReview = replacedQuote || booking.status === 'cancelled' || amountMismatch;
-  const reviewReason = amountMismatch
-    ? `Stripe charged ${money(fromCents(chargedBeforeTaxCents))} before tax, but this booking should cost ${money(fromCents(breakdown.clientTotalCents))}. Check before releasing or refunding.`
-    : 'Payment came in for an old quote or a cancelled booking. Check before releasing or refunding.';
-
-  await base44.asServiceRole.entities.Booking.update(bookingId, {
-    quote_id: quote?.id || booking.quote_id || '',
-    payment_status: 'held',
-    paid_at: now,
-    stripe_payment_intent_id: session.payment_intent || '',
-    stripe_charge_id: chargeId,
-    transfer_group: `booking_${bookingId}`,
-    total_price: fromCents(breakdown.subtotalCents),
-    fee_amount: fromCents(breakdown.clientFeeCents),
-    creator_payout: fromCents(breakdown.creatorPayoutCents),
-    amount_charged: charged,
-    tax_amount: tax,
-    // A cancelled booking stays cancelled until a founder decides.
-    ...(booking.status === 'cancelled' ? {} : { status: 'confirmed' }),
-    ...(needsReview
-      ? {
-          flagged_for_review: true,
-          flag_reason: reviewReason,
-        }
-      : {}),
-  });
-
-  // Only the quote that was paid becomes accepted.
-  if (quote) {
-    await base44.asServiceRole.entities.Quote.update(quote.id, { status: 'accepted' });
-  }
-
-  await notifyBoth(
-    base44,
-    [booking.client_email, booking.creator_email || booking.lensman_email],
-    'Payment held',
-    `The ${booking.event_date} shoot is confirmed. Payment of ${money(charged)} is held by Stelli until your photos are delivered.`
-  );
-
-  return { paid: true, charged, tax, needsReview };
 }
 
 export async function refundBooking(base44, booking, amount, note) {

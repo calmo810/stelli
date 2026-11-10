@@ -7,15 +7,28 @@ export { SERVICE_FEE_RATE, money, toCents } from './money.ts';
 export const HOLD_HOURS = 48;
 
 /**
- * Stelli takes real payments, so the live keys come first. The test keys are
- * only a fallback for a build that has no live key stored.
+ * Which Stripe mode this app is running in.
+ *
+ * Stelli takes real payments, so live is the default whenever a live key is
+ * stored. Setting the secret STRIPE_MODE to "test" switches the whole app to
+ * the test keys without deleting the live one — that is how the payment flow
+ * is rehearsed. Anything other than "test" leaves the default alone.
  */
-export function stripeKey() {
-  return secrets.get('STRIPE_SECRET_KEY') || secrets.get('STRIPE_TEST_SECRET_KEY');
+export function stripeMode() {
+  const forced = String(secrets.get('STRIPE_MODE') || '').trim().toLowerCase();
+  if (forced === 'test' && secrets.get('STRIPE_TEST_SECRET_KEY')) return 'test';
+  return secrets.get('STRIPE_SECRET_KEY') ? 'live' : 'test';
 }
 
-export function stripeMode() {
-  return secrets.get('STRIPE_SECRET_KEY') ? 'live' : 'test';
+export function stripeKey() {
+  return stripeMode() === 'live'
+    ? secrets.get('STRIPE_SECRET_KEY')
+    : secrets.get('STRIPE_TEST_SECRET_KEY');
+}
+
+/** True when a Stripe object (event, session, charge) belongs to the mode in use. */
+export function sameStripeMode(livemode) {
+  return Boolean(livemode) === (stripeMode() === 'live');
 }
 
 export function webhookSecret() {

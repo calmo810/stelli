@@ -1,7 +1,14 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { secrets } from 'base44:runtime';
 import { notifyBoth, sendEmail } from '../../shared/notify.ts';
-import { markBookingPaid, releaseWaitingPayouts } from '../../shared/payouts.ts';
+import { releaseWaitingPayouts } from '../../shared/payouts.ts';
+import {
+  markBookingPaid,
+  markCheckoutExpired,
+  markPaymentFailed,
+  markPaymentProcessing,
+} from '../../shared/payments.ts';
+import { sameStripeMode } from '../../shared/stripe.ts';
 
 /** Anything older than this is a replay and is refused. */
 const SIGNATURE_TOLERANCE_SECONDS = 300;
@@ -102,6 +109,20 @@ export default async function (req) {
     const event = JSON.parse(payload);
     const object = event?.data?.object || {};
 
+    // The endpoint accepts both the live and the test signing secret, so the
+    // event's own mode has to match the keys this app is running on. A test
+    // event must never mark a real booking paid; and while the app is switched
+    // to test mode for a rehearsal, live events are sent back for Stripe to
+    // retry rather than dropped.
+    if (!sameStripeMode(event.livemode)) {
+      if (event.livemode) {
+        console.warn(`Live Stripe event ${event.type} arrived while in test mode. Asking Stripe to retry.`);
+        return Response.json({ error: 'App is in test mode' }, { status: 409 });
+      }
+      console.warn(`Ignored test-mode Stripe event ${event.type}.`);
+      return Response.json({ received: true, ignored: 'test-mode event' });
+    }
+
     // One-off payments taken by a founder outside the booking flow.
     const oneOffId = object?.metadata?.one_off_charge_id;
     if (oneOffId && event.type.startsWith('checkout.session.')) {
@@ -124,45 +145,21 @@ export default async function (req) {
     }
 
     // Paid by card: the money is held. Paid by bank: it has to clear first.
+    // Each handler checks the booking's current state itself, so an event that
+    // is retried or arrives out of order changes nothing.
     if (event.type === 'checkout.session.completed') {
-      const bookingId = object?.metadata?.booking_id;
-
-      if (bookingId && object.payment_status === 'paid') {
+      if (object.payment_status === 'paid' || object.payment_status === 'no_payment_required') {
         await markBookingPaid(base44, object);
-      } else if (bookingId && object.payment_status === 'unpaid') {
-        const booking = await base44.asServiceRole.entities.Booking.get(bookingId).catch(() => null);
-        if (booking) {
-          // Not confirmed and contact details stay locked until the money clears.
-          await base44.asServiceRole.entities.Booking.update(bookingId, {
-            payment_status: 'processing',
-          });
-          await sendEmail(
-            base44,
-            booking.client_email,
-            'Your payment is processing',
-            'Your payment is processing. Your date is locked in once it clears, usually within a few business days.'
-          );
-        }
+      } else {
+        // Not confirmed and contact details stay locked until the money clears.
+        await markPaymentProcessing(base44, object);
       }
     } else if (event.type === 'checkout.session.async_payment_succeeded') {
       await markBookingPaid(base44, object);
     } else if (event.type === 'checkout.session.async_payment_failed') {
-      const bookingId = object?.metadata?.booking_id;
-      if (bookingId) {
-        const booking = await base44.asServiceRole.entities.Booking.get(bookingId).catch(() => null);
-        if (booking) {
-          await base44.asServiceRole.entities.Booking.update(bookingId, {
-            payment_status: 'pending',
-            status: 'quote_accepted',
-          });
-          await sendEmail(
-            base44,
-            booking.client_email,
-            'Your bank payment did not go through',
-            "Your bank payment didn't go through. Open your Stelli messages to pay again."
-          );
-        }
-      }
+      await markPaymentFailed(base44, object);
+    } else if (event.type === 'checkout.session.expired') {
+      await markCheckoutExpired(base44, object);
     } else if (event.type === 'charge.refunded') {
       const charge = object;
       // Found from the payment intent — charge metadata is not reliable.

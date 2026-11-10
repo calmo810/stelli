@@ -353,6 +353,27 @@
     "billing_address": {
       "type": "string",
       "description": "Client billing address"
+    },
+    "stripe_livemode": {
+      "type": "boolean",
+      "description": "Whether the client's payment was taken in Stripe live mode. False means a test payment that must never be paid out with real money."
+    },
+    "stray_payment_intent_id": {
+      "type": "string",
+      "description": "A payment that arrived for this booking but did not match its accepted quote (old checkout, wrong amount, cancelled or already-paid booking). Kept apart until a founder decides."
+    },
+    "stray_payment_amount": {
+      "type": "number",
+      "description": "What the stray payment charged, in dollars"
+    },
+    "stray_payment_reason": {
+      "type": "string",
+      "description": "Why the stray payment was not treated as this booking's payment"
+    },
+    "stray_payment_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the stray payment arrived"
     }
   },
   "required": [

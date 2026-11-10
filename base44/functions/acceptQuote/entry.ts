@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { notifyBoth } from '../../shared/notify.ts';
 import { createContractForBooking } from '../../shared/bookingContract.ts';
 import { viewerRole } from '../../shared/bookingAccess.ts';
+import { acceptBlocker } from '../../shared/bookingRules.ts';
 import { loadCreatorContact } from '../../shared/creatorOwner.ts';
 import { bookingBreakdown, fromCents, money, pickOfferedAddOns } from '../../shared/money.ts';
 
@@ -30,16 +31,24 @@ export default async function (req) {
       return Response.json({ error: 'Only the client on this booking can accept the quote.' }, { status: 403 });
     }
 
-    if (quote.status === 'accepted') {
-      return Response.json({ quote, alreadyAccepted: true });
-    }
-    if (quote.status !== 'sent') {
-      return Response.json({ error: `This quote was already ${quote.status}.` }, { status: 409 });
+    // Accepting the quote that is already the accepted one is a no-op, so a
+    // second tap (or coming back to pay later) never changes the add-ons.
+    if (quote.status === 'accepted' && booking.quote_id === quote.id) {
+      return Response.json({
+        quote,
+        alreadyAccepted: true,
+        total: booking.total_price,
+        pickedAddOns: booking.picked_add_ons || [],
+      });
     }
 
-    if (quote.expires_at && new Date(quote.expires_at) < new Date()) {
-      await base44.asServiceRole.entities.Quote.update(quote.id, { status: 'expired' });
-      return Response.json({ error: 'This quote expired. Ask your creator for a new one.' }, { status: 409 });
+    // Only a live, unexpired quote on an open, unpaid booking can be accepted.
+    const blocker = acceptBlocker(booking, quote, Date.now());
+    if (blocker) {
+      if (quote.status === 'sent' && quote.expires_at && new Date(quote.expires_at) < new Date()) {
+        await base44.asServiceRole.entities.Quote.update(quote.id, { status: 'expired' });
+      }
+      return Response.json({ error: blocker }, { status: 409 });
     }
 
     // Only the add-ons offered on this quote can be picked, at the price the

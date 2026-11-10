@@ -1,10 +1,20 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { secrets } from 'base44:runtime';
 import { BOOKING_LABEL } from '../../shared/bookingContract.ts';
-import { stripePost } from '../../shared/stripe.ts';
+import { sameStripeMode, stripeGet, stripePost } from '../../shared/stripe.ts';
 import { bookingBreakdown, fromCents } from '../../shared/money.ts';
+import { checkoutBlocker } from '../../shared/bookingRules.ts';
+import { viewerRole } from '../../shared/bookingAccess.ts';
 import { safeOrigin } from '../../shared/origins.ts';
 
+/**
+ * Opens Stripe Checkout for the quote the client accepted.
+ *
+ * The amount comes from the accepted quote and the add-ons saved with it —
+ * never from the browser. A booking has one live Checkout session at a time:
+ * asking again returns the same page while it is still open, so a double click
+ * cannot open two ways to pay.
+ */
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
@@ -24,50 +34,76 @@ export default async function (req) {
       return Response.json({ error: 'Booking ID is required' }, { status: 400 });
     }
 
-    const booking = await base44.asServiceRole.entities.Booking.get(bookingId);
+    const booking = await base44.asServiceRole.entities.Booking.get(bookingId).catch(() => null);
     if (!booking) return Response.json({ error: 'Booking not found' }, { status: 404 });
 
-    const isClient = booking.client_id === user.id || booking.client_email === user.email;
-    if (!isClient) {
+    if (viewerRole(booking, user) !== 'client') {
       return Response.json({ error: 'This booking belongs to someone else.' }, { status: 403 });
     }
 
-    if (['processing', 'held', 'released'].includes(booking.payment_status)) {
-      return Response.json({ error: 'This booking is already paid.' }, { status: 409 });
-    }
-
-    // The amount always comes from the quote the client accepted — never the browser.
-    let quote = booking.quote_id
-      ? await base44.asServiceRole.entities.Quote.get(booking.quote_id).catch(() => null)
+    // The amount always comes from the quote the client accepted.
+    let quoteId = booking.quote_id || '';
+    let quote = quoteId
+      ? await base44.asServiceRole.entities.Quote.get(quoteId).catch(() => null)
       : null;
 
-    // Bookings accepted before quote_id existed: fall back to the most recent
-    // accepted quote and remember it, so nothing has to be re-accepted by hand.
+    // Bookings accepted before quote_id existed: fall back to the accepted
+    // quote and remember it, so nothing has to be re-accepted by hand.
     if (!quote) {
       const accepted = await base44.asServiceRole.entities.Quote.filter(
         { booking_id: bookingId, status: 'accepted' },
         '-created_date'
       );
-      quote = accepted[0];
+      quote = accepted[0] || null;
       if (quote) {
+        quoteId = quote.id;
         await base44.asServiceRole.entities.Booking.update(bookingId, { quote_id: quote.id });
       }
     }
 
-    if (!quote || !quote.amount) {
-      return Response.json(
-        { error: 'There is no accepted quote on this booking yet.' },
-        { status: 400 }
-      );
-    }
+    // Open booking, not already paid, and this exact quote is the accepted one.
+    const blocker = checkoutBlocker({ ...booking, quote_id: quoteId }, quote, Date.now());
+    if (blocker) return Response.json({ error: blocker }, { status: 409 });
 
     // The quote plus the add-ons the client ticked when they accepted it,
-    // worked out here in whole cents — never trusted from the browser. The
-    // same breakdown sets the fee and the payout when the payment lands.
+    // worked out here in whole cents. The same breakdown sets the fee and the
+    // payout when the payment lands.
     const breakdown = bookingBreakdown(quote.amount, booking.picked_add_ons);
+    if (breakdown.subtotalCents <= 0) {
+      return Response.json({ error: 'There is no accepted quote on this booking yet.' }, { status: 400 });
+    }
     const price = fromCents(breakdown.subtotalCents);
     const fee = fromCents(breakdown.clientFeeCents);
     const total = fromCents(breakdown.clientTotalCents);
+
+    // One live session per booking. If the last one is still open and is for
+    // this quote at this price, hand the same page back.
+    const previousId = booking.stripe_checkout_session_id || '';
+    if (previousId) {
+      const previous = await stripeGet(`checkout/sessions/${previousId}`).catch(() => null);
+      const samePurchase =
+        previous &&
+        sameStripeMode(previous.livemode) &&
+        previous.metadata?.quote_id === quote.id &&
+        Number(previous.amount_subtotal) === breakdown.clientTotalCents;
+
+      if (previous?.status === 'complete' && samePurchase) {
+        return Response.json(
+          { error: 'Your payment is being confirmed. Give it a minute, then refresh.' },
+          { status: 409 }
+        );
+      }
+      if (previous?.status === 'open' && samePurchase && previous.url) {
+        return Response.json({ url: previous.url, sessionId: previous.id, price, fee, total });
+      }
+      // Open but for something else (an older quote): close it before opening a new one.
+      if (previous?.status === 'open') {
+        await stripePost(`checkout/sessions/${previousId}/expire`, new URLSearchParams()).catch((error) =>
+          console.error('Could not expire checkout session', previousId, '-', error.message)
+        );
+      }
+    }
+
     const transferGroup = `booking_${bookingId}`;
     const base = safeOrigin(origin);
     const appId = secrets.get('BASE44_APP_ID') || '';
@@ -84,7 +120,10 @@ export default async function (req) {
     body.set('line_items[0][price_data][currency]', 'usd');
     body.set('line_items[0][price_data][unit_amount]', String(breakdown.baseCents));
     body.set('line_items[0][price_data][product_data][name]', BOOKING_LABEL);
-    body.set('line_items[0][price_data][product_data][description]', `${eventLabel} on ${booking.event_date || 'TBC'}`);
+    body.set(
+      'line_items[0][price_data][product_data][description]',
+      `${String(eventLabel).slice(0, 200)} on ${booking.event_date || 'TBC'}`
+    );
 
     // Every add-on the client ticked, on its own line.
     breakdown.addOns.forEach((addOn, index) => {
@@ -115,9 +154,15 @@ export default async function (req) {
     body.set('payment_intent_data[metadata][booking_id]', bookingId);
     body.set('payment_intent_data[metadata][quote_id]', quote.id);
 
-    const session = await stripePost('checkout/sessions', body, `booking-checkout-${quote.id}`);
+    // Two clicks at the same moment share this key and get the same session.
+    // A fresh attempt after the last session ended gets a new key, so a client
+    // whose bank payment failed is not handed the dead page back.
+    const idempotencyKey = `booking-checkout-${quote.id}-${breakdown.clientTotalCents}-${
+      previousId ? previousId.slice(-12) : 'first'
+    }`;
+    const session = await stripePost('checkout/sessions', body, idempotencyKey);
 
-    // Kept so a later quote can close this session instead of leaving it payable.
+    // The session on record. Only a payment through this one confirms the booking.
     await base44.asServiceRole.entities.Booking.update(bookingId, {
       stripe_checkout_session_id: session.id,
     });
@@ -131,6 +176,9 @@ export default async function (req) {
     });
   } catch (error) {
     console.error('createBookingCheckout error:', error.message);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json(
+      { error: 'Payment could not be started. Try again in a moment.' },
+      { status: 500 }
+    );
   }
 }
