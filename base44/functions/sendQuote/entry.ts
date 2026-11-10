@@ -105,13 +105,27 @@ export default async function (req) {
       status: 'sent',
     });
 
-    // Nothing is accepted any more: no quote, no add-ons, no session on record.
+    // The agreement written for the old quote no longer describes this booking.
+    const contracts = await base44.asServiceRole.entities.BookingContract.filter({ booking_id: bookingId });
+    for (const contract of contracts) {
+      if (contract.status === 'superseded') continue;
+      await base44.asServiceRole.entities.BookingContract.update(contract.id, {
+        status: 'superseded',
+        superseded_at: new Date().toISOString(),
+      });
+    }
+
+    // Nothing is accepted any more: no quote, no add-ons, no agreement, no
+    // session on record.
     await base44.asServiceRole.entities.Booking.update(bookingId, {
       status: 'quoted',
       total_price: quote.amount,
       quote_id: '',
       picked_add_ons: [],
       stripe_checkout_session_id: '',
+      contract_id: '',
+      client_contract_accepted: false,
+      creator_contract_accepted: false,
     });
 
     await recordFirstReply(base44, booking);

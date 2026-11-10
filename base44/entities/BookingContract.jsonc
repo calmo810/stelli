@@ -112,6 +112,46 @@
       "type": "string",
       "format": "date-time",
       "description": "Contract creation timestamp"
+    },
+    "quote_id": {
+      "type": "string",
+      "description": "The accepted quote this contract was written for. A new accepted quote gets a new contract."
+    },
+    "status": {
+      "type": "string",
+      "description": "active, or superseded once a newer quote replaced the one this contract was written for. Older contracts with no value are active."
+    },
+    "superseded_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When a newer quote replaced this contract"
+    },
+    "base_price": {
+      "type": "number",
+      "description": "The quoted price of the shoot itself, before add-ons, in dollars"
+    },
+    "add_on_lines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Each add-on the client picked, with its price"
+    },
+    "service_fee": {
+      "type": "number",
+      "description": "Stelli's 14% service fee charged to the client on top of the creator's price, in dollars"
+    },
+    "creator_net": {
+      "type": "number",
+      "description": "What the creator receives after Stelli's 14% platform fee, in dollars"
     }
   },
   "required": [

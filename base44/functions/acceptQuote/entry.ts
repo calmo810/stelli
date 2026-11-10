@@ -78,15 +78,28 @@ export default async function (req) {
     });
 
     const contact = await loadCreatorContact(base44, booking.lensman_id);
+    // The agreement for THIS quote and these add-ons. A contract written for
+    // an earlier quote is retired, so the client never pays one price under an
+    // agreement that states another. Accepting the quote is the client's
+    // acceptance, and is recorded on the contract, the booking, and as a
+    // signed-acceptance record.
     const contract = await createContractForBooking(base44, {
       booking,
-      quote: { ...quote, amount: subtotal, add_ons: chosen },
+      quote,
+      pickedAddOns: chosen,
       lensman: null,
       contact,
     });
-    await base44.asServiceRole.entities.BookingContract.update(contract.id, {
-      client_accepted_at: new Date().toISOString(),
-    });
+    await base44.asServiceRole.entities.AgreementAcceptance.create({
+      user_id: user.id,
+      user_email: user.email,
+      booking_id: booking.id,
+      document_type: 'booking_contract',
+      document_version: contract.version,
+      accepted_at: new Date().toISOString(),
+      ip_address: req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || '',
+      user_agent: req.headers.get('user-agent') || '',
+    }).catch((error) => console.error('Contract acceptance record failed -', error.message));
 
     const addOnLine = chosen.length
       ? `\nAdd-ons: ${chosen.map((addOn) => `${addOn.name} (+${money(addOn.price)})`).join(', ')}`
