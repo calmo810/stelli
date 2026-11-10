@@ -87,11 +87,21 @@ export default async function (req) {
         previous.metadata?.quote_id === quote.id &&
         Number(previous.amount_subtotal) === breakdown.clientTotalCents;
 
+      // Finished and paid (or a bank payment still clearing): the webhook is
+      // about to record it. A finished session whose bank payment failed is
+      // spent, and falls through to a fresh page.
       if (previous?.status === 'complete' && samePurchase) {
-        return Response.json(
-          { error: 'Your payment is being confirmed. Give it a minute, then refresh.' },
-          { status: 409 }
-        );
+        let inFlight = previous.payment_status === 'paid';
+        if (!inFlight && previous.payment_intent) {
+          const intent = await stripeGet(`payment_intents/${previous.payment_intent}`).catch(() => null);
+          inFlight = !intent || ['processing', 'succeeded', 'requires_capture'].includes(intent.status);
+        }
+        if (inFlight) {
+          return Response.json(
+            { error: 'Your payment is being confirmed. Give it a minute, then refresh.' },
+            { status: 409 }
+          );
+        }
       }
       if (previous?.status === 'open' && samePurchase && previous.url) {
         return Response.json({ url: previous.url, sessionId: previous.id, price, fee, total });

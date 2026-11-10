@@ -188,10 +188,11 @@ export async function markPaymentFailed(base44, session) {
     return { reset: false, reason: 'not-the-payment-in-progress' };
   }
 
+  // The finished session stays on record: the next checkout sees it is spent
+  // and opens a fresh page under a new key.
   await base44.asServiceRole.entities.Booking.update(bookingId, {
     payment_status: 'pending',
     stripe_payment_intent_id: '',
-    stripe_checkout_session_id: '',
   });
 
   await sendEmail(
@@ -204,15 +205,10 @@ export async function markPaymentFailed(base44, session) {
   return { reset: true };
 }
 
-/** A Checkout page that timed out. The next attempt starts from a clean slate. */
-export async function markCheckoutExpired(base44, session) {
-  const bookingId = session?.metadata?.booking_id;
-  if (!bookingId) return { cleared: false };
-
-  const booking = await base44.asServiceRole.entities.Booking.get(bookingId).catch(() => null);
-  if (!booking || booking.stripe_checkout_session_id !== session.id) return { cleared: false };
-  if ((booking.payment_status || 'pending') !== 'pending') return { cleared: false };
-
-  await base44.asServiceRole.entities.Booking.update(bookingId, { stripe_checkout_session_id: '' });
-  return { cleared: true };
+/**
+ * A Checkout page that timed out. Nothing needs to change: the session stays on
+ * record, and the next checkout sees it has expired and opens a fresh one.
+ */
+export async function markCheckoutExpired(_base44, session) {
+  return { noted: Boolean(session?.id) };
 }
