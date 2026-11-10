@@ -1,14 +1,6 @@
 import { secrets } from 'base44:runtime';
-import {
-  creatorPayout,
-  clientTotal,
-  money,
-  serviceFee,
-  stripeGet,
-  stripePost,
-  toCents,
-  HOLD_HOURS,
-} from './stripe.ts';
+import { creatorPayout, clientTotal, stripeGet, stripePost, HOLD_HOURS } from './stripe.ts';
+import { bookingBreakdown, chargeMatches, fromCents, money, toCents } from './money.ts';
 import { notifyBoth, sendEmail } from './notify.ts';
 import { sendWaitingManualPayouts } from './manualPayouts.ts';
 
@@ -163,9 +155,17 @@ export async function markBookingPaid(base44, session) {
     ? await base44.asServiceRole.entities.Quote.get(quoteId).catch(() => null)
     : null;
 
-  const price = Number(quote?.amount || 0);
+  // One subtotal: the quote plus the add-ons the client picked when they
+  // accepted it. Fee and payout both come from it — never from the quote alone.
+  const breakdown = bookingBreakdown(quote?.amount, booking.picked_add_ons);
   const charged = Number(session.amount_total || 0) / 100;
   const tax = Number(session.total_details?.amount_tax || 0) / 100;
+  // What Stripe charged before tax, to compare with what the booking should cost.
+  const chargedBeforeTaxCents =
+    typeof session.amount_subtotal === 'number'
+      ? session.amount_subtotal
+      : Number(session.amount_total || 0) - Number(session.total_details?.amount_tax || 0);
+  const amountMismatch = !chargeMatches(breakdown, chargedBeforeTaxCents);
   const now = new Date().toISOString();
 
   // The charge itself, so the later transfer can be tied back to it.
@@ -182,7 +182,10 @@ export async function markBookingPaid(base44, session) {
   // A newer quote replaced the one that was paid, or the booking was called
   // off. The money still lands, but a founder decides what happens to it.
   const replacedQuote = Boolean(booking.quote_id) && booking.quote_id !== quote?.id;
-  const needsReview = replacedQuote || booking.status === 'cancelled';
+  const needsReview = replacedQuote || booking.status === 'cancelled' || amountMismatch;
+  const reviewReason = amountMismatch
+    ? `Stripe charged ${money(fromCents(chargedBeforeTaxCents))} before tax, but this booking should cost ${money(fromCents(breakdown.clientTotalCents))}. Check before releasing or refunding.`
+    : 'Payment came in for an old quote or a cancelled booking. Check before releasing or refunding.';
 
   await base44.asServiceRole.entities.Booking.update(bookingId, {
     quote_id: quote?.id || booking.quote_id || '',
@@ -191,8 +194,9 @@ export async function markBookingPaid(base44, session) {
     stripe_payment_intent_id: session.payment_intent || '',
     stripe_charge_id: chargeId,
     transfer_group: `booking_${bookingId}`,
-    fee_amount: serviceFee(price),
-    creator_payout: creatorPayout(price),
+    total_price: fromCents(breakdown.subtotalCents),
+    fee_amount: fromCents(breakdown.clientFeeCents),
+    creator_payout: fromCents(breakdown.creatorPayoutCents),
     amount_charged: charged,
     tax_amount: tax,
     // A cancelled booking stays cancelled until a founder decides.
@@ -200,8 +204,7 @@ export async function markBookingPaid(base44, session) {
     ...(needsReview
       ? {
           flagged_for_review: true,
-          flag_reason:
-            'Payment came in for an old quote or a cancelled booking. Check before releasing or refunding.',
+          flag_reason: reviewReason,
         }
       : {}),
   });

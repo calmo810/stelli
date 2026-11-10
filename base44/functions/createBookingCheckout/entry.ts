@@ -1,7 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { secrets } from 'base44:runtime';
 import { BOOKING_LABEL } from '../../shared/bookingContract.ts';
-import { clientTotal, serviceFee, stripePost, toCents } from '../../shared/stripe.ts';
+import { stripePost } from '../../shared/stripe.ts';
+import { bookingBreakdown, fromCents } from '../../shared/money.ts';
 import { safeOrigin } from '../../shared/origins.ts';
 
 export default async function (req) {
@@ -60,18 +61,13 @@ export default async function (req) {
       );
     }
 
-    // The quote plus the add-ons the client ticked when they accepted it.
-    // Worked out here, never trusted from the browser.
-    const pickedAddOns = (booking.picked_add_ons || [])
-      .filter((addOn) => addOn && addOn.name)
-      .map((addOn) => ({ name: String(addOn.name), price: Number(addOn.price) || 0 }));
-
-    const price =
-      Math.round(
-        (Number(quote.amount) + pickedAddOns.reduce((sum, addOn) => sum + addOn.price, 0)) * 100
-      ) / 100;
-    const fee = serviceFee(price);
-    const total = clientTotal(price);
+    // The quote plus the add-ons the client ticked when they accepted it,
+    // worked out here in whole cents — never trusted from the browser. The
+    // same breakdown sets the fee and the payout when the payment lands.
+    const breakdown = bookingBreakdown(quote.amount, booking.picked_add_ons);
+    const price = fromCents(breakdown.subtotalCents);
+    const fee = fromCents(breakdown.clientFeeCents);
+    const total = fromCents(breakdown.clientTotalCents);
     const transferGroup = `booking_${bookingId}`;
     const base = safeOrigin(origin);
     const appId = secrets.get('BASE44_APP_ID') || '';
@@ -86,24 +82,25 @@ export default async function (req) {
     // The shoot itself.
     body.set('line_items[0][quantity]', '1');
     body.set('line_items[0][price_data][currency]', 'usd');
-    body.set('line_items[0][price_data][unit_amount]', String(toCents(Number(quote.amount))));
+    body.set('line_items[0][price_data][unit_amount]', String(breakdown.baseCents));
     body.set('line_items[0][price_data][product_data][name]', BOOKING_LABEL);
     body.set('line_items[0][price_data][product_data][description]', `${eventLabel} on ${booking.event_date || 'TBC'}`);
 
     // Every add-on the client ticked, on its own line.
-    pickedAddOns.forEach((addOn, index) => {
+    breakdown.addOns.forEach((addOn, index) => {
       const i = index + 1;
       body.set(`line_items[${i}][quantity]`, '1');
       body.set(`line_items[${i}][price_data][currency]`, 'usd');
-      body.set(`line_items[${i}][price_data][unit_amount]`, String(toCents(addOn.price)));
+      body.set(`line_items[${i}][price_data][unit_amount]`, String(addOn.cents));
       body.set(`line_items[${i}][price_data][product_data][name]`, addOn.name);
     });
 
-    // Stelli's service fee, shown on its own line.
-    const feeIndex = pickedAddOns.length + 1;
+    // Stelli's service fee, shown on its own line. The lines add up to exactly
+    // breakdown.clientTotalCents, which the webhook checks against the charge.
+    const feeIndex = breakdown.addOns.length + 1;
     body.set(`line_items[${feeIndex}][quantity]`, '1');
     body.set(`line_items[${feeIndex}][price_data][currency]`, 'usd');
-    body.set(`line_items[${feeIndex}][price_data][unit_amount]`, String(toCents(fee)));
+    body.set(`line_items[${feeIndex}][price_data][unit_amount]`, String(breakdown.clientFeeCents));
     body.set(`line_items[${feeIndex}][price_data][product_data][name]`, 'Stelli service fee');
 
     // Every paid booking gets a Stripe invoice and receipt.
@@ -111,6 +108,8 @@ export default async function (req) {
     body.set('metadata[base44_app_id]', appId);
     body.set('metadata[booking_id]', bookingId);
     body.set('metadata[quote_id]', quote.id);
+    // What this session is meant to charge before tax.
+    body.set('metadata[expected_total_cents]', String(breakdown.clientTotalCents));
     body.set('payment_intent_data[transfer_group]', transferGroup);
     body.set('payment_intent_data[metadata][base44_app_id]', appId);
     body.set('payment_intent_data[metadata][booking_id]', bookingId);

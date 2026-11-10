@@ -3,6 +3,7 @@ import { notifyBoth } from '../../shared/notify.ts';
 import { createContractForBooking } from '../../shared/bookingContract.ts';
 import { viewerRole } from '../../shared/bookingAccess.ts';
 import { loadCreatorContact } from '../../shared/creatorOwner.ts';
+import { bookingBreakdown, fromCents, money, pickOfferedAddOns } from '../../shared/money.ts';
 
 /**
  * The client accepts a quote and ticks which add-ons they want.
@@ -41,17 +42,13 @@ export default async function (req) {
       return Response.json({ error: 'This quote expired. Ask your creator for a new one.' }, { status: 409 });
     }
 
-    // Only the add-ons offered on this quote can be picked.
-    const offered = quote.add_ons || [];
-    const wanted = (pickedAddOns || []).map((addOn) => String(addOn?.name || ''));
-    const chosen = offered
-      .filter((addOn) => wanted.includes(String(addOn.name)))
-      .map((addOn) => ({ name: String(addOn.name), price: Number(addOn.price) || 0 }));
+    // Only the add-ons offered on this quote can be picked, at the price the
+    // creator set. The browser sends names; a price it sends is never used.
+    const chosen = pickOfferedAddOns(quote.add_ons, pickedAddOns);
 
-    const subtotal =
-      Math.round(
-        (Number(quote.amount || 0) + chosen.reduce((sum, addOn) => sum + addOn.price, 0)) * 100
-      ) / 100;
+    // The one subtotal everything else is worked out from.
+    const breakdown = bookingBreakdown(quote.amount, chosen);
+    const subtotal = fromCents(breakdown.subtotalCents);
 
     // One quote in play: every other live quote on this booking is retired, so
     // only the accepted one can ever be paid.
@@ -83,14 +80,14 @@ export default async function (req) {
     });
 
     const addOnLine = chosen.length
-      ? `\nAdd-ons: ${chosen.map((addOn) => `${addOn.name} (+$${addOn.price})`).join(', ')}`
+      ? `\nAdd-ons: ${chosen.map((addOn) => `${addOn.name} (+${money(addOn.price)})`).join(', ')}`
       : '';
 
     await notifyBoth(
       base44,
       [booking.creator_email || booking.lensman_email],
       'Quote accepted',
-      `The quote for $${subtotal.toLocaleString()} was accepted.${addOnLine}\n\nShoot date: ${booking.event_date}\n\nThe client can pay to lock the date. Payment stays held by Stelli until delivery.`
+      `The quote for ${money(subtotal)} was accepted.${addOnLine}\n\nYou receive ${money(fromCents(breakdown.creatorPayoutCents))} after Stelli's fee.\n\nShoot date: ${booking.event_date}\n\nThe client can pay to lock the date. Payment stays held by Stelli until delivery.`
     );
 
     return Response.json({

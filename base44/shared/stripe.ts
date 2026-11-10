@@ -1,7 +1,7 @@
 import { secrets } from 'base44:runtime';
+import { clientFeeCents, creatorPayoutCents, fromCents, toCents } from './money.ts';
 
-/** Stelli's cut of every booking, taken from both sides. */
-export const SERVICE_FEE_RATE = 0.14;
+export { SERVICE_FEE_RATE, money, toCents } from './money.ts';
 
 /** How long the client has to report a problem before the payout releases. */
 export const HOLD_HOURS = 48;
@@ -26,23 +26,23 @@ export function webhookSecret() {
   );
 }
 
-/** What the client is charged on top of the quote. */
+/**
+ * Dollar-in, dollar-out helpers kept for the older call sites. The real
+ * arithmetic lives in money.ts and is done in whole cents.
+ */
 export function serviceFee(amount) {
-  return Math.round(Number(amount || 0) * SERVICE_FEE_RATE * 100) / 100;
+  return fromCents(clientFeeCents(toCents(amount)));
 }
 
-/** Quote price plus the service fee — the full amount charged at checkout. */
+/** Subtotal plus the service fee — the full amount charged at checkout, before tax. */
 export function clientTotal(amount) {
-  return Math.round((Number(amount || 0) + serviceFee(amount)) * 100) / 100;
+  const cents = toCents(amount);
+  return fromCents(cents + clientFeeCents(cents));
 }
 
 /** What the creator receives once the hold is released. */
 export function creatorPayout(amount) {
-  return Math.round(Number(amount || 0) * (1 - SERVICE_FEE_RATE) * 100) / 100;
-}
-
-export function toCents(amount) {
-  return Math.round(Number(amount || 0) * 100);
+  return fromCents(creatorPayoutCents(toCents(amount)));
 }
 
 /**
@@ -113,13 +113,4 @@ export async function stripeV2Post(path, body) {
   }
 
   return data;
-}
-
-/** $450 for whole dollars, $450.50 once there are cents. */
-export function money(amount) {
-  const value = Number(amount || 0);
-  return `$${value.toLocaleString('en-US', {
-    minimumFractionDigits: Number.isInteger(value) ? 0 : 2,
-    maximumFractionDigits: 2,
-  })}`;
 }
