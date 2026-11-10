@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import {
   PROMPTS, STEPS, MIN_SHOTS, MAX_SHOTS, MARKET,
-  freshState, defaultTiers, isReady, missingReqs, strength, activeTiers,
+  freshState, defaultTiers, applicableReqs, missingReqs, strength, activeTiers,
   buildPayload, slugify, validEmail, shareUrl, shareLabel,
 } from '@/lib/wizardData';
 import { PRIVACY_VERSION, TERMS_VERSION } from '@/lib/legalDocuments';
@@ -300,7 +300,7 @@ export default function useWizard() {
   }, [s.portfolio, patch, showToast]);
 
   const publish = useCallback(async () => {
-    if (!isReady(s) || publishing) return;
+    if (missingReqs(s, Boolean(lensman)).length || publishing) return;
     setPublishing(true);
     setFlash(true);
     setTimeout(() => setFlash(false), 700);
@@ -341,8 +341,10 @@ export default function useWizard() {
     }
   }, [showToast]);
 
-  const reqs = missingReqs(s);
-  const pct = Math.round(((7 - reqs.length) / 7) * 100);
+  const live = Boolean(lensman);
+  const reqs = missingReqs(s, live);
+  const reqTotal = applicableReqs(s, live).length;
+  const pct = Math.round(((reqTotal - reqs.length) / reqTotal) * 100);
 
   return {
     user, lensman, contact, ready,
@@ -351,7 +353,7 @@ export default function useWizard() {
     sheetOpen, setSheetOpen, uploading, publishing, flash, saveState,
     goStep, goNext, goBack, applyStarter, validate,
     uploadPhoto, uploadPortfolio, publish, exit, copy,
-    missing: reqs, pct, strength: strength(s), readyToPublish: isReady(s),
+    missing: reqs, pct, strength: strength(s), readyToPublish: reqs.length === 0,
     approved: lensman?.status === 'approved',
     tiers: activeTiers(s),
     link: shareUrl(s.slug),

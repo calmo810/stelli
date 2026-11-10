@@ -8,6 +8,8 @@ import WizardProfilePreview from './WizardProfilePreview';
 export default function WizardReview({ w }) {
   const { s } = w;
   const missing = w.missing;
+  // A live page updates without a priced package; only an application needs one.
+  const reqList = w.lensman ? REQS.filter((req) => req.k !== 'price') : REQS;
   const extrasMissing = EXTRAS.filter((extra) => !extra.ok(s));
 
   const rows = [
@@ -47,11 +49,11 @@ export default function WizardReview({ w }) {
           <div className="panel-head">
             <h3>{missing.length === 0 ? 'Ready to go live ✓' : 'To go live'}</h3>
             <span className="count">
-              {REQS.length - missing.length}/{REQS.length}
+              {reqList.length - missing.length}/{reqList.length}
             </span>
           </div>
           <div className="check-list">
-            {REQS.map((req) => {
+            {reqList.map((req) => {
               const done = req.ok(s);
               return (
                 <div key={req.t} className={`check ${done ? 'ok' : 'no'}`}>
