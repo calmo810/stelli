@@ -361,6 +361,15 @@ The read rules on `Booking`, `Quote`, `Message` and `BookingContract` hand each 
 
 Everything below is on `fable/money-and-access`. Nothing is on `main`, and nothing in the live app was changed.
 
+### Merged with what landed on `main` on 10–11 November
+
+While this was open, `main` picked up seven builder commits: the new creator workspace (`/lensman-dashboard` with Requests, Bookings, Calendar, Earnings and Profile), album keys in the delivery emails, an "Email the album" button instead of an automatic email, budget and length on requests, profile views, and live profiles saving without a package. They're merged in and all kept. Where they met these fixes:
+
+- The album email still waits for the creator to press send. It now also needs the shoot to be paid, goes at most once per 10 minutes, and doesn't hand the client's email address back to the creator.
+- One album key per booking, even when two links are asked for at the same moment, so no email carries a dead link.
+- Budget and length are capped and checked for phone numbers and emails, like the note.
+- The new workspace finds quotes by account (emails are founder-only now), counts the old stuck bookings where they belong, and its "Needs your attention" list uses the same next-step rules as the rest of the app. Before, it missed agreements to accept and the unedited set. The on-hold and not-approved notices are back.
+
 ### Money
 
 - **One price, worked out once.** The quote plus the add-ons the client picked is the subtotal. The client pays it plus 14%, the creator gets it minus 14%. Acceptance, Checkout, the stored fee and payout, and the agreement all come from the same calculation, done in whole cents. When the payment lands, the app checks that Stripe charged exactly that, and sends anything else to you. *(K1, M-2)*
@@ -589,6 +598,7 @@ Test cards (any future expiry, any CVC, any ZIP):
 | B5. Pay with `4000 0000 0000 0077`. | Back in the thread. Within a minute: "Booked. Your payment is held safely until your photos arrive." Stripe: a $171 payment. In Base44 data (Booking): `fee_amount` 21, `creator_payout` 129, `amount_charged` 171, `stripe_livemode` false. |
 | B5b. Before paying (in B4), the client opens the agreement link under the pay button. | It names the creator by their Stelli name only, with a note that the legal name is added once paid. After B5 it shows the legal name. |
 | B6. As the creator, open the agreement from the to-do list and accept it. | The booking **stays confirmed**. The agreement lists Shoot $100, Rush delivery $50, Creator's price $150, fee $21, total $171, creator receives $129. Both sides get a copy by email. |
+| B6b. As the creator, upload three photos in the thread, then tap "Email Jordan the album". Tap it again. | Uploading sends nothing. The button sends one email whose link opens signed out; the second tap doesn't send another. |
 | B7. As the creator, post the unedited set, then the final edits with a gallery link (try a link like `https://Users/me/x.html` first). | The fake link is refused. After final delivery, the delivery controls disappear and the album is locked. The client gets an email with an album link that opens signed out. |
 | B8. Try to post final edits again. | Refused. The 48-hour clock doesn't restart. |
 | B9. As the client, tap "Release the payment now" and confirm. | Stripe: a **$129** transfer to the creator's test account. App: "All done." The creator gets "You got paid." |
@@ -650,7 +660,8 @@ Make three paid bookings: one about 4 days out, one about 60 hours out, one abou
 | Step | You should see |
 |---|---|
 | I1. Open the album link in a private window. | Photos and gallery link only: no price, no email, no status. |
-| I2. As the client, "Reset this link". Open the old link. | "Album not found". The new link works. |
+| I2. As the client, "Reset this link". Open the old link. | "This link is missing its key". The new link works. |
+| I3. As the creator, open `/lensman-dashboard`. | "Needs your attention" lists the agreement to accept and, once the shoot date has passed, the unedited set. Earnings shows the held $129. |
 
 ### When you're done
 
@@ -682,7 +693,7 @@ Make three paid bookings: one about 4 days out, one about 60 hours out, one abou
 
 ## 13. Tests, and what is still untested
 
-`npm test` runs 219 tests in under 20 seconds. Every one passes on this branch.
+`npm test` runs 224 tests in under 20 seconds. Every one passes on this branch.
 
 - **Pure rules:** money and rounding (`money.test.mjs`), cancellation tiers and New York time including daylight saving (`cancellation.test.mjs`), booking states and what each move needs (`bookingRules.test.mjs`), the portals' next steps and status lines and their agreement with the server (`bookingNextStep.test.mjs`), the founder queue (`founderQueue.test.mjs`), the contact guard (`contactGuard.test.mjs`).
 - **Real function code, end to end:** `flow-*.test.mjs` load the actual backend functions and run them against an in-memory Base44 database and a fake Stripe (`tests/helpers`). Covered: the whole payment path, every known issue as a "how it happens" scenario, races (report vs payout at 41 timings, manual vs automatic payout at 11, refund vs sweep, double delivery, double reviews, double clicks), refunds and pull-backs, cancellations, disputes, contracts, albums, the concierge, and who may call each function.
