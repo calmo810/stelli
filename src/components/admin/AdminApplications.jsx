@@ -27,7 +27,7 @@ function formattedDate(value) {
     : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-function DetailRow({ icon: Icon, label, value, href }) {
+function DetailRow({ icon: Icon, label, value, href = undefined }) {
   const content = href ? (
     <a href={href} target={href.startsWith('http') ? '_blank' : undefined} rel={href.startsWith('http') ? 'noreferrer' : undefined} className="break-words text-white/78 transition hover:text-neon-cyan">
       {value}
