@@ -4,6 +4,7 @@ import { viewerRole, recordFirstReply, creatorEmail } from '../../shared/booking
 import { stripeGet, stripePost } from '../../shared/stripe.ts';
 import { quoteBlocker } from '../../shared/bookingRules.ts';
 import { addOnsProblem, cleanAddOns, money, quoteAmountProblem } from '../../shared/money.ts';
+import { hasDirectContact, CONTACT_BLOCK_MESSAGE } from '../../shared/contactGuard.ts';
 
 /** Quotes stay valid for 72 hours unless the creator picks otherwise. */
 const EXPIRY_HOURS = { '24h': 24, '72h': 72, '7d': 168 };
@@ -41,6 +42,13 @@ export default async function (req) {
     if (amountProblem) return Response.json({ error: amountProblem }, { status: 400 });
     const addOnProblem = addOnsProblem(addOns);
     if (addOnProblem) return Response.json({ error: addOnProblem }, { status: 400 });
+
+    // A quote goes out before the booking is confirmed, so its note and add-on
+    // names can't carry a phone number, an email, a handle or a link.
+    const quoteWords = [message, ...(Array.isArray(addOns) ? addOns.map((addOn) => addOn?.name) : [])];
+    if (quoteWords.some((text) => hasDirectContact(text))) {
+      return Response.json({ error: CONTACT_BLOCK_MESSAGE, blocked: true }, { status: 400 });
+    }
 
     // Payouts come before quoting — the money has to have somewhere to land.
     // Checked before the old quote is touched, so a refusal changes nothing.

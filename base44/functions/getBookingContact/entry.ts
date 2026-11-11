@@ -1,4 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { viewerRole } from '../../shared/bookingAccess.ts';
+import { isConfirmed } from '../../shared/bookingRules.ts';
 
 /**
  * The only way a client ever sees a creator's contact details.
@@ -7,14 +9,6 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
  * caller is the client on a booking that has actually been confirmed before
  * handing anything back. Contact details never travel with a public profile.
  */
-
-const CONFIRMED_STATUSES = [
-  'confirmed',
-  'in_progress',
-  'awaiting_delivery',
-  'delivered',
-  'completed',
-];
 
 export default async function (req) {
   try {
@@ -25,18 +19,18 @@ export default async function (req) {
     const { bookingId } = await req.json();
     if (!bookingId) return Response.json({ error: 'bookingId is required.' }, { status: 400 });
 
-    const booking = await base44.asServiceRole.entities.Booking.get(bookingId);
+    const booking = await base44.asServiceRole.entities.Booking.get(bookingId).catch(() => null);
     if (!booking) return Response.json({ error: 'Booking not found.' }, { status: 404 });
 
     const isAdmin = user.role === 'admin';
-    const isClient =
-      booking.client_id === user.id ||
-      (booking.client_email && booking.client_email === user.email);
+    const isClient = viewerRole(booking, user) === 'client';
 
     if (!isAdmin && !isClient) {
       return Response.json({ error: 'This booking is not yours.' }, { status: 403 });
     }
-    if (!isAdmin && !CONFIRMED_STATUSES.includes(booking.status)) {
+    // Confirmed means paid for and going ahead. A status alone is not enough,
+    // and a cancelled or refunded booking locks the details again.
+    if (!isAdmin && !isConfirmed(booking)) {
       return Response.json(
         { error: 'Contact details are shared once the booking is confirmed.' },
         { status: 403 }
@@ -60,6 +54,6 @@ export default async function (req) {
     });
   } catch (error) {
     console.error('getBookingContact error:', error.message);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: 'Contact details could not be loaded.' }, { status: 500 });
   }
 }

@@ -65,7 +65,11 @@ export default async function (req) {
       }
     }
 
-    const name = lensman?.display_name || lensman?.full_name || 'A Stelli creator';
+    // A profile that is not live (pending, rejected, or on hold) gets the
+    // generic card: its name, line and photos are not public yet.
+    if (lensman && (lensman.status !== 'approved' || lensman.under_review)) lensman = null;
+
+    const name = lensman?.display_name || 'A Stelli creator';
     const firstName = String(name).trim().split(' ')[0];
     const title = `${name} on Stelli`;
     const description = (lensman?.one_liner || '').trim() || `Book ${firstName} on Stelli.`;

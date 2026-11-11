@@ -1,3 +1,5 @@
+import { hasDirectContact } from './contactGuard.ts';
+
 /**
  * Server-side rules for curator profile customization.
  *
@@ -28,6 +30,10 @@ export const LIMITS = { one_liner: 90, prompt_answer: 200, dont_shoot: 140, bio:
 /** Same ceiling the wizard enforces, so a save never trims a portfolio. */
 export const MAX_PORTFOLIO_IMAGES = 12;
 export const ACCENTS = ['lime', 'cyan', 'magenta'];
+export const GALLERY_STYLES = ['ordered_grid', 'hero_grid', 'contact_sheet'];
+export const PROFILE_THEMES = ['night_flash', 'clean_portfolio'];
+export const MAX_DISPLAY_NAME = 40;
+export const MAX_EQUIPMENT = 400;
 export const TIER_LEVELS = ['low', 'mid', 'high'];
 
 /** How the creator hangs their public page. Only the creator sets these. */
@@ -93,6 +99,29 @@ export function hasContactDetails(text) {
   );
 }
 
+/**
+ * A short list of public labels (what a creator shoots, where they work).
+ * Strings only, trimmed, capped, no duplicates — and nothing that is really a
+ * phone number, an email, a handle or a link.
+ */
+function cleanLabels(list, { max = 12, length = 40 } = {}) {
+  if (!Array.isArray(list)) return { values: [], contact: false };
+  const values = [];
+  let contact = false;
+  for (const entry of list) {
+    if (typeof entry !== 'string') continue;
+    const value = entry.trim().slice(0, length);
+    if (!value) continue;
+    if (hasDirectContact(value)) {
+      contact = true;
+      continue;
+    }
+    if (!values.some((existing) => existing.toLowerCase() === value.toLowerCase())) values.push(value);
+    if (values.length >= max) break;
+  }
+  return { values, contact };
+}
+
 function cleanTags(tags) {
   if (!Array.isArray(tags)) return [];
   const seen = [];
@@ -151,6 +180,52 @@ export function buildProfilePatch(body = {}) {
     patch.style_tags = cleanTags(body.style_tags);
   }
 
+  // What they shoot and where: public, and until now saved exactly as sent.
+  for (const field of ['specialties', 'neighborhoods']) {
+    if (!Array.isArray(body[field])) continue;
+    const { values, contact } = cleanLabels(body[field]);
+    if (contact) errors[field] = CONTACT_MESSAGE;
+    else patch[field] = values;
+  }
+
+  if (typeof body.display_name === 'string') {
+    const value = body.display_name.trim();
+    if (value.length > MAX_DISPLAY_NAME) errors.display_name = `Keep your name to ${MAX_DISPLAY_NAME} characters or fewer.`;
+    else if (hasDirectContact(value)) errors.display_name = CONTACT_MESSAGE;
+  }
+
+  if (typeof body.equipment === 'string') {
+    const value = body.equipment.trim();
+    if (value.length > MAX_EQUIPMENT) errors.equipment = `Keep this to ${MAX_EQUIPMENT} characters or fewer.`;
+    else if (hasDirectContact(value)) errors.equipment = CONTACT_MESSAGE;
+    else patch.equipment = value;
+  }
+
+  if (Array.isArray(body.portfolio_videos)) {
+    patch.portfolio_videos = body.portfolio_videos
+      .filter((url) => typeof url === 'string' && /^https:\/\//i.test(url.trim()))
+      .map((url) => url.trim().slice(0, 1000))
+      .slice(0, 6);
+  }
+
+  if (Array.isArray(body.blackout_dates)) {
+    patch.blackout_dates = [...new Set(
+      body.blackout_dates.filter((day) => typeof day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(day))
+    )].slice(0, 366);
+  }
+
+  if (body.years_experience !== undefined && body.years_experience !== null && body.years_experience !== '') {
+    const years = Number(body.years_experience);
+    if (Number.isFinite(years)) patch.years_experience = Math.min(80, Math.max(0, Math.round(years)));
+  }
+
+  if (typeof body.gallery_style === 'string' && GALLERY_STYLES.includes(body.gallery_style)) {
+    patch.gallery_style = body.gallery_style;
+  }
+  if (typeof body.profile_theme === 'string' && PROFILE_THEMES.includes(body.profile_theme)) {
+    patch.profile_theme = body.profile_theme;
+  }
+
   if (typeof body.accent_color === 'string' && body.accent_color) {
     if (ACCENTS.includes(body.accent_color)) patch.accent_color = body.accent_color;
     else errors.accent_color = 'Pick one of the three accents.';
@@ -189,12 +264,12 @@ export function buildProfilePatch(body = {}) {
   // on the profile that is submitted for review.
   if (typeof body.profile_image === 'string') {
     const value = body.profile_image.trim();
-    if (value) patch.profile_image = value;
+    if (value && /^https:\/\//i.test(value)) patch.profile_image = value;
   }
 
   if (Array.isArray(body.portfolio_images)) {
     patch.portfolio_images = body.portfolio_images
-      .filter((url) => typeof url === 'string' && url.trim())
+      .filter((url) => typeof url === 'string' && /^https:\/\//i.test(url.trim()))
       .map((url) => url.trim())
       .slice(0, MAX_PORTFOLIO_IMAGES);
   }

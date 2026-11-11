@@ -5,8 +5,6 @@ function slugify(value = '') {
   return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 }
 
-const PUBLIC_TEXT_FIELDS = ['display_name', 'bio', 'equipment', 'profile_image'];
-const PUBLIC_LIST_FIELDS = ['neighborhoods', 'specialties', 'portfolio_images', 'portfolio_videos', 'blackout_dates'];
 const PRIVATE_TEXT_FIELDS = ['full_name', 'email', 'phone', 'instagram'];
 
 /**
@@ -54,19 +52,12 @@ export default async function (req) {
       patch.display_name = displayName;
     }
 
-    for (const field of PUBLIC_TEXT_FIELDS) {
-      if (field === 'display_name') continue;
-      if (typeof body[field] === 'string') patch[field] = body[field].trim();
-    }
-    for (const field of PUBLIC_LIST_FIELDS) {
-      if (Array.isArray(body[field])) patch[field] = body[field];
-    }
-    if (Number.isFinite(Number(body.years_experience))) {
-      patch.years_experience = Number(body.years_experience);
-    }
-    if (body.gallery_style) patch.gallery_style = body.gallery_style;
-    if (body.profile_theme) patch.profile_theme = body.profile_theme;
-    if (body.accent_color) patch.accent_color = body.accent_color;
+    // Every other public field (bio, equipment, what and where they shoot,
+    // photos, videos, layout choices) is already in `patch`, validated by
+    // buildProfilePatch. Nothing is copied from the request as-is: this is how
+    // a creator could put a handle in "specialties", and it is also why the
+    // fields a creator must never set — status, payouts, review flags — can't
+    // be reached from here at all.
 
     // Written by the app, never asked for in the form.
     patch.profile_headline = `Book ${displayName} safely through Stelli.`;
@@ -103,7 +94,7 @@ export default async function (req) {
 
     const privatePatch = {};
     for (const field of PRIVATE_TEXT_FIELDS) {
-      if (typeof body[field] === 'string') privatePatch[field] = body[field].trim();
+      if (typeof body[field] === 'string') privatePatch[field] = body[field].trim().slice(0, 200);
     }
     if (privatePatch.email === '') {
       return Response.json({ error: 'A contact email is required.', field: 'email' }, { status: 400 });
@@ -129,6 +120,6 @@ export default async function (req) {
     return Response.json({ lensman: updated });
   } catch (error) {
     console.error('updateCreatorProfile error:', error.message);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: 'Your profile did not save. Try again.' }, { status: 500 });
   }
 }
