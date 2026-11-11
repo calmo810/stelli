@@ -40,7 +40,7 @@ function Collage({ photos }) {
   return (
     <div className={`ps-collage n${shown.length}`}>
       {shown.map((src, i) => (
-        <span key={src} className="ps-ph" style={{ '--d': `${i * 70}ms` }}>
+        <span key={src} className="ps-ph" style={/** @type {React.CSSProperties} */ ({ '--d': `${i * 70}ms` })}>
           <img src={src} alt="" loading="lazy" decoding="async" />
         </span>
       ))}
@@ -55,7 +55,7 @@ function ShootCard({ shoot, index, onOpen }) {
     <button
       type="button"
       className={`ps-card ${fresh ? 'is-new' : ''}`}
-      style={{ '--i': index }}
+      style={/** @type {React.CSSProperties} */ ({ '--i': index })}
       onClick={(e) => onOpen(shoot.id, e.currentTarget)}
       aria-label={`Open the ${titleFor(shoot)} shoot from ${monthLabel(shoot.event_date) || 'Stelli'}`}
     >
@@ -146,7 +146,7 @@ function ShootSheet({ shoot, firstName, onClose, onPhoto }) {
               key={src}
               type="button"
               className="ps-tile"
-              style={{ '--d': `${80 + i * 60}ms` }}
+              style={/** @type {React.CSSProperties} */ ({ '--d': `${80 + i * 60}ms` })}
               onClick={(e) => onPhoto(shoot.photos, i, e.currentTarget)}
               aria-label={`View photo ${i + 1} of ${shoot.photos.length}`}
             >
