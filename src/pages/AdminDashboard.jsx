@@ -256,40 +256,74 @@ export default function AdminDashboard() {
             <AdminFaqQuestions />
           </TabsContent>
 
-          <TabsContent value="lensmen" className="space-y-3">
-            <label className="relative block w-full sm:max-w-[360px]">
-              <span className="sr-only">Search active creators</span>
-              <input
-                type="search"
-                value={creatorSearch}
-                onChange={(event) => setCreatorSearch(event.target.value)}
-                placeholder="Search name, specialty, or area…"
-                className="w-full rounded border border-white/15 bg-white/[0.03] px-4 py-3 text-[13px] text-white placeholder:text-white/35 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neon-lime"
-              />
-            </label>
-            {lensmenError ? (
-              <p role="alert" className="border border-neon-magenta/30 p-4 text-[13px] text-white/70">Creator profiles could not be loaded. Refresh the page and try again.</p>
-            ) : loadingLensmen ? (
-              Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-20" />)
-            ) : filteredCreators.length ? filteredCreators.map(l => (
-              <div key={l.id} className={`${CARD} p-5 flex items-center justify-between gap-4`} style={SURFACE}>
-                <div>
-                  <h3 className="font-heading text-[18px] font-semibold text-white leading-tight">{l.display_name || 'Stelli creator'}</h3>
-                  <p className="label-mono text-[9px] text-white/40 mt-2">
-                    {l.neighborhoods?.join(', ')} · {l.specialties?.slice(0, 2).join(', ')}
-                  </p>
-                </div>
-                <div className="flex items-center gap-5 shrink-0">
-                  <RatingDisplay rating={l.avg_rating} reviewCount={l.review_count} />
-                  {l.review_count > 0 && (
-                    <span className="label-mono text-[9px] text-white/35">{l.review_count} reviews</span>
-                  )}
-                </div>
+          <TabsContent value="lensmen" className="space-y-5">
+            <section className="admin-surface flex flex-col gap-5 p-5 sm:flex-row sm:items-end sm:justify-between sm:p-6">
+              <div>
+                <p className="admin-kicker label-mono text-[8px]"><Users className="h-3 w-3" aria-hidden="true" /> Marketplace talent</p>
+                <h2 className="mt-4 font-heading text-3xl font-semibold tracking-tight text-white">Active creators</h2>
+                <p className="mt-2 font-body text-[13px] text-white/45">The people clients can currently discover and book.</p>
               </div>
-            )) : (
-              <p className="font-body text-[13px] text-center py-16 text-white/40">
-                {approved.length ? 'No creators match that search.' : 'No approved creators yet.'}
-              </p>
+              <label className="relative block w-full sm:max-w-[330px]">
+                <span className="sr-only">Search active creators</span>
+                <input
+                  type="search"
+                  value={creatorSearch}
+                  onChange={(event) => setCreatorSearch(event.target.value)}
+                  placeholder="Search name, specialty, or area…"
+                  className="w-full rounded-2xl border border-white/12 bg-black/15 px-4 py-3 text-[13px] text-white placeholder:text-white/35 transition focus:border-neon-lime/60 focus:outline-none focus:ring-2 focus:ring-neon-lime/15"
+                />
+              </label>
+            </section>
+
+            {lensmenError ? (
+              <p role="alert" className="rounded-2xl border border-neon-magenta/30 bg-neon-magenta/5 p-4 text-[13px] text-white/70">Creator profiles could not be loaded. Refresh the page and try again.</p>
+            ) : loadingLensmen ? (
+              <div className="grid gap-3 md:grid-cols-2">
+                {Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-32 rounded-[22px] bg-white/5" />)}
+              </div>
+            ) : filteredCreators.length ? (
+              <div className="grid gap-3 md:grid-cols-2">
+                {filteredCreators.map((creator) => (
+                  <article key={creator.id} className={CARD + ' admin-surface--interactive flex items-center gap-4 p-4 sm:p-5'} style={SURFACE}>
+                    {creator.profile_image ? (
+                      <img
+                        src={creator.profile_image}
+                        alt={creator.display_name || 'Creator'}
+                        loading="lazy"
+                        className="h-16 w-16 shrink-0 rounded-[20px] object-cover ring-1 ring-white/12"
+                      />
+                    ) : (
+                      <span className="grid h-16 w-16 shrink-0 place-items-center rounded-[20px] bg-neon-lime/12 text-lg font-semibold text-neon-lime">
+                        {(creator.display_name || 'C').slice(0, 1).toUpperCase()}
+                      </span>
+                    )}
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="truncate font-heading text-[19px] font-semibold leading-tight text-white">{creator.display_name || 'Stelli creator'}</h3>
+                        <span className="label-mono rounded-full bg-neon-lime/12 px-2 py-1 text-[7px] text-neon-lime">Live</span>
+                      </div>
+                      <p className="mt-2 truncate text-[12px] text-white/45">
+                        {creator.neighborhoods?.join(' · ') || 'Area not listed'}
+                      </p>
+                      <p className="mt-1 truncate text-[12px] text-white/35">
+                        {creator.specialties?.slice(0, 2).join(' · ') || 'Specialties not listed'}
+                      </p>
+                    </div>
+
+                    <div className="hidden shrink-0 text-right sm:block">
+                      <RatingDisplay rating={creator.avg_rating} reviewCount={creator.review_count} />
+                      <p className="mt-2 label-mono text-[8px] text-white/35">{creator.review_count || 0} review{creator.review_count === 1 ? '' : 's'}</p>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="admin-surface p-12 text-center">
+                <p className="font-body text-[13px] text-white/40">
+                  {approved.length ? 'No creators match that search.' : 'No approved creators yet.'}
+                </p>
+              </div>
             )}
           </TabsContent>
 
