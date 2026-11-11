@@ -12,6 +12,7 @@ import AdminApplications from '@/components/admin/AdminApplications';
 import AdminFaqQuestions from '@/components/admin/AdminFaqQuestions';
 import FounderQueueList from '@/components/admin/FounderQueueList';
 import AdminActivity from '@/components/admin/AdminActivity';
+import CreatorHoldButton from '@/components/admin/CreatorHoldButton';
 import { founderQueue } from '@/lib/founderQueue';
 
 const SURFACE = { background: 'hsl(var(--surface))', borderRadius: 4 };
@@ -231,7 +232,10 @@ export default function AdminDashboard() {
             ) : filteredCreators.length ? filteredCreators.map(l => (
               <div key={l.id} className={`${CARD} p-5 flex items-center justify-between gap-4`} style={SURFACE}>
                 <div>
-                  <h3 className="font-heading text-[18px] font-semibold text-white leading-tight">{l.display_name || 'Stelli creator'}</h3>
+                  <h3 className="font-heading text-[18px] font-semibold text-white leading-tight">
+                    {l.display_name || 'Stelli creator'}
+                    {l.under_review && <span className="ml-2 align-middle label-mono text-[8px] text-neon-magenta">On hold</span>}
+                  </h3>
                   <p className="label-mono text-[9px] text-white/40 mt-2">
                     {l.neighborhoods?.join(', ')} · {l.specialties?.slice(0, 2).join(', ')}
                   </p>
@@ -241,6 +245,7 @@ export default function AdminDashboard() {
                   {l.review_count > 0 && (
                     <span className="label-mono text-[9px] text-white/35">{l.review_count} reviews</span>
                   )}
+                  <CreatorHoldButton lensman={l} />
                 </div>
               </div>
             )) : (
