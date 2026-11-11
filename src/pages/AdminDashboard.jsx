@@ -50,8 +50,12 @@ export default function AdminDashboard() {
   });
 
   const reviewApplication = useMutation({
-    mutationFn: ({ lensmanId, status }) => base44.entities.Lensman.update(lensmanId, { status }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-lensmen'] }),
+    mutationFn: ({ lensmanId, status }) =>
+      base44.functions.invoke('reviewCreatorApplication', { lensmanId, decision: status }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-lensmen'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-creator-contacts'] });
+    },
   });
 
   const decidePayout = useMutation({
