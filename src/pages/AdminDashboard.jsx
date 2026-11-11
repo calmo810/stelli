@@ -12,6 +12,7 @@ import AdminApplications from '@/components/admin/AdminApplications';
 import AdminFaqQuestions from '@/components/admin/AdminFaqQuestions';
 import FounderQueueList from '@/components/admin/FounderQueueList';
 import AdminActivity from '@/components/admin/AdminActivity';
+import DataFixCard from '@/components/admin/DataFixCard';
 import CreatorHoldButton from '@/components/admin/CreatorHoldButton';
 import { founderQueue } from '@/lib/founderQueue';
 
@@ -211,6 +212,7 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="activity">
+            <DataFixCard />
             <AdminActivity />
           </TabsContent>
 

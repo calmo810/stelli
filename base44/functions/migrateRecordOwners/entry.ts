@@ -118,6 +118,6 @@ export default async function (req) {
     return Response.json(report);
   } catch (error) {
     console.error('migrateRecordOwners error:', error.message);
-    return Response.json({ error: 'The migration did not finish. Nothing after the failure was written.' }, { status: 500 });
+    return Response.json({ error: 'The data fix stopped partway. Records before the failure were written; it is safe to run again.' }, { status: 500 });
   }
 }
