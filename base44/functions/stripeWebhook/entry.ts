@@ -15,15 +15,20 @@ import { sameStripeMode } from '../../shared/stripe.ts';
 const SIGNATURE_TOLERANCE_SECONDS = 300;
 
 /**
- * Every Stripe endpoint pointed at this function is a platform endpoint that
- * signs with the platform account's own signing secret — one in test mode and
- * one in live. Only names that are actually registered belong here: a name
- * with no stored value can never verify anything.
+ * Every Stripe endpoint pointed at this function has its own signing secret.
+ * There are up to four: the platform endpoint ("Your account": checkouts,
+ * refunds, disputes, reversals) and the Connect endpoint ("Connected
+ * accounts": account.updated when a creator finishes payout setup), each once
+ * in live mode and once in test mode. An event is accepted when it verifies
+ * against any of them; whether it belongs to the mode in use is checked after.
+ * A name with no stored value is skipped, so unused names cost nothing.
  */
 const WEBHOOK_SECRET_NAMES = [
   'STRIPE_LIVE_WEBHOOK_SECRET',
   'STRIPE_WEBHOOK_SECRET',
   'STRIPE_TEST_WEBHOOK_SECRET',
+  'STRIPE_CONNECT_WEBHOOK_SECRET',
+  'STRIPE_TEST_CONNECT_WEBHOOK_SECRET',
 ];
 
 function parseSignatureHeader(header) {
