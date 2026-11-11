@@ -16,6 +16,10 @@ import { useQueryClient } from '@tanstack/react-query';
 import useCreatorDashboard from '@/hooks/useCreatorDashboard';
 import useThreads from '@/hooks/useThreads';
 import shortDate from '@/lib/shortDate';
+import useRequireSignIn from '@/lib/requireSignIn';
+import EmptyPanel from '@/components/dashboard/EmptyPanel';
+import Pill from '@/components/shared/Pill';
+import { Link } from 'react-router-dom';
 
 function SectionLabel({ children }) {
   return <h3 className="mb-2.5 mt-8 pl-1.5 text-[13px] font-semibold text-white/50">{children}</h3>;
@@ -29,55 +33,75 @@ function SectionLabel({ children }) {
 export default function LensmanDashboard() {
   const {
     user,
+    userLoading,
     myProfile,
+    profileFetched,
     refetchProfile,
     isLoading,
-    requests,
-    upcoming,
-    deliveries,
-    completed,
+    bookings,
+    active,
+    past,
+    steps,
     waitingTotal,
     payoutState,
   } = useCreatorDashboard();
   const { unreadCount } = useThreads();
   const [openingStripe, setOpeningStripe] = useState(false);
   const queryClient = useQueryClient();
+  // Signed out: go and log in, then come straight back here.
+  const waiting = useRequireSignIn(user, userLoading);
 
   // A pull at the top reloads the creator's shoots, profile, payouts and inbox together.
   const refreshAll = () =>
     Promise.all([
       queryClient.invalidateQueries({ queryKey: ['lensman-bookings'] }),
       queryClient.invalidateQueries({ queryKey: ['my-lensman-profile'] }),
-      queryClient.invalidateQueries({ queryKey: ['waiting-payouts'] }),
       queryClient.invalidateQueries({ queryKey: ['waiting-manual-payouts'] }),
       queryClient.invalidateQueries({ queryKey: ['messages-inbox'] }),
     ]);
 
+  if (waiting || !profileFetched) {
+    return <DashboardShell><div className="glass h-[132px] animate-pulse rounded-3xl" /></DashboardShell>;
+  }
+
+  // Signed in, but no creator profile: this portal has nothing to show yet.
+  if (!myProfile) {
+    return (
+      <DashboardShell>
+        <EmptyPanel
+          icon={Sparkles}
+          title="You don’t have a creator profile yet."
+          body="Apply to shoot for Stelli, or head to your client portal."
+          cta={
+            <div className="flex flex-wrap justify-center gap-2">
+              <Link to="/apply"><Pill>Start your application</Pill></Link>
+              <Link to="/client-dashboard"><Pill tone="glass">Client portal</Pill></Link>
+            </div>
+          }
+        />
+      </DashboardShell>
+    );
+  }
+
   // Creators who joined before the 18+ check existed confirm it once, here.
-  if (myProfile && !myProfile.age_confirmed) {
+  if (!myProfile.age_confirmed) {
     return <AgeConfirmGate onConfirmed={refetchProfile} />;
   }
 
   const firstName = (user?.full_name || '').split(' ')[0] || 'there';
 
-  const needs = [
-    ...requests.map((b) => ({
-      id: b.id,
-      title: `${b.client_name || 'Someone'} wants ${b.event_type ? b.event_type.replace(/_/g, ' ') : 'photos'}`,
-      meta: [shortDate(b.event_date), b.location].filter(Boolean).join(' · '),
-      action: 'Quote',
-      to: `/messages/${b.id}`,
-    })),
-    ...deliveries
-      .filter((b) => !b.delivery_link)
-      .map((b) => ({
-        id: `deliver-${b.id}`,
-        title: `Deliver to ${b.client_name || 'your client'}`,
-        meta: `Shot ${shortDate(b.event_date)}`,
-        action: 'Add link',
-        to: `/messages/${b.id}`,
-      })),
-  ];
+  // The real next step on each booking that has one: a request to quote, an
+  // agreement to accept, photos to deliver once the shoot has happened.
+  const needs = steps.map((step) => {
+    const booking = bookings.find((b) => b.id === step.bookingId);
+    return {
+      id: step.id,
+      title: step.title,
+      meta: [shortDate(booking?.event_date), booking?.location].filter(Boolean).join(' · '),
+      action: step.action,
+      to: step.to,
+    };
+  });
 
   const openStripe = async () => {
     setOpeningStripe(true);
@@ -92,28 +116,40 @@ export default function LensmanDashboard() {
     }
   };
 
-  // Only one note at the top, and only when something is off.
-  let note = null;
-  if (myProfile?.under_review) {
-    note = (
+  // A note at the top only when something is off. Where the profile stands
+  // comes first; payout setup is shown as well whenever it is not finished, so
+  // money waiting on it is never hidden behind another notice.
+  let standing = null;
+  if (myProfile.under_review) {
+    standing = (
       <PendingBanner tone="magenta">
-        Your profile is under review by the Stelli team after a cancellation.
+        Your profile is on hold while the Stelli team reviews it. Your current bookings carry on.
       </PendingBanner>
     );
-  } else if (myProfile?.status === 'pending') {
-    note = <PendingBanner />;
-  } else if (myProfile && !myProfile.payouts_enabled) {
-    note = (
-      <div className="mt-5">
-        <PayoutsCard
-          profile={myProfile}
-          needsInfo={payoutState?.needsInfo}
-          waitingTotal={waitingTotal}
-          onRefresh={refetchProfile}
-        />
-      </div>
+  } else if (myProfile.status === 'pending') {
+    standing = <PendingBanner />;
+  } else if (myProfile.status === 'rejected') {
+    standing = (
+      <PendingBanner tone="magenta">
+        Your application wasn’t approved, so your profile isn’t public. Email getstelli@gmail.com with any questions.
+      </PendingBanner>
     );
   }
+  const note = (
+    <>
+      {standing}
+      {!myProfile.payouts_enabled && (
+        <div className="mt-5">
+          <PayoutsCard
+            profile={myProfile}
+            needsInfo={payoutState?.needsInfo}
+            waitingTotal={waitingTotal}
+            onRefresh={refetchProfile}
+          />
+        </div>
+      )}
+    </>
+  );
 
   return (
     <PullToRefresh onRefresh={refreshAll}>
@@ -141,8 +177,8 @@ export default function LensmanDashboard() {
       <SectionLabel>Your shoots</SectionLabel>
       <ShootList
         role="lensman"
-        active={[...requests, ...upcoming, ...deliveries]}
-        past={completed}
+        active={active}
+        past={past}
         isLoading={isLoading}
         emptyText="New requests and booked shoots will show up here."
       />

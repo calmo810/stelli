@@ -1,25 +1,24 @@
-/** Shared thread helpers — the four status chips and who is who. */
+/** Shared thread helpers — the status chips and who is who. */
+import { isConfirmed as confirmed, statusChip as chipFor } from '@/lib/bookingNextStep';
 
 export const CONTACT_BLOCK_MESSAGE =
   'Contact details unlock once the booking is confirmed. Keep it here until then.';
 
-const CHIPS = {
-  requested: 'REQUESTED',
-  quoted: 'QUOTE SENT',
-  quote_accepted: 'QUOTE SENT',
-  pending: 'QUOTE SENT',
-  awaiting_creator_acceptance: 'QUOTE SENT',
-  confirmed: 'CONFIRMED',
-  in_progress: 'CONFIRMED',
-  awaiting_delivery: 'CONFIRMED',
-  delivered: 'DELIVERED',
-  completed: 'DELIVERED',
-  cancelled: 'CANCELLED',
-  disputed: 'UNDER REVIEW',
+/** The tone each chip is drawn in. */
+export const CHIP_TONE = {
+  REQUESTED: 'cyan',
+  'QUOTE SENT': 'magenta',
+  'TO PAY': 'lime',
+  'PAYMENT CLEARING': 'cyan',
+  CONFIRMED: 'lime',
+  DELIVERED: 'lime',
+  CANCELLED: 'magenta',
+  'UNDER REVIEW': 'magenta',
 };
 
-export function statusChip(status) {
-  return CHIPS[status] || 'REQUESTED';
+/** The chip for a booking. Takes the booking, so it can read the payment too. */
+export function statusChip(booking) {
+  return chipFor(booking);
 }
 
 /** Which side of this booking the signed-in person is on. */
@@ -33,10 +32,9 @@ export function viewerRole(booking, user) {
   return null;
 }
 
+/** Paid and going ahead: contact details are unlocked. */
 export function isConfirmed(booking) {
-  return ['confirmed', 'in_progress', 'awaiting_delivery', 'delivered', 'completed'].includes(
-    booking?.status
-  );
+  return confirmed(booking);
 }
 
 export function firstName(name) {

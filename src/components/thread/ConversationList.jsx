@@ -122,7 +122,7 @@ export default function ConversationList({ threads, activeId, isLoading, unreadC
         ) : (
           <ul className="space-y-1">
             {shown.map((thread) => {
-              const chip = statusChip(thread.booking.status);
+              const chip = statusChip(thread.booking);
               const tone = CHIP_TONE[chip] || 'cyan';
               const active = thread.booking.id === activeId;
               return (

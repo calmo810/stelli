@@ -2,20 +2,11 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import SegmentedTabs from '@/components/dashboard/SegmentedTabs';
-import { statusChip } from '@/lib/threadStatus';
+import { CHIP_TONE, statusChip } from '@/lib/threadStatus';
 import shortDate from '@/lib/shortDate';
 
-const CHIP_TONE = {
-  REQUESTED: 'cyan',
-  'QUOTE SENT': 'magenta',
-  CONFIRMED: 'lime',
-  DELIVERED: 'lime',
-  CANCELLED: 'magenta',
-  'UNDER REVIEW': 'magenta',
-};
-
 function rowLink(booking, role) {
-  if (role === 'client' && booking.delivery_link && ['delivered', 'completed'].includes(booking.status)) {
+  if (role === 'client' && booking.delivered_at && ['delivered', 'completed'].includes(booking.status)) {
     return booking.album_token ? `/album/${booking.id}?t=${booking.album_token}` : `/album/${booking.id}`;
   }
   return `/messages/${booking.id}`;
@@ -46,7 +37,7 @@ export default function ShootList({ active = [], past = [], role, isLoading, emp
         ) : list.length ? (
           <div className="glass overflow-hidden rounded-3xl">
             {list.map((booking, i) => {
-              const chip = statusChip(booking.status);
+              const chip = statusChip(booking);
               const tone = CHIP_TONE[chip] || 'cyan';
               const who = role === 'client' ? booking.lensman_name || 'Your creator' : booking.client_name || 'Client';
               const meta = [
