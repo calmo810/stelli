@@ -17,7 +17,14 @@
     },
     "client_email": {
       "type": "string",
-      "description": "Client email"
+      "description": "Client email",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "client_name": {
       "type": "string",
@@ -29,7 +36,14 @@
     },
     "creator_email": {
       "type": "string",
-      "description": "Creator email"
+      "description": "Creator email",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "creator_name": {
       "type": "string",
@@ -152,6 +166,15 @@
     "creator_net": {
       "type": "number",
       "description": "What the creator receives after Stelli's 14% platform fee, in dollars"
+    },
+    "creator_user_id": {
+      "type": "string",
+      "description": "The creator's account ID. Decides who may read the agreement (creator_id holds the creator profile's ID)."
+    },
+    "legal_names_added_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the creator's legal name was written into the agreement. That happens once the booking is paid, so it is never visible before."
     }
   },
   "required": [
@@ -171,10 +194,7 @@
           "data.client_id": "{{user.id}}"
         },
         {
-          "data.client_email": "{{user.email}}"
-        },
-        {
-          "data.creator_email": "{{user.email}}"
+          "data.creator_user_id": "{{user.id}}"
         },
         {
           "user_condition": {

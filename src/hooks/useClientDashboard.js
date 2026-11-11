@@ -14,15 +14,10 @@ export default function useClientDashboard() {
 
   const { data: bookings = [], isLoading } = useQuery({
     queryKey: ['client-bookings', user?.id, user?.email],
-    enabled: !!user?.email,
+    enabled: !!user?.id,
     queryFn: async () => {
-      // By account and by email, so a booking is found either way.
-      const [byId, byEmail] = await Promise.all([
-        user.id ? base44.entities.Booking.filter({ client_id: user.id }, '-created_date') : [],
-        base44.entities.Booking.filter({ client_email: user.email }, '-created_date'),
-      ]);
-      const seen = new Set();
-      return [...byId, ...byEmail].filter((b) => (seen.has(b.id) ? false : seen.add(b.id)));
+      // By account: emails on bookings are readable by founders only.
+      return base44.entities.Booking.filter({ client_id: user.id }, '-created_date');
     },
   });
 

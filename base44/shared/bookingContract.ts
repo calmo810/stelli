@@ -20,7 +20,7 @@ export function addBusinessDays(dateString, days) {
  * is charged. Every number comes from the same breakdown Checkout uses, so the
  * agreement and the payment can't disagree.
  */
-export function buildContractText({ booking, creatorName, breakdown, includedEdits }) {
+export function buildContractText({ booking, creatorName, breakdown, includedEdits, legalNamePending = false }) {
   const uneditedDeadline = addBusinessDays(booking.event_date, 3) || 'Pending shoot date';
   const editedDeadline = addBusinessDays(booking.event_date, 10) || 'Pending shoot date';
   const cents = (value) => money(fromCents(value));
@@ -37,7 +37,7 @@ export function buildContractText({ booking, creatorName, breakdown, includedEdi
   return `Stelli Booking Confirmation
 
 Client: ${booking.client_name || 'Client'}
-Creator: ${creatorName}
+Creator: ${creatorName}${legalNamePending ? "\n(The Creator's legal name is added here once the booking is paid.)" : ''}
 Booking: ${BOOKING_LABEL}
 Shoot date: ${booking.event_date || 'Pending'}
 Shoot time: ${booking.event_time || 'To be coordinated'}
@@ -81,8 +81,9 @@ export async function activeContract(base44, booking) {
  * here, on the contract and on the booking. The creator has not agreed to the
  * new contract yet, so their flag starts again.
  *
- * The creator's real name is private, so it is read from their CreatorContact
- * record with full privileges and only ever written into the contract itself.
+ * The creator's legal name is private until the booking is paid, so the
+ * agreement is written with their Stelli name first; addLegalNamesToContract
+ * fills the legal name in when the payment lands.
  */
 export async function createContractForBooking(base44, { booking, quote, pickedAddOns = [], lensman, contact }) {
   const BookingContract = base44.asServiceRole.entities.BookingContract;
@@ -114,8 +115,8 @@ export async function createContractForBooking(base44, { booking, quote, pickedA
     creatorContact = contacts[0] || null;
   }
 
-  const creatorName =
-    creatorContact?.full_name || booking.lensman_name || lensman?.display_name || 'Creator';
+  // Their Stelli name until the booking is paid.
+  const creatorName = booking.lensman_name || lensman?.display_name || 'Creator';
   // The account the creator signs in with — this field decides who may read
   // the contract, so it must never be a contact address typed on a profile.
   const creatorEmail = booking.creator_email || booking.lensman_email || creatorContact?.email || '';
@@ -132,6 +133,8 @@ export async function createContractForBooking(base44, { booking, quote, pickedA
     client_email: booking.client_email,
     client_name: booking.client_name,
     creator_id: booking.lensman_id,
+    // Who may read it: the creator's account, never an email.
+    creator_user_id: booking.creator_id || '',
     creator_email: creatorEmail,
     creator_name: creatorName,
     format_name: BOOKING_LABEL,
@@ -149,7 +152,7 @@ export async function createContractForBooking(base44, { booking, quote, pickedA
     included_edited_photos: includedEdits,
     unedited_delivery_deadline: addBusinessDays(booking.event_date, 3),
     edited_delivery_deadline: addBusinessDays(booking.event_date, 10),
-    contract_text: buildContractText({ booking, creatorName, breakdown, includedEdits }),
+    contract_text: buildContractText({ booking, creatorName, breakdown, includedEdits, legalNamePending: true }),
     terms_version: version('terms'),
     privacy_version: version('privacy'),
     version: version('contract_template'),
@@ -168,4 +171,37 @@ export async function createContractForBooking(base44, { booking, quote, pickedA
   });
 
   return contract;
+}
+
+/**
+ * Writes the creator's legal name into the agreement in force, once the
+ * booking is paid. Before that the agreement names them by their Stelli name
+ * only, so the client never sees it early. Never throws: a payment must not
+ * fail over this.
+ */
+export async function addLegalNamesToContract(base44, booking) {
+  try {
+    const contract = await activeContract(base44, booking);
+    if (!contract || contract.legal_names_added_at) return null;
+
+    const contacts = await base44.asServiceRole.entities.CreatorContact.filter({ lensman_id: booking.lensman_id });
+    const legalName = String(contacts[0]?.full_name || '').trim();
+    const stelliName = contract.creator_name || booking.lensman_name || 'Creator';
+    const creatorName = legalName && legalName !== stelliName ? `${legalName} (${stelliName} on Stelli)` : stelliName;
+
+    const breakdown = bookingBreakdown(contract.base_price ?? contract.creator_fee, contract.add_on_lines || []);
+    return await base44.asServiceRole.entities.BookingContract.update(contract.id, {
+      creator_name: legalName || stelliName,
+      contract_text: buildContractText({
+        booking,
+        creatorName,
+        breakdown,
+        includedEdits: contract.included_edited_photos || 30,
+      }),
+      legal_names_added_at: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Legal name not added to the agreement for booking', booking?.id, '-', error.message);
+    return null;
+  }
 }

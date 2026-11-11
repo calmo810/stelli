@@ -12,7 +12,14 @@
     },
     "creator_email": {
       "type": "string",
-      "description": "Creator's account email on the booking"
+      "description": "Creator's account email on the booking",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "client_id": {
       "type": "string",
@@ -20,7 +27,14 @@
     },
     "client_email": {
       "type": "string",
-      "description": "Client's account email on the booking"
+      "description": "Client's account email on the booking",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "file_uri": {
       "type": "string",
@@ -43,16 +57,10 @@
     "read": {
       "$or": [
         {
-          "data.creator_id": "{{user.id}}"
-        },
-        {
           "data.client_id": "{{user.id}}"
         },
         {
-          "data.creator_email": "{{user.email}}"
-        },
-        {
-          "data.client_email": "{{user.email}}"
+          "data.creator_id": "{{user.id}}"
         },
         {
           "user_condition": {

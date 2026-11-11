@@ -21,11 +21,25 @@
     },
     "client_email": {
       "type": "string",
-      "description": "Client email, used to scope access to the quote"
+      "description": "Client email, used to scope access to the quote",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "creator_email": {
       "type": "string",
-      "description": "Creator email, used to scope access to the quote"
+      "description": "Creator email, used to scope access to the quote",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "amount": {
       "type": "number",
@@ -85,12 +99,6 @@
         },
         {
           "data.creator_id": "{{user.id}}"
-        },
-        {
-          "data.client_email": "{{user.email}}"
-        },
-        {
-          "data.creator_email": "{{user.email}}"
         },
         {
           "user_condition": {

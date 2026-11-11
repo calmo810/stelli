@@ -188,8 +188,8 @@ export default function PhotoReleases({ role, user }) {
 
   const mineList = releases.filter((r) =>
     role === 'client'
-      ? r.client_id === user.id || r.client_email === user.email
-      : r.creator_id === user.id || r.creator_email === user.email
+      ? r.client_id === user.id
+      : r.creator_id === user.id
   );
   if (!mineList.length) return null;
 

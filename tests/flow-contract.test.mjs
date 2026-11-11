@@ -130,11 +130,22 @@ test('K5: accepting the agreement can\'t un-cancel a booking, and strangers can\
   assert.equal((await w.booking()).status, 'cancelled');
 });
 
-test('K5: the contract is readable by the creator\'s login email, not a typed contact address', async () => {
+test('D5: the agreement names the creator by their Stelli name until the booking is paid', async () => {
   const w = await scenario();
-  await w.entities.CreatorContact.updateMany({ lensman_id: 'l1' }, { $set: { email: 'studio@elsewhere.example' } });
   await w.quoteAndAccept({ amount: 100 });
-  const [contract] = await contracts(w);
-  assert.equal(contract.creator_email, CREATOR.email);
+  let [contract] = await contracts(w);
+  assert.equal(contract.creator_name, 'Maya');
+  assert.equal(contract.contract_text.includes('Maya Ortiz'), false, 'no legal name before payment');
+  assert.match(contract.contract_text, /legal name is added here once the booking is paid/);
+  assert.equal(contract.creator_user_id, CREATOR.id, 'readable by the creator\'s account, not an email');
+
+  const checkout = await w.checkout();
+  await w.pay(checkout.data.sessionId);
+  [contract] = await contracts(w);
   assert.equal(contract.creator_name, 'Maya Ortiz');
+  assert.match(contract.contract_text, /Creator: Maya Ortiz \(Maya on Stelli\)/);
+  assert.doesNotMatch(contract.contract_text, /added here once/);
+  assert.ok(contract.legal_names_added_at);
+  // The prices are unchanged by it.
+  assert.match(contract.contract_text, /Total charged to the Client: \$114/);
 });

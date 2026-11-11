@@ -2,6 +2,7 @@ import { stripeGet } from './stripe.ts';
 import { bookingBreakdown, fromCents, money } from './money.ts';
 import { paidSessionVerdict, strayPaymentSummary } from './bookingRules.ts';
 import { emailAdmins, notifyBoth, sendEmail } from './notify.ts';
+import { addLegalNamesToContract } from './bookingContract.ts';
 
 /**
  * Money coming in.
@@ -94,6 +95,9 @@ export async function markBookingPaid(base44, session) {
     amount_charged: charged,
     tax_amount: tax,
   });
+
+  // Paid: the agreement can now carry the creator's legal name.
+  await addLegalNamesToContract(base44, booking);
 
   await notifyBoth(
     base44,

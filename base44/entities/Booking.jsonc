@@ -17,7 +17,14 @@
     },
     "lensman_email": {
       "type": "string",
-      "description": "Email of the account that owns the booked creator profile"
+      "description": "Email of the account that owns the booked creator profile",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "client_id": {
       "type": "string",
@@ -29,7 +36,14 @@
     },
     "creator_email": {
       "type": "string",
-      "description": "Email of the account that owns the booked creator profile"
+      "description": "Email of the account that owns the booked creator profile",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "contract_id": {
       "type": "string",
@@ -69,11 +83,25 @@
     },
     "client_email": {
       "type": "string",
-      "description": "Client email"
+      "description": "Client email",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "client_phone": {
       "type": "string",
-      "description": "Client phone"
+      "description": "Client phone",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "event_date": {
       "type": "string",
@@ -352,7 +380,14 @@
     },
     "billing_address": {
       "type": "string",
-      "description": "Client billing address"
+      "description": "Client billing address",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "stripe_livemode": {
       "type": "boolean",
@@ -453,15 +488,6 @@
         },
         {
           "data.creator_id": "{{user.id}}"
-        },
-        {
-          "data.client_email": "{{user.email}}"
-        },
-        {
-          "data.lensman_email": "{{user.email}}"
-        },
-        {
-          "data.creator_email": "{{user.email}}"
         },
         {
           "user_condition": {
