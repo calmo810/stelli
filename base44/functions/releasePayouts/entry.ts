@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { releaseBooking } from '../../shared/payouts.ts';
 import { sweepManualPayouts } from '../../shared/manualPayouts.ts';
 import { logAdminAction } from '../../shared/audit.ts';
+import { effectiveStatus } from '../../shared/bookingRules.ts';
 
 /**
  * The hourly sweep: delivered bookings whose 48 hour window has closed with
@@ -27,8 +28,15 @@ export default async function (req) {
 
     const Booking = base44.asServiceRole.entities.Booking;
 
+    // "Delivered" includes bookings older code pushed into a limbo status after
+    // delivery (a creator accepting the agreement late did that): they are read
+    // as delivered, and must still be paid.
     const [delivered, cancelledWithShare] = await Promise.all([
-      Booking.filter({ status: 'delivered', payment_status: 'held' }, 'release_due_at', 500),
+      Booking.filter(
+        { status: { $in: ['delivered', 'awaiting_creator_acceptance', 'pending'] }, payment_status: 'held' },
+        'release_due_at',
+        500
+      ),
       Booking.filter({ status: 'cancelled', cancellation_payout_due: true }, 'cancelled_at', 500),
     ]);
 
@@ -36,6 +44,7 @@ export default async function (req) {
     const candidates = [
       ...delivered.filter(
         (booking) =>
+          effectiveStatus(booking) === 'delivered' &&
           !booking.flagged_for_review &&
           !booking.problem_reported_at &&
           (booking.client_confirmed_delivery ||

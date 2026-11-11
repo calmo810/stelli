@@ -414,3 +414,15 @@ test('payouts still go through if the database does not match a missing lock fie
     globalThis.__strictNullIn = false;
   }
 });
+
+test('a delivered booking the old code pushed into awaiting_creator_acceptance is still paid out', async () => {
+  const w = await scenario();
+  await w.deliveredAndDue({ amount: 100 });
+  // What the old acceptBookingContract did to a delivered booking.
+  await w.entities.Booking.update('b1', { status: 'awaiting_creator_acceptance' });
+  const sweep = await w.call('releasePayouts', {}, FOUNDER);
+  assert.equal(sweep.data.released, 1);
+  const booking = await w.booking();
+  assert.equal(booking.payment_status, 'released');
+  assert.equal(booking.status, 'completed');
+});
