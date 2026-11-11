@@ -31,7 +31,7 @@ export default async function (req) {
     const user = await base44.auth.me().catch(() => null);
     if (!user) return Response.json({ error: 'Please sign in.' }, { status: 401 });
 
-    const { bookingId, reason } = await req.json();
+    const { bookingId, reason, preview } = await req.json();
     if (!bookingId) return Response.json({ error: 'Booking ID is required.' }, { status: 400 });
 
     const Booking = base44.asServiceRole.entities.Booking;
@@ -40,6 +40,29 @@ export default async function (req) {
 
     const role = viewerRole(seen, user);
     if (!role) return Response.json({ error: 'This booking is not yours.' }, { status: 403 });
+
+    // "What would happen if I cancelled now?" — the same plan, nothing moved.
+    // The cancel button shows this sentence before anyone confirms.
+    if (preview) {
+      const plan = cancellationPlan({ role, booking: seen, nowMs: Date.now() });
+      if (!plan.allowed) return Response.json({ allowed: false, message: plan.message });
+      const refund = fromCents(plan.refundCents);
+      const share = fromCents(plan.creatorPayoutCents);
+      const isClient = role === 'client';
+      let message;
+      if (plan.tier === 'unpaid') message = 'Nothing has been paid, so nothing is charged or refunded.';
+      else if (isClient && plan.tier === 'full') message = `You get ${money(refund)} back in full.`;
+      else if (isClient && plan.tier === 'half') message = `The shoot is less than 72 hours away, so you get ${money(refund)} back and ${seen.lensman_name || 'your creator'} keeps half.`;
+      else if (isClient) message = 'The shoot is less than 48 hours away, so there is no refund. Your creator is paid in full.';
+      else message = `${(seen.client_name || 'Your client').split(' ')[0]} gets ${money(refund)} back in full, and your profile goes to Stelli for review.`;
+      return Response.json({
+        allowed: true,
+        tier: plan.tier,
+        refundAmount: refund,
+        creatorShare: share,
+        message: `${message} This can’t be undone.`,
+      });
+    }
 
     const claim = await claimBooking(base44, bookingId, 'cancel', { waitMs: 4000 });
     if (!claim.won) {

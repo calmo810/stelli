@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQueryClient } from '@tanstack/react-query';
 import { founderQueue, money } from '@/lib/founderQueue';
-import ConfirmAction, { newActionId } from '@/components/admin/ConfirmAction';
+import ConfirmAction, { newActionId } from '@/components/shared/ConfirmAction';
 
 const SURFACE = { background: 'hsl(var(--surface))', borderRadius: 4 };
 const CARD = 'border border-white/10';

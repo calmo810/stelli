@@ -2,14 +2,15 @@ import React, { useEffect, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 
 /**
- * The confirmation every money-moving admin action goes through. It says
+ * The confirmation every money-moving action goes through — on the admin page
+ * and in a booking's thread. It says
  * exactly what will happen, in one sentence, before anything does.
  *
  * The confirm button is disabled the moment it is pressed, and the caller
  * sends the same action ID for the life of this dialog — so a double click,
  * or a retry on a slow connection, does the thing once.
  */
-export default function ConfirmAction({ open, title, message, confirmLabel = 'Confirm', busy, error, onConfirm, onCancel }) {
+export default function ConfirmAction({ open, title, message, confirmLabel = 'Confirm', busy, error, onConfirm, onCancel, children }) {
   const cancelRef = useRef(null);
 
   useEffect(() => {
@@ -40,6 +41,7 @@ export default function ConfirmAction({ open, title, message, confirmLabel = 'Co
           {title}
         </h2>
         <p className="mt-3 font-body text-[14px] leading-relaxed text-white/75">{message}</p>
+        {children}
 
         {error && (
           <p role="alert" className="mt-4 font-body text-[13px]" style={{ color: 'hsl(var(--neon-magenta))' }}>

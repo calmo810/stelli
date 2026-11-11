@@ -17,6 +17,7 @@ import Pill from '@/components/shared/Pill';
 import ThreadComposer from '@/components/thread/ThreadComposer';
 import QuoteComposer from '@/components/thread/QuoteComposer';
 import DeliveryCard from '@/components/thread/DeliveryCard';
+import BookingActions from '@/components/thread/BookingActions';
 
 const CREATOR_SUGGESTIONS = [
   'Thanks for reaching out!',
@@ -282,6 +283,8 @@ export default function ChatView({ bookingId }) {
           })}
 
           <DeliveryCard booking={booking} role={role} onChanged={refreshBooking} />
+
+          <BookingActions booking={booking} role={role} onChanged={refreshBooking} />
 
           {systemNotices.map((notice) => (
             <SystemNotice key={notice.id} message={notice} />

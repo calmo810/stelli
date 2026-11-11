@@ -457,3 +457,19 @@ test('only a founder can refund, pull back or mark reviewed', async () => {
   }
   assert.equal(w.stripe.refunds.length, 0);
 });
+
+test('the cancel button can ask what would happen first, and nothing moves', async () => {
+  const w = await scenario(shootIn(60));
+  await w.paid({ amount: 100 });
+  const preview = await w.call('cancelBooking', { bookingId: 'b1', preview: true }, CLIENT);
+  assert.equal(preview.data.allowed, true);
+  assert.equal(preview.data.tier, 'half');
+  assert.equal(preview.data.refundAmount, 57);
+  assert.match(preview.data.message, /\$57 back and Maya keeps half\. This can’t be undone\./);
+  assert.equal((await w.booking()).status, 'confirmed');
+  assert.equal(w.stripe.refunds.length, 0);
+
+  const creator = await w.call('cancelBooking', { bookingId: 'b1', preview: true }, CREATOR);
+  assert.match(creator.data.message, /Jordan gets \$114 back in full/);
+  assert.equal((await w.call('cancelBooking', { bookingId: 'b1', preview: true }, STRANGER)).status, 403);
+});

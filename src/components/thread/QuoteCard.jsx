@@ -94,6 +94,21 @@ export default function QuoteCard({ quote, booking, role, onChanged }) {
     }
   };
 
+  const decline = async () => {
+    if (!window.confirm('Decline this quote? Your creator can send you another one.')) return;
+    setBusy(true);
+    setError('');
+    try {
+      const response = await base44.functions.invoke('declineQuote', { quoteId: quote.id });
+      if (response.data?.error) throw new Error(response.data.error);
+      onChanged?.();
+    } catch (e) {
+      setError(e?.response?.data?.error || e.message || 'That did not go through. Try again.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="glass rounded-[26px] p-5 sm:p-6">
       <div className="flex items-start justify-between gap-4">
@@ -215,6 +230,17 @@ export default function QuoteCard({ quote, booking, role, onChanged }) {
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-4 w-4" />}
                 {accepted ? `Pay ${dollars(total)}` : `Accept & pay ${dollars(total)}`}
               </Pill>
+
+              {!accepted && (
+                <button
+                  type="button"
+                  onClick={decline}
+                  disabled={busy}
+                  className="mt-2 min-h-[44px] w-full text-[13px] text-white/45 transition-colors hover:text-white disabled:opacity-50"
+                >
+                  Not for me — decline this quote
+                </button>
+              )}
 
               <p className="mt-3 text-[12px] leading-relaxed text-white/40">
                 {dollars(total)} total. Held safely by Stelli until your photos arrive. Paying accepts the{' '}

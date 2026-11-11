@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Copy, ExternalLink, Loader2 } from 'lucide-react';
-import ConfirmAction, { newActionId } from '@/components/admin/ConfirmAction';
+import ConfirmAction, { newActionId } from '@/components/shared/ConfirmAction';
 
 const SURFACE = { background: 'hsl(var(--surface))', borderRadius: 4 };
 const CARD = 'border border-white/10';
