@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Star, Calendar, DollarSign, ClipboardCheck } from 'lucide-react';
+import { ArrowRight, Calendar, CircleDollarSign, ClipboardCheck, DollarSign, LayoutDashboard, MessageCircle, Sparkles, Star, Users } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
 import RatingDisplay from '@/components/RatingDisplay';
@@ -12,15 +12,19 @@ import AdminOverview from '@/components/admin/AdminOverview';
 import AdminApplications from '@/components/admin/AdminApplications';
 import AdminFaqQuestions from '@/components/admin/AdminFaqQuestions';
 
-const SURFACE = { background: 'hsl(var(--surface))', borderRadius: 4 };
-const CARD = 'border border-white/10';
+const SURFACE = {
+  background: 'linear-gradient(145deg, hsl(var(--surface-2) / .86), hsl(var(--surface) / .94))',
+  borderRadius: 22,
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,.08), 0 18px 42px -30px rgba(0,0,0,.78)',
+};
+const CARD = 'admin-surface';
 
 function Pill({ children, tone = 'cyan' }) {
   const color = `hsl(var(--neon-${tone}))`;
   return (
     <span
-      className="label-mono text-[8px] font-semibold px-2.5 py-1.5"
-      style={{ background: `hsl(var(--neon-${tone}) / 0.12)`, color, borderRadius: 3 }}
+      className="label-mono inline-flex rounded-full px-2.5 py-1.5 text-[8px] font-semibold"
+      style={{ background: `hsl(var(--neon-${tone}) / 0.12)`, color }}
     >
       {children}
     </span>
@@ -97,10 +101,10 @@ export default function AdminDashboard() {
   const totalRevenue = bookings.filter(b => b.status === 'completed').reduce((sum, b) => sum + (b.total_price || 0), 0);
 
   const stats = [
-    { icon: Star, label: 'Active lensmen', value: approved.length, color: 'hsl(var(--neon-lime))' },
+    { icon: Users, label: 'Active creators', value: approved.length, color: 'hsl(var(--neon-lime))' },
     { icon: Calendar, label: 'Total bookings', value: bookings.length, color: 'hsl(var(--neon-magenta))' },
     { icon: DollarSign, label: 'Revenue', value: `$${totalRevenue.toLocaleString()}`, color: 'hsl(var(--neon-lime))' },
-    { icon: ClipboardCheck, label: 'Applications to review', value: loadingLensmen ? '—' : pendingApplications.length, color: 'hsl(var(--neon-cyan))' },
+    { icon: ClipboardCheck, label: 'Awaiting review', value: loadingLensmen ? '—' : pendingApplications.length, color: 'hsl(var(--neon-cyan))' },
   ];
 
   return (
