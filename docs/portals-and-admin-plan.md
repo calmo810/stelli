@@ -49,7 +49,9 @@ Everything on screen should map to one of these. Anything that doesn't goes.
 
 ## Creator portal (`/lensman-dashboard`)
 
-**Now:** "Hey, Maya." → one status note (pending / on hold / payout setup) → "To do" → "Your shoots" (Active / Past) → "Photo releases" → "Agreements" → rows for Messages, Edit profile, View public page, Payouts, Account.
+> **Update, 11 November:** `main` now has a new creator workspace you built with the Base44 builder: Overview, Requests (with a page per request), Bookings, Calendar, Earnings and Profile. PR 1 merged it in and kept it, and fixed what it reads. So **this section is out of date**. I won't redesign your new workspace. If you say "go", I'd only fold items 2, 3 and 5 below into it: one "next" card, the money strip on Earnings, and photo releases as to-do items. Everything else on this screen is already yours.
+
+**Before your new workspace:** "Hey, Maya." → one status note (pending / on hold / payout setup) → "To do" → "Your shoots" (Active / Past) → "Photo releases" → "Agreements" → rows for Messages, Edit profile, View public page, Payouts, Account.
 
 **Change:**
 1. **Status note only when something is off**, as now, one at a time; the payout card always shows when money is waiting on setup (PR 1).
@@ -100,5 +102,6 @@ Everything on screen should map to one of these. Anything that doesn't goes.
 ## What I need from you
 
 - **Go, or changes** on each of the five screens above.
-- **D1 (album access)** decides the album screen's wording.
+- **D1 (album access)** is decided: anyone with the link, and the client can reset it. The album wording follows that.
+- **Creator portal:** keep your new workspace as is, or fold in items 2, 3 and 5 above.
 - Whether you want the **Money reconcile** function (it reads Stripe, read-only).
