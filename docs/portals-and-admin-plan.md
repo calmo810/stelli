@@ -82,7 +82,9 @@ Everything on screen should map to one of these. Anything that doesn't goes.
 
 ## Admin page (`/admin`)
 
-**Now:** a page header, four stat tiles, then nine tabs: Overview, Applications, Active lensmen, Bookings, Needs you, Pay creators, One-off payments, FAQ chat, Activity. Tables of cards; the tabs wrap on a phone.
+> **Update, 11 November (afternoon):** `main` now has a redesigned admin page you built with the Base44 builder: a hero, stat cards, restyled tabs, and a new Applications view with the portfolio and contact details side by side. PR 1 merged it in and kept it, with PR 1's queue, Activity tab, holds and "Fees earned" inside it. The layout below was written before that. If you say "go", I'd keep your design and change only what it doesn't do yet: open on the queue, move reports into it, cut nine tabs to four, and add the Money view with the read-only Stripe reconcile.
+
+**Before your redesign:** a page header, four stat tiles, then nine tabs: Overview, Applications, Active lensmen, Bookings, Needs you, Pay creators, One-off payments, FAQ chat, Activity. Tables of cards; the tabs wrap on a phone.
 
 **Change — four places, phone first, a bottom bar on phones and a left rail on a computer:**
 
