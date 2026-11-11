@@ -213,7 +213,7 @@ Severity: **Critical** = money lost, wrong person paid, private data exposed. **
 **C-4 · Contact details are readable before confirmation — by the other party, straight from the data.**
 The read rules on `Booking`, `Quote`, `Message` and `BookingContract` hand each party the whole record. That includes the creator's login email (`creator_email`, `lensman_email`) from the moment a request is filed, the creator's real name and contact email on the contract (created at quote acceptance, before payment), and the client's email and phone for the creator. The UI doesn't show them; the browser's network tab does.
 *This breaks "phone and email stay hidden until the booking is confirmed."* It can't be fixed without changing schemas or read rules, which needs your OK — see the decisions list for the plan.
-**Status: Flagged — needs your decision (D5).**
+**Status: Fixed after your OK (D5) — access by account ID only, emails and phones readable by founders only, the creator's legal name added to the agreement at payment, plus a one-time backfill (`migrateRecordOwners`).**
 
 ### High
 
@@ -243,7 +243,7 @@ The read rules on `Booking`, `Quote`, `Message` and `BookingContract` hand each 
 
 **H-13 · After paying, clients can land on the wrong domain, signed out.** `safeOrigin` only accepts `*.base44.app`, so a client paying from `getstelli.com` is sent back to `getstelli.base44.app`, where they have no session and see "This conversation isn't yours." The same rule accepts **any** Base44 app's subdomain as a return address. Emails mix the two domains as well. **Status: Fixed**
 
-**H-14 · "Shadow-ban" doesn't hide anyone.** A creator cancellation sets `under_review`, which only shows a banner on the creator's own dashboard. They stay in browse, on the home page and bookable. `submitBookingRequest` accepts pending and rejected creators too. **Status: Fixed in the app; tightening the read rule is decision D6**
+**H-14 · "Shadow-ban" doesn't hide anyone.** A creator cancellation sets `under_review`, which only shows a banner on the creator's own dashboard. They stay in browse, on the home page and bookable. `submitBookingRequest` accepts pending and rejected creators too. **Status: Fixed — in the app, and in the read rule after your OK (D6)**
 
 **H-15 · The client's portal never shows "pay" or "your photos are ready".** The "Needs you" list only knows two cases, and one of them looks for a status no code sets. Cancelled bookings, bank payments in progress and `awaiting_creator_acceptance` drop out of every list. On the creator side, "Deliver to …" shows before the shoot has happened. **Status: Fixed (logic; the layout is PR 2)**
 
@@ -275,7 +275,7 @@ The read rules on `Booking`, `Quote`, `Message` and `BookingContract` hand each 
 
 **M-12 · Role mix-ups.** A client can open the creator dashboard and the reverse (empty, but confusing). A client who applies as a creator is still routed to the client portal. `/onboarding` lets an existing account overwrite its type. The welcome prompt says "curator". **Status: Fixed**
 
-**M-13 · Creator profiles expose more than they need to.** `Lensman` is public for approved creators and carries `stripe_account_id`, `payouts_enabled`, `under_review`, the owner's `user_id`, and `pricing_tiers` — named packages with prices. The site doesn't render them, but anyone can read them, which contradicts "no packages and no public prices anywhere." One approved profile created before the current signup path also carries its owner's email in the built-in `created_by` field. **Status: Flagged — decision D6**
+**M-13 · Creator profiles expose more than they need to.** `Lensman` is public for approved creators and carries `stripe_account_id`, `payouts_enabled`, `under_review`, the owner's `user_id`, and `pricing_tiers` — named packages with prices. The site doesn't render them, but anyone can read them, which contradicts "no packages and no public prices anywhere." One approved profile created before the current signup path also carries its owner's email in the built-in `created_by` field. **Status: Fixed after your OK (D6) — payout, Stripe, hold and package fields readable by founders only; held creators unreadable**
 
 **M-14 · Delivery links aren't checked for being links.** Anything starting with `https://` passes, including `https://Users/…`. **Status: Fixed**
 
@@ -397,14 +397,14 @@ Tested: the two paths started against each other at 11 different timings, always
 - Two-factor sign-in now works (it couldn't build before), and the login page handles the second step. Requiring it for admins is a Base44 setting (section 7). *(H-10)*
 - Approving, rejecting and holding creators goes through the server and is logged. Approving from the admin page or from the Base44 dashboard both email the creator exactly once.
 - Every function was checked for who may call it and in what state, and tested as the client, the creator, a stranger and a founder (section 13). The ones that were too loose are fixed: contact details (only once paid), legal-acceptance records (no forging), photo releases (the client approves specific photos; changing them needs a new yes), profile saves (every public field is checked and can't carry a phone, email, handle or link), reviews (one per completed booking, first name and initial only), reports (only about your own booking), account deletion (blocked while anything is still open). *(M-4, M-5, M-9, M-10, M-7, H-16)*
-- What the raw data still shows before a booking is paid is decision D5.
+- After your OK (D5 and D6), the raw data no longer shows contact details early either: access matches on account IDs only, every email and phone field on shared records is readable by founders only, the agreement names the creator by their Stelli name until payment, and a creator's payout, Stripe, hold and package fields are founders-only.
 
 ### Albums
 
 - Final delivery happens once. After it, the 48 hours can't restart and the creator can't add or remove photos. *(K6)*
 - The client can **reset the album link**; the old link stops working for everyone. Founders can too.
 - Album tokens are longer and compared safely; emails carry the working link.
-- Who may open an album is decision D1.
+- Albums open for anyone with the link (your decision, D1); the client can reset it.
 
 ### Accounts and portals (logic only — the layout is PR 2)
 
@@ -461,7 +461,7 @@ Tested: the two paths started against each other at 11 different timings, always
 | `manual_payout_id` | You paid this booking's creator by hand. The automatic payout won't. |
 | `BookingContract.status` / `quote_id` | Which accepted quote an agreement belongs to; older ones are marked replaced. |
 
-All are optional; existing records work without them.
+All are optional; existing records work without them. Added after your decisions: `BookingContract.creator_user_id` (who may read an agreement) and `BookingContract.legal_names_added_at`.
 
 ### 9.4 Stuck states from section 3.4, now
 
@@ -482,7 +482,9 @@ Final delivery, payout, manual payout, refund, pull-back, review, booking reques
 
 Each of these is a place where your policy and the code disagree, or where the policy doesn't cover a case. I did not decide them in code. One recommendation each.
 
-**D1 · Who can open an album: anyone with the link, or only invited emails?**
+**Decided (you answered on 11 November):** D1 yes — anyone with the link. D5 yes — done. D6 yes — done. D12 yes — keep as built. The rest are still open.
+
+**D1 · Who can open an album: anyone with the link, or only invited emails?** — **Decided: anyone with the link.** No change needed; the album-after-refund question below is still open.
 Today: anyone with the link. No screen collects invited emails (`album_access_emails` is never filled in), so "invited guests" don't exist yet.
 **Recommendation: keep "anyone with the link"**, now that the client can reset a leaked link in one tap. Making guests sign in to see party photos adds friction most clients won't want. If you want invite-only later, it's a small change: guests sign in with an email on the list. The concierge now says only what's true either way; say which you want and I'll match its wording.
 Related: **what happens to the album after a full refund?** Today it stays open. Your Terms (10.4) say copyright goes back to the creator after a full refund. Recommendation: close the album when a booking is fully refunded after delivery.
@@ -496,13 +498,15 @@ Implemented: it's kept apart as an "unmatched payment", the booking is **not** c
 **D4 · Three different delivery and complaint deadlines.**
 The app gives 48 hours to report a problem; Terms 8.5 says "report visible issues within 7 calendar days". The agreement text sets the edited deadline at 10 business days; Terms 8.3 and your spec say 7 calendar days. **Recommendation:** change the agreement to 7 calendar days (a one-line change, I can do it on your OK), and have whoever drafted the Terms make 8.5 match the 48 hours. These are legal terms, so I left them alone.
 
-**D5 · Contact details in the raw data before a booking is paid (C-4).**
+**D5 · Contact details in the raw data before a booking is paid (C-4).** — **Decided: yes. Done** (see the note at the end of this item).
 The app no longer *shows* contact details early, but the records each side can read still include the other side's login email from the moment a request is made, and the agreement (created when a quote is accepted, before payment) includes the creator's real name. Someone opening the browser's developer tools can see them. And because access matches on email, a new account made later with a deleted user's email address could read that user's old bookings and messages.
 **Recommendation:** match access on account IDs only, and stop copying emails onto records the other side can read. Plan: (1) a migration fills `client_id` and `creator_id` on every Booking, Quote, Message, Contract and Photo release (most already have them); (2) change the read rules to IDs only; (3) clear the email fields on those records, keeping emails only on admin-only records; (4) write the creator's legal name into the agreement at payment, not at acceptance. This changes read rules and existing records, so it needs your OK. Time: about a day, then your checklist again.
+*Done as:* read rules on Booking, Quote, Message, BookingContract, PhotoRelease and DeliveryPhoto match account IDs only; every email and phone field on them is readable by founders only (a field-level rule), rather than cleared, because the backend still needs them to send emails; the browser looks bookings up by ID; the agreement gets the legal name at payment; and `migrateRecordOwners` fills in the IDs older records are missing. **Run it right after merging** (checklist, "Right after you merge").
 
-**D6 · What a public creator record exposes.**
+**D6 · What a public creator record exposes.** — **Decided: yes. Done.**
 Anyone can read an approved creator's full record, including `stripe_account_id`, `payouts_enabled`, `under_review`, the owner's user ID and the **priced packages** from the profile wizard (your spec says no public prices). A creator on hold is hidden by the app, but their record can still be read by ID.
 **Recommendation:** field-level read rules so those fields are visible only to the creator and admins, a read rule of "approved and not on hold", and either drop the price step from the wizard or keep packages private. Read-rule changes need your OK.
+*Done as:* the creator read rule is "approved and not on hold, or your own, or a founder"; `stripe_account_id`, `payouts_enabled`, `payouts_onboarded_at`, `under_review` and `pricing_tiers` are readable by founders only, and so are the founders' notes on a creator's own contact record. The creator gets their own full record through a new function, `getMyCreatorProfile`, so their dashboard and the profile editor still work. The packages stay in the wizard but are private.
 
 **D7 · New York.**
 Every creator is saved with `market: 'ELON'`, the only value the field allows. **Recommendation:** add `NYC` as a value (existing records unaffected) and let creators pick in the wizard. It's a schema change, so I've asked first.
@@ -519,7 +523,7 @@ One booking is "delivered, held, waiting on payout setup" from a test card. It c
 **D11 · Outside services the site talks to.**
 Your privacy page lists Stripe, Base44 and the email service. The site also loads **Google Fonts** (each visitor's browser contacts Google), a few fallback images from **Unsplash**, and Base44's own **analytics tracker** is switched on in `vite.config.js`. **Recommendation:** host the four fonts from Stelli's own files (no visible change), replace the Unsplash fallbacks with your own images, and decide whether Base44's analytics counts as "outside analytics" (it is your host, but your page says no analytics). Not changed here because it touches the public site.
 
-**D12 · Should a creator who cancels be hidden automatically?**
+**D12 · Should a creator who cancels be hidden automatically?** — **Decided: no, keep as built.**
 Before this PR, a creator cancelling set a flag that only showed them a banner. That flag now really hides a creator, so I stopped setting it on cancellation: a creator cancelling goes to your queue with a one-tap "Put on hold". A no-show report still holds automatically. **Recommendation:** keep it this way, a cancellation two weeks out is often fine. If you want automatic holds for cancellations inside 72 hours, it's one line.
 
 **D13 · A manual payout for a booking replaces the automatic one.**
@@ -545,6 +549,15 @@ Run this before you trust the money path with real clients. It takes about an ho
    - Want zero risk to real clients? Remix the app in Base44 and run the checklist on the copy instead (it gets its own database and URL; point a test webhook at it).
 3. Make three test accounts with fresh emails (for example `you+client@…`, `you+creator@…`). Name anything you create "TEST" so it's easy to clean up.
 
+### Right after you merge
+
+4. **Run the one-time data fix.** On `/admin` → Activity, press **Check** on the "One-time data fix" card. It changes nothing and lists how many records it would fill in. Then press **Run it** and confirm. It's logged in the activity list. Until it has run, a few old records (two old requests, one message, three old quotes, every agreement) are invisible to their own client or creator. It's safe to run twice.
+5. **Quick checks that the new read rules took:**
+   - `/creators` still lists your approved creators. (If it's empty, the new creator read rule wasn't accepted by Base44: tell me at once, it's a one-line fallback.)
+   - As the test creator, the dashboard shows the right payout state, and "Edit profile" opens with their packages filled in.
+   - As the test client, your bookings and messages all appear.
+   - In Base44 → Security, run a scan: it should report no exposed fields.
+
 Test cards (any future expiry, any CVC, any ZIP):
 
 | Card | What it does |
@@ -561,7 +574,8 @@ Test cards (any future expiry, any CVC, any ZIP):
 | A1. Open `/admin` signed out, then as the test client. | "Nothing here." Same as `/admin-typo`. No redirect. |
 | A2. Sign up as the test client. Try without ticking "I'm 18 or older". | You can't continue until both boxes are ticked. |
 | A3. Sign up as the test creator, apply. In `/admin → Applications`, approve them. | A confirmation first. One "You're live" email. A line in the **Activity** tab. |
-| A4. As the creator, set up payouts. Stripe's test onboarding accepts test details (in test mode it offers test values for the phone code, ID and bank). | Back on Stelli: "Payouts are on." |
+| A4. As the creator, set up payouts. Stripe's test onboarding accepts test details (in test mode it offers test values for the phone code, ID and bank). | Back on Stelli: "Payouts are on." (This also proves the creator's own payout fields still reach their dashboard.) |
+| A4b. Put the test creator on hold from `/admin`, then open their page signed out. | "Creator not found", and they're gone from `/creators`. Lift the hold: they're back. |
 | A5. Section 7, item 7: check that a normal account can't give itself the admin role. | It can't. |
 
 ### B. A normal booking, start to finish
@@ -573,6 +587,7 @@ Test cards (any future expiry, any CVC, any ZIP):
 | B3. As the client, tick Rush delivery. | Card total reads **$171**. |
 | B4. Tap "Accept & pay $171". | Stripe Checkout shows three lines: $100, $50, **$21** service fee. |
 | B5. Pay with `4000 0000 0000 0077`. | Back in the thread. Within a minute: "Booked. Your payment is held safely until your photos arrive." Stripe: a $171 payment. In Base44 data (Booking): `fee_amount` 21, `creator_payout` 129, `amount_charged` 171, `stripe_livemode` false. |
+| B5b. Before paying (in B4), the client opens the agreement link under the pay button. | It names the creator by their Stelli name only, with a note that the legal name is added once paid. After B5 it shows the legal name. |
 | B6. As the creator, open the agreement from the to-do list and accept it. | The booking **stays confirmed**. The agreement lists Shoot $100, Rush delivery $50, Creator's price $150, fee $21, total $171, creator receives $129. Both sides get a copy by email. |
 | B7. As the creator, post the unedited set, then the final edits with a gallery link (try a link like `https://Users/me/x.html` first). | The fake link is refused. After final delivery, the delivery controls disappear and the album is locked. The client gets an email with an album link that opens signed out. |
 | B8. Try to post final edits again. | Refused. The 48-hour clock doesn't restart. |
@@ -667,7 +682,7 @@ Make three paid bookings: one about 4 days out, one about 60 hours out, one abou
 
 ## 13. Tests, and what is still untested
 
-`npm test` runs 212 tests in under 20 seconds. Every one passes on this branch.
+`npm test` runs 219 tests in under 20 seconds. Every one passes on this branch.
 
 - **Pure rules:** money and rounding (`money.test.mjs`), cancellation tiers and New York time including daylight saving (`cancellation.test.mjs`), booking states and what each move needs (`bookingRules.test.mjs`), the portals' next steps and status lines and their agreement with the server (`bookingNextStep.test.mjs`), the founder queue (`founderQueue.test.mjs`), the contact guard (`contactGuard.test.mjs`).
 - **Real function code, end to end:** `flow-*.test.mjs` load the actual backend functions and run them against an in-memory Base44 database and a fake Stripe (`tests/helpers`). Covered: the whole payment path, every known issue as a "how it happens" scenario, races (report vs payout at 41 timings, manual vs automatic payout at 11, refund vs sweep, double delivery, double reviews, double clicks), refunds and pull-backs, cancellations, disputes, contracts, albums, the concierge, and who may call each function.
@@ -680,6 +695,7 @@ Make three paid bookings: one about 4 days out, one about 60 hours out, one abou
 - That `asServiceRole.entities.User.update` can set `age_confirmed` (used once, for the 18+ answer on a first request).
 - The new buttons in the thread and on the admin page were built and linted, not clicked in a browser: the app needs the real Base44 backend to load anything.
 - Two-factor sign-in end to end (it depends on your Base44 login settings).
+- How Base44 applies the new read rules: that the nested "approved and not on hold" creator rule is accepted; that a field-level rule hides a field without hiding the whole record; and that backend functions, which run with the service role, still see founder-only fields (payouts and emails depend on it). Steps 4–5 and A4 of the checklist confirm all three within minutes of merging.
 
 ### Also check in Base44 after merging
 
