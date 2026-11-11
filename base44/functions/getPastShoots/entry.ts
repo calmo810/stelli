@@ -4,8 +4,44 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
  * Past Stelli shoots for a public creator page.
  * Only releases BOTH sides approved are returned, with public-safe fields:
  * the client's first name, the shoot type and month, the chosen photos and
- * the linked review. Open to anyone, signed in or not.
+ * the review for that booking. Open to anyone, signed in or not.
+ *
+ * The review is found by booking, not only by the release's saved review_id,
+ * so a review written after both sides approved still shows. When one is
+ * found that the release didn't point to, the link is saved for next time.
  */
+
+const latestFirst = (a, b) => String(b.created_date || '').localeCompare(String(a.created_date || ''));
+
+async function findReview(base44, release) {
+  if (release.review_id) {
+    const linked = await base44.asServiceRole.entities.Review.get(release.review_id).catch(() => null);
+    if (linked) return linked;
+  }
+  if (!release.booking_id) return null;
+  const found = await base44.asServiceRole.entities.Review.filter({ booking_id: release.booking_id }).catch(() => []);
+  const review = [...found].sort(latestFirst)[0] || null;
+  if (review && review.id !== release.review_id) {
+    await base44.asServiceRole.entities.PhotoRelease.update(release.id, { review_id: review.id }).catch((error) =>
+      console.error('Review link could not be saved for release', release.id, '-', error.message)
+    );
+  }
+  return review;
+}
+
+/** A public-safe first name: first word only, no digits or handle symbols, capitalized. */
+function firstNameOf(name) {
+  const first = String(name || '').trim().split(/[\s@._]+/)[0] || '';
+  const letters = first.replace(/[^\p{L}'-]/gu, '');
+  if (!letters) return 'A client';
+  return letters.charAt(0).toUpperCase() + letters.slice(1).toLowerCase();
+}
+
+function sharedAt(release) {
+  const times = [release.client_decided_at, release.creator_decided_at].filter(Boolean).sort();
+  return times[times.length - 1] || '';
+}
+
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
@@ -21,24 +57,21 @@ export default async function (req) {
       24
     );
 
-    const shoots = [];
-    for (const r of releases) {
-      const photos = (r.photos || []).filter(Boolean);
-      if (!photos.length) continue;
-      let review = null;
-      if (r.review_id) {
-        const found = await base44.asServiceRole.entities.Review.get(r.review_id).catch(() => null);
-        if (found) review = { rating: found.rating || 0, comment: found.comment || '' };
-      }
-      shoots.push({
-        id: r.id,
-        client_first_name: String(r.client_name || '').trim().split(/\s+/)[0] || 'A client',
-        event_type: r.event_type || '',
-        event_date: r.event_date || '',
-        photos,
-        review,
-      });
-    }
+    const withPhotos = releases.filter((r) => (r.photos || []).some(Boolean));
+    const shoots = await Promise.all(
+      withPhotos.map(async (r) => {
+        const found = await findReview(base44, r);
+        return {
+          id: r.id,
+          client_first_name: firstNameOf(r.client_name),
+          event_type: r.event_type || '',
+          event_date: r.event_date || '',
+          shared_at: sharedAt(r),
+          photos: r.photos.filter(Boolean),
+          review: found ? { rating: Number(found.rating) || 0, comment: String(found.comment || '').trim() } : null,
+        };
+      })
+    );
 
     return Response.json({ shoots });
   } catch (error) {
