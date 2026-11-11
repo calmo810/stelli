@@ -2,7 +2,12 @@ import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 
-const SURFACE = { background: 'hsl(var(--surface))', borderRadius: 4 };
+// The admin page's card look (see AdminDashboard.jsx).
+const SURFACE = {
+  background: 'linear-gradient(145deg, hsl(var(--surface-2) / .86), hsl(var(--surface) / .94))',
+  borderRadius: 22,
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,.08), 0 18px 42px -30px rgba(0,0,0,.78)',
+};
 
 const OUTCOME_TONE = { ok: 'lime', refused: 'cyan', failed: 'magenta' };
 

@@ -4,7 +4,12 @@ import { useQueryClient } from '@tanstack/react-query';
 import { founderQueue, money } from '@/lib/founderQueue';
 import ConfirmAction, { newActionId } from '@/components/shared/ConfirmAction';
 
-const SURFACE = { background: 'hsl(var(--surface))', borderRadius: 4 };
+// The admin page's card look (see AdminDashboard.jsx).
+const SURFACE = {
+  background: 'linear-gradient(145deg, hsl(var(--surface-2) / .86), hsl(var(--surface) / .94))',
+  borderRadius: 22,
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,.08), 0 18px 42px -30px rgba(0,0,0,.78)',
+};
 const CARD = 'border border-white/10';
 
 const KIND_LABEL = {
@@ -120,8 +125,8 @@ export default function FounderQueueList({ bookings, strays = null }) {
                     }`}
                     style={
                       action.tone === 'lime'
-                        ? { background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }
-                        : { borderRadius: 4 }
+                        ? { background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 14 }
+                        : { borderRadius: 14 }
                     }
                   >
                     {action.label}

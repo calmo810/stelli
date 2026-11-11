@@ -371,7 +371,7 @@ export default function AdminDashboard() {
                   value={bookingSearch}
                   onChange={(event) => setBookingSearch(event.target.value)}
                   placeholder="Search client, creator, event, or date…"
-                  className="w-full rounded border border-white/15 bg-white/[0.03] px-4 py-3 text-[13px] text-white placeholder:text-white/35 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neon-lime"
+                  className="w-full rounded-2xl border border-white/12 bg-black/15 px-4 py-3 text-[13px] text-white placeholder:text-white/35 transition focus:border-neon-lime/60 focus:outline-none focus:ring-2 focus:ring-neon-lime/15"
                 />
               </label>
               <label className="block sm:w-[220px]">
@@ -379,7 +379,7 @@ export default function AdminDashboard() {
                 <select
                   value={bookingStatus}
                   onChange={(event) => setBookingStatus(event.target.value)}
-                  className="w-full rounded border border-white/15 bg-surface px-4 py-3 text-[13px] text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neon-lime"
+                  className="w-full rounded-2xl border border-white/12 bg-[hsl(var(--surface))] px-4 py-3 text-[13px] text-white transition focus:border-neon-lime/60 focus:outline-none focus:ring-2 focus:ring-neon-lime/15"
                 >
                   <option value="all">All statuses</option>
                   {bookingStatuses.map((status) => <option key={status} value={status}>{status.replace(/_/g, ' ')}</option>)}

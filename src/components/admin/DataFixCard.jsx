@@ -3,7 +3,12 @@ import { base44 } from '@/api/base44Client';
 import { useQueryClient } from '@tanstack/react-query';
 import ConfirmAction from '@/components/shared/ConfirmAction';
 
-const SURFACE = { background: 'hsl(var(--surface))', borderRadius: 4 };
+// The admin page's card look (see AdminDashboard.jsx).
+const SURFACE = {
+  background: 'linear-gradient(145deg, hsl(var(--surface-2) / .86), hsl(var(--surface) / .94))',
+  borderRadius: 22,
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,.08), 0 18px 42px -30px rgba(0,0,0,.78)',
+};
 
 const LINES = [
   ['bookings', 'bookings'],
@@ -61,7 +66,7 @@ export default function DataFixCard() {
           onClick={() => run(true)}
           disabled={busy}
           className="min-h-[44px] border border-white/15 px-4 font-body text-[14px] font-medium text-white/80 hover:bg-white/5 disabled:opacity-40"
-          style={{ borderRadius: 4 }}
+          style={{ borderRadius: 14 }}
         >
           {busy && !confirming ? 'Checking…' : 'Check'}
         </button>
@@ -70,7 +75,7 @@ export default function DataFixCard() {
           onClick={() => { setError(''); setConfirming(true); }}
           disabled={busy || !report?.dryRun}
           className="min-h-[44px] px-4 font-body text-[14px] font-semibold disabled:opacity-40"
-          style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }}
+          style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 14 }}
         >
           Run it
         </button>

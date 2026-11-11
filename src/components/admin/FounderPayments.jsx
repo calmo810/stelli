@@ -5,12 +5,16 @@ import { Button } from '@/components/ui/button';
 import { Copy, ExternalLink, Loader2 } from 'lucide-react';
 import ConfirmAction, { newActionId } from '@/components/shared/ConfirmAction';
 
-const SURFACE = { background: 'hsl(var(--surface))', borderRadius: 4 };
-const CARD = 'border border-white/10';
+const SURFACE = {
+  background: 'linear-gradient(145deg, hsl(var(--surface-2) / .86), hsl(var(--surface) / .94))',
+  borderRadius: 22,
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,.08), 0 18px 42px -30px rgba(0,0,0,.78)',
+};
+const CARD = 'admin-surface';
 const FIELD =
-  'w-full bg-transparent border border-white/15 px-3 py-2.5 text-[14px] text-white placeholder:text-white/30 focus:outline-none focus:border-white/40';
-const LABEL = 'label-mono text-[9px] text-white/45 mb-2 block';
-const LIME_BUTTON = { background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 };
+  'w-full rounded-xl border border-white/12 bg-black/15 px-3.5 py-3 text-[14px] text-white placeholder:text-white/30 transition focus:border-neon-lime/60 focus:outline-none focus:ring-2 focus:ring-neon-lime/15';
+const LABEL = 'label-mono mb-2 block text-[9px] text-white/45';
+const LIME_BUTTON = { background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 14 };
 
 /** The usual flat fee per shoot while Stelli is getting started. */
 const DEFAULT_PAYOUT = 50;
@@ -36,7 +40,7 @@ function StatusPill({ status }) {
       style={{
         background: `hsl(var(--neon-${tone}) / 0.12)`,
         color: `hsl(var(--neon-${tone}))`,
-        borderRadius: 3,
+        borderRadius: 999,
       }}
     >
       {status}
@@ -423,7 +427,7 @@ export function OneOffChargePanel() {
               onClick={() => copy(link)}
               variant="outline"
               className="flex-1 label-mono text-[10px] border-white/15 text-white/70 bg-transparent hover:bg-white/5 hover:text-white"
-              style={{ borderRadius: 4 }}
+              style={{ borderRadius: 14 }}
             >
               <Copy className="w-4 h-4" /> {copied ? 'Copied' : 'Copy link'}
             </Button>
@@ -431,7 +435,7 @@ export function OneOffChargePanel() {
               onClick={() => window.open(link, '_blank', 'noopener')}
               variant="outline"
               className="flex-1 label-mono text-[10px] border-white/15 text-white/70 bg-transparent hover:bg-white/5 hover:text-white"
-              style={{ borderRadius: 4 }}
+              style={{ borderRadius: 14 }}
             >
               <ExternalLink className="w-4 h-4" /> Open and pay
             </Button>
