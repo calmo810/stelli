@@ -274,6 +274,51 @@ test('only a founder approves, rejects or holds a creator — and the creator is
   assert.ok(log.some((entry) => entry.action === 'approve_creator' && entry.actor_email === FOUNDER.email));
 });
 
+test('the Applications tab: founders only, pending only, one email, logged', async () => {
+  const w = await scenario();
+  await w.entities.Lensman.update('l1', { status: 'pending' });
+  const review = (decision, user = FOUNDER) =>
+    w.call('reviewCreatorApplication', { lensmanId: 'l1', decision }, user);
+
+  assert.equal((await review('approved', null)).status, 401);
+  for (const user of [CLIENT, CREATOR, STRANGER]) {
+    assert.equal((await review('approved', user)).status, 404, 'a non-founder is told it does not exist');
+  }
+  assert.equal((await w.entities.Lensman.get('l1')).status, 'pending');
+  assert.equal((await review('maybe')).status, 400);
+
+  const done = await review('approved');
+  assert.equal(done.status, 200);
+  assert.equal(done.data.updated, true);
+  assert.equal((await w.entities.Lensman.get('l1')).status, 'approved');
+  // The workflow fires on the status change too; between them, one email.
+  await w.call('notifyCreatorStatus', { lensman_id: 'l1' }, FOUNDER);
+  assert.equal(w.emailsTo(CREATOR.email).filter((e) => /live on Stelli/.test(e.subject)).length, 1);
+
+  // Pressing again changes nothing; the other decision is refused.
+  assert.equal((await review('approved')).data.updated, false);
+  assert.equal((await review('rejected')).status, 409);
+  assert.equal((await w.entities.Lensman.get('l1')).status, 'approved');
+
+  const log = await w.entities.AdminAuditLog.filter({ lensman_id: 'l1' });
+  assert.equal(log.filter((entry) => entry.action === 'approve_creator').length, 1);
+});
+
+test('two founders deciding the same application at once: one decision wins', async () => {
+  const w = await scenario();
+  await w.entities.Lensman.update('l1', { status: 'pending' });
+  const [a, b] = await Promise.all([
+    w.call('reviewCreatorApplication', { lensmanId: 'l1', decision: 'approved' }, FOUNDER),
+    w.call('reviewCreatorApplication', { lensmanId: 'l1', decision: 'rejected' }, FOUNDER),
+  ]);
+  const status = (await w.entities.Lensman.get('l1')).status;
+  assert.ok(['approved', 'rejected'].includes(status));
+  const winners = [a, b].filter((res) => res.status === 200 && res.data.updated);
+  assert.equal(winners.length, 1);
+  assert.equal(winners[0].data.application.status, status);
+  assert.equal(w.db.emails.filter((e) => e.to === CREATOR.email).length <= 1, true);
+});
+
 test('a profile save can only touch the caller\'s own profile, and never its status or payouts', async () => {
   const w = await scenario();
   await w.entities.Lensman.create({ id: 'l2', user_id: 'someone-else', display_name: 'Other', status: 'pending' });

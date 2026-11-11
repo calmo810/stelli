@@ -133,7 +133,7 @@ export default async function (req) {
               base44,
               admin.email,
               `New creator application: ${fullName}`,
-              `${fullName}\nEmail: ${email}\nPhone: ${body.phone || '—'}\nMarket: ${market}\nSigned up: ${new Date(now).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}\n\nReview them in the Base44 dashboard under Data > Lensman, with their contact details under Data > CreatorContact.`
+              `${fullName}\nEmail: ${email}\nPhone: ${body.phone || '—'}\nMarket: ${market}\nSigned up: ${new Date(now).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}\n\nReview the application in Stelli: https://getstelli.base44.app/admin → Applications. Their portfolio and contact details are shown together, with Approve & publish or Reject application.`
             )
           )
       );

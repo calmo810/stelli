@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Star, Calendar, DollarSign, ClipboardCheck } from 'lucide-react';
+import { ArrowRight, Calendar, CircleDollarSign, ClipboardCheck, DollarSign, History, LayoutDashboard, MessageCircle, Sparkles, Users } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
 import RatingDisplay from '@/components/RatingDisplay';
@@ -16,15 +16,19 @@ import DataFixCard from '@/components/admin/DataFixCard';
 import CreatorHoldButton from '@/components/admin/CreatorHoldButton';
 import { founderQueue } from '@/lib/founderQueue';
 
-const SURFACE = { background: 'hsl(var(--surface))', borderRadius: 4 };
-const CARD = 'border border-white/10';
+const SURFACE = {
+  background: 'linear-gradient(145deg, hsl(var(--surface-2) / .86), hsl(var(--surface) / .94))',
+  borderRadius: 22,
+  boxShadow: 'inset 0 1px 0 rgba(255,255,255,.08), 0 18px 42px -30px rgba(0,0,0,.78)',
+};
+const CARD = 'admin-surface';
 
 function Pill({ children, tone = 'cyan' }) {
   const color = `hsl(var(--neon-${tone}))`;
   return (
     <span
-      className="label-mono text-[8px] font-semibold px-2.5 py-1.5"
-      style={{ background: `hsl(var(--neon-${tone}) / 0.12)`, color, borderRadius: 3 }}
+      className="label-mono inline-flex rounded-full px-2.5 py-1.5 text-[8px] font-semibold"
+      style={{ background: `hsl(var(--neon-${tone}) / 0.12)`, color }}
     >
       {children}
     </span>
@@ -64,15 +68,13 @@ export default function AdminDashboard() {
   // emails the creator once and writes the decision to the activity log.
   const reviewApplication = useMutation({
     mutationFn: async ({ lensmanId, status }) => {
-      const response = await base44.functions.invoke('reviewCreator', {
-        lensmanId,
-        decision: status === 'approved' ? 'approve' : 'reject',
-      });
+      const response = await base44.functions.invoke('reviewCreatorApplication', { lensmanId, decision: status });
       if (response.data?.error) throw new Error(response.data.error);
       return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-lensmen'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-creator-contacts'] });
       queryClient.invalidateQueries({ queryKey: ['admin-audit-log'] });
     },
   });
@@ -115,69 +117,128 @@ export default function AdminDashboard() {
   });
 
   const stats = [
-    { icon: Star, label: 'Active lensmen', value: approved.length, color: 'hsl(var(--neon-lime))' },
+    { icon: Users, label: 'Active creators', value: approved.length, color: 'hsl(var(--neon-lime))', people: approved.slice(0, 4) },
     { icon: Calendar, label: 'Total bookings', value: bookings.length, color: 'hsl(var(--neon-magenta))' },
     { icon: DollarSign, label: 'Fees earned', value: feesEarnedLabel, color: 'hsl(var(--neon-lime))' },
-    { icon: ClipboardCheck, label: 'Applications to review', value: loadingLensmen ? '—' : pendingApplications.length, color: 'hsl(var(--neon-cyan))' },
+    { icon: ClipboardCheck, label: 'Awaiting review', value: loadingLensmen ? '—' : pendingApplications.length, color: 'hsl(var(--neon-cyan))' },
   ];
 
   return (
-    <div className="min-h-screen bg-ink">
-      <div className="border-b border-white/10 py-12 px-5 md:px-10">
-        <div className="max-w-[1400px] mx-auto">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <p className="label-mono text-[9px] text-white/35 mb-4">Internal</p>
-            <h1 className="font-heading text-white font-semibold leading-[0.95] mb-3" style={{ fontSize: 'clamp(36px, 5vw, 64px)' }}>
-              Admin
-            </h1>
-            <p className="font-body text-[13px] text-white/45">Review creator applications, monitor bookings, and keep operations moving.</p>
-            <p className="mt-3 font-body text-[12px] text-white/40">
-              This page can move money. Keep two-factor sign-in on for this account.{' '}
-              <a href="/mfa?returnTo=%2Fadmin" className="underline underline-offset-4 hover:text-white">Set up or check</a>
-            </p>
-          </motion.div>
-        </div>
-      </div>
+    <div className="admin-shell min-h-screen">
+      <div className="mx-auto max-w-[1400px] px-5 py-7 md:px-10 md:py-10">
+        <motion.section
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+          className="admin-hero p-6 sm:p-8 lg:p-10"
+        >
+          <div className="relative z-10 flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-2xl">
+              <p className="admin-kicker label-mono text-[8px]"><Sparkles className="h-3 w-3" aria-hidden="true" /> Internal command center</p>
+              <h1 className="mt-5 font-heading text-white font-semibold leading-[0.9] tracking-[-0.055em]" style={{ fontSize: 'clamp(42px, 6vw, 78px)' }}>
+                Stelli <span className="text-neon-lime">operations.</span>
+              </h1>
+              <p className="mt-5 max-w-xl font-body text-[14px] leading-relaxed text-white/55">
+                A focused workspace for approvals, bookings, payouts, and the day-to-day running of the marketplace.
+              </p>
+              <p className="mt-3 font-body text-[12px] text-white/40">
+                This page can move money. Keep two-factor sign-in on for this account.{' '}
+                <a href="/mfa?returnTo=%2Fadmin" className="underline underline-offset-4 hover:text-white">Set up or check</a>
+              </p>
+            </div>
 
-      <div className="max-w-[1400px] mx-auto px-5 md:px-10 py-10">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 mb-10">
+            <button
+              type="button"
+              onClick={() => setActiveTab('applications')}
+              className="group relative z-10 flex min-w-[245px] items-center justify-between rounded-[20px] border border-neon-cyan/25 bg-neon-cyan/[0.09] p-4 text-left transition hover:border-neon-cyan/55 hover:bg-neon-cyan/[0.13]"
+            >
+              <span>
+                <span className="label-mono text-[8px] text-neon-cyan">Next up</span>
+                <span className="mt-2 block text-[14px] font-semibold text-white">
+                  {pendingApplications.length ? pendingApplications.length + ' creator application' + (pendingApplications.length === 1 ? '' : 's') + ' waiting' : 'Review queue is clear'}
+                </span>
+              </span>
+              <span className="grid h-10 w-10 place-items-center rounded-2xl bg-neon-cyan text-ink transition-transform group-hover:translate-x-1">
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </span>
+            </button>
+          </div>
+        </motion.section>
+
+        <section className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Marketplace statistics">
           {stats.map((stat, i) => (
-            <div key={i} className={`${CARD} p-5 text-center`} style={SURFACE}>
-              <stat.icon className="w-4 h-4 mx-auto mb-3" style={{ color: stat.color }} strokeWidth={1.6} />
-              <p className="font-heading text-3xl font-semibold text-white leading-none mb-2">{stat.value}</p>
-              <p className="label-mono text-[8px] text-white/40">{stat.label}</p>
+            <div key={i} className={CARD + ' admin-surface--interactive min-h-[154px] p-5'} style={SURFACE}>
+              <div className="flex items-start justify-between gap-3">
+                <span className="grid h-10 w-10 place-items-center rounded-2xl" style={{ background: stat.color.replace('))', ') / 0.12)'), color: stat.color }}>
+                  <stat.icon className="h-4 w-4" strokeWidth={1.8} />
+                </span>
+                {stat.people ? (
+                  <div className="flex items-center justify-end pl-3" aria-label="Active creator profiles">
+                    {stat.people.length ? stat.people.map((creator, index) => (
+                      creator.profile_image ? (
+                        <img
+                          key={creator.id}
+                          src={creator.profile_image}
+                          alt={creator.display_name || 'Creator'}
+                          title={creator.display_name || 'Creator'}
+                          className="-ml-3 h-9 w-9 rounded-full border-2 border-[hsl(var(--surface-2))] object-cover first:ml-0"
+                          style={{ zIndex: stat.people.length - index }}
+                        />
+                      ) : (
+                        <span
+                          key={creator.id}
+                          title={creator.display_name || 'Creator'}
+                          className="-ml-3 grid h-9 w-9 place-items-center rounded-full border-2 border-[hsl(var(--surface-2))] bg-neon-lime/15 text-[10px] font-semibold text-neon-lime first:ml-0"
+                          style={{ zIndex: stat.people.length - index }}
+                        >
+                          {(creator.display_name || 'C').slice(0, 1).toUpperCase()}
+                        </span>
+                      )
+                    )) : (
+                      <span className="label-mono text-[8px] text-white/35">No profiles yet</span>
+                    )}
+                  </div>
+                ) : (
+                  <span className="label-mono text-[8px] text-white/30">Live</span>
+                )}
+              </div>
+              <p className="mt-6 font-heading text-4xl font-semibold leading-none text-white">{stat.value}</p>
+              <p className="mt-2 label-mono text-[8px] text-white/42">{stat.label}</p>
+              {stat.people && stat.people.length > 0 && (
+                <p className="mt-3 text-[11px] text-white/35">The faces in your marketplace</p>
+              )}
             </div>
           ))}
-        </div>
+        </section>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="bg-transparent border border-white/10 rounded-none p-1 mb-8 h-auto flex-wrap">
-            <TabsTrigger value="overview" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-lime data-[state=active]:text-ink">
-              Overview
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-8">
+          <TabsList className="admin-tabbar mb-8 h-auto w-full justify-start">
+            <TabsTrigger value="overview" className="admin-tab shrink-0 gap-2 px-4 label-mono text-[9px]">
+              <LayoutDashboard className="h-3.5 w-3.5" /> Overview
             </TabsTrigger>
-            <TabsTrigger value="applications" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-cyan data-[state=active]:text-ink">
-              Applications ({pendingApplications.length})
+            <TabsTrigger value="applications" className="admin-tab shrink-0 gap-2 px-4 label-mono text-[9px]">
+              <ClipboardCheck className="h-3.5 w-3.5" /> Applications <span className="rounded-full bg-black/10 px-1.5 py-0.5">{pendingApplications.length}</span>
             </TabsTrigger>
-            <TabsTrigger value="lensmen" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-lime data-[state=active]:text-ink">
-              Active lensmen ({approved.length})
+            <TabsTrigger value="lensmen" className="admin-tab shrink-0 gap-2 px-4 label-mono text-[9px]">
+              <Users className="h-3.5 w-3.5" /> Creators <span className="rounded-full bg-black/10 px-1.5 py-0.5">{approved.length}</span>
             </TabsTrigger>
-            <TabsTrigger value="bookings" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-lime data-[state=active]:text-ink">
-              Bookings ({bookings.length})
+            <TabsTrigger value="bookings" className="admin-tab shrink-0 gap-2 px-4 label-mono text-[9px]">
+              <Calendar className="h-3.5 w-3.5" /> Bookings <span className="rounded-full bg-black/10 px-1.5 py-0.5">{bookings.length}</span>
             </TabsTrigger>
-            <TabsTrigger value="flagged" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-magenta data-[state=active]:text-ink">
-              Needs you ({heldFunds.length})
+            <TabsTrigger value="flagged" className="admin-tab shrink-0 gap-2 px-4 label-mono text-[9px]">
+              <CircleDollarSign className="h-3.5 w-3.5" /> Needs you <span className="rounded-full bg-black/10 px-1.5 py-0.5">{heldFunds.length}</span>
             </TabsTrigger>
-            <TabsTrigger value="pay" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-lime data-[state=active]:text-ink">
-              Pay creators
+            <TabsTrigger value="pay" className="admin-tab shrink-0 gap-2 px-4 label-mono text-[9px]">
+              <DollarSign className="h-3.5 w-3.5" /> Pay creators
             </TabsTrigger>
-            <TabsTrigger value="charge" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-lime data-[state=active]:text-ink">
-              One-off payments
+            <TabsTrigger value="charge" className="admin-tab shrink-0 gap-2 px-4 label-mono text-[9px]">
+              <DollarSign className="h-3.5 w-3.5" /> Payments
             </TabsTrigger>
-            <TabsTrigger value="faq" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-cyan data-[state=active]:text-ink">
-              FAQ chat
+            <TabsTrigger value="faq" className="admin-tab shrink-0 gap-2 px-4 label-mono text-[9px]">
+              <MessageCircle className="h-3.5 w-3.5" /> FAQ chat
             </TabsTrigger>
-            <TabsTrigger value="activity" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-cyan data-[state=active]:text-ink">
-              Activity
+            <TabsTrigger value="activity" className="admin-tab shrink-0 gap-2 px-4 label-mono text-[9px]">
+              <History className="h-3.5 w-3.5" /> Activity
             </TabsTrigger>
           </TabsList>
 
@@ -223,44 +284,81 @@ export default function AdminDashboard() {
             <AdminActivity />
           </TabsContent>
 
-          <TabsContent value="lensmen" className="space-y-3">
-            <label className="relative block w-full sm:max-w-[360px]">
-              <span className="sr-only">Search active creators</span>
-              <input
-                type="search"
-                value={creatorSearch}
-                onChange={(event) => setCreatorSearch(event.target.value)}
-                placeholder="Search name, specialty, or area…"
-                className="w-full rounded border border-white/15 bg-white/[0.03] px-4 py-3 text-[13px] text-white placeholder:text-white/35 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neon-lime"
-              />
-            </label>
-            {lensmenError ? (
-              <p role="alert" className="border border-neon-magenta/30 p-4 text-[13px] text-white/70">Creator profiles could not be loaded. Refresh the page and try again.</p>
-            ) : loadingLensmen ? (
-              Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-20" />)
-            ) : filteredCreators.length ? filteredCreators.map(l => (
-              <div key={l.id} className={`${CARD} p-5 flex items-center justify-between gap-4`} style={SURFACE}>
-                <div>
-                  <h3 className="font-heading text-[18px] font-semibold text-white leading-tight">
-                    {l.display_name || 'Stelli creator'}
-                    {l.under_review && <span className="ml-2 align-middle label-mono text-[8px] text-neon-magenta">On hold</span>}
-                  </h3>
-                  <p className="label-mono text-[9px] text-white/40 mt-2">
-                    {l.neighborhoods?.join(', ')} · {l.specialties?.slice(0, 2).join(', ')}
-                  </p>
-                </div>
-                <div className="flex items-center gap-5 shrink-0">
-                  <RatingDisplay rating={l.avg_rating} reviewCount={l.review_count} />
-                  {l.review_count > 0 && (
-                    <span className="label-mono text-[9px] text-white/35">{l.review_count} reviews</span>
-                  )}
-                  <CreatorHoldButton lensman={l} />
-                </div>
+          <TabsContent value="lensmen" className="space-y-5">
+            <section className="admin-surface flex flex-col gap-5 p-5 sm:flex-row sm:items-end sm:justify-between sm:p-6">
+              <div>
+                <p className="admin-kicker label-mono text-[8px]"><Users className="h-3 w-3" aria-hidden="true" /> Marketplace talent</p>
+                <h2 className="mt-4 font-heading text-3xl font-semibold tracking-tight text-white">Active creators</h2>
+                <p className="mt-2 font-body text-[13px] text-white/45">The people clients can currently discover and book.</p>
               </div>
-            )) : (
-              <p className="font-body text-[13px] text-center py-16 text-white/40">
-                {approved.length ? 'No creators match that search.' : 'No approved creators yet.'}
-              </p>
+              <label className="relative block w-full sm:max-w-[330px]">
+                <span className="sr-only">Search active creators</span>
+                <input
+                  type="search"
+                  value={creatorSearch}
+                  onChange={(event) => setCreatorSearch(event.target.value)}
+                  placeholder="Search name, specialty, or area…"
+                  className="w-full rounded-2xl border border-white/12 bg-black/15 px-4 py-3 text-[13px] text-white placeholder:text-white/35 transition focus:border-neon-lime/60 focus:outline-none focus:ring-2 focus:ring-neon-lime/15"
+                />
+              </label>
+            </section>
+
+            {lensmenError ? (
+              <p role="alert" className="rounded-2xl border border-neon-magenta/30 bg-neon-magenta/5 p-4 text-[13px] text-white/70">Creator profiles could not be loaded. Refresh the page and try again.</p>
+            ) : loadingLensmen ? (
+              <div className="grid gap-3 md:grid-cols-2">
+                {Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-32 rounded-[22px] bg-white/5" />)}
+              </div>
+            ) : filteredCreators.length ? (
+              <div className="grid gap-3 md:grid-cols-2">
+                {filteredCreators.map((creator) => (
+                  <article key={creator.id} className={CARD + ' admin-surface--interactive flex items-center gap-4 p-4 sm:p-5'} style={SURFACE}>
+                    {creator.profile_image ? (
+                      <img
+                        src={creator.profile_image}
+                        alt={creator.display_name || 'Creator'}
+                        loading="lazy"
+                        className="h-16 w-16 shrink-0 rounded-[20px] object-cover ring-1 ring-white/12"
+                      />
+                    ) : (
+                      <span className="grid h-16 w-16 shrink-0 place-items-center rounded-[20px] bg-neon-lime/12 text-lg font-semibold text-neon-lime">
+                        {(creator.display_name || 'C').slice(0, 1).toUpperCase()}
+                      </span>
+                    )}
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="truncate font-heading text-[19px] font-semibold leading-tight text-white">{creator.display_name || 'Stelli creator'}</h3>
+                        {creator.under_review ? (
+                          <span className="label-mono rounded-full bg-neon-magenta/12 px-2 py-1 text-[7px] text-neon-magenta">On hold</span>
+                        ) : (
+                          <span className="label-mono rounded-full bg-neon-lime/12 px-2 py-1 text-[7px] text-neon-lime">Live</span>
+                        )}
+                      </div>
+                      <p className="mt-2 truncate text-[12px] text-white/45">
+                        {creator.neighborhoods?.join(' · ') || 'Area not listed'}
+                      </p>
+                      <p className="mt-1 truncate text-[12px] text-white/35">
+                        {creator.specialties?.slice(0, 2).join(' · ') || 'Specialties not listed'}
+                      </p>
+                    </div>
+
+                    <div className="flex shrink-0 flex-col items-end gap-2 text-right">
+                      <div className="hidden sm:block">
+                        <RatingDisplay rating={creator.avg_rating} reviewCount={creator.review_count} />
+                        <p className="mt-2 label-mono text-[8px] text-white/35">{creator.review_count || 0} review{creator.review_count === 1 ? '' : 's'}</p>
+                      </div>
+                      <CreatorHoldButton lensman={creator} />
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="admin-surface p-12 text-center">
+                <p className="font-body text-[13px] text-white/40">
+                  {approved.length ? 'No creators match that search.' : 'No approved creators yet.'}
+                </p>
+              </div>
             )}
           </TabsContent>
 

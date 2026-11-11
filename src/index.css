@@ -562,3 +562,102 @@
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Admin workspace: a calm, tactile command center that still feels unmistakably Stelli. */
+.admin-shell {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(900px 460px at 8% -10%, hsl(var(--neon-cyan) / .10), transparent 62%),
+    radial-gradient(780px 420px at 100% 10%, hsl(var(--neon-magenta) / .09), transparent 58%),
+    hsl(var(--ink));
+}
+
+.admin-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .13);
+  border-radius: 30px;
+  background:
+    radial-gradient(520px 260px at 82% 14%, hsl(var(--neon-cyan) / .20), transparent 62%),
+    radial-gradient(460px 300px at 8% 100%, hsl(var(--neon-lime) / .13), transparent 66%),
+    linear-gradient(135deg, hsl(var(--surface-2)), hsl(var(--surface)) 56%, hsl(var(--ink)));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .13), 0 28px 70px -40px rgba(0, 0, 0, .85);
+}
+
+.admin-hero::after {
+  content: '';
+  position: absolute;
+  inset: auto -8% -54% auto;
+  width: 300px;
+  height: 300px;
+  border: 1px solid hsl(var(--neon-lime) / .19);
+  border-radius: 50%;
+  box-shadow: 0 0 0 34px hsl(var(--neon-lime) / .035), 0 0 0 68px hsl(var(--neon-lime) / .025);
+  pointer-events: none;
+}
+
+.admin-surface {
+  border: 1px solid rgba(255, 255, 255, .11);
+  border-radius: 22px;
+  background: linear-gradient(145deg, hsl(var(--surface-2) / .86), hsl(var(--surface) / .94));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 18px 42px -30px rgba(0, 0, 0, .78);
+}
+
+.admin-surface--interactive {
+  transition: transform .24s ease, border-color .24s ease, box-shadow .24s ease;
+}
+
+.admin-surface--interactive:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, .20);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .10), 0 24px 52px -32px rgba(0, 0, 0, .88);
+}
+
+.admin-tabbar {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 6px;
+  border: 1px solid rgba(255, 255, 255, .10);
+  border-radius: 18px;
+  background: hsl(var(--surface) / .62);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  scrollbar-width: none;
+}
+
+.admin-tabbar::-webkit-scrollbar { display: none; }
+
+.admin-tab {
+  min-height: 42px;
+  border-radius: 13px;
+  color: rgba(255, 255, 255, .52);
+}
+
+.admin-tab[data-state='active'] {
+  color: hsl(var(--ink));
+  background: hsl(var(--neon-lime));
+  box-shadow: 0 8px 22px -12px hsl(var(--neon-lime) / .85);
+}
+
+.admin-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid hsl(var(--neon-cyan) / .22);
+  border-radius: 999px;
+  background: hsl(var(--neon-cyan) / .08);
+  padding: 6px 10px;
+  color: hsl(var(--neon-cyan));
+}
+
+.admin-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 4px currentColor;
+  opacity: .85;
+}
