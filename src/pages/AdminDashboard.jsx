@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Calendar, CircleDollarSign, ClipboardCheck, DollarSign, LayoutDashboard, MessageCircle, Sparkles, Star, Users } from 'lucide-react';
+import { ArrowRight, Calendar, CircleDollarSign, ClipboardCheck, DollarSign, LayoutDashboard, MessageCircle, Sparkles, Users } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
 import RatingDisplay from '@/components/RatingDisplay';
