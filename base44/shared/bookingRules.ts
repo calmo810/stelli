@@ -83,6 +83,17 @@ export function isTestModePayment(booking) {
   return /^cs_test_/.test(String(booking?.stripe_checkout_session_id || ''));
 }
 
+/**
+ * Was this booking's money taken in the other Stripe mode from the one the app
+ * is running in now? Live money can't be moved with test keys (and the reverse):
+ * Stripe answers "no such charge", and retrying that every hour would only pile
+ * up failures and flags on a real booking. So while STRIPE_MODE=test, bookings
+ * paid with real money are simply left alone, and vice versa.
+ */
+export function paidInOtherMode(booking, liveMode) {
+  return liveMode ? isTestModePayment(booking) : !isTestModePayment(booking);
+}
+
 /** When the hold window closes on a delivered booking. */
 export function releaseDueFrom(deliveredAt) {
   return new Date(new Date(deliveredAt).getTime() + HOLD_HOURS * 3_600_000).toISOString();
@@ -251,6 +262,7 @@ export function releaseBlocker(booking, { nowMs = Date.now(), founder = false, l
   if (!['held', 'partially_refunded'].includes(booking.payment_status)) return 'nothing-held';
   if (disputeOpen(booking) || disputeLost(booking)) return 'disputed';
   if (liveMode && isTestModePayment(booking)) return 'test-payment';
+  if (!liveMode && !isTestModePayment(booking)) return 'live-payment';
   if (founder) return '';
 
   if (booking.flagged_for_review) return 'flagged';

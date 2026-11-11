@@ -26,6 +26,7 @@ const RELEASE_REASONS = {
   'nothing-held': 'There is no held money on this booking to release.',
   disputed: 'A card dispute is open (or was lost) on this payment, so it can’t be released.',
   'test-payment': 'This booking was paid in Stripe test mode. It can’t be paid out with real money.',
+  'live-payment': 'This booking was paid with real money, and the app is in Stripe test mode right now. Switch STRIPE_MODE back to live, then try again.',
   'no-payout-account': 'The creator hasn’t finished payout setup. The money stays held until they do, then goes out on its own.',
   'nothing-owed': 'Nothing is owed to the creator on this booking.',
   'stripe-unreachable': 'Stripe couldn’t be reached. Nothing moved. Try again in a minute.',
@@ -44,6 +45,7 @@ const REFUND_REASONS = {
   'disputed-stray': 'The client’s bank opened a dispute on this payment, so it can’t be refunded. Respond in Stripe.',
   'dispute-lost': 'The client’s bank already took this payment back. Nothing to refund.',
   'refund-in-stripe': 'This payment has to be refunded from the Stripe dashboard.',
+  'other-mode': 'This payment was made in the other Stripe mode from the one the app is in now (check STRIPE_MODE). Nothing moved.',
 };
 
 export default async function (req) {
@@ -136,7 +138,9 @@ export default async function (req) {
             ? `The payout could not be pulled back: ${result.error}`
             : result.status === 'busy'
               ? REFUND_REASONS.busy
-              : 'There is nothing to pull back on this booking.';
+              : result.status === 'other-mode'
+                ? REFUND_REASONS['other-mode']
+                : 'There is nothing to pull back on this booking.';
       return done({ ok: result.status === 'done', message, result }, result.reversed || 0);
     }
 

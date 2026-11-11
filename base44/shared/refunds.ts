@@ -1,7 +1,7 @@
 import { secrets } from 'base44:runtime';
-import { stripeGet, stripePost } from './stripe.ts';
+import { stripeGet, stripeMode, stripePost } from './stripe.ts';
 import { creatorPayoutCents, fromCents, money, reversalShareCents, toCents } from './money.ts';
-import { disputeOpen } from './bookingRules.ts';
+import { disputeOpen, paidInOtherMode } from './bookingRules.ts';
 import { withBookingLock } from './bookingLock.ts';
 import { emailAdmins, sendEmail } from './notify.ts';
 import { STRAY_OPEN, adoptBookingStray, refundStrayRecord, straysFor, syncStrayRefund } from './strayPayments.ts';
@@ -95,6 +95,9 @@ export async function refundHeld(base44, booking, options: Record<string, any> =
   // The bank already holds the money while a dispute is open; a refund on top
   // would pay the client twice.
   if (disputeOpen(booking)) return { refunded: false, reason: 'disputed' };
+  // Paid in the other Stripe mode (real money while STRIPE_MODE=test, say):
+  // these keys can't see that charge, so leave the booking exactly as it is.
+  if (paidInOtherMode(booking, stripeMode() === 'live')) return { refunded: false, reason: 'other-mode' };
 
   // What Stripe says, not what we remember.
   let charge;
@@ -265,6 +268,9 @@ export async function pullBackHeld(base44, booking) {
 
   const dueCents = toCents(booking.reversal_amount_due);
   if (dueCents <= 0) return { status: 'none' };
+  // Same rule as refunds: a payout made with real money can't be pulled back
+  // with test keys. Don't record a failure (and flag a real booking) for it.
+  if (paidInOtherMode(booking, stripeMode() === 'live')) return { status: 'other-mode' };
 
   const failed = async (message) => {
     const attempts = Number(booking.reversal_attempts || 0) + 1;

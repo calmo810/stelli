@@ -7,7 +7,8 @@ import { releaseHeld } from '../../shared/payouts.ts';
 import { fromCents, money } from '../../shared/money.ts';
 import { emailAdmins, sendEmail } from '../../shared/notify.ts';
 import { hasContactDetails } from '../../shared/contactGuard.ts';
-import { isConfirmed } from '../../shared/bookingRules.ts';
+import { isConfirmed, paidInOtherMode } from '../../shared/bookingRules.ts';
+import { stripeMode } from '../../shared/stripe.ts';
 
 /**
  * Either side cancelling a booking.
@@ -40,6 +41,17 @@ export default async function (req) {
 
     const role = viewerRole(seen, user);
     if (!role) return Response.json({ error: 'This booking is not yours.' }, { status: 403 });
+
+    // While the app runs on the other set of Stripe keys (STRIPE_MODE=test with
+    // a real payment on the booking, or the reverse), a paid booking can't be
+    // refunded or paid out from here, so it can't be cancelled either.
+    const PAID = ['held', 'processing', 'partially_refunded'];
+    if (PAID.includes(seen.payment_status) && paidInOtherMode(seen, stripeMode() === 'live')) {
+      const message = 'Payments are paused for a few minutes while Stelli runs a check. Try again shortly, or message support.';
+      return preview
+        ? Response.json({ allowed: false, message })
+        : Response.json({ error: message }, { status: 409 });
+    }
 
     // "What would happen if I cancelled now?" — the same plan, nothing moved.
     // The cancel button shows this sentence before anyone confirms.

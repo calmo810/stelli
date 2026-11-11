@@ -7,6 +7,7 @@ import {
   effectiveStatus,
   isConfirmed,
   isTestModePayment,
+  paidInOtherMode,
   paidSessionVerdict,
   photoRemoveBlocker,
   quoteBlocker,
@@ -211,6 +212,18 @@ test('a test-mode payment is never paid out with live money', () => {
   assert.equal(releaseBlocker(old, { nowMs: NOW, liveMode: true }), 'test-payment');
   assert.equal(releaseBlocker(old, { nowMs: NOW, liveMode: false }), '');
   assert.equal(isTestModePayment({ stripe_checkout_session_id: 'cs_live_abc' }), false);
+});
+
+test('a real-money payment is left alone while the app runs in test mode', () => {
+  const live = { ...delivered, stripe_livemode: undefined, stripe_checkout_session_id: 'cs_live_abc' };
+  assert.equal(releaseBlocker(live, { nowMs: NOW, liveMode: false }), 'live-payment');
+  assert.equal(releaseBlocker(live, { nowMs: NOW, liveMode: false, founder: true }), 'live-payment');
+  assert.equal(releaseBlocker({ ...delivered, stripe_livemode: true }, { nowMs: NOW, liveMode: false }), 'live-payment');
+  assert.equal(releaseBlocker(live, { nowMs: NOW, liveMode: true }), '');
+  assert.equal(paidInOtherMode(live, false), true);
+  assert.equal(paidInOtherMode(live, true), false);
+  assert.equal(paidInOtherMode({ stripe_livemode: false }, false), false);
+  assert.equal(paidInOtherMode({ stripe_livemode: false }, true), true);
 });
 
 /* ---------------- reporting a problem ---------------- */

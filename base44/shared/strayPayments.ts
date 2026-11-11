@@ -1,5 +1,5 @@
 import { secrets } from 'base44:runtime';
-import { stripePost } from './stripe.ts';
+import { stripeMode, stripePost } from './stripe.ts';
 import { fromCents, money, toCents } from './money.ts';
 import { disputeOpen, strayPaymentSummary } from './bookingRules.ts';
 import { withBookingLock } from './bookingLock.ts';
@@ -221,6 +221,13 @@ export async function refundStrayRecord(base44, strayId): Promise<Record<string,
   if (!intentId.startsWith('pi_')) {
     await StrayPayment.update(stray.id, { status: 'open' });
     return { refunded: false, reason: 'refund-in-stripe', stray };
+  }
+
+  // Taken in the other Stripe mode from the one the app runs in now: these
+  // keys can't see it. Leave it open rather than record a failed refund.
+  if (stray.livemode !== undefined && stray.livemode !== null && Boolean(stray.livemode) !== (stripeMode() === 'live')) {
+    await StrayPayment.update(stray.id, { status: 'open' });
+    return { refunded: false, reason: 'other-mode', stray };
   }
 
   let refundId = '';

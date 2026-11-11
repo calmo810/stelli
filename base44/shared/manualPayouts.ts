@@ -91,6 +91,9 @@ async function sendTransfer(base44, payout, { notify, booking = null }) {
     if (blocker === 'test-payment') {
       return failPayout(base44, payout, 'This booking was paid in Stripe test mode.');
     }
+    if (blocker === 'live-payment') {
+      return failPayout(base44, payout, 'This booking was paid with real money, and the app is in Stripe test mode. Switch STRIPE_MODE back to live first.');
+    }
   }
 
   const { ownerEmail } = await resolveCreatorOwner(base44, lensman);
