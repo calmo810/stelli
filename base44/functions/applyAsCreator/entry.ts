@@ -16,7 +16,7 @@ const DUPLICATE_EMAIL =
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const user = await base44.auth.me().catch(() => null);
     if (!user) return Response.json({ error: 'Please sign in to apply.' }, { status: 401 });
 
     const body = await req.json();

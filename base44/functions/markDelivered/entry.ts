@@ -23,7 +23,7 @@ import { withBookingLock } from '../../shared/bookingLock.ts';
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const user = await base44.auth.me().catch(() => null);
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { bookingId, deliveryLink, step } = await req.json();

@@ -1,0 +1,86 @@
+{
+  "name": "Report",
+  "type": "object",
+  "properties": {
+    "reporter_id": {
+      "type": "string",
+      "description": "User ID of the person who filed the report. Empty for reports the system files itself."
+    },
+    "reporter_email": {
+      "type": "string",
+      "description": "Email of the person who filed the report"
+    },
+    "reporter_role": {
+      "type": "string",
+      "description": "Which side of the booking the reporter is on: client or creator"
+    },
+    "reported_lensman_id": {
+      "type": "string",
+      "description": "The creator profile the report is about, if it is about a creator"
+    },
+    "reported_email": {
+      "type": "string",
+      "description": "Email of the person the report is about"
+    },
+    "booking_id": {
+      "type": "string",
+      "description": "The booking the report is about"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "no_show",
+        "off_platform_booking",
+        "late_delivery",
+        "behavior",
+        "photos_misused",
+        "low_ratings",
+        "other"
+      ],
+      "description": "What kind of report this is"
+    },
+    "details": {
+      "type": "string",
+      "description": "What happened, in the reporter's words"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "reviewed"
+      ],
+      "default": "open",
+      "description": "open until a founder has looked at it"
+    },
+    "resolution_note": {
+      "type": "string",
+      "description": "What the founder decided"
+    }
+  },
+  "required": [
+    "reason",
+    "details"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

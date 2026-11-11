@@ -4,7 +4,7 @@ import { resolveCreatorOwner } from '../../../shared/creatorOwner.ts';
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const user = await base44.auth.me().catch(() => null);
     if (!user) return Response.json({ error: 'Please sign in to send a request.' }, { status: 401 });
 
     const { lensmanId, eventDate, eventTime, location, note, clientName, clientPhone, albumAccessEmails } = await req.json();
