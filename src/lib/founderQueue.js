@@ -147,8 +147,12 @@ export function queueItemFor(booking, nowMs = Date.now()) {
       'problem',
       2,
       `${client} reported a problem`,
-      `${money(b.amount_charged)} is held. ${creator} is owed ${money(b.creator_payout)} if you release it.`,
-      ['release', 'refund']
+      `${money(b.amount_charged)} is held. ${creator} is owed ${money(b.creator_payout)} if you release it.${
+        b.delivered_at ? '' : ' Nothing was delivered: this may be a no-show.'
+      }`,
+      // Reported before anything was delivered: a no-show is likely, so holding
+      // the creator is one tap away.
+      b.delivered_at ? ['release', 'refund'] : ['refund', 'release', 'hold_creator']
     );
   }
 

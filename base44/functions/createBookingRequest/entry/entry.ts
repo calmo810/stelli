@@ -1,67 +1,19 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
-import { resolveCreatorOwner } from '../../../shared/creatorOwner.ts';
 
+/**
+ * Retired. Booking requests go through submitBookingRequest, which checks
+ * that the creator is approved and not on hold, that the person is 18 or
+ * older, that the date is real, and that the note carries no contact details.
+ *
+ * Nothing in the app calls this one, but it was deployed (as
+ * "createBookingRequest/entry") and anyone signed in could call it directly,
+ * skipping all of those checks. It now refuses every call. It is kept, not
+ * deleted, until you say so (REVIEW.md, decision D14).
+ */
 export default async function (req) {
-  try {
-    const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me().catch(() => null);
-    if (!user) return Response.json({ error: 'Please sign in to send a request.' }, { status: 401 });
-
-    const { lensmanId, eventDate, eventTime, location, note, clientName, clientPhone, albumAccessEmails } = await req.json();
-    if (!lensmanId || !eventDate) return Response.json({ error: 'A creator and a date are required.' }, { status: 400 });
-
-    const lensman = await base44.asServiceRole.entities.Lensman.get(lensmanId);
-    if (!lensman || lensman.status !== 'approved') {
-      return Response.json({ error: 'That creator is not taking bookings right now.' }, { status: 404 });
-    }
-
-    // File the request against the account that owns this creator profile.
-    const owner = await resolveCreatorOwner(base44, lensman);
-
-    const booking = await base44.asServiceRole.entities.Booking.create({
-      lensman_id: lensmanId,
-      lensman_name: lensman.display_name || lensman.full_name,
-      lensman_email: owner.ownerEmail,
-      creator_id: owner.ownerId,
-      creator_email: owner.ownerEmail,
-      client_id: user.id,
-      client_name: (clientName || user.full_name || '').trim(),
-      client_email: user.email,
-      client_phone: (clientPhone || '').trim(),
-      event_date: eventDate,
-      event_time: eventTime || '',
-      location: (location || '').trim(),
-      note: (note || '').trim(),
-      album_access_emails: Array.isArray(albumAccessEmails) ? albumAccessEmails : [],
-      status: 'requested',
-      payment_status: 'pending',
-    });
-
-    if (note && note.trim()) {
-      await base44.asServiceRole.entities.Message.create({
-        booking_id: booking.id,
-        sender_id: user.id,
-        sender_name: booking.client_name || 'Client',
-        sender_role: 'client',
-        client_email: booking.client_email,
-        lensman_email: owner.ownerEmail,
-        creator_email: owner.ownerEmail,
-        content: note.trim(),
-        kind: 'text',
-      });
-    }
-
-    if (owner.ownerEmail) {
-      const firstName = (booking.client_name || 'Someone').split(' ')[0];
-      await base44.asServiceRole.integrations.Core.SendEmail({
-        to: owner.ownerEmail,
-        subject: `New Stelli request for ${eventDate}`,
-        body: `${firstName} wants to book you on ${eventDate}${location ? ` in ${location}` : ''}.\n\n${note ? `They said: ${note}\n\n` : ''}Open Stelli to work out the details and send your quote.`,
-      });
-    }
-
-    return Response.json({ booking });
-  } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
-  }
+  createClientFromRequest(req);
+  return Response.json(
+    { error: 'This has moved. Send your request from the creator’s page.' },
+    { status: 410 }
+  );
 }

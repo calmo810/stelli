@@ -17,6 +17,13 @@ const held = {
 };
 const names = (item) => item.actions.map((a) => a.action);
 
+test('a problem reported before delivery offers to put the creator on hold', () => {
+  const item = queueItemFor({ ...held, status: 'confirmed', delivered_at: undefined, flagged_for_review: true, problem_reported_at: 'x' }, NOW);
+  assert.equal(item.kind, 'problem');
+  assert.deepEqual(names(item), ['refund', 'release', 'hold_creator']);
+  assert.match(item.detail, /may be a no-show/);
+});
+
 test('a healthy booking is not in the queue', () => {
   assert.equal(queueItemFor(held, NOW), null);
   assert.equal(queueItemFor({ ...held, status: 'completed', payment_status: 'released', stripe_transfer_id: 'tr_1' }, NOW), null);
