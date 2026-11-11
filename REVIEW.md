@@ -372,6 +372,12 @@ While this was open, `main` picked up seven builder commits: the new creator wor
 - Budget and length are capped and checked for phone numbers and emails, like the note.
 - The new workspace finds quotes by account (emails are founder-only now), counts the old stuck bookings where they belong, and its "Needs your attention" list uses the same next-step rules as the rest of the app. Before, it missed agreements to accept and the unedited set. The on-hold and not-approved notices are back.
 
+Later on 11 November, `main` also got a redesigned admin page and a new `reviewCreatorApplication` function, merged in the same way:
+- Your design is kept, with this review's controls inside it: the "Needs you" queue, the Activity tab, holds and the two-factor reminder.
+- The stat card shows **fees earned**, not booking volume. "Revenue" added up every booking's price, which isn't Stelli's money.
+- Approving or rejecting from the Applications tab now writes the activity log and sends one email, and when two founders decide at once, only one decision wins.
+- Your old inline "Held funds" list stays replaced by the queue.
+
 ### Money
 
 - **One price, worked out once.** The quote plus the add-ons the client picked is the subtotal. The client pays it plus 14%, the creator gets it minus 14%. Acceptance, Checkout, the stored fee and payout, and the agreement all come from the same calculation, done in whole cents. When the payment lands, the app checks that Stripe charged exactly that, and sends anything else to you. *(K1, M-2)*
@@ -696,7 +702,15 @@ Make three paid bookings: one about 4 days out, one about 60 hours out, one abou
 
 ## 13. Tests, and what is still untested
 
-`npm test` runs 224 tests in under 20 seconds. Every one passes on this branch.
+`npm test` runs 239 tests in under 20 seconds. Every one passes on this branch.
+
+**CI.** `.github/workflows/ci.yml` runs on every pull request and every push to `main`, with four jobs and no secrets:
+- **Tests:** `npm test`.
+- **Lint:** `npm run lint`.
+- **Type checks:** the backend (every function and the shared money code) must pass `deno check` with no errors. The frontend is plain JavaScript under `checkJs`. It has 132 known findings, mostly from React Router's untyped outlet context, and may not add a new one (`ci/typecheck-baseline.json`).
+- **Build:** `npm run build`.
+
+To make it a real gate, turn on GitHub → Settings → Branches → a rule for `main` → *Require status checks to pass*, and pick the four jobs. That's a repository setting I can't change from here.
 
 - **Pure rules:** money and rounding (`money.test.mjs`), cancellation tiers and New York time including daylight saving (`cancellation.test.mjs`), booking states and what each move needs (`bookingRules.test.mjs`), the portals' next steps and status lines and their agreement with the server (`bookingNextStep.test.mjs`), the founder queue (`founderQueue.test.mjs`), the contact guard (`contactGuard.test.mjs`).
 - **Real function code, end to end:** `flow-*.test.mjs` load the actual backend functions and run them against an in-memory Base44 database and a fake Stripe (`tests/helpers`). Covered: the whole payment path, every known issue as a "how it happens" scenario, races (report vs payout at 41 timings, manual vs automatic payout at 11, refund vs sweep, double delivery, double reviews, double clicks), refunds and pull-backs, cancellations, disputes, contracts, albums, the concierge, and who may call each function.
@@ -714,7 +728,7 @@ Make three paid bookings: one about 4 days out, one about 60 hours out, one abou
 ### Also check in Base44 after merging
 
 - **Functions list:** the old `submitReview/entry`, `fileReport/entry` and `declineQuote/entry` may still be listed alongside the new `submitReview`, `fileReport` and `declineQuote`. Delete the `…/entry` ones if they are.
-- **Entities:** `AdminAuditLog` and `Report` should appear, both admin-only.
+- **Entities:** `AdminAuditLog`, `Report` and `StrayPayment` should appear, all three admin-only.
 - **Login settings → two-factor:** if Base44 lets you require it for admins (or for everyone), turn it on. The app can't enforce it from code: a user record has no "has two-factor" field a function could check.
 
 ## 14. The older PR #1, closed as superseded
