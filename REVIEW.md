@@ -123,28 +123,28 @@ All six are real. Details and what I found beyond the earlier review:
 *How it happens:* $100 quote, client ticks a $50 add-on, pays $171. The booking stores a $14 fee and an $86 payout. The creator is owed $129. Stelli keeps $85 instead of $42.
 *Existing bookings:* none affected (section 2).
 *Fix:* one subtotal function in integer cents, used by acceptance, checkout, the webhook and the contract; the webhook compares it with what Stripe charged and sends any mismatch to review.
-**Status: open**
+**Status: Fixed — `shared/money.ts`; checked against what Stripe charged in `shared/payments.ts`.**
 
 ### K2 — An old checkout can become the booking's payment · **Confirmed · Critical**
 `sendQuote` supersedes the old quote, tries to expire its session, swallows a failure, and sets `quote_id: ''`. `markBookingPaid` computes `replacedQuote = Boolean(booking.quote_id) && …`, so a blank `quote_id` is "not replaced". It then marks the superseded quote `accepted` and confirms the booking at the old price.
 *How it happens:* creator quotes $300, client opens Checkout and leaves the tab open; creator replaces it with $200; the expire call fails; client pays the old tab. The booking is confirmed at $300 with the $200 quote still showing "Accept & pay".
 *Also:* `createBookingCheckout` doesn't refuse a cancelled booking or an expired quote, and the session can outlive the quote.
 *Fix:* the webhook only accepts a paid session when it is the session on record **and** its quote is the booking's current accepted quote **and** the amount matches; anything else is held and flagged. Checkout requires a live accepted quote and an open booking, and the session expires with the quote.
-**Status: open**
+**Status: Fixed — `bookingRules.paidSessionVerdict`, `shared/payments.ts`, `createBookingCheckout`, `sendQuote`, `acceptQuote`. A payment that doesn’t match is held apart as a “stray payment” for you.**
 
 ### K3 — A problem report can lose a race with a payout · **Confirmed · Critical**
 `releaseBooking` trusts the booking object it is handed. The sweep hands it rows from a list read before the loop; `confirmDelivery` hands it a copy read before its own write.
 *How it happens:* the sweep reads the list at 3:00:00. The client reports a problem at 3:00:01. The sweep reaches that booking at 3:00:02 with `flagged_for_review: false` in its copy, and pays.
 *Also:* the transfer already has an idempotency key (`payout-<bookingId>`), so two payout attempts can't both pay. The gap is report-versus-payout, not payout-versus-payout.
 *Fix:* one lock field on the booking that the payout and the report both have to claim with a conditional write; whoever loses stops. The payout re-reads the booking after it holds the lock.
-**Status: open**
+**Status: Fixed — `shared/bookingLock.ts`, `shared/payouts.ts`, `reportBookingProblem`. Tested at 41 interleavings.**
 
 ### K4 — A refund can be marked done before the reversal is secured · **Confirmed · Critical**
 `refundBooking` refunds, then reverses the transfer, then saves. If the reversal throws, nothing is saved, the webhook's `charge.refunded` writes `refunded_at`, and the next attempt returns `already-refunded` at the first line.
 *How it happens:* creator was paid $86, has since withdrawn it. Founder refunds the client $114. Stripe refunds; the reversal fails for lack of funds on the creator's balance. The booking now reads "refunded". Stelli is out $86 and there is no retry.
 *Also:* `refunded_at` blocks **any** second refund, including refunding the other half after a 50% cancellation.
 *Fix:* refund and reversal are tracked separately (new optional fields), each retryable, each with its own idempotency key; an unfinished reversal is a founder-queue item with a retry action.
-**Status: open**
+**Status: Fixed — `shared/refunds.ts`, `shared/disputes.ts`, `releasePayout` (new `retry_reversal`).**
 
 ### K5 — The contract can fall out of sync with the payment · **Confirmed · High** (three parts)
 1. `createContractForBooking` returns `existing[0]` whatever quote it was written for.
@@ -158,7 +158,7 @@ All six are real. Details and what I found beyond the earlier review:
 - The contract email links to `/agreements/<id>` with no domain.
 
 *Fix:* one contract per accepted quote (the old one is kept, marked superseded); base price, each add-on and total on separate lines; acceptance sets the booking flag; contract acceptance never changes `status`.
-**Status: open**
+**Status: Fixed — `shared/bookingContract.ts`, `acceptQuote`, `acceptBookingContract`, `sendQuote`. Paid bookings already stuck in `awaiting_creator_acceptance` are read as confirmed, with no data change.**
 
 ### K6 — Albums can change after delivery; links can't be reset · **Confirmed · High**
 - `getAlbumBooking`: anyone with the token gets in; `album_access_emails` is never read. No reset.
@@ -174,7 +174,7 @@ All six are real. Details and what I found beyond the earlier review:
 - Nothing in the app writes `album_access_emails` or `co_bookers`. The only function that did is an old one nobody calls. So "invited guests" don't exist yet.
 
 *Fix:* delivered albums are locked (no removals, no re-delivery, window never restarts); a "reset album link" action for the client and for founders; constant-time compare; who may open the album goes on your decisions list.
-**Status: open**
+**Status: Fixed — `markDelivered`, `deliveryPhotos`, `getAlbumBooking`, new `resetAlbumLink`. Who may open an album is decision D1.**
 
 ---
 
@@ -189,106 +189,106 @@ Severity: **Critical** = money lost, wrong person paid, private data exposed. **
 *How it happens:* the creator doesn't show. The client opens the booking the next day and cancels. Result: no refund, and the creator is paid 100% on the spot. Or: a client disputes the charge with their bank, then cancels — the dispute freeze is cleared and the creator is paid while the bank takes the money back.
 *Not reachable from the UI today* (no cancel button exists), but the function is live and callable.
 *Fix:* cancellation closes at the shoot's start time — after that it's "report a problem", which freezes the money for a founder. Cancelling never clears a flag, and a flagged or disputed booking moves no money.
-**Status: open**
+**Status: Fixed — `shared/cancellation.ts`, `cancelBooking`.**
 
 **C-2 · Cancellation tiers are measured in the wrong time zone.**
 `cancelBooking` builds the shoot time with `new Date('<date>T<time>')`, which the server reads as UTC. Your Terms say America/New_York. The server thinks every shoot is 4–5 hours earlier than it is.
 *How it happens:* shoot Saturday 3 pm in New York. Client cancels Wednesday 1 pm — 74 hours ahead, a full refund under your policy. The server computes 69–70 hours and refunds half.
 *Also:* with no time set, noon is assumed. If the date or time doesn't parse, the math gives `NaN`, every comparison is false, and the code falls to "creator keeps everything".
 *Fix:* a pure, tested function that works in America/New_York (daylight saving included); a shoot time that can't be read goes to a founder instead of guessing.
-**Status: open**
+**Status: Fixed — `shared/shootTime.ts`.**
 
 **C-3 · A "refund" from the admin page can cancel the booking without refunding anyone.**
 `releasePayout` calls `refundBooking`, ignores the answer, then always writes `status: 'cancelled'`, `cancelled_by: 'creator'`.
 *How it happens:* the booking was half-refunded by a 48–72 h cancellation and you tap "Refund the client" to return the rest. `refundBooking` answers `already-refunded`. The booking is now cancelled "by the creator", the client got nothing more, and the screen shows no error.
 *Fix:* the function reports what actually happened and only changes state when money moved.
-**Status: open**
+**Status: Fixed — `releasePayout`.**
 
 **C-4 · Contact details are readable before confirmation — by the other party, straight from the data.**
 The read rules on `Booking`, `Quote`, `Message` and `BookingContract` hand each party the whole record. That includes the creator's login email (`creator_email`, `lensman_email`) from the moment a request is filed, the creator's real name and contact email on the contract (created at quote acceptance, before payment), and the client's email and phone for the creator. The UI doesn't show them; the browser's network tab does.
 *This breaks "phone and email stay hidden until the booking is confirmed."* It can't be fixed without changing schemas or read rules, which needs your OK — see the decisions list for the plan.
-**Status: flagged, needs your decision**
+**Status: Flagged — needs your decision (D5).**
 
 ### High
 
-**H-1 · The admin page's "release" ignores open disputes.** `releasePayout` forces `flagged_for_review: false` on its copy and pays. Nothing stops a release while a chargeback is open, or after one is lost (the booking still says `held`). **Status: open**
+**H-1 · The admin page's "release" ignores open disputes.** `releasePayout` forces `flagged_for_review: false` on its copy and pays. Nothing stops a release while a chargeback is open, or after one is lost (the booking still says `held`). **Status: Fixed**
 
-**H-2 · Nothing happens when a dispute is lost, and the creator is never pulled back.** `charge.dispute.closed` only stores the status. Your spec says a paid-out creator should be pulled back where possible. **Status: open**
+**H-2 · Nothing happens when a dispute is lost, and the creator is never pulled back.** `charge.dispute.closed` only stores the status. Your spec says a paid-out creator should be pulled back where possible. **Status: Fixed**
 
-**H-3 · Webhook events arriving out of order can corrupt a paid booking.** `checkout.session.completed` (unpaid) writes `processing` and `async_payment_failed` writes `pending` + `quote_accepted`, both with no look at the current state or which session the event is about. A retried old "failed" event after a successful re-payment reopens checkout on a paid booking — the client can be charged twice. **Status: open**
+**H-3 · Webhook events arriving out of order can corrupt a paid booking.** `checkout.session.completed` (unpaid) writes `processing` and `async_payment_failed` writes `pending` + `quote_accepted`, both with no look at the current state or which session the event is about. A retried old "failed" event after a successful re-payment reopens checkout on a paid booking — the client can be charged twice. **Status: Fixed**
 
-**H-4 · A founder release leaves the booking flagged.** Covered in 3.4. The queue fills with finished items; a real one gets lost among them. **Status: open**
+**H-4 · A founder release leaves the booking flagged.** Covered in 3.4. The queue fills with finished items; a real one gets lost among them. **Status: Fixed**
 
-**H-5 · Failed payouts are invisible.** A transfer that Stripe rejects (restricted account, bad destination) throws, is caught, logged to the console and retried every hour forever. Nothing reaches the admin page. **Status: open**
+**H-5 · Failed payouts are invisible.** A transfer that Stripe rejects (restricted account, bad destination) throws, is caught, logged to the console and retried every hour forever. Nothing reaches the admin page. **Status: Fixed**
 
-**H-6 · A quote can bring a dead booking back to life.** `sendQuote` writes `status: 'quoted'` on any unpaid booking, including cancelled and refunded ones. `acceptQuote` then accepts it. A booking cancelled and refunded can be re-quoted and paid again while still carrying `refunded_at`, which then blocks any future refund. **Status: open**
+**H-6 · A quote can bring a dead booking back to life.** `sendQuote` writes `status: 'quoted'` on any unpaid booking, including cancelled and refunded ones. `acceptQuote` then accepts it. A booking cancelled and refunded can be re-quoted and paid again while still carrying `refunded_at`, which then blocks any future refund. **Status: Fixed**
 
-**H-7 · Test-mode events can act on the live app.** The webhook accepts events signed by the live secret **or** the test secret. A test-mode `checkout.session.completed` naming a real booking marks it paid and confirmed with no real money. Only someone with access to your Stripe account can send one — so this is about accidents, not attackers — but the old test bookings in the live database show how easily the two mix. **Status: open**
+**H-7 · Test-mode events can act on the live app.** The webhook accepts events signed by the live secret **or** the test secret. A test-mode `checkout.session.completed` naming a real booking marks it paid and confirmed with no real money. Only someone with access to your Stripe account can send one — so this is about accidents, not attackers — but the old test bookings in the live database show how easily the two mix. **Status: Fixed**
 
-**H-8 · The age gate is skipped by almost everyone.** The 18+ box lives on `/onboarding`, which only shows when an account has no type. `Register` sets the type itself, and the booking form creates accounts with no gate at all. `applyAsCreator` writes `age_confirmed: true` without asking. **Status: open**
+**H-8 · The age gate is skipped by almost everyone.** The 18+ box lives on `/onboarding`, which only shows when an account has no type. `Register` sets the type itself, and the booking form creates accounts with no gate at all. `applyAsCreator` writes `age_confirmed: true` without asking. **Status: Fixed**
 
-**H-9 · The manual path and the automatic path can both pay the same shoot.** `ManualPayout` has no link to a booking. Nothing connects "I paid Maya $50 by hand for Saturday" with a held booking for the same shoot that the sweep will also pay. And a double click on "Pay" sends two payouts. **Status: open**
+**H-9 · The manual path and the automatic path can both pay the same shoot.** `ManualPayout` has no link to a booking. Nothing connects "I paid Maya $50 by hand for Saturday" with a held booking for the same shoot that the sweep will also pay. And a double click on "Pay" sends two payouts. **Status: Fixed**
 
-**H-10 · Two-factor sign-in isn't wired up.** The MFA screens exist (`pages/Mfa.jsx`, `MfaFlow`) but there is no `/mfa` route, and `Login.jsx` signs in with a call that doesn't handle a second step. An account with MFA on can't complete sign-in through the app's own login page. So today the admin accounts can't safely turn MFA on. **Status: open**
+**H-10 · Two-factor sign-in isn't wired up.** The MFA screens exist (`pages/Mfa.jsx`, `MfaFlow`) but there is no `/mfa` route, and `Login.jsx` signs in with a call that doesn't handle a second step. An account with MFA on can't complete sign-in through the app's own login page. So today the admin accounts can't safely turn MFA on. **Status: Fixed in the app; requiring MFA for admins has to be switched on in Base44 (section 7)**
 
-**H-11 · `/admin` is protected on the server, but has no confirmation, no log and no MFA.** The good news first: every admin read goes through an entity whose rules allow admins only, and every admin action is either an admin-only entity write or a function that checks `role === 'admin'` on the server (table in 5.1). The gaps: "Release" and "Refund" move money on a single tap; nothing records who did what; non-admins are redirected home rather than shown the not-found page. **Status: open**
+**H-11 · `/admin` is protected on the server, but has no confirmation, no log and no MFA.** The good news first: every admin read goes through an entity whose rules allow admins only, and every admin action is either an admin-only entity write or a function that checks `role === 'admin'` on the server (table in 5.1). The gaps: "Release" and "Refund" move money on a single tap; nothing records who did what; non-admins are redirected home rather than shown the not-found page. **Status: Fixed**
 
-**H-12 · There is no safe way to test payments.** Live keys win whenever they exist. To run a test checkout today you would have to delete the live key from a live app. **Status: open**
+**H-12 · There is no safe way to test payments.** Live keys win whenever they exist. To run a test checkout today you would have to delete the live key from a live app. **Status: Fixed — set the secret `STRIPE_MODE` to `test` to rehearse (read the checklist first)**
 
-**H-13 · After paying, clients can land on the wrong domain, signed out.** `safeOrigin` only accepts `*.base44.app`, so a client paying from `getstelli.com` is sent back to `getstelli.base44.app`, where they have no session and see "This conversation isn't yours." The same rule accepts **any** Base44 app's subdomain as a return address. Emails mix the two domains as well. **Status: open**
+**H-13 · After paying, clients can land on the wrong domain, signed out.** `safeOrigin` only accepts `*.base44.app`, so a client paying from `getstelli.com` is sent back to `getstelli.base44.app`, where they have no session and see "This conversation isn't yours." The same rule accepts **any** Base44 app's subdomain as a return address. Emails mix the two domains as well. **Status: Fixed**
 
-**H-14 · "Shadow-ban" doesn't hide anyone.** A creator cancellation sets `under_review`, which only shows a banner on the creator's own dashboard. They stay in browse, on the home page and bookable. `submitBookingRequest` accepts pending and rejected creators too. **Status: open**
+**H-14 · "Shadow-ban" doesn't hide anyone.** A creator cancellation sets `under_review`, which only shows a banner on the creator's own dashboard. They stay in browse, on the home page and bookable. `submitBookingRequest` accepts pending and rejected creators too. **Status: Fixed in the app; tightening the read rule is decision D6**
 
-**H-15 · The client's portal never shows "pay" or "your photos are ready".** The "Needs you" list only knows two cases, and one of them looks for a status no code sets. Cancelled bookings, bank payments in progress and `awaiting_creator_acceptance` drop out of every list. On the creator side, "Deliver to …" shows before the shoot has happened. **Status: open**
+**H-15 · The client's portal never shows "pay" or "your photos are ready".** The "Needs you" list only knows two cases, and one of them looks for a status no code sets. Cancelled bookings, bank payments in progress and `awaiting_creator_acceptance` drop out of every list. On the creator side, "Deliver to …" shows before the shoot has happened. **Status: Fixed (logic; the layout is PR 2)**
 
-**H-16 · Reviews, reports, declining a quote and cancelling have no working door.** `submitReview`, `fileReport`, `declineQuote` and `createBookingRequest` are deployed under the names `submitReview/entry`, etc. (each sits one folder too deep), and nothing calls them. `cancelBooking`, `confirmDelivery` and `getBookingContact` are deployed correctly but have no button. `fileReport` and the 3-bad-ratings rule write to a `Report` entity that doesn't exist in the repo. Your Terms promise a report option on every booking. **Status: open**
+**H-16 · Reviews, reports, declining a quote and cancelling have no working door.** `submitReview`, `fileReport`, `declineQuote` and `createBookingRequest` are deployed under the names `submitReview/entry`, etc. (each sits one folder too deep), and nothing calls them. `cancelBooking`, `confirmDelivery` and `getBookingContact` are deployed correctly but have no button. `fileReport` and the 3-bad-ratings rule write to a `Report` entity that doesn't exist in the repo. Your Terms promise a report option on every booking. **Status: Fixed**
 
 ### Medium
 
-**M-1 · The quote card shows the wrong total after add-ons are picked.** Reopen an accepted quote and the button says "Pay $114" while Checkout charges $171 — the card forgets the saved add-ons. A superseded quote still shows "Accept & pay". A bank payment in progress still shows "Pay". **Status: open**
+**M-1 · The quote card shows the wrong total after add-ons are picked.** Reopen an accepted quote and the button says "Pay $114" while Checkout charges $171 — the card forgets the saved add-ons. A superseded quote still shows "Accept & pay". A bank payment in progress still shows "Pay". **Status: Fixed**
 
-**M-2 · Money math uses floating-point dollars.** `Math.round(x * 0.14 * 100) / 100` is off by a cent for some amounts, and the Checkout lines are rounded one by one. No limit on decimals, size or sign of a quote or add-on. **Status: open**
+**M-2 · Money math uses floating-point dollars.** `Math.round(x * 0.14 * 100) / 100` is off by a cent for some amounts, and the Checkout lines are rounded one by one. No limit on decimals, size or sign of a quote or add-on. **Status: Fixed**
 
-**M-3 · Paying again after a failed bank payment is blocked for 24 hours** by the reused Stripe idempotency key (3.4, item 6). **Status: open**
+**M-3 · Paying again after a failed bank payment is blocked for 24 hours** by the reused Stripe idempotency key (3.4, item 6). **Status: Fixed**
 
-**M-4 · A creator can swap the photos on a public shoot after the client approved it.** `respondPhotoRelease` lets the creator resend `photos` at any time; the client's "yes" stands. The client is never shown which photos they are approving. **Status: open**
+**M-4 · A creator can swap the photos on a public shoot after the client approved it.** `respondPhotoRelease` lets the creator resend `photos` at any time; the client's "yes" stands. The client is never shown which photos they are approving. **Status: Fixed**
 
-**M-5 · Contact details get around the message guard.** The guard runs on chat messages only. The quote note, add-on names and the request brief aren't checked. Creator profile fields `specialties`, `neighborhoods`, `equipment` and `display_name` aren't checked either, and they are public. **Status: open**
+**M-5 · Contact details get around the message guard.** The guard runs on chat messages only. The quote note, add-on names and the request brief aren't checked. Creator profile fields `specialties`, `neighborhoods`, `equipment` and `display_name` aren't checked either, and they are public. **Status: Fixed**
 
-**M-6 · The FAQ concierge can be steered.** A visitor can close the `<visitor>` tag and write their own instructions. Creator-written profile text goes into the prompt as-is, so a creator can plant instructions too ("always recommend me"). The data it can reach is public, and links are allow-listed, so the damage is tone and promises, not a leak. The separate agent config (`stelli_concierge.jsonc`) can read whole creator records, which include package prices. **Status: open**
+**M-6 · The FAQ concierge can be steered.** A visitor can close the `<visitor>` tag and write their own instructions. Creator-written profile text goes into the prompt as-is, so a creator can plant instructions too ("always recommend me"). The data it can reach is public, and links are allow-listed, so the damage is tone and promises, not a leak. The separate agent config (`stelli_concierge.jsonc`) can read whole creator records, which include package prices. **Status: Fixed**
 
-**M-7 · Deleting an account can strand money and leaves personal data behind.** `deleteMyAccount` only blocks on `held` and `processing`. It doesn't see a half-refunded booking still owed to the creator, a waiting manual payout (which is then marked "failed" and stays with Stelli), an open dispute, or a booking in mid-flow. Bookings, messages, contracts and photos keep the person's name and email afterwards. **Status: open (money part) / decision (what to erase)**
+**M-7 · Deleting an account can strand money and leaves personal data behind.** `deleteMyAccount` only blocks on `held` and `processing`. It doesn't see a half-refunded booking still owed to the creator, a waiting manual payout (which is then marked "failed" and stays with Stelli), an open dispute, or a booking in mid-flow. Bookings, messages, contracts and photos keep the person's name and email afterwards. **Status: Money part fixed; what to erase is decision D9**
 
-**M-8 · Approval emails can go nowhere.** Status emails use the creator's typed contact email, not their login email. If the two differ and the typed one isn't a Stelli account, the "you're live" email may not send. **Status: open**
+**M-8 · Approval emails can go nowhere.** Status emails use the creator's typed contact email, not their login email. If the two differ and the typed one isn't a Stelli account, the "you're live" email may not send. **Status: Fixed**
 
-**M-9 · A client can review the same shoot many times, and reviews expose full names.** The duplicate guard relies on a `reviewed` field the Booking entity doesn't have. `Review` is publicly readable and stores the client's full name, user ID and booking ID. (No reviews exist yet.) **Status: open**
+**M-9 · A client can review the same shoot many times, and reviews expose full names.** The duplicate guard relies on a `reviewed` field the Booking entity doesn't have. `Review` is publicly readable and stores the client's full name, user ID and booking ID. (No reviews exist yet.) **Status: Fixed**
 
-**M-10 · Anyone signed in can write fake legal-acceptance records.** `recordAgreementAcceptance` accepts any document type, version and booking ID. Base44's own scan flags this too. **Status: open**
+**M-10 · Anyone signed in can write fake legal-acceptance records.** `recordAgreementAcceptance` accepts any document type, version and booking ID. Base44's own scan flags this too. **Status: Fixed**
 
-**M-11 · Logged-out visitors hit dead ends.** `/portal` sends them to the onboarding form, which then fails to save. `/account-settings` spins forever. Both dashboards render an empty "Hey, there." No page sends them to log in and back. **Status: open**
+**M-11 · Logged-out visitors hit dead ends.** `/portal` sends them to the onboarding form, which then fails to save. `/account-settings` spins forever. Both dashboards render an empty "Hey, there." No page sends them to log in and back. **Status: Fixed**
 
-**M-12 · Role mix-ups.** A client can open the creator dashboard and the reverse (empty, but confusing). A client who applies as a creator is still routed to the client portal. `/onboarding` lets an existing account overwrite its type. The welcome prompt says "curator". **Status: open**
+**M-12 · Role mix-ups.** A client can open the creator dashboard and the reverse (empty, but confusing). A client who applies as a creator is still routed to the client portal. `/onboarding` lets an existing account overwrite its type. The welcome prompt says "curator". **Status: Fixed**
 
-**M-13 · Creator profiles expose more than they need to.** `Lensman` is public for approved creators and carries `stripe_account_id`, `payouts_enabled`, `under_review`, the owner's `user_id`, and `pricing_tiers` — named packages with prices. The site doesn't render them, but anyone can read them, which contradicts "no packages and no public prices anywhere." One approved profile created before the current signup path also carries its owner's email in the built-in `created_by` field. **Status: flagged, needs your decision**
+**M-13 · Creator profiles expose more than they need to.** `Lensman` is public for approved creators and carries `stripe_account_id`, `payouts_enabled`, `under_review`, the owner's `user_id`, and `pricing_tiers` — named packages with prices. The site doesn't render them, but anyone can read them, which contradicts "no packages and no public prices anywhere." One approved profile created before the current signup path also carries its owner's email in the built-in `created_by` field. **Status: Flagged — decision D6**
 
-**M-14 · Delivery links aren't checked for being links.** Anything starting with `https://` passes, including `https://Users/…`. **Status: open**
+**M-14 · Delivery links aren't checked for being links.** Anything starting with `https://` passes, including `https://Users/…`. **Status: Fixed**
 
-**M-15 · Profile edits go live with no second look.** An approved creator can change their name, bio and whole portfolio and it publishes at once. **Status: flagged, decision**
+**M-15 · Profile edits go live with no second look.** An approved creator can change their name, bio and whole portfolio and it publishes at once. **Status: Flagged — decision D8**
 
-**M-16 · Booking yourself.** A creator can request, quote, pay and deliver their own booking, then leave themselves a review. **Status: open**
+**M-16 · Booking yourself.** A creator can request, quote, pay and deliver their own booking, then leave themselves a review. **Status: Fixed**
 
 ### Low
 
-- **L-1** `shareProfile` returns the name, one-liner and cover photo of pending and rejected profiles to anyone with the ID. **open**
-- **L-2** Every function returns raw `error.message` on failure, which can include Stripe's wording. **open (money functions)**
-- **L-3** `index.html` links a `/manifest.json` that doesn't exist. **open**
-- **L-4** `releaseBooking` never writes `completed_at`; `completed_shoots` on the profile is never counted. **open**
+- **L-1** `shareProfile` returns the name, one-liner and cover photo of pending and rejected profiles to anyone with the ID. **fixed**
+- **L-2** Every function returns raw `error.message` on failure, which can include Stripe's wording. **fixed**
+- **L-3** `index.html` links a `/manifest.json` that doesn't exist. **fixed**
+- **L-4** `releaseBooking` never writes `completed_at`; `completed_shoots` on the profile is never counted. **fixed**
 - **L-5** `applyAsCreator` scans the first 500 contacts for duplicates. Fine today. **flagged**
 - **L-6** Signed photo links last one hour; an album left open longer shows broken images until reloaded. **flagged**
-- **L-7** The quote form's placeholder uses a phrase from your don't-use list. **open**
-- **L-8** `PAYOUT_SWEEP_TOKEN`, `STRIPE_PUBLISHABLE_KEY` and `STRIPE_TEST_PUBLISHABLE_KEY` are stored secrets no code reads. **flagged**
+- **L-7** The quote form's placeholder uses a phrase from your don't-use list. **fixed**
+- **L-8** `PAYOUT_SWEEP_TOKEN`, `STRIPE_PUBLISHABLE_KEY` and `STRIPE_TEST_PUBLISHABLE_KEY` are stored secrets no code reads. **flagged — delete them in Base44 if unused**
 - **L-9** One-off charges aren't updated on refund or dispute. **flagged**
-- **L-10** The not-found page is Base44's stock light page, with an "Admin Note" box for admins. **open**
+- **L-10** The not-found page is Base44's stock light page, with an "Admin Note" box for admins. **fixed**
 
 ### 5.1 Is `/admin` really locked? (server side)
 

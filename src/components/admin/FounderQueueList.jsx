@@ -39,11 +39,19 @@ export default function FounderQueueList({ bookings }) {
     setBusy(true);
     setError('');
     try {
-      const response = await base44.functions.invoke('releasePayout', {
-        bookingId: item.id,
-        action: action.action,
-        actionId,
-      });
+      // Putting a creator on hold is a decision about the creator, not the money.
+      const response =
+        action.action === 'hold_creator'
+          ? await base44.functions.invoke('reviewCreator', {
+              lensmanId: item.booking.lensman_id,
+              decision: 'hold',
+              note: item.booking.flag_reason || '',
+            })
+          : await base44.functions.invoke('releasePayout', {
+              bookingId: item.id,
+              action: action.action,
+              actionId,
+            });
       const data = response.data || {};
       if (data.error) throw new Error(data.error);
       setNotes((prev) => ({ ...prev, [item.id]: { ok: Boolean(data.ok), message: data.message || '' } }));

@@ -78,6 +78,12 @@ function actions(booking, list) {
       confirm: `Send ${money(booking.stray_payment_amount)} back to ${client}’s card. The booking itself stays open. This can’t be undone.`,
     },
     mark_reviewed: { action: 'mark_reviewed', label: 'Mark as reviewed', tone: 'plain', confirm: '' },
+    hold_creator: {
+      action: 'hold_creator',
+      label: `Put ${creator} on hold`,
+      tone: 'plain',
+      confirm: `${creator} is hidden from browse and can’t get new requests until you lift it. Their current bookings carry on.`,
+    },
   };
   return list.map((name) => all[name]);
 }
@@ -191,7 +197,7 @@ export function queueItemFor(booking, nowMs = Date.now()) {
       4,
       creatorCancelled ? `${creator} cancelled on ${client}` : 'Needs a look',
       b.flag_reason || '',
-      ['mark_reviewed']
+      creatorCancelled ? ['mark_reviewed', 'hold_creator'] : ['mark_reviewed']
     );
   }
 

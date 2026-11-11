@@ -139,11 +139,13 @@ export default async function (req) {
         await releaseHeld(base44, fresh, 'auto');
       }
 
-      // A creator walking away always puts them in front of a founder.
+      // A creator walking away always puts them in front of a founder. It does
+      // not hide them by itself: putting a creator on hold is the founder's call
+      // (one tap from the queue). Only a client's no-show report holds a
+      // creator automatically. See REVIEW.md, decision D12.
       if (!isClient) {
         const lensman = await base44.asServiceRole.entities.Lensman.get(booking.lensman_id).catch(() => null);
         if (lensman) {
-          await base44.asServiceRole.entities.Lensman.update(lensman.id, { under_review: true });
           const contacts = await base44.asServiceRole.entities.CreatorContact.filter({ lensman_id: lensman.id });
           if (contacts[0]) {
             await base44.asServiceRole.entities.CreatorContact.update(contacts[0].id, {
@@ -154,13 +156,13 @@ export default async function (req) {
         if (!refundFailed) {
           await Booking.update(bookingId, {
             flagged_for_review: true,
-            flag_reason: 'The creator cancelled this booking. The client was refunded in full. Review the creator.',
+            flag_reason: `The creator cancelled this booking${why ? ` ("${why.slice(0, 200)}")` : ''}. The client was refunded in full.`,
           });
         }
         await emailAdmins(
           base44,
           'A creator cancelled a booking',
-          `${booking.lensman_name || 'A creator'} cancelled the ${booking.event_date} shoot with ${booking.client_name || 'a client'}.${why ? `\n\nReason: ${why}` : ''}\n\nTheir profile is now under review. It is in your queue on the admin page.`
+          `${booking.lensman_name || 'A creator'} cancelled the ${booking.event_date} shoot with ${booking.client_name || 'a client'}.${why ? `\n\nReason: ${why}` : ''}\n\nThe client was refunded in full. It is in your queue on the admin page, where you can put the creator on hold if needed.`
         );
       }
 

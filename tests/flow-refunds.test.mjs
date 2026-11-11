@@ -272,7 +272,7 @@ test('client cancels 20 hours ahead: no refund, creator is paid in full', async 
   assert.equal([...w.stripe.transfers.values()][0].amount, 8600);
 });
 
-test('creator cancels: full refund, profile under review, founders told', async () => {
+test('creator cancels: full refund, in the founder queue, founders told — not hidden automatically', async () => {
   const w = await scenario(shootIn(20));
   await w.paid({ amount: 100 });
   const res = await cancel(w, CREATOR);
@@ -281,7 +281,7 @@ test('creator cancels: full refund, profile under review, founders told', async 
   assert.equal(booking.payment_status, 'refunded');
   assert.equal(booking.cancelled_by, 'creator');
   assert.equal(booking.flagged_for_review, true);
-  assert.equal((await w.entities.Lensman.get('l1')).under_review, true);
+  assert.notEqual((await w.entities.Lensman.get('l1')).under_review, true, 'hiding them is the founder\'s call');
   assert.equal(w.stripe.transfers.size, 0);
   assert.ok(w.emailsTo(FOUNDER.email).some((e) => /creator cancelled/.test(e.subject)));
 

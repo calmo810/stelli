@@ -88,7 +88,8 @@ test('a creator cancellation and other settled flags can only be marked reviewed
     NOW
   );
   assert.equal(item.kind, 'creator_cancelled');
-  assert.deepEqual(names(item), ['mark_reviewed']);
+  assert.deepEqual(names(item), ['mark_reviewed', 'hold_creator']);
+  assert.match(item.actions[1].confirm, /hidden from browse/);
 });
 
 test('paid, never delivered, ten days on: it shows up instead of sitting unseen', () => {
