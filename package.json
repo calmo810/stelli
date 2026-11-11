@@ -8,7 +8,9 @@
     "build": "vite build",
     "lint": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
-    "typecheck": "tsc -p ./jsconfig.json",
+    "typecheck": "npm run typecheck:frontend && npm run typecheck:backend",
+    "typecheck:frontend": "node scripts/typecheck-frontend.mjs",
+    "typecheck:backend": "deno check --config ci/deno.json base44/functions/*/entry.ts base44/shared/*.ts",
     "test": "node --import ./tests/helpers/register.mjs --test \"tests/*.test.mjs\"",
     "preview": "vite preview"
   },

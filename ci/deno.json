@@ -1,0 +1,11 @@
+{
+  "//": "Only for the backend type check in CI (npm run typecheck:backend). Base44 does not read this file.",
+  "lock": false,
+  "nodeModulesDir": "none",
+  "compilerOptions": {
+    "strict": false,
+    "lib": [
+      "deno.window"
+    ]
+  }
+}
