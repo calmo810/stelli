@@ -716,3 +716,20 @@ Make three paid bookings: one about 4 days out, one about 60 hours out, one abou
 - **Functions list:** the old `submitReview/entry`, `fileReport/entry` and `declineQuote/entry` may still be listed alongside the new `submitReview`, `fileReport` and `declineQuote`. Delete the `…/entry` ones if they are.
 - **Entities:** `AdminAuditLog` and `Report` should appear, both admin-only.
 - **Login settings → two-factor:** if Base44 lets you require it for admins (or for everyone), turn it on. The app can't enforce it from code: a user record has no "has two-factor" field a function could check.
+
+## 14. The older PR #1, closed as superseded
+
+[calmo810/stelli#1](https://github.com/calmo810/stelli/pull/1) (branch `claude/cool-carson-x93bdg`) was an earlier pass at the same payment code. It's closed so it can't be merged next to this stack, and the branch is still there. What it had, and where each piece stands:
+
+| In #1 | Here |
+|---|---|
+| Stripe calls retried automatically (network errors, rate limits, 5xx) with backoff | **Not carried over.** Here a failed call fails cleanly and is retried by the next sweep or the next button press, under the same idempotency key, so nothing is lost or doubled. Automatic retries inside a single call are a nice-to-have. |
+| Test events can't touch live bookings | Covered (`sameStripeMode`, `stripe_livemode`). |
+| Partial refunds, refund keys that allow a second partial refund, reversal failures flagged | Covered, with a per-booking lock and separate retryable pull-backs. |
+| Refunds made by hand in the Stripe dashboard noticed | Covered (`syncRefundFromStripe`, and now per stray payment). |
+| **Re-accepting a quote with different add-ons before paying** | **Different here.** Accepting the same quote again never changes the add-ons: the agreement is written for one accepted quote and one set of add-ons. To change them, the creator sends a new quote. If you want clients to re-pick add-ons themselves before paying, that's a small follow-up (a new agreement each time). Your call. |
+| Reusing an open Checkout page, expiring stale ones | Covered. |
+| Shoot times in New York time | Covered (`shootTime.ts`). |
+| Cancelling expires an unpaid Checkout page | Covered. |
+| `docs/STRIPE.md`, a Stripe setup guide | Not carried over. §7 and §11 cover setup and testing. |
+| **A new homepage section, "Why we shoot" (`BornTo.jsx` with a typewriter effect)** | **Not on `main` and not here.** Closing #1 drops it. It's a public-site change, so it's outside this review. If you want it, it should be its own small PR. |
