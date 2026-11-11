@@ -33,7 +33,11 @@ export default async function (req) {
 
     // Accepting the quote that is already the accepted one is a no-op, so a
     // second tap (or coming back to pay later) never changes the add-ons.
-    if (quote.status === 'accepted' && booking.quote_id === quote.id) {
+    // (Bookings accepted before quote_id existed have it blank; it is filled in.)
+    if (quote.status === 'accepted' && (!booking.quote_id || booking.quote_id === quote.id)) {
+      if (!booking.quote_id) {
+        await base44.asServiceRole.entities.Booking.update(booking.id, { quote_id: quote.id });
+      }
       return Response.json({
         quote,
         alreadyAccepted: true,

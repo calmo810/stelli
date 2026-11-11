@@ -139,7 +139,7 @@ export default function QuoteComposer({ open, onClose, booking, payoutsReady, on
             type="text"
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Two hours on location, golden hour"
+            placeholder="Two hours on location, two outfits"
             className={fieldClass}
           />
         </label>

@@ -6,6 +6,7 @@ import { safeHref } from '@/lib/safeHref';
 import Pill from '@/components/shared/Pill';
 import DeliveryPhotos from '@/components/thread/DeliveryPhotos';
 import { fieldClass } from '@/lib/glassField';
+import { effectiveStatus, shootPassed } from '@/lib/bookingNextStep';
 
 const stepPill = (active) => ({
   borderRadius: 980,
@@ -23,8 +24,9 @@ export default function DeliveryCard({ booking, role, onChanged }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
-  const paid = ['held', 'released'].includes(booking?.payment_status);
-  const active = paid && ['confirmed', 'in_progress', 'awaiting_delivery', 'delivered'].includes(booking?.status);
+  const paid = ['held', 'released', 'partially_refunded'].includes(booking?.payment_status);
+  const active =
+    paid && ['confirmed', 'in_progress', 'awaiting_delivery', 'delivered', 'completed'].includes(effectiveStatus(booking));
   if (!active) return null;
 
   const delivered = Boolean(booking.delivered_at);
@@ -128,7 +130,9 @@ export default function DeliveryCard({ booking, role, onChanged }) {
 
       {delivered && windowOpen && !booking.problem_reported_at && (
         <p className="mt-4 text-[12px] text-white/45">
-          Payment releases {formatDistanceToNow(new Date(booking.release_due_at), { addSuffix: false })} from now
+          {role === 'client'
+            ? `You have ${formatDistanceToNow(new Date(booking.release_due_at))} to report a problem. After that the payment goes to your creator.`
+            : `Your payment is released in ${formatDistanceToNow(new Date(booking.release_due_at))}.`}
         </p>
       )}
 
@@ -187,7 +191,10 @@ export default function DeliveryCard({ booking, role, onChanged }) {
         </div>
       )}
 
-      {role === 'client' && delivered && booking.payment_status === 'held' && !booking.problem_reported_at && (
+      {role === 'client' &&
+        (delivered || shootPassed(booking)) &&
+        booking.payment_status === 'held' &&
+        !booking.problem_reported_at && (
         <>
           {reporting ? (
             <div className="mt-4 space-y-3">
@@ -195,7 +202,7 @@ export default function DeliveryCard({ booking, role, onChanged }) {
                 rows={3}
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="What went wrong?"
+                placeholder={delivered ? 'What went wrong?' : 'What happened? If your creator didn’t show, say so.'}
                 className={fieldClass}
               />
               <div className="flex gap-2">

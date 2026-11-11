@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { format, isToday, isYesterday } from 'date-fns';
 import { Loader2, Lock } from 'lucide-react';
 import { viewerRole, firstName } from '@/lib/threadStatus';
+import { effectiveStatus } from '@/lib/bookingNextStep';
 import ThreadHeader from '@/components/thread/ThreadHeader';
 import RequestSummary from '@/components/thread/RequestSummary';
 import QuoteCard from '@/components/thread/QuoteCard';
@@ -199,7 +200,12 @@ export default function ChatView({ bookingId }) {
     );
   }
 
-  const canQuote = role === 'lensman' && !booking.payment_status?.includes('held');
+  // Same rule the server applies: a quote only on an open booking nobody has paid for.
+  const canQuote =
+    role === 'lensman' &&
+    (booking.payment_status || 'pending') === 'pending' &&
+    ['requested', 'quoted', 'quote_accepted'].includes(effectiveStatus(booking)) &&
+    !booking.stray_payment_intent_id;
   const myMessageCount = messages.filter((m) => m.kind !== 'system' && m.sender_role === role).length;
 
   return (
@@ -220,7 +226,7 @@ export default function ChatView({ bookingId }) {
               className="mb-3 rounded-[980px] px-4 py-2.5 text-center text-[13px] font-semibold"
               style={{ background: 'hsl(var(--neon-lime) / 0.14)', color: 'hsl(var(--neon-lime))' }}
             >
-              Payment received — the date is locked in.
+              Thanks. Your payment is being confirmed, and the date locks in as soon as it is.
             </p>
           )}
 
@@ -281,7 +287,7 @@ export default function ChatView({ bookingId }) {
             <SystemNotice key={notice.id} message={notice} />
           ))}
 
-          {items.length === 0 && !booking.payment_status?.includes('held') && (
+          {items.length === 0 && (booking.payment_status || 'pending') === 'pending' && (
             <p className="py-6 text-center text-[13px] text-white/35">
               {role === 'client'
                 ? `${firstName(creatorName)} will reply here. Add anything you forgot below.`
