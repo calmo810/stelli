@@ -84,10 +84,11 @@
 .ps-consent svg { width: 15px; height: 15px; flex: none; margin-top: 2px; color: var(--ps-lime); }
 
 /* ---------- reveal on scroll ---------- */
-.ps .ps-head, .ps .ps-card, .ps .ps-consent { opacity: 0; transform: translateY(18px); }
-.ps.in .ps-head { animation: ps-rise .9s var(--ps-ease) both; }
-.ps.in .ps-card { animation: ps-rise .9s var(--ps-ease) both; animation-delay: calc(120ms + min(var(--i, 0), 8) * 90ms); }
-.ps.in .ps-consent { animation: ps-rise .9s var(--ps-ease) .5s both; }
+/* Hidden until the section is in view; "backwards" lets hover take over once a card has risen. */
+.ps:not(.in) .ps-head, .ps:not(.in) .ps-card, .ps:not(.in) .ps-consent { opacity: 0; transform: translateY(18px); }
+.ps.in .ps-head { animation: ps-rise .9s var(--ps-ease) backwards; }
+.ps.in .ps-card { animation: ps-rise .9s var(--ps-ease) backwards; animation-delay: calc(120ms + min(var(--i, 0), 8) * 90ms); }
+.ps.in .ps-consent { animation: ps-rise .9s var(--ps-ease) .5s backwards; }
 
 /* ---------- detail sheet ---------- */
 .ps-sheet { position: fixed; inset: 0; z-index: 70; display: flex; justify-content: center; align-items: flex-end; background: rgba(5, 8, 18, .72); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); animation: ps-fade .35s ease-out both; }
@@ -156,7 +157,8 @@
 @keyframes ps-breathe { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
 
 @media (prefers-reduced-motion: reduce) {
-  .ps .ps-head, .ps .ps-card, .ps .ps-consent { opacity: 1; transform: none; animation: none !important; }
+  .ps:not(.in) .ps-head, .ps:not(.in) .ps-card, .ps:not(.in) .ps-consent { opacity: 1; transform: none; }
+  .ps.in .ps-head, .ps.in .ps-card, .ps.in .ps-consent { animation: none; }
   .ps-card, .ps-ph img, .ps-tile img, .ps-close { transition: none; }
   .ps-card:hover, .ps-card:hover .ps-ph img, .ps-tile:hover img { transform: none; }
   .ps-sheet, .ps-sheet-in, .ps-tile, .ps-review, .ps-card.is-new::after, .ps-ph { animation: none; }
