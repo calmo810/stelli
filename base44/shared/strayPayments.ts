@@ -211,7 +211,7 @@ async function claimForRefund(base44, strayId) {
  * own payment, or any other unmatched one — is touched. Keyed by the payment
  * itself at Stripe, so however many times it is pressed it refunds once.
  */
-export async function refundStrayRecord(base44, strayId) {
+export async function refundStrayRecord(base44, strayId): Promise<Record<string, any>> {
   const StrayPayment = records(base44);
   const claim = await claimForRefund(base44, strayId);
   if (!claim.won) return { refunded: false, reason: claim.reason, stray: claim.row || null };

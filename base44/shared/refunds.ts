@@ -82,7 +82,7 @@ export async function refundBooking(base44, bookingRef, amount = 0, note = '', o
  *                         when the caller knows (a cancellation tier). Otherwise
  *                         an unpaid creator's payout shrinks in proportion.
  */
-export async function refundHeld(base44, booking, options = {}) {
+export async function refundHeld(base44, booking, options: Record<string, any> = {}) {
   const { amountCents = 0, note = '', key = '', clearFlag = true, setCreatorPayoutCents = null } = options;
   const Booking = base44.asServiceRole.entities.Booking;
 
@@ -144,7 +144,7 @@ export async function refundHeld(base44, booking, options = {}) {
   const now = new Date().toISOString();
 
   // ---- Step 1: the refund is written down the moment it exists.
-  const patch = {
+  const patch: Record<string, any> = {
     refund_amount: fromCents(totalRefundedCents),
     ...(totalRefundedCents > 0 ? { refunded_at: booking.refunded_at || now } : {}),
     payment_status: fullyRefunded
@@ -198,7 +198,7 @@ export async function refundHeld(base44, booking, options = {}) {
   }
 
   // ---- Step 2: pull the creator's share back, if they were already paid.
-  let reversal = { status: paidOut ? 'done' : 'none' };
+  let reversal: Record<string, any> = { status: paidOut ? 'done' : 'none' };
   if (patch.reversal_status === 'needed') {
     reversal = await pullBackHeld(base44, { ...booking, ...patch });
   }
@@ -223,7 +223,7 @@ export async function refundHeld(base44, booking, options = {}) {
 }
 
 /** Pulls a creator's payout back (or retries doing so). Takes a booking ID. */
-export async function pullBackPayout(base44, bookingRef, options = {}) {
+export async function pullBackPayout(base44, bookingRef, options: Record<string, any> = {}) {
   const bookingId = typeof bookingRef === 'string' ? bookingRef : bookingRef?.id;
   if (!bookingId) return { status: 'failed', error: 'Booking not found.' };
 
@@ -336,7 +336,7 @@ export async function pullBackHeld(base44, booking) {
  * one by accident. The booking's own payment, and any other stray payment on
  * it, are not touched.
  */
-export async function refundStrayPayment(base44, bookingRef, strayId = '') {
+export async function refundStrayPayment(base44, bookingRef, strayId = ''): Promise<Record<string, any>> {
   const bookingId = typeof bookingRef === 'string' ? bookingRef : bookingRef?.id;
   const booking = await base44.asServiceRole.entities.Booking.get(bookingId).catch(() => null);
   if (!booking) return { refunded: false, reason: 'no-stray-payment' };
@@ -376,7 +376,7 @@ export async function syncRefundFromStripe(base44, charge) {
   const refundedCents = Number(charge.amount_refunded || 0);
   const full = charge.refunded === true || (chargedCents > 0 && refundedCents >= chargedCents);
 
-  const patch = {
+  const patch: Record<string, any> = {
     refund_amount: fromCents(refundedCents),
     refunded_at: mine.refunded_at || new Date().toISOString(),
     ...(full

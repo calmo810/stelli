@@ -76,7 +76,7 @@ export function PayCreatorPanel({ lensmen }) {
   const name = lensman?.display_name || 'the creator';
 
   const pay = useMutation({
-    mutationFn: async (request) => {
+    mutationFn: async (/** @type {{ bookingId?: string, confirmSeparate?: boolean, requestId?: string }} */ request) => {
       const response = await base44.functions.invoke('payCreator', {
         lensmanId,
         amount: Number(amount),

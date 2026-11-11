@@ -65,7 +65,7 @@ export default async function (req) {
       if (!userIds.has(clientId) || !userIds.has(creatorId)) {
         report.unresolved.push({ entity: 'Booking', id: booking.id, missing: !userIds.has(clientId) ? 'client' : 'creator' });
       }
-      const patch = {};
+      const patch: Record<string, any> = {};
       if (clientId && clientId !== booking.client_id) patch.client_id = clientId;
       if (creatorId && creatorId !== booking.creator_id) patch.creator_id = creatorId;
       if (Object.keys(patch).length) await write('Booking', booking.id, patch, 'bookings');
@@ -83,7 +83,7 @@ export default async function (req) {
           }
           continue;
         }
-        const patch = {};
+        const patch: Record<string, any> = {};
         if (owner.client_id && row.client_id !== owner.client_id) patch.client_id = owner.client_id;
         if (owner.creator_id && row.creator_id !== owner.creator_id) patch.creator_id = owner.creator_id;
         if (Object.keys(patch).length) await write(entity, row.id, patch, counter);
@@ -100,7 +100,7 @@ export default async function (req) {
     for (const contract of contracts) {
       const owner = fixed.get(contract.booking_id);
       const creatorUserId = owner?.creator_id || ownerByLensman.get(contract.creator_id) || '';
-      const patch = {};
+      const patch: Record<string, any> = {};
       if (creatorUserId && contract.creator_user_id !== creatorUserId) patch.creator_user_id = creatorUserId;
       if (owner?.client_id && contract.client_id !== owner.client_id) patch.client_id = owner.client_id;
       if (!creatorUserId) report.unresolved.push({ entity: 'BookingContract', id: contract.id, missing: 'creator' });

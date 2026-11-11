@@ -84,7 +84,7 @@ export default async function (req) {
     if (!accountId) {
       const { first, last } = splitName(contact?.full_name);
 
-      const individual = {};
+      const individual: Record<string, any> = {};
       if (first) individual.given_name = first;
       if (last) individual.surname = last;
       if (contact?.phone) individual.phone = contact.phone;

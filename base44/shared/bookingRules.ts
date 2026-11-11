@@ -243,7 +243,7 @@ export function photoRemoveBlocker(booking) {
  * release a flagged booking and does not wait for the window. It still can't
  * release during an open card dispute, after a lost one, or twice.
  */
-export function releaseBlocker(booking, { nowMs, founder = false, liveMode = true } = {}) {
+export function releaseBlocker(booking, { nowMs = Date.now(), founder = false, liveMode = true } = {}) {
   if (!booking) return 'not-found';
   if (booking.stripe_transfer_id || booking.released_at || booking.payment_status === 'released') {
     return 'already-paid';

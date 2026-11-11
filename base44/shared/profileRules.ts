@@ -145,9 +145,9 @@ function cleanFocalPoint(point) {
  * Turns a profile save request into a validated patch.
  * Returns { patch, errors } where errors is keyed by the offending field.
  */
-export function buildProfilePatch(body = {}) {
-  const patch = {};
-  const errors = {};
+export function buildProfilePatch(body: Record<string, any> = {}) {
+  const patch: Record<string, any> = {};
+  const errors: Record<string, any> = {};
 
   for (const field of Object.keys(LIMITS)) {
     if (typeof body[field] !== 'string') continue;

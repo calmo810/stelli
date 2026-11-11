@@ -10,7 +10,7 @@ import { Loader2 } from 'lucide-react';
  * sends the same action ID for the life of this dialog — so a double click,
  * or a retry on a slow connection, does the thing once.
  */
-export default function ConfirmAction({ open, title, message, confirmLabel = 'Confirm', busy, error, onConfirm, onCancel, children }) {
+export default function ConfirmAction({ open, title, message, confirmLabel = 'Confirm', busy, error, onConfirm, onCancel, children = null }) {
   const cancelRef = useRef(null);
 
   useEffect(() => {

@@ -92,7 +92,7 @@ export default async function (req) {
 
     const updated = await base44.asServiceRole.entities.Lensman.update(lensman.id, patch);
 
-    const privatePatch = {};
+    const privatePatch: Record<string, any> = {};
     for (const field of PRIVATE_TEXT_FIELDS) {
       if (typeof body[field] === 'string') privatePatch[field] = body[field].trim().slice(0, 200);
     }

@@ -66,7 +66,7 @@ export function creatorPayout(amount) {
 const STRIPE_VERSION = '2025-10-29.clover';
 const STRIPE_PREVIEW_VERSION = '2025-10-29.preview';
 
-export async function stripePost(path, params, idempotencyKey) {
+export async function stripePost(path, params, idempotencyKey = "") {
   const response = await fetch(`https://api.stripe.com/v1/${path}`, {
     method: 'POST',
     headers: {
@@ -138,7 +138,7 @@ export async function stripeV2Post(path, body) {
  * the same key.
  */
 function stripeError(response, data) {
-  const error = new Error(data?.error?.message || 'Stripe request failed');
+  const error: any = new Error(data?.error?.message || 'Stripe request failed');
   error.status = response.status;
   error.code = data?.error?.code || '';
   error.definitive =

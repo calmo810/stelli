@@ -11,7 +11,7 @@ const SMS_RESEND_SECONDS = 60;
 // shows it with `return <MfaScreen><MfaFlow ... /></MfaScreen>` in place of its own layout.
 // session-record-block keeps the QR code, setup key and codes out of session recordings.
 // onManage(session) is called instead of finishing when the sign-in was for managing factors.
-export default function MfaFlow({ challenge, returnTo, onManage }) {
+export default function MfaFlow({ challenge, returnTo, onManage = undefined }) {
   const session = useMemo(() => mfaSession(challenge), [challenge]);
   const finish = (result) => (result.mfa_management_token && onManage ? onManage(session) : finishSignIn(result.access_token, returnTo));
   return (

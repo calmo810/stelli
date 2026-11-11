@@ -25,7 +25,7 @@ export const FULL_REFUND_HOURS = 72;
 export const HALF_REFUND_HOURS = 48;
 
 function blocked(message) {
-  return { allowed: false, message, tier: 'blocked', refundCents: 0, creatorPayoutCents: 0 };
+  return { allowed: false, message, tier: 'blocked', refundCents: 0, creatorPayoutCents: 0, note: '' };
 }
 
 /**
@@ -33,7 +33,7 @@ function blocked(message) {
  * @param booking the booking as it stands now
  * @param nowMs   the current time
  */
-export function cancellationPlan({ role, booking, nowMs }) {
+export function cancellationPlan({ role, booking, nowMs }): Record<string, any> {
   const status = effectiveStatus(booking);
   if (status === 'cancelled') return blocked('This booking is already cancelled.');
   if (status === 'completed') return blocked('This booking is finished, so it can no longer be cancelled.');

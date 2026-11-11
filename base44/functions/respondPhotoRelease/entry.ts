@@ -37,7 +37,7 @@ export default async function (req) {
     if (!role) return Response.json({ error: 'This release is not yours to answer.' }, { status: 403 });
 
     const now = new Date().toISOString();
-    const patch = {};
+    const patch: Record<string, any> = {};
     let clientMustLookAgain = false;
 
     if (role === 'lensman') {

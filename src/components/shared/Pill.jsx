@@ -7,7 +7,7 @@ const TONES = {
 };
 
 /** The one button shape the dashboards use: a rounded pill. */
-export default function Pill({ as: Tag = 'span', tone = 'cyan', className = '', style, ...rest }) {
+export default function Pill({ as: Tag = 'span', tone = 'cyan', className = '', style = undefined, ...rest }) {
   return (
     <Tag
       className={`inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-[980px] px-[18px] py-[11px] text-[14px] font-semibold transition-transform active:scale-[0.96] disabled:opacity-50 ${className}`}

@@ -178,7 +178,7 @@ async function sendTransfer(base44, payout, { notify, booking = null }) {
   return { sent: true, transferId: transfer.id, amount };
 }
 
-async function markSent(base44, payout, transferId, attempts) {
+async function markSent(base44, payout, transferId, attempts = 0) {
   await base44.asServiceRole.entities.ManualPayout.update(payout.id, {
     status: 'sent',
     stripe_transfer_id: transferId,

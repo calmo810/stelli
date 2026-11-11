@@ -38,8 +38,8 @@ export default async function (req) {
     const report = { contactsCreated: 0, contactsUpdated: 0, lensmanUpdated: 0, quotesFixed: 0, messagesFixed: 0, ratingsZeroed: 0, themesMoved: 0 };
 
     for (const lensman of lensmen) {
-      const patch = {};
-      const privatePatch = {};
+      const patch: Record<string, any> = {};
+      const privatePatch: Record<string, any> = {};
 
       if (!String(lensman.display_name || '').trim()) {
         const fallback = firstWord(lensman.full_name) || 'Stelli creator';
@@ -96,7 +96,7 @@ export default async function (req) {
           await base44.asServiceRole.entities.Lensman.update(lensman.id, patch);
         }
 
-        const unset = {};
+        const unset: Record<string, any> = {};
         for (const field of PRIVATE_FIELDS) {
           if (lensman[field] !== undefined) unset[field] = '';
         }
