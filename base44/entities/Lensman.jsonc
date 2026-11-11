@@ -120,6 +120,13 @@
             "type": "string"
           }
         }
+      },
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
       }
     },
     "profile_theme": {
@@ -277,17 +284,38 @@
     },
     "stripe_account_id": {
       "type": "string",
-      "description": "Stripe Connect account that receives this creator's payouts"
+      "description": "Stripe Connect account that receives this creator's payouts",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "payouts_enabled": {
       "type": "boolean",
       "default": false,
-      "description": "Whether Stripe has finished payout onboarding"
+      "description": "Whether Stripe has finished payout onboarding",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "payouts_onboarded_at": {
       "type": "string",
       "format": "date-time",
-      "description": "When payout setup completed"
+      "description": "When payout setup completed",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "response_median_minutes": {
       "type": "number",
@@ -300,7 +328,14 @@
     "under_review": {
       "type": "boolean",
       "default": false,
-      "description": "Flagged by a founder after a cancellation or no-show"
+      "description": "Flagged by a founder after a cancellation or no-show",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     }
   },
   "required": [
@@ -315,7 +350,18 @@
     "read": {
       "$or": [
         {
-          "data.status": "approved"
+          "$and": [
+            {
+              "data.status": "approved"
+            },
+            {
+              "$nor": [
+                {
+                  "data.under_review": true
+                }
+              ]
+            }
+          ]
         },
         {
           "data.user_id": "{{user.id}}"

@@ -33,15 +33,36 @@
     },
     "admin_notes": {
       "type": "string",
-      "description": "Internal notes from vetting"
+      "description": "Internal notes from vetting",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "review_note": {
       "type": "string",
-      "description": "Why the creator is under review"
+      "description": "Why the creator is under review",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "status_notified": {
       "type": "string",
-      "description": "The status this creator was last emailed about, so each decision sends one email only"
+      "description": "The status this creator was last emailed about, so each decision sends one email only",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     }
   },
   "required": [

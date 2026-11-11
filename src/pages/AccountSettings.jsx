@@ -16,7 +16,7 @@ export default function AccountSettings() {
   const waiting = useRequireSignIn(user, isLoading);
 
   const { data: lensman } = useQuery({
-    queryKey: ['my-lensman-profile', user?.id],
+    queryKey: ['my-lensman-exists', user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
       const list = await base44.entities.Lensman.filter({ user_id: user.id });

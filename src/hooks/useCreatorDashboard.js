@@ -12,12 +12,14 @@ export default function useCreatorDashboard() {
     retry: false,
   });
 
+  // Payout status, the Stripe account and holds are readable by founders
+  // only, so the creator's own full record comes from the server.
   const { data: myProfile, refetch: refetchProfile, isFetched: profileFetched } = useQuery({
     queryKey: ['my-lensman-profile', user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const list = await base44.entities.Lensman.filter({ user_id: user.id });
-      return list[0] || null;
+      const response = await base44.functions.invoke('getMyCreatorProfile', {});
+      return response.data?.lensman || null;
     },
   });
 

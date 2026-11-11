@@ -389,3 +389,22 @@ test('an account that never confirmed 18+ does so before its first request, once
   assert.equal(ok.status, 200);
   assert.equal((await w.entities.User.get('u_new')).age_confirmed, true);
 });
+
+/* ---------------- a creator's own full profile ---------------- */
+
+test('a creator gets their own full record from the server, without the founders\' notes', async () => {
+  const w = await scenario();
+  await w.entities.Lensman.update('l1', { pricing_tiers: [{ tier: 'low', name: 'Mini', price: 125 }] });
+  await w.entities.CreatorContact.updateMany({ lensman_id: 'l1' }, { $set: { admin_notes: 'Late twice', review_note: 'Watch' } });
+
+  const mine = await w.call('getMyCreatorProfile', {}, CREATOR);
+  assert.equal(mine.data.lensman.id, 'l1');
+  assert.equal(mine.data.lensman.payouts_enabled, true);
+  assert.equal(mine.data.lensman.pricing_tiers.length, 1);
+  assert.equal(mine.data.contact.full_name, 'Maya Ortiz');
+  assert.equal(JSON.stringify(mine.data).includes('Late twice'), false);
+  assert.equal(JSON.stringify(mine.data).includes('Watch'), false);
+
+  assert.deepEqual((await w.call('getMyCreatorProfile', {}, CLIENT)).data, { lensman: null, contact: null });
+  assert.equal((await w.call('getMyCreatorProfile', {}, null)).status, 401);
+});
