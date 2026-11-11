@@ -71,6 +71,34 @@ export default async function (req) {
       return Response.json({ removed: photoId });
     }
 
+    // Photos land in the album silently. The client is emailed only when the
+    // creator has looked at the album and pressed send.
+    if (action === 'notify') {
+      const filed = await deliveryPhotoRows(base44, bookingId);
+      if (!filed.length && !booking.delivery_link) {
+        return Response.json({ error: 'Add the photos first.' }, { status: 400 });
+      }
+      if (!booking.client_email) {
+        return Response.json({ error: 'This shoot has no client email.' }, { status: 400 });
+      }
+
+      const token = await ensureAlbumToken(base44, booking);
+      if (!token) return Response.json({ error: 'The album link could not be made.' }, { status: 500 });
+      const url = albumUrl(bookingId, token);
+      const count = filed.length || 0;
+
+      await notifyBoth(
+        base44,
+        [booking.client_email],
+        'New photos from your shoot',
+        `${booking.lensman_name || 'Your creator'} added ${
+          count ? `${count} photo${count === 1 ? '' : 's'}` : 'your photos'
+        } to your ${booking.event_date} shoot.\n\nOpen your album: ${url}`
+      );
+
+      return Response.json({ sent: true, to: booking.client_email, url });
+    }
+
     if (action !== 'add') {
       return Response.json({ error: 'Unknown action.' }, { status: 400 });
     }
@@ -124,23 +152,6 @@ export default async function (req) {
     }
 
     await base44.asServiceRole.entities.DeliveryPhoto.bulkCreate(rows);
-
-    // The first hand-off gets an email; later batches show up quietly, so a
-    // creator uploading forty photos does not send forty notifications.
-    if (!existing.length && booking.client_email) {
-      const token = await ensureAlbumToken(base44, booking);
-      const url = token ? albumUrl(bookingId, token) : '';
-      await notifyBoth(
-        base44,
-        [booking.client_email],
-        'New photos from your shoot',
-        `${booking.lensman_name || 'Your creator'} added ${rows.length} photo${
-          rows.length === 1 ? '' : 's'
-        } to your ${booking.event_date} shoot.${
-          url ? `\n\nOpen your album: ${url}` : '\n\nOpen your album from your Stelli portal.'
-        }`
-      );
-    }
 
     return Response.json({
       added: rows.length,
