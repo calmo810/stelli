@@ -9,9 +9,14 @@ import LegalUpdateBanner from '@/components/legal/LegalUpdateBanner';
 import RoleGate from '@/components/RoleGate';
 import MobileTabBar from './MobileTabBar';
 
+// Screens that are a tab root rather than a step down from somewhere: they own
+// their place in the flow, so no back button rides above them.
+const ROOT_TABS = ['/', '/creators', '/portal', '/client-dashboard', '/lensman-dashboard'];
+
 export default function Layout() {
   const location = useLocation();
   const isHome = location.pathname === '/';
+  const isRootTab = ROOT_TABS.includes(location.pathname.replace(/\/$/, '') || '/');
   // A creator profile carries its own back button, up on the cover photo.
   const isCreatorProfile = /^\/creators\/[^/]+$/.test(location.pathname);
   // Messages is a full-height chat screen: it brings its own back arrow and needs no footer.
@@ -24,7 +29,7 @@ export default function Layout() {
       <Navbar />
       {/* The way back rides in the page's own flow, never pinned to the screen. */}
       <main className={`flex-1 ${isHome ? '' : 'nav-offset'}`}>
-        {!isHome && !isCreatorProfile && !isMessages && (
+        {!isHome && !isRootTab && !isCreatorProfile && !isMessages && (
           <div className="mx-auto max-w-[1500px] px-5 pt-6 md:px-10">
             <BackButton />
           </div>

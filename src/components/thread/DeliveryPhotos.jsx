@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { ImagePlus, Images, Loader2, X } from 'lucide-react';
+import { Check, Copy, Eye, ImagePlus, Images, Loader2, Send, X } from 'lucide-react';
 import Pill from '@/components/shared/Pill';
 
 /**
@@ -15,10 +15,29 @@ export default function DeliveryPhotos({ booking, role, onChanged }) {
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState('');
   const [error, setError] = useState('');
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
   const isCreator = role === 'lensman';
   // Once the final edits are delivered the album is locked: no adding, no removing.
   const locked = Boolean(booking?.delivered_at);
   const canEdit = isCreator && !locked;
+
+  const clientFirst = (booking?.client_name || '').trim().split(' ')[0] || 'your client';
+
+  // The album exactly as the client will see it, reached through the same
+  // keyed link the email carries.
+  const { data: albumLink = '' } = useQuery({
+    queryKey: ['album-link', booking?.id],
+    enabled: isCreator && !!booking?.id,
+    queryFn: async () => {
+      const response = await base44.functions.invoke('deliveryPhotos', {
+        bookingId: booking.id,
+        action: 'link',
+      });
+      return response.data?.url || '';
+    },
+  });
 
   const { data: photos = [], isLoading } = useQuery({
     queryKey: ['delivery-photos', booking?.id],
@@ -86,6 +105,47 @@ export default function DeliveryPhotos({ booking, role, onChanged }) {
       setError(e?.response?.data?.error || e.message || 'That photo did not come off.');
     } finally {
       setBusy(false);
+    }
+  };
+
+  // The gallery link carries the album's key, so it opens for a client who is
+  // not signed in — the link in an inbox is the only way most of them arrive.
+  const copyAlbumLink = async () => {
+    setError('');
+    try {
+      const response = await base44.functions.invoke('deliveryPhotos', {
+        bookingId: booking.id,
+        action: 'link',
+      });
+      const url = response.data?.url;
+      if (!url) throw new Error('That link did not come through.');
+      try {
+        await navigator.clipboard.writeText(url);
+      } catch {
+        window.prompt('Copy the gallery link', url);
+      }
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2400);
+    } catch (e) {
+      setError(e?.response?.data?.error || e.message || 'That link did not come through.');
+    }
+  };
+
+  // The one moment the client hears about the album: an explicit send.
+  const sendAlbum = async () => {
+    setSending(true);
+    setError('');
+    try {
+      const response = await base44.functions.invoke('deliveryPhotos', {
+        bookingId: booking.id,
+        action: 'notify',
+      });
+      if (response.data?.error) throw new Error(response.data.error);
+      setSent(true);
+    } catch (e) {
+      setError(e?.response?.data?.error || e.message || 'That email did not go out.');
+    } finally {
+      setSending(false);
     }
   };
 
@@ -159,8 +219,45 @@ export default function DeliveryPhotos({ booking, role, onChanged }) {
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
             {busy ? progress || 'Uploading…' : photos.length ? 'Add more photos' : 'Upload photos'}
           </Pill>
+          {photos.length > 0 && (
+            <>
+              <Pill
+                as="button"
+                type="button"
+                tone="cyan"
+                onClick={sendAlbum}
+                disabled={busy || sending || sent}
+                className="w-full py-3.5"
+              >
+                {sending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : sent ? (
+                  <Check className="h-4 w-4" />
+                ) : (
+                  <Send className="h-4 w-4" />
+                )}
+                {sent ? `Sent to ${clientFirst}` : `Email ${clientFirst} the album`}
+              </Pill>
+              <div className="flex gap-2">
+                {albumLink && (
+                  <a
+                    href={albumLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="glass flex flex-1 items-center justify-center gap-2 rounded-[980px] px-4 py-3 text-[14px] font-semibold text-white transition-transform active:scale-[0.96]"
+                  >
+                    <Eye className="h-4 w-4" /> Preview album
+                  </a>
+                )}
+                <Pill as="button" type="button" tone="glass" onClick={copyAlbumLink} className="flex-1 py-3">
+                  {linkCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  {linkCopied ? 'Copied' : 'Copy link'}
+                </Pill>
+              </div>
+            </>
+          )}
           <p className="text-center text-[11px] text-white/30">
-            They go straight into your client's album. Up to 20 at a time.
+            Photos save to the album first. {clientFirst} is not emailed until you send. Up to 20 at a time.
           </p>
         </div>
       )}

@@ -150,8 +150,14 @@ export const EXTRAS = [
   { t: 'Instagram', k: 'priv', ok: (s) => Boolean(s.ig.trim()) },
 ];
 
-export const missingReqs = (s) => REQS.filter((r) => !r.ok(s));
-export const isReady = (s) => missingReqs(s).length === 0;
+/**
+ * The priced package is asked for once, when someone applies. A page that is
+ * already live has to be able to fix its photos and words without one, so it
+ * drops out of the list for an existing profile.
+ */
+export const applicableReqs = (s, existing) => (existing ? REQS.filter((r) => r.k !== 'price') : REQS);
+export const missingReqs = (s, existing = false) => applicableReqs(s, existing).filter((r) => !r.ok(s));
+export const isReady = (s, existing = false) => missingReqs(s, existing).length === 0;
 export const strength = (s) => {
   const all = [...REQS, ...EXTRAS];
   return Math.round((all.filter((r) => r.ok(s)).length / all.length) * 100);

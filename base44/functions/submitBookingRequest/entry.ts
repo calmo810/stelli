@@ -4,7 +4,7 @@ import { resolveCreatorOwner } from '../../shared/creatorOwner.ts';
 import { hasDirectContact, CONTACT_BLOCK_MESSAGE } from '../../shared/contactGuard.ts';
 import { shootDayEndMs } from '../../shared/shootTime.ts';
 
-const MAX = { brief: 2000, location: 200, eventType: 80, clientName: 80 };
+const MAX = { brief: 2000, location: 200, eventType: 80, clientName: 80, budget: 120, duration: 60 };
 
 /** How far ahead a request can be made. Catches a mistyped year. */
 const MAX_DAYS_AHEAD = 730;
@@ -40,6 +40,9 @@ export default async function (req) {
     const brief = String(body.brief || '').trim();
     const location = String(body.location || '').trim().slice(0, MAX.location);
     const eventType = String(body.eventType || '').trim().slice(0, MAX.eventType);
+    // In the client's own words, both optional.
+    const budget = String(body.budget || '').trim().slice(0, MAX.budget);
+    const duration = String(body.duration || '').trim().slice(0, MAX.duration);
 
     if (!lensmanId || !eventDate || !brief) {
       return Response.json({ error: 'A date and what you are planning are required.' }, { status: 400 });
@@ -62,7 +65,7 @@ export default async function (req) {
       return Response.json({ error: 'Pick a start time, or leave it blank.' }, { status: 400 });
     }
 
-    if ([brief, location, eventType].some((text) => hasDirectContact(text))) {
+    if ([brief, location, eventType, budget, duration].some((text) => hasDirectContact(text))) {
       return Response.json({ error: CONTACT_BLOCK_MESSAGE, blocked: true }, { status: 400 });
     }
 
@@ -124,6 +127,8 @@ export default async function (req) {
       event_type: eventType || 'Custom shoot',
       location,
       event_description: brief,
+      budget,
+      duration,
       status: 'requested',
       payment_status: 'pending',
       client_last_read_at: new Date().toISOString(),

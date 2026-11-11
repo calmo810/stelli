@@ -1,9 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { viewerRole, creatorEmail } from '../../shared/bookingAccess.ts';
 import { notifyBoth } from '../../shared/notify.ts';
-import { photoAddBlocker, photoRemoveBlocker } from '../../shared/bookingRules.ts';
-import { newAlbumToken } from '../../shared/albumAccess.ts';
-import { SITE_ORIGIN } from '../../shared/origins.ts';
+import { moneyTaken, photoAddBlocker, photoRemoveBlocker } from '../../shared/bookingRules.ts';
+import { ensureAlbumToken, albumUrl } from '../../shared/albumAccess.ts';
 import { logAdminAction } from '../../shared/audit.ts';
 import {
   MAX_DELIVERY_PHOTOS,
@@ -18,14 +17,18 @@ import {
  * the portal, and the client opens them in their memory album.
  *
  *   list   — the booking's photos with signed links (either side of the booking)
+ *   link   — the album link with its key, to copy (either side of the booking)
  *   add    — the creator files newly uploaded photos against the booking
  *   remove — the creator takes one back, until the final edits are delivered
+ *   notify — the creator emails the client the album link (once per 10 minutes)
  *
  * Once the final edits are delivered the album is locked: the creator can no
  * longer add to it or take photos out of it. What the client was handed, and
  * had 48 hours to check, stays what they have. A founder can still remove a
  * photo if one has to come down.
  */
+const NOTIFY_GAP_MS = 10 * 60 * 1000;
+
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
@@ -49,6 +52,13 @@ export default async function (req) {
 
     if (action === 'list') {
       return Response.json({ photos: await signedDeliveryPhotos(base44, bookingId) });
+    }
+
+    // The link either side can hand out: it carries the album key, so it opens
+    // for a client clicking it in an inbox with no Stelli account.
+    if (action === 'link') {
+      const token = await ensureAlbumToken(base44, booking);
+      return Response.json({ url: albumUrl(bookingId, token) });
     }
 
     const isCreator = role === 'lensman' || user.role === 'admin';
@@ -81,6 +91,45 @@ export default async function (req) {
         });
       }
       return Response.json({ removed: photoId });
+    }
+
+    // Photos land in the album silently. The client is emailed only when the
+    // creator has looked at the album and pressed send.
+    if (action === 'notify') {
+      if (booking.status === 'cancelled' || !moneyTaken(booking)) {
+        return Response.json({ error: 'Photos can go to the client once the shoot is paid for.' }, { status: 409 });
+      }
+      // One email per few minutes, so a double tap or an impatient resend
+      // doesn't fill the client's inbox.
+      const last = Date.parse(booking.album_notified_at || '') || 0;
+      if (Date.now() - last < NOTIFY_GAP_MS) {
+        return Response.json({ sent: true, alreadySent: true, url: albumUrl(bookingId, booking.album_token || '') });
+      }
+      const filed = await deliveryPhotoRows(base44, bookingId);
+      if (!filed.length && !booking.delivery_link) {
+        return Response.json({ error: 'Add the photos first.' }, { status: 400 });
+      }
+      if (!booking.client_email) {
+        return Response.json({ error: 'This shoot has no client email.' }, { status: 400 });
+      }
+
+      const token = await ensureAlbumToken(base44, booking);
+      if (!token) return Response.json({ error: 'The album link could not be made.' }, { status: 500 });
+      const url = albumUrl(bookingId, token);
+      const count = filed.length || 0;
+
+      await base44.asServiceRole.entities.Booking.update(bookingId, { album_notified_at: new Date().toISOString() });
+      await notifyBoth(
+        base44,
+        [booking.client_email],
+        'New photos from your shoot',
+        `${booking.lensman_name || 'Your creator'} added ${
+          count ? `${count} photo${count === 1 ? '' : 's'}` : 'your photos'
+        } to your ${booking.event_date} shoot.\n\nOpen your album: ${url}`
+      );
+
+      // The client's address is not handed back: it is the founders' to see.
+      return Response.json({ sent: true, url });
     }
 
     if (action !== 'add') {
@@ -134,30 +183,12 @@ export default async function (req) {
 
     await base44.asServiceRole.entities.DeliveryPhoto.bulkCreate(rows);
 
-    // The first hand-off gets an email; later batches show up quietly, so a
-    // creator uploading forty photos does not send forty notifications.
-    if (!existing.length && booking.client_email) {
-      // The link carries the album token, so it opens without signing in.
-      const albumToken = booking.album_token || newAlbumToken();
-      if (!booking.album_token) {
-        await base44.asServiceRole.entities.Booking.update(bookingId, { album_token: albumToken });
-      }
-      await notifyBoth(
-        base44,
-        [booking.client_email],
-        'New photos from your shoot',
-        `${booking.lensman_name || 'Your creator'} added ${rows.length} photo${
-          rows.length === 1 ? '' : 's'
-        } to your ${booking.event_date} shoot.\n\nOpen your album: ${SITE_ORIGIN}/album/${booking.id}?t=${albumToken}`
-      );
-    }
-
     return Response.json({
       added: rows.length,
       photos: await signedDeliveryPhotos(base44, bookingId),
     });
   } catch (error) {
     console.error('deliveryPhotos error:', error.message);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: 'The photos could not be updated. Try again.' }, { status: 500 });
   }
 }

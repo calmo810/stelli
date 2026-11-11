@@ -4,8 +4,7 @@ import { deliveryBlocker, releaseDueFrom } from '../../shared/bookingRules.ts';
 import { viewerRole, creatorEmail } from '../../shared/bookingAccess.ts';
 import { openPhotoRelease } from '../../shared/photoRelease.ts';
 import { deliveryPhotoRows } from '../../shared/deliveryPhotos.ts';
-import { galleryLinkProblem, newAlbumToken } from '../../shared/albumAccess.ts';
-import { SITE_ORIGIN } from '../../shared/origins.ts';
+import { albumUrl as albumLink, ensureAlbumToken, galleryLinkProblem } from '../../shared/albumAccess.ts';
 import { withBookingLock } from '../../shared/bookingLock.ts';
 
 /**
@@ -65,16 +64,16 @@ export default async function (req) {
       }
     }
 
-    // The link the client opens always carries the album token.
-    const albumToken = booking.album_token || newAlbumToken();
-    const albumUrl = `${SITE_ORIGIN}/album/${bookingId}?t=${albumToken}`;
+    // The email has to carry the album key, or a client opening it in their
+    // inbox lands on an album that answers "not found".
+    const albumToken = await ensureAlbumToken(base44, booking);
+    const albumUrl = albumLink(bookingId, albumToken);
     const now = new Date();
 
     if (!isFinal) {
       await Booking.update(bookingId, {
         ...(link ? { unedited_link: link } : {}),
         unedited_delivered_at: booking.unedited_delivered_at || now.toISOString(),
-        album_token: albumToken,
       });
 
       await notifyBoth(
@@ -106,7 +105,6 @@ export default async function (req) {
             delivered_at: deliveredAt,
             release_due_at: releaseDueFrom(deliveredAt),
             status: 'delivered',
-            album_token: fresh.album_token || albumToken,
           }),
         };
       },

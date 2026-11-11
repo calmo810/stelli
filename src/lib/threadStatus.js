@@ -16,9 +16,12 @@ export const CHIP_TONE = {
   'UNDER REVIEW': 'magenta',
 };
 
-/** The chip for a booking. Takes the booking, so it can read the payment too. */
+/**
+ * The chip for a booking. Takes the booking, so it can read the payment too.
+ * (A bare status string still works, for older callers.)
+ */
 export function statusChip(booking) {
-  return chipFor(booking);
+  return chipFor(typeof booking === 'string' ? { status: booking } : booking);
 }
 
 /** Which side of this booking the signed-in person is on. */

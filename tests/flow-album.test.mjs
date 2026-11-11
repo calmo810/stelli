@@ -13,6 +13,9 @@ async function withPhotos(w, count = 3) {
   return w.call('deliveryPhotos', { bookingId: 'b1', action: 'add', files }, CREATOR);
 }
 const album = (w, token, user = null) => w.call('getAlbumBooking', { bookingId: 'b1', token }, user);
+// Photos land quietly; the creator sends the album when they're ready.
+const sendAlbum = (w, user = CREATOR) => w.call('deliveryPhotos', { bookingId: 'b1', action: 'notify' }, user);
+const LOCKED = { error: 'Album not found', code: 'locked' };
 
 test('tokens are long, random and compared safely', () => {
   const a = newAlbumToken();
@@ -44,8 +47,9 @@ test('the album opens with the token; a wrong token and a missing booking answer
   const w = await scenario();
   await w.paid({ amount: 100 });
   await withPhotos(w);
+  await sendAlbum(w);
   const token = (await w.booking()).album_token;
-  assert.ok(token, 'the first upload mints the token for the email link');
+  assert.ok(token, 'sending the album mints the token for the email link');
 
   const guest = await album(w, token);
   assert.equal(guest.status, 200);
@@ -56,16 +60,17 @@ test('the album opens with the token; a wrong token and a missing booking answer
   const missing = await w.call('getAlbumBooking', { bookingId: 'no-such-booking', token }, null);
   for (const res of [wrong, noToken, missing]) {
     assert.equal(res.status, 404);
-    assert.deepEqual(res.data, { error: 'Album not found' });
+    assert.deepEqual(res.data, LOCKED);
   }
   // A signed-in stranger with no token gets the same answer.
-  assert.deepEqual((await album(w, '', STRANGER)).data, { error: 'Album not found' });
+  assert.deepEqual((await album(w, '', STRANGER)).data, LOCKED);
 });
 
 test('the album shows photos and nothing private', async () => {
   const w = await scenario();
   await w.paid({ amount: 100 });
   await withPhotos(w);
+  await sendAlbum(w);
   const token = (await w.booking()).album_token;
   const guest = await album(w, token);
   const text = JSON.stringify(guest.data);
@@ -91,6 +96,7 @@ test('K6: resetting the link cuts the old one off for everyone', async () => {
   const w = await scenario();
   await w.paid({ amount: 100 });
   await withPhotos(w);
+  await sendAlbum(w);
   const oldToken = (await w.booking()).album_token;
   assert.equal((await album(w, oldToken)).status, 200);
 
@@ -185,9 +191,67 @@ test('delivery emails carry the album link with its token', async () => {
   const w = await scenario();
   await w.paid({ amount: 100 });
   await withPhotos(w);
+  await sendAlbum(w);
   await w.call('markDelivered', { bookingId: 'b1', step: 'final' }, CREATOR);
   const token = (await w.booking()).album_token;
   const mails = w.emailsTo(CLIENT.email).filter((e) => /photos/i.test(e.subject));
-  assert.ok(mails.length >= 2);
+  assert.equal(mails.length, 2, 'the album email and the delivery email');
   for (const mail of mails) assert.match(mail.body, new RegExp(`https://getstelli\\.com/album/b1\\?t=${token}`));
+});
+
+test('uploading photos sends nothing; the creator sends the album once they are ready', async () => {
+  const w = await scenario();
+  await w.paid({ amount: 100 });
+  const before = w.emailsTo(CLIENT.email).length;
+  await withPhotos(w);
+  await withPhotos(w, 2);
+  assert.equal(w.emailsTo(CLIENT.email).length, before, 'uploads are quiet');
+
+  // Only the booked creator (or a founder) can send it.
+  assert.equal((await sendAlbum(w, CLIENT)).status, 403);
+  assert.equal((await sendAlbum(w, STRANGER)).status, 403);
+
+  const sent = await sendAlbum(w);
+  assert.equal(sent.status, 200);
+  assert.equal(sent.data.sent, true);
+  assert.equal(JSON.stringify(sent.data).includes(CLIENT.email), false, "the client's address is not handed to the creator");
+  const token = (await w.booking()).album_token;
+  assert.match(sent.data.url, new RegExp(`/album/b1\\?t=${token}$`));
+  assert.equal(w.emailsTo(CLIENT.email).length, before + 1);
+  assert.match(w.emailsTo(CLIENT.email).at(-1).body, /5 photos/);
+
+  // A double tap, or an impatient resend, doesn't send a second email.
+  const again = await sendAlbum(w);
+  assert.equal(again.data.alreadySent, true);
+  assert.equal(w.emailsTo(CLIENT.email).length, before + 1);
+});
+
+test('the album email waits for payment, and the copy link always carries the key', async () => {
+  const w = await scenario();
+  await w.quoteAndAccept({ amount: 100 });
+  const early = await sendAlbum(w);
+  assert.equal(early.status, 409, 'nothing to send before the shoot is paid for');
+
+  const link = await w.call('deliveryPhotos', { bookingId: 'b1', action: 'link' }, CLIENT);
+  const token = (await w.booking()).album_token;
+  assert.ok(token);
+  assert.equal(link.data.url, `https://getstelli.com/album/b1?t=${token}`);
+  // Asking again returns the same key, never a fresh one.
+  const again = await w.call('deliveryPhotos', { bookingId: 'b1', action: 'link' }, CREATOR);
+  assert.equal(again.data.url, link.data.url);
+  assert.equal((await w.call('deliveryPhotos', { bookingId: 'b1', action: 'link' }, STRANGER)).status, 403);
+});
+
+test('two links asked for at once share one album key', async () => {
+  const w = await scenario();
+  await w.paid({ amount: 100 });
+  const results = await Promise.all([
+    w.call('deliveryPhotos', { bookingId: 'b1', action: 'link' }, CLIENT),
+    w.call('deliveryPhotos', { bookingId: 'b1', action: 'link' }, CREATOR),
+    w.call('getAlbumBooking', { bookingId: 'b1', token: '' }, CLIENT),
+  ]);
+  const token = (await w.booking()).album_token;
+  assert.equal(results[0].data.url.endsWith(`t=${token}`), true);
+  assert.equal(results[1].data.url.endsWith(`t=${token}`), true);
+  assert.equal(results[2].data.booking.album_token, token);
 });

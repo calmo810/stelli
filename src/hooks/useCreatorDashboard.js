@@ -6,9 +6,11 @@ import { isPast, nextSteps } from '@/lib/bookingNextStep';
 export default function useCreatorDashboard() {
   const queryClient = useQueryClient();
 
+  // A visitor who is not signed in gets null rather than a failed query, so the
+  // workspace can offer them the sign-in door instead of spinning forever.
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['me'],
-    queryFn: () => base44.auth.me(),
+    queryFn: () => base44.auth.me().catch(() => null),
     retry: false,
   });
 

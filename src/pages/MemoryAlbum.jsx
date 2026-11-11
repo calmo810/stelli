@@ -1,14 +1,49 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
-import { ExternalLink, Copy, Check, ImageOff } from 'lucide-react';
+import { Check, Copy, ExternalLink, Images, KeyRound } from 'lucide-react';
+import AlbumCover from '@/components/album/AlbumCover';
+import AlbumGrid from '@/components/album/AlbumGrid';
+import AlbumViewer from '@/components/album/AlbumViewer';
 import { safeHref } from '@/lib/safeHref';
+
+function Skeleton() {
+  return (
+    <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
+      {Array.from({ length: 8 }).map((_, i) => (
+        <div key={i} className="aspect-square animate-pulse rounded-[18px] bg-white/[0.06]" />
+      ))}
+    </div>
+  );
+}
+
+/** The lock panel: the gallery is real, the visitor just cannot prove they were invited. */
+function Locked() {
+  return (
+    <div className="glass rounded-[26px] p-7 text-center sm:p-10">
+      <KeyRound className="mx-auto h-6 w-6 text-white/40" />
+      <p className="mt-4 text-[15px] font-semibold text-white">This link is missing its key</p>
+      <p className="mx-auto mt-2 max-w-[38ch] text-[13px] leading-relaxed text-white/50">
+        Album links only open with the code at the end of them. Ask your creator to send the link
+        again, or sign in with the email you booked with.
+      </p>
+      <button
+        type="button"
+        onClick={() => base44.auth.redirectToLogin(window.location.href)}
+        className="mt-5 inline-flex items-center gap-2 rounded-full px-5 py-3 text-[13px] font-semibold"
+        style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))' }}
+      >
+        Sign in
+      </button>
+    </div>
+  );
+}
 
 export default function MemoryAlbum() {
   const { bookingId } = useParams();
   const queryClient = useQueryClient();
+  const [openIndex, setOpenIndex] = useState(null);
   const [copied, setCopied] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [resetNote, setResetNote] = useState('');
@@ -16,21 +51,34 @@ export default function MemoryAlbum() {
   // The album is unlocked by the token in the link, not by the booking ID alone.
   const token = new URLSearchParams(window.location.search).get('t') || '';
 
-  const { data: album, isLoading } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['album-booking', bookingId, token],
-    queryFn: async () => {
-      const response = await base44.functions.invoke('getAlbumBooking', { bookingId, token });
-      return {
-        booking: response.data?.booking || null,
-        photos: response.data?.photos || [],
-        canResetLink: Boolean(response.data?.canResetLink),
-      };
-    },
     retry: false,
+    // Photo links are signed and expire, so a tab left open re-signs on its own.
+    refetchInterval: 40 * 60 * 1000,
+    queryFn: async () => {
+      try {
+        const response = await base44.functions.invoke('getAlbumBooking', { bookingId, token });
+        if (response.data?.error) return { locked: true };
+        return {
+          booking: response.data?.booking || null,
+          photos: response.data?.photos || [],
+          canResetLink: Boolean(response.data?.canResetLink),
+        };
+      } catch {
+        return { locked: true };
+      }
+    },
   });
 
-  const booking = album?.booking || null;
-  const photos = album?.photos || [];
+  const booking = data?.booking || null;
+  const photos = data?.photos || [];
+  const locked = Boolean(data?.locked);
+
+  useEffect(() => {
+    if (!booking) return;
+    document.title = `${booking.lensman_name ? `${booking.lensman_name} · ` : ''}Your photos · Stelli`;
+  }, [booking]);
 
   // The link only opens with its token. A guest already has theirs in the URL.
   const shareToken = booking?.album_token || token;
@@ -60,106 +108,55 @@ export default function MemoryAlbum() {
     }
   };
 
-  const copyLink = () => {
-    navigator.clipboard.writeText(shareLink);
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareLink);
+    } catch {
+      window.prompt('Copy your album link', shareLink);
+    }
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setTimeout(() => setCopied(false), 2200);
   };
 
-  const deliveredLabel = booking?.delivered_at
-    ? new Date(booking.delivered_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-    : null;
-
-  const title = booking
-    ? `${booking.event_type?.replace(/_/g, ' ') || 'Your shoot'} · ${booking.event_date ? new Date(booking.event_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric' }) : ''}`
-    : 'Your gallery';
+  const galleryHref = safeHref(booking?.delivery_link);
 
   return (
-    <div className="min-h-screen bg-ink">
-      <div className="max-w-3xl mx-auto px-5 md:px-8 py-20">
-        <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-          <p className="label-mono text-[9px] text-white/35 mb-4">Memory Album</p>
-          <h1 className="font-heading text-3xl sm:text-4xl font-semibold mb-4 capitalize text-white">
-            {title}
-          </h1>
-          <p className="font-body text-[13px] mb-12 text-white/50">
-            {booking?.lensman_name ? `Delivered by ${booking.lensman_name}` : 'Your creator'}
-            {deliveredLabel ? ` · ${deliveredLabel}` : ''}
-          </p>
+    <div className="mx-auto max-w-[1180px] px-4 pb-20 pt-2 md:px-8 md:pt-4">
+      {locked ? (
+        <Locked />
+      ) : (
+        <>
+          <AlbumCover booking={booking} cover={photos[0]} count={photos.length} />
 
-          {isLoading ? (
-            <div className="border border-white/10 p-10 text-center" style={{ borderRadius: 4 }}>
-              <p className="font-body text-[13px] text-white/45">Loading your gallery…</p>
-            </div>
-          ) : (
-            <>
-              {photos.length > 0 && (
-                <>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {photos.map((photo) => (
-                      <a
-                        key={photo.id}
-                        href={photo.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="group block overflow-hidden"
-                        style={{ borderRadius: 4, background: 'hsl(var(--surface))' }}
-                      >
-                        <img
-                          src={photo.url}
-                          alt={photo.name || 'Delivered photo'}
-                          loading="lazy"
-                          className="aspect-square w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                        />
-                      </a>
-                    ))}
-                  </div>
-                  <p className="mt-3 font-body text-[11px] text-white/35">
-                    {photos.length} photo{photos.length === 1 ? '' : 's'} · tap one to open it full size.
-                  </p>
-                </>
-              )}
-
-              {booking?.delivery_link ? (
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-[12.5px] text-white/45">
+              {photos.length
+                ? `${photos.length} photo${photos.length === 1 ? '' : 's'} · tap any one to open it`
+                : 'Your photos will land here'}
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              {galleryHref && (
                 <a
-                  href={safeHref(booking.delivery_link)}
+                  href={galleryHref}
                   target="_blank"
                   rel="noreferrer"
-                  className={`flex items-center justify-center gap-3 w-full py-5 label-mono text-[11px] font-semibold transition-transform hover:-translate-y-0.5 ${
-                    photos.length ? 'mt-6' : ''
-                  }`}
-                  style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }}
+                  className="inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[12.5px] font-semibold"
+                  style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))' }}
                 >
-                  <ExternalLink className="w-4 h-4" /> {photos.length ? 'Open the full gallery' : 'Open your gallery'}
+                  <ExternalLink className="h-3.5 w-3.5" /> Full gallery
                 </a>
-              ) : !photos.length ? (
-                <div className="border border-white/10 p-10 text-center" style={{ borderRadius: 4 }}>
-                  <ImageOff className="w-6 h-6 mx-auto mb-4 text-white/30" />
-                  <p className="font-body text-[13px] text-white/50">
-                    Your photos aren't up yet. We'll email you the moment your creator delivers them.
-                  </p>
-                </div>
-              ) : null}
-            </>
-          )}
-
-          <div className="mt-12 pt-8 border-t border-white/10">
-            <p className="label-mono text-[9px] text-white/35 mb-3">Share this album</p>
-            <div className="flex items-center gap-2">
-              <div className="flex-1 px-4 py-3 font-body text-[12px] truncate text-white/50" style={{ background: 'hsl(var(--surface))', borderRadius: 4 }}>
-                {shareLink}
-              </div>
+              )}
               <button
+                type="button"
                 onClick={copyLink}
-                aria-label="Copy album link"
-                className="flex items-center gap-1.5 px-4 py-3 font-body text-[12px] font-medium shrink-0"
-                style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }}
+                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2.5 text-[12.5px] font-semibold text-white/75 transition-colors hover:text-white"
               >
-                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                {copied ? 'Link copied' : 'Share album'}
               </button>
             </div>
-            {album?.canResetLink && (
-              <div className="mt-4">
+            {data?.canResetLink && (
+              <div className="w-full">
                 <button
                   type="button"
                   onClick={resetLink}
@@ -175,8 +172,39 @@ export default function MemoryAlbum() {
               </div>
             )}
           </div>
-        </motion.div>
-      </div>
+
+          <div className="mt-4">
+            {isLoading ? (
+              <Skeleton />
+            ) : photos.length ? (
+              <AlbumGrid photos={photos} onOpen={setOpenIndex} />
+            ) : (
+              <div className="glass rounded-[26px] p-8 text-center">
+                <Images className="mx-auto h-6 w-6 text-white/35" />
+                <p className="mx-auto mt-4 max-w-[36ch] text-[13px] leading-relaxed text-white/50">
+                  Nothing in your album yet. The moment your creator hands over the photos, they
+                  appear right here.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {photos.length > 0 && (
+            <p className="mt-6 text-center text-[11.5px] text-white/30">
+              Anyone with this link can see these photos. The client can reset it at any time.
+            </p>
+          )}
+        </>
+      )}
+
+      {openIndex !== null && photos.length > 0 && (
+        <AlbumViewer
+          photos={photos}
+          index={openIndex}
+          onIndex={setOpenIndex}
+          onClose={() => setOpenIndex(null)}
+        />
+      )}
     </div>
   );
 }

@@ -80,6 +80,19 @@ export default function CreatorProfileView({ creatorId, adminPanel = null }) {
     retry: false,
   });
 
+  // One look per visit, counted for the creator's own dashboard.
+  useEffect(() => {
+    if (!creator?.id || creator.status !== 'approved') return;
+    try {
+      const key = `stelli_view_${creator.id}`;
+      if (sessionStorage.getItem(key)) return;
+      sessionStorage.setItem(key, '1');
+    } catch {
+      return;
+    }
+    base44.functions.invoke('trackProfileView', { lensmanId: creator.id }).catch(() => {});
+  }, [creator?.id, creator?.status]);
+
   // The floating booking bar shows once the main button scrolls away.
   useEffect(() => {
     const el = ctaRef.current;

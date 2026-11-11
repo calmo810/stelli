@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { viewerRole } from '../../shared/bookingAccess.ts';
 import { signedDeliveryPhotos } from '../../shared/deliveryPhotos.ts';
-import { newAlbumToken, tokenMatches } from '../../shared/albumAccess.ts';
+import { ensureAlbumToken, tokenMatches } from '../../shared/albumAccess.ts';
 
 /**
  * Read for a shareable memory album. Returns only what the album shows — never
@@ -20,7 +20,9 @@ import { newAlbumToken, tokenMatches } from '../../shared/albumAccess.ts';
  * A leaked link can be cut off: the client (or a founder) resets it with the
  * resetAlbumLink function, after which the old token opens nothing.
  */
-const NOT_FOUND = () => Response.json({ error: 'Album not found' }, { status: 404 });
+// One answer for "no such album" and "wrong key", so it can't be used to
+// find out which booking IDs exist. The album page shows its key panel for it.
+const NOT_FOUND = () => Response.json({ error: 'Album not found', code: 'locked' }, { status: 404 });
 
 export default async function (req) {
   try {
@@ -50,11 +52,7 @@ export default async function (req) {
 
     // A party opening a booking that predates album tokens gets one now, so the
     // link they copy carries it.
-    let albumToken = booking.album_token || '';
-    if (isParty && !albumToken) {
-      albumToken = newAlbumToken();
-      await base44.asServiceRole.entities.Booking.update(booking.id, { album_token: albumToken });
-    }
+    const albumToken = isParty ? await ensureAlbumToken(base44, booking) : '';
 
     return Response.json({
       booking: {

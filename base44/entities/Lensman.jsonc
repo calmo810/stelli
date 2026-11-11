@@ -325,6 +325,11 @@
       "type": "number",
       "description": "How many requests the median is based on"
     },
+    "profile_views": {
+      "type": "number",
+      "default": 0,
+      "description": "How many times clients have opened this creator's public page. Only the counter endpoint moves it."
+    },
     "under_review": {
       "type": "boolean",
       "default": false,

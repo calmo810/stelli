@@ -128,6 +128,14 @@
       "type": "number",
       "description": "Number of attendees"
     },
+    "budget": {
+      "type": "string",
+      "description": "What the client said they expect to spend, in their own words"
+    },
+    "duration": {
+      "type": "string",
+      "description": "How long the client expects the shoot to run"
+    },
     "total_price": {
       "type": "number",
       "description": "Quote plus the add-ons the client ticked"
@@ -468,6 +476,11 @@
       "type": "string",
       "format": "date-time",
       "description": "When the album link was last reset, cutting off the previous link"
+    },
+    "album_notified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the creator last emailed the client their album link (one email per 10 minutes)"
     },
     "manual_payout_id": {
       "type": "string",

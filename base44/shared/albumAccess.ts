@@ -1,7 +1,14 @@
 /**
- * Small, pure helpers for the shareable memory album and delivery links.
- * Tested in tests/albumAccess.test.mjs.
+ * The memory album's link, the random key that unlocks it, and the checks on
+ * pasted gallery links. Tested in tests/flow-album.test.mjs.
+ *
+ * Every email that hands a client their photos must carry the key: the album
+ * opens for a signed-in participant alone, and a client clicking a link in their
+ * inbox is usually nobody. A link without the key answers "not found".
  */
+import { SITE_ORIGIN } from './origins.ts';
+
+export const SITE_URL = SITE_ORIGIN;
 
 /** A fresh album token: 256 random bits, as hex. Not guessable, not derived from anything. */
 export function newAlbumToken() {
@@ -53,4 +60,47 @@ export function galleryLinkProblem(link) {
     return 'That looks like a file on your computer, not a link. Paste the gallery’s share link.';
   }
   return '';
+}
+
+export function albumPath(bookingId, token) {
+  return `/album/${bookingId}${token ? `?t=${encodeURIComponent(token)}` : ''}`;
+}
+
+export function albumUrl(bookingId, token) {
+  return `${SITE_URL}${albumPath(bookingId, token)}`;
+}
+
+/**
+ * The booking's album key, minted the first time any link needs one.
+ *
+ * Two emails going out at once (photos added, and delivery marked) must not
+ * mint two different keys, or one of them carries a link that no longer opens.
+ * So the key is only written where there is none yet, and what is returned is
+ * whatever the booking holds afterwards.
+ */
+export async function ensureAlbumToken(base44, booking) {
+  if (!booking?.id) return '';
+  if (booking.album_token) return booking.album_token;
+
+  const Booking = base44.asServiceRole.entities.Booking;
+  const token = newAlbumToken();
+  try {
+    const current = await Booking.get(booking.id);
+    if (current?.album_token) return current.album_token;
+    await Booking.updateMany(
+      { id: booking.id, album_token: { $in: [null, ''] } },
+      { $set: { album_token: token } }
+    );
+    let stored = (await Booking.get(booking.id))?.album_token || '';
+    if (!stored) {
+      // The conditional write matched nothing (a field that was never set may
+      // not count as empty): set it plainly.
+      await Booking.update(booking.id, { album_token: token });
+      stored = (await Booking.get(booking.id))?.album_token || token;
+    }
+    return stored;
+  } catch (error) {
+    console.error('Album token could not be minted for', booking.id, '-', error.message);
+    return '';
+  }
 }

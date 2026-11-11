@@ -51,6 +51,18 @@ test('a request needs a real, future date and a note without contact details', a
   assert.equal((await request(w, { brief: 'Grad photos for 12 of us, Dec 14 2026 at 3:30, for my ig' })).status, 200);
 });
 
+test('budget and length are optional, kept short, and can\'t carry contact details either', async () => {
+  const w = await scenario();
+  const blocked = await request(w, { budget: 'about $300, call 336 555 0142' });
+  assert.equal(blocked.status, 400);
+  assert.equal(blocked.data.blocked, true);
+  const ok = await request(w, { budget: 'Around $300', duration: '2 hours' + ' '.repeat(5) + 'x'.repeat(200) });
+  assert.equal(ok.status, 200);
+  const booking = await w.entities.Booking.get(ok.data.booking.id);
+  assert.equal(booking.budget, 'Around $300');
+  assert.ok(booking.duration.length <= 60);
+});
+
 /* ---------------- contact details ---------------- */
 
 test('contact details unlock for the client only, and only once the booking is paid', async () => {
