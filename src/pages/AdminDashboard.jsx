@@ -101,62 +101,121 @@ export default function AdminDashboard() {
   const totalRevenue = bookings.filter(b => b.status === 'completed').reduce((sum, b) => sum + (b.total_price || 0), 0);
 
   const stats = [
-    { icon: Users, label: 'Active creators', value: approved.length, color: 'hsl(var(--neon-lime))' },
+    { icon: Users, label: 'Active creators', value: approved.length, color: 'hsl(var(--neon-lime))', people: approved.slice(0, 4) },
     { icon: Calendar, label: 'Total bookings', value: bookings.length, color: 'hsl(var(--neon-magenta))' },
     { icon: DollarSign, label: 'Revenue', value: `$${totalRevenue.toLocaleString()}`, color: 'hsl(var(--neon-lime))' },
     { icon: ClipboardCheck, label: 'Awaiting review', value: loadingLensmen ? '—' : pendingApplications.length, color: 'hsl(var(--neon-cyan))' },
   ];
 
   return (
-    <div className="min-h-screen bg-ink">
-      <div className="border-b border-white/10 py-12 px-5 md:px-10">
-        <div className="max-w-[1400px] mx-auto">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <p className="label-mono text-[9px] text-white/35 mb-4">Internal</p>
-            <h1 className="font-heading text-white font-semibold leading-[0.95] mb-3" style={{ fontSize: 'clamp(36px, 5vw, 64px)' }}>
-              Admin
-            </h1>
-            <p className="font-body text-[13px] text-white/45">Review creator applications, monitor bookings, and keep operations moving.</p>
-          </motion.div>
-        </div>
-      </div>
+    <div className="admin-shell min-h-screen">
+      <div className="mx-auto max-w-[1400px] px-5 py-7 md:px-10 md:py-10">
+        <motion.section
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+          className="admin-hero p-6 sm:p-8 lg:p-10"
+        >
+          <div className="relative z-10 flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-2xl">
+              <p className="admin-kicker label-mono text-[8px]"><Sparkles className="h-3 w-3" aria-hidden="true" /> Internal command center</p>
+              <h1 className="mt-5 font-heading text-white font-semibold leading-[0.9] tracking-[-0.055em]" style={{ fontSize: 'clamp(42px, 6vw, 78px)' }}>
+                Stelli <span className="text-neon-lime">operations.</span>
+              </h1>
+              <p className="mt-5 max-w-xl font-body text-[14px] leading-relaxed text-white/55">
+                A focused workspace for approvals, bookings, payouts, and the day-to-day running of the marketplace.
+              </p>
+            </div>
 
-      <div className="max-w-[1400px] mx-auto px-5 md:px-10 py-10">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 mb-10">
+            <button
+              type="button"
+              onClick={() => setActiveTab('applications')}
+              className="group relative z-10 flex min-w-[245px] items-center justify-between rounded-[20px] border border-neon-cyan/25 bg-neon-cyan/[0.09] p-4 text-left transition hover:border-neon-cyan/55 hover:bg-neon-cyan/[0.13]"
+            >
+              <span>
+                <span className="label-mono text-[8px] text-neon-cyan">Next up</span>
+                <span className="mt-2 block text-[14px] font-semibold text-white">
+                  {pendingApplications.length ? pendingApplications.length + ' creator application' + (pendingApplications.length === 1 ? '' : 's') + ' waiting' : 'Review queue is clear'}
+                </span>
+              </span>
+              <span className="grid h-10 w-10 place-items-center rounded-2xl bg-neon-cyan text-ink transition-transform group-hover:translate-x-1">
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </span>
+            </button>
+          </div>
+        </motion.section>
+
+        <section className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Marketplace statistics">
           {stats.map((stat, i) => (
-            <div key={i} className={`${CARD} p-5 text-center`} style={SURFACE}>
-              <stat.icon className="w-4 h-4 mx-auto mb-3" style={{ color: stat.color }} strokeWidth={1.6} />
-              <p className="font-heading text-3xl font-semibold text-white leading-none mb-2">{stat.value}</p>
-              <p className="label-mono text-[8px] text-white/40">{stat.label}</p>
+            <div key={i} className={CARD + ' admin-surface--interactive min-h-[154px] p-5'} style={SURFACE}>
+              <div className="flex items-start justify-between gap-3">
+                <span className="grid h-10 w-10 place-items-center rounded-2xl" style={{ background: stat.color.replace('))', ') / 0.12)'), color: stat.color }}>
+                  <stat.icon className="h-4 w-4" strokeWidth={1.8} />
+                </span>
+                {stat.people ? (
+                  <div className="flex items-center justify-end pl-3" aria-label="Active creator profiles">
+                    {stat.people.length ? stat.people.map((creator, index) => (
+                      creator.profile_image ? (
+                        <img
+                          key={creator.id}
+                          src={creator.profile_image}
+                          alt={creator.display_name || 'Creator'}
+                          title={creator.display_name || 'Creator'}
+                          className="-ml-3 h-9 w-9 rounded-full border-2 border-[hsl(var(--surface-2))] object-cover first:ml-0"
+                          style={{ zIndex: stat.people.length - index }}
+                        />
+                      ) : (
+                        <span
+                          key={creator.id}
+                          title={creator.display_name || 'Creator'}
+                          className="-ml-3 grid h-9 w-9 place-items-center rounded-full border-2 border-[hsl(var(--surface-2))] bg-neon-lime/15 text-[10px] font-semibold text-neon-lime first:ml-0"
+                          style={{ zIndex: stat.people.length - index }}
+                        >
+                          {(creator.display_name || 'C').slice(0, 1).toUpperCase()}
+                        </span>
+                      )
+                    )) : (
+                      <span className="label-mono text-[8px] text-white/35">No profiles yet</span>
+                    )}
+                  </div>
+                ) : (
+                  <span className="label-mono text-[8px] text-white/30">Live</span>
+                )}
+              </div>
+              <p className="mt-6 font-heading text-4xl font-semibold leading-none text-white">{stat.value}</p>
+              <p className="mt-2 label-mono text-[8px] text-white/42">{stat.label}</p>
+              {stat.people && stat.people.length > 0 && (
+                <p className="mt-3 text-[11px] text-white/35">The faces in your marketplace</p>
+              )}
             </div>
           ))}
-        </div>
+        </section>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="bg-transparent border border-white/10 rounded-none p-1 mb-8 h-auto flex-wrap">
-            <TabsTrigger value="overview" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-lime data-[state=active]:text-ink">
-              Overview
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-8">
+          <TabsList className="admin-tabbar mb-8 h-auto w-full justify-start">
+            <TabsTrigger value="overview" className="admin-tab shrink-0 gap-2 px-4 label-mono text-[9px]">
+              <LayoutDashboard className="h-3.5 w-3.5" /> Overview
             </TabsTrigger>
-            <TabsTrigger value="applications" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-cyan data-[state=active]:text-ink">
-              Applications ({pendingApplications.length})
+            <TabsTrigger value="applications" className="admin-tab shrink-0 gap-2 px-4 label-mono text-[9px]">
+              <ClipboardCheck className="h-3.5 w-3.5" /> Applications <span className="rounded-full bg-black/10 px-1.5 py-0.5">{pendingApplications.length}</span>
             </TabsTrigger>
-            <TabsTrigger value="lensmen" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-lime data-[state=active]:text-ink">
-              Active lensmen ({approved.length})
+            <TabsTrigger value="lensmen" className="admin-tab shrink-0 gap-2 px-4 label-mono text-[9px]">
+              <Users className="h-3.5 w-3.5" /> Creators <span className="rounded-full bg-black/10 px-1.5 py-0.5">{approved.length}</span>
             </TabsTrigger>
-            <TabsTrigger value="bookings" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-lime data-[state=active]:text-ink">
-              Bookings ({bookings.length})
+            <TabsTrigger value="bookings" className="admin-tab shrink-0 gap-2 px-4 label-mono text-[9px]">
+              <Calendar className="h-3.5 w-3.5" /> Bookings <span className="rounded-full bg-black/10 px-1.5 py-0.5">{bookings.length}</span>
             </TabsTrigger>
-            <TabsTrigger value="flagged" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-magenta data-[state=active]:text-ink">
-              Held funds ({heldFunds.length})
+            <TabsTrigger value="flagged" className="admin-tab shrink-0 gap-2 px-4 label-mono text-[9px]">
+              <CircleDollarSign className="h-3.5 w-3.5" /> Held funds <span className="rounded-full bg-black/10 px-1.5 py-0.5">{heldFunds.length}</span>
             </TabsTrigger>
-            <TabsTrigger value="pay" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-lime data-[state=active]:text-ink">
-              Pay creators
+            <TabsTrigger value="pay" className="admin-tab shrink-0 gap-2 px-4 label-mono text-[9px]">
+              <DollarSign className="h-3.5 w-3.5" /> Pay creators
             </TabsTrigger>
-            <TabsTrigger value="charge" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-lime data-[state=active]:text-ink">
-              One-off payments
+            <TabsTrigger value="charge" className="admin-tab shrink-0 gap-2 px-4 label-mono text-[9px]">
+              <DollarSign className="h-3.5 w-3.5" /> Payments
             </TabsTrigger>
-            <TabsTrigger value="faq" className="rounded-none label-mono text-[10px] text-white/45 data-[state=active]:bg-neon-cyan data-[state=active]:text-ink">
-              FAQ chat
+            <TabsTrigger value="faq" className="admin-tab shrink-0 gap-2 px-4 label-mono text-[9px]">
+              <MessageCircle className="h-3.5 w-3.5" /> FAQ chat
             </TabsTrigger>
           </TabsList>
 
