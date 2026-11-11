@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { viewerRole } from '../../shared/bookingAccess.ts';
 import { signedDeliveryPhotos } from '../../shared/deliveryPhotos.ts';
+import { ensureAlbumToken } from '../../shared/albumAccess.ts';
 
 /**
  * Read for a shareable memory album. Returns only what the album shows — never
@@ -22,12 +23,12 @@ export default async function (req) {
     const { bookingId, token } = await req.json();
 
     if (!bookingId) {
-      return Response.json({ error: 'Booking ID is required' }, { status: 400 });
+      return Response.json({ error: 'Booking ID is required', code: 'missing' }, { status: 400 });
     }
 
     const booking = await base44.asServiceRole.entities.Booking.get(bookingId).catch(() => null);
     if (!booking) {
-      return Response.json({ error: 'Album not found' }, { status: 404 });
+      return Response.json({ error: 'Album not found', code: 'missing' }, { status: 404 });
     }
 
     let user = null;
@@ -43,16 +44,12 @@ export default async function (req) {
       Boolean(booking.album_token) && presented !== '' && presented === booking.album_token;
 
     if (!isParty && !tokenMatches) {
-      return Response.json({ error: 'Album not found' }, { status: 404 });
+      // A link that lost its key is the common case here: the gallery exists,
+      // the visitor just cannot prove they were invited to it.
+      return Response.json({ error: 'This link is missing its key', code: 'locked' }, { status: 404 });
     }
 
-    // A party opening a booking that predates album tokens gets one now, so the
-    // link they copy carries it.
-    let albumToken = booking.album_token || '';
-    if (isParty && !albumToken) {
-      albumToken = crypto.randomUUID();
-      await base44.asServiceRole.entities.Booking.update(booking.id, { album_token: albumToken });
-    }
+    const albumToken = await ensureAlbumToken(base44, booking);
 
     return Response.json({
       booking: {
@@ -60,6 +57,7 @@ export default async function (req) {
         event_type: booking.event_type,
         event_date: booking.event_date,
         lensman_name: booking.lensman_name,
+        client_name: booking.client_name,
         delivery_link: booking.delivery_link || '',
         delivered_at: booking.delivered_at || '',
         album_token: albumToken,

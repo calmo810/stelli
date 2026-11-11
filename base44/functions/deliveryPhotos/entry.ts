@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { viewerRole, creatorEmail } from '../../shared/bookingAccess.ts';
 import { notifyBoth } from '../../shared/notify.ts';
+import { ensureAlbumToken, albumUrl } from '../../shared/albumAccess.ts';
 import {
   DELIVERABLE,
   MAX_DELIVERY_PHOTOS,
@@ -41,6 +42,13 @@ export default async function (req) {
 
     if (action === 'list') {
       return Response.json({ photos: await signedDeliveryPhotos(base44, bookingId) });
+    }
+
+    // The link either side can hand out: it carries the album key, so it opens
+    // for a client clicking it in an inbox with no Stelli account.
+    if (action === 'link') {
+      const token = await ensureAlbumToken(base44, booking);
+      return Response.json({ url: albumUrl(bookingId, token) });
     }
 
     const isCreator = role === 'lensman' || user.role === 'admin';
@@ -120,13 +128,17 @@ export default async function (req) {
     // The first hand-off gets an email; later batches show up quietly, so a
     // creator uploading forty photos does not send forty notifications.
     if (!existing.length && booking.client_email) {
+      const token = await ensureAlbumToken(base44, booking);
+      const url = token ? albumUrl(bookingId, token) : '';
       await notifyBoth(
         base44,
         [booking.client_email],
         'New photos from your shoot',
         `${booking.lensman_name || 'Your creator'} added ${rows.length} photo${
           rows.length === 1 ? '' : 's'
-        } to your ${booking.event_date} shoot.\n\nOpen your album: https://getstelli.com/album/${booking.id}`
+        } to your ${booking.event_date} shoot.${
+          url ? `\n\nOpen your album: ${url}` : '\n\nOpen your album from your Stelli portal.'
+        }`
       );
     }
 

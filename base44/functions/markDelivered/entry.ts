@@ -4,6 +4,7 @@ import { releaseDueFrom } from '../../shared/payouts.ts';
 import { viewerRole, creatorEmail } from '../../shared/bookingAccess.ts';
 import { openPhotoRelease } from '../../shared/photoRelease.ts';
 import { deliveryPhotoRows } from '../../shared/deliveryPhotos.ts';
+import { ensureAlbumToken, albumUrl } from '../../shared/albumAccess.ts';
 
 /**
  * Delivery happens in two steps: the unedited set first (no status change),
@@ -56,6 +57,11 @@ export default async function (req) {
 
     const now = new Date();
 
+    // The email has to carry the album key, or a client opening it in their
+    // inbox lands on an album that answers "not found".
+    const albumToken = await ensureAlbumToken(base44, booking);
+    const albumLine = albumToken ? `Your Stelli album: ${albumUrl(bookingId, albumToken)}\n\n` : '';
+
     if (!isFinal) {
       const updated = await base44.asServiceRole.entities.Booking.update(bookingId, {
         ...(link ? { unedited_link: link } : {}),
@@ -67,8 +73,8 @@ export default async function (req) {
         [booking.client_email],
         'Your unedited set is ready',
         `${booking.lensman_name || 'Your creator'} posted the unedited set for the ${booking.event_date} shoot.\n\n${
-          link ? `Open it here: ${link}` : 'Open it from your Stelli portal.'
-        }\n\nThe final edits follow.`
+          link ? `Open it here: ${link}\n\n` : ''
+        }${albumLine}The final edits follow.`
       );
 
       return Response.json({ booking: updated, step: 'unedited' });
@@ -88,8 +94,8 @@ export default async function (req) {
       [booking.client_email],
       'Your photos are ready',
       `${booking.lensman_name || 'Your creator'} delivered your final edits.\n\n${
-        link ? `Open them here: ${link}` : 'Open them in your Stelli memory album from your portal.'
-      }\n\nYou have 48 hours to report a problem. After that the payment is released to your creator.`
+        link ? `Open them here: ${link}\n\n` : ''
+      }${albumLine}You have 48 hours to report a problem. After that the payment is released to your creator.`
     );
 
     // A new photo release agreement opens in both portals. Nothing is public

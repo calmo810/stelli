@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { ImagePlus, Images, Loader2, X } from 'lucide-react';
+import { Check, Copy, ImagePlus, Images, Loader2, X } from 'lucide-react';
 import Pill from '@/components/shared/Pill';
 
 /**
@@ -15,6 +15,7 @@ export default function DeliveryPhotos({ booking, role, onChanged }) {
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState('');
   const [error, setError] = useState('');
+  const [linkCopied, setLinkCopied] = useState(false);
   const isCreator = role === 'lensman';
 
   const { data: photos = [], isLoading } = useQuery({
@@ -86,6 +87,29 @@ export default function DeliveryPhotos({ booking, role, onChanged }) {
     }
   };
 
+  // The gallery link carries the album's key, so it opens for a client who is
+  // not signed in — the link in an inbox is the only way most of them arrive.
+  const copyAlbumLink = async () => {
+    setError('');
+    try {
+      const response = await base44.functions.invoke('deliveryPhotos', {
+        bookingId: booking.id,
+        action: 'link',
+      });
+      const url = response.data?.url;
+      if (!url) throw new Error('That link did not come through.');
+      try {
+        await navigator.clipboard.writeText(url);
+      } catch {
+        window.prompt('Copy the gallery link', url);
+      }
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2400);
+    } catch (e) {
+      setError(e?.response?.data?.error || e.message || 'That link did not come through.');
+    }
+  };
+
   // A client with nothing delivered yet does not need an empty gallery.
   if (!isCreator && !isLoading && !photos.length) return null;
 
@@ -150,6 +174,12 @@ export default function DeliveryPhotos({ booking, role, onChanged }) {
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
             {busy ? progress || 'Uploading…' : photos.length ? 'Add more photos' : 'Upload photos'}
           </Pill>
+          {photos.length > 0 && (
+            <Pill as="button" type="button" tone="glass" onClick={copyAlbumLink} className="w-full py-3">
+              {linkCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {linkCopied ? 'Link copied' : "Copy your client's gallery link"}
+            </Pill>
+          )}
           <p className="text-center text-[11px] text-white/30">
             They go straight into your client's album. Up to 20 at a time.
           </p>
