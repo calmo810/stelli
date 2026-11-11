@@ -138,6 +138,8 @@ All six are real. Details and what I found beyond the earlier review:
 *Fix:* the webhook only accepts a paid session when it is the session on record **and** its quote is the booking's current accepted quote **and** the amount matches; anything else is held and flagged. Checkout requires a live accepted quote and an open booking, and the session expires with the quote.
 **Status: Fixed — `bookingRules.paidSessionVerdict`, `shared/payments.ts`, `createBookingCheckout`, `sendQuote`, `acceptQuote`. A payment that doesn’t match is held apart as a “stray payment” for you.**
 
+*Follow-up from your review (11 November):* the booking used to keep only one stray payment, so if two stale Checkout pages were both paid, the second overwrote the first and the first had no refund path. Each unmatched payment is now its own `StrayPayment` record, keyed by its Stripe PaymentIntent and readable by founders only. Each one is refunded, disputed or closed on its own, and the booking only carries a summary (how many are open, and the total). Tested in `tests/flow-stray-payments.test.mjs`.
+
 ### K3 — A problem report can lose a race with a payout · **Confirmed · Critical**
 `releaseBooking` trusts the booking object it is handed. The sweep hands it rows from a list read before the loop; `confirmDelivery` hands it a copy read before its own write.
 *How it happens:* the sweep reads the list at 3:00:00. The client reports a problem at 3:00:01. The sweep reaches that booking at 3:00:02 with `flagged_for_review: false` in its copy, and pays.
@@ -373,7 +375,7 @@ While this was open, `main` picked up seven builder commits: the new creator wor
 ### Money
 
 - **One price, worked out once.** The quote plus the add-ons the client picked is the subtotal. The client pays it plus 14%, the creator gets it minus 14%. Acceptance, Checkout, the stored fee and payout, and the agreement all come from the same calculation, done in whole cents. When the payment lands, the app checks that Stripe charged exactly that, and sends anything else to you. *(K1, M-2)*
-- **An old checkout page can't confirm a booking.** A payment only counts if it came through the checkout page on record, for the quote the client accepted, at exactly the right amount. Anything else is real money, so it is kept apart as an "unmatched payment", the booking is not confirmed, and it lands in your queue with one button: send it back in full. *(K2, D3)*
+- **An old checkout page can't confirm a booking.** A payment only counts if it came through the checkout page on record, for the quote the client accepted, at exactly the right amount. Anything else is real money, so it is kept apart as an "unmatched payment", the booking is not confirmed, and it lands in your queue with a button to send it back in full. Each unmatched payment is its own record with its own button, so two old pages paid on one booking are two refunds, and neither can be lost. A refund made by hand in Stripe, or a card dispute, closes or blocks only the payment it belongs to. *(K2, D3)*
 - **A problem report always stops a payout.** The payout and the report now take turns on the booking: whichever starts second waits, then looks again. If the client reports a second after the creator was paid, the report still goes through and says so, so you're never told money is held when it isn't. *(K3)*
 - **Refunds and pull-backs are separate steps.** The client's refund is recorded the moment it happens. Pulling the creator's payout back is its own step. If that fails (say they already withdrew it), the booking stays in your queue with a "try again" button, and retrying never refunds the client a second time. Refunds made straight in the Stripe dashboard are noticed too. *(K4)*
 - **The agreement always matches what is paid.** A new accepted quote gets a new agreement; the old one is kept but marked replaced. Prices are itemised: shoot, each add-on, creator's price, Stelli's fee, total. Accepting an agreement can never move a booking backward again. *(K5)*
@@ -461,7 +463,7 @@ Tested: the two paths started against each other at 11 different timings, always
 
 | Field | What it means |
 |---|---|
-| `stray_payment_*` | Money that arrived but doesn't belong to the booking as it stands. Your queue; one-click full refund. |
+| `StrayPayment` records (`stray_payment_*` on the booking is their summary) | Money that arrived but doesn't belong to the booking as it stands. One record per Stripe payment: open → refunded, or disputed → open again / dispute lost. Your queue; one button per payment. |
 | `reversal_status` (`needed` / `done` / `failed`) and amounts | Pulling a paid creator back, tracked apart from the client's refund. |
 | `payout_lock` | Who is moving this booking's money right now. One at a time. Expires after 10 minutes if a run dies. |
 | `payout_error`, `payout_attempts` | A transfer Stripe refused. Your queue after three. |
@@ -645,7 +647,8 @@ Make three paid bookings: one about 4 days out, one about 60 hours out, one abou
 | Step | You should see |
 |---|---|
 | G1. Client accepts a quote and opens Checkout but doesn't pay; copy the Checkout URL. Creator sends a new quote. Open the copied URL. | Stripe says the page has expired. |
-| G2. (The case where Stripe can't expire it is covered by the automated tests.) | — |
+| G2. (The case where Stripe can't expire it, including two old pages both paid on one booking, is covered by the automated tests.) | — |
+| G3. In the Base44 dashboard → Data → StrayPayment, open its access rules. | Read, create, update and delete are all "admin" only. |
 
 ### H. Manual payouts
 
@@ -679,7 +682,7 @@ Make three paid bookings: one about 4 days out, one about 60 hours out, one abou
 | Approve or reject creator applications | `/admin → Applications` | Yes: one tap and a confirmation; the email goes once; logged. (The Base44 dashboard still works too — both are real, and they can't double-email.) |
 | Decide reported problems, no-shows, failed cancellation refunds | `/admin → Needs you` | Yes: each item has the two or three actions that settle it, with the amounts. |
 | Respond to card disputes | **Stripe dashboard** (evidence lives there) | Partly: the app freezes the money, emails you and handles the outcome. The evidence is still yours to submit. |
-| Send back unmatched payments | `/admin → Needs you` | Yes: one button. |
+| Send back unmatched payments | `/admin → Needs you` | Yes: one button per payment. |
 | Retry a payout pull-back that failed | `/admin → Needs you` | Yes: one button. |
 | Fix a payout Stripe keeps refusing | Usually the creator fixes their Stripe account; then "Release" | Yes: it's in the queue with Stripe's reason. |
 | Manual $50 payouts | `/admin → Pay creators` | Yes, and it can no longer double-pay. |

@@ -401,13 +401,18 @@
       "type": "boolean",
       "description": "Whether the client's payment was taken in Stripe live mode. False means a test payment that must never be paid out with real money."
     },
+    "stray_payment_count": {
+      "type": "number",
+      "default": 0,
+      "description": "How many unmatched payments on this booking are still open (each one is a StrayPayment record)"
+    },
     "stray_payment_intent_id": {
       "type": "string",
-      "description": "A payment that arrived for this booking but did not match its accepted quote (old checkout, wrong amount, cancelled or already-paid booking). Kept apart until a founder decides."
+      "description": "Summary: the latest open payment that arrived for this booking but did not match its accepted quote (old checkout, wrong amount, cancelled or already-paid booking). Each such payment is its own StrayPayment record; this is empty once none is open."
     },
     "stray_payment_amount": {
       "type": "number",
-      "description": "What the stray payment charged, in dollars"
+      "description": "Summary: what the open unmatched payments charged in all, in dollars"
     },
     "stray_payment_reason": {
       "type": "string",

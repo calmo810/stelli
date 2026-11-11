@@ -27,9 +27,9 @@ const KIND_LABEL = {
  * wrong and offers only the actions that settle it. Anything that moves money
  * asks first, in a sentence with the amounts, and reports what happened after.
  */
-export default function FounderQueueList({ bookings }) {
+export default function FounderQueueList({ bookings, strays = null }) {
   const queryClient = useQueryClient();
-  const queue = useMemo(() => founderQueue(bookings), [bookings]);
+  const queue = useMemo(() => founderQueue(bookings, Date.now(), strays), [bookings, strays]);
   const [pending, setPending] = useState(null); // { item, action, actionId }
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -51,6 +51,8 @@ export default function FounderQueueList({ bookings }) {
               bookingId: item.id,
               action: action.action,
               actionId,
+              // Which unmatched payment, when a booking has more than one.
+              ...(action.strayId ? { strayId: action.strayId } : {}),
             });
       const data = response.data || {};
       if (data.error) throw new Error(data.error);
@@ -58,6 +60,7 @@ export default function FounderQueueList({ bookings }) {
       setPending(null);
       await queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
       await queryClient.invalidateQueries({ queryKey: ['admin-audit-log'] });
+      await queryClient.invalidateQueries({ queryKey: ['admin-stray-payments'] });
     } catch (e) {
       // The dialog stays open with the same action ID, so trying again is safe.
       setError(e?.response?.data?.error || e.message || 'That did not go through. Nothing was changed.');
@@ -108,7 +111,7 @@ export default function FounderQueueList({ bookings }) {
               <div className="mt-5 flex flex-col gap-2 sm:flex-row">
                 {item.actions.map((action) => (
                   <button
-                    key={action.action}
+                    key={action.key || action.action}
                     type="button"
                     onClick={() => start(item, action)}
                     disabled={busy}

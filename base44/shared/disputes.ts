@@ -1,5 +1,6 @@
 import { fromCents, money, toCents } from './money.ts';
 import { withBookingLock } from './bookingLock.ts';
+import { syncStrayDispute } from './strayPayments.ts';
 import { pullBackHeld } from './refunds.ts';
 import { emailAdmins } from './notify.ts';
 
@@ -32,7 +33,8 @@ async function bookingForDispute(base44, dispute) {
 
 export async function disputeOpened(base44, dispute) {
   const found = await bookingForDispute(base44, dispute);
-  if (!found) return { handled: false };
+  // Not a booking's own payment: maybe one of the unmatched ones.
+  if (!found) return syncStrayDispute(base44, dispute, false);
 
   // Taken under the lock so it can't slip in beside a payout.
   const outcome = await withBookingLock(
@@ -78,7 +80,7 @@ export async function disputeOpened(base44, dispute) {
 
 export async function disputeClosed(base44, dispute) {
   const found = await bookingForDispute(base44, dispute);
-  if (!found) return { handled: false };
+  if (!found) return syncStrayDispute(base44, dispute, true);
   const status = dispute.status || '';
   const Booking = base44.asServiceRole.entities.Booking;
 

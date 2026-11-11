@@ -6,8 +6,59 @@
  * headline, the amounts involved, and the two or three actions that settle it.
  * Each action carries the exact sentence shown before it runs.
  *
- * Pure: it only reads the booking it is given. Tested in tests/founderQueue.test.mjs.
+ * Unmatched ("stray") payments are their own records, one per Stripe payment,
+ * and a booking can have several. When the founder's list of them is passed
+ * in, each open one gets its own refund button.
+ *
+ * Pure: it only reads what it is given. Tested in tests/founderQueue.test.mjs.
  */
+
+/** Unmatched payments still waiting on a founder or the bank. */
+const STRAY_OPEN = ['open', 'refunding', 'refund_failed', 'disputed'];
+
+const shortWhen = (iso) =>
+  iso
+    ? new Date(iso).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' })
+    : '';
+
+/** One button per unmatched payment that can be refunded now. */
+function strayActions(booking, strays) {
+  const client = firstName(booking.client_name, 'the client');
+  const several = strays.length > 1;
+  return strays
+    .filter((stray) => ['open', 'refund_failed'].includes(stray.status || 'open'))
+    .map((stray) => {
+      const when = several && stray.received_at ? ` (paid ${shortWhen(stray.received_at)})` : '';
+      const retry = stray.status === 'refund_failed' ? 'Try again: send' : 'Send';
+      return {
+        action: 'refund_stray',
+        key: `refund_stray-${stray.id}`,
+        strayId: stray.id,
+        label: `${retry} ${money(stray.amount)} back to ${client}${when}`,
+        tone: 'lime',
+        confirm: `Send ${money(stray.amount)} back to ${client}’s card. Only this payment is refunded: the booking${
+          several ? ' and its other unmatched payments stay' : ' itself stays'
+        } as it is. This can’t be undone.`,
+      };
+    });
+}
+
+function strayDetail(strays, fallback) {
+  const lines = strays.map((stray) => {
+    const state =
+      stray.status === 'disputed'
+        ? 'the client’s bank opened a dispute, so it can’t be refunded until that closes'
+        : stray.status === 'refunding'
+          ? 'a refund is on its way'
+          : stray.status === 'refund_failed'
+            ? `Stripe refused the refund${stray.refund_error ? `: ${stray.refund_error}` : ''}`
+            : 'waiting on you';
+    return `${money(stray.amount)}${stray.received_at ? ` on ${shortWhen(stray.received_at)}` : ''}: ${state}.`;
+  });
+  return lines.length > 1 || strays.some((stray) => stray.status !== 'open')
+    ? lines.join(' ')
+    : fallback;
+}
 
 export function money(amount) {
   const value = Number(amount || 0);
@@ -92,7 +143,7 @@ function actions(booking, list) {
  * The queue item for one booking, or null if nothing is waiting on a founder.
  * `urgency` sorts the queue: 1 is first.
  */
-export function queueItemFor(booking, nowMs = Date.now()) {
+export function queueItemFor(booking, nowMs = Date.now(), strays = null) {
   if (!booking) return null;
   const b = booking;
   const client = firstName(b.client_name, 'The client');
@@ -132,14 +183,29 @@ export function queueItemFor(booking, nowMs = Date.now()) {
     );
   }
 
-  if (b.stray_payment_intent_id) {
-    return item(
-      'stray_payment',
-      2,
-      `A payment of ${money(b.stray_payment_amount)} doesn’t match this booking`,
-      b.flag_reason || 'It came from an old checkout page or for the wrong amount. The booking was not confirmed.',
-      ['refund_stray']
-    );
+  // With the records: one line and one button per open payment. Without them
+  // (an older caller): the booking's own summary, and one button.
+  const openStrays = Array.isArray(strays)
+    ? strays.filter((stray) => stray.booking_id === b.id && STRAY_OPEN.includes(stray.status || 'open'))
+    : null;
+  if (openStrays ? openStrays.length > 0 : Boolean(b.stray_payment_intent_id)) {
+    const fallback = b.flag_reason || 'It came from an old checkout page or for the wrong amount. The booking was not confirmed.';
+    if (!openStrays) {
+      return item('stray_payment', 2, `A payment of ${money(b.stray_payment_amount)} doesn’t match this booking`, fallback, ['refund_stray']);
+    }
+    const total = openStrays.reduce((sum, stray) => sum + Math.round(Number(stray.amount || 0) * 100), 0) / 100;
+    return {
+      ...item(
+        'stray_payment',
+        2,
+        openStrays.length === 1
+          ? `A payment of ${money(total)} doesn’t match this booking`
+          : `${openStrays.length} payments (${money(total)} in all) don’t match this booking`,
+        strayDetail(openStrays, fallback),
+        []
+      ),
+      actions: strayActions(b, openStrays),
+    };
   }
 
   if (b.problem_reported_at && held) {
@@ -232,10 +298,10 @@ export function queueItemFor(booking, nowMs = Date.now()) {
 }
 
 /** Every booking that needs a founder, most urgent first, oldest first within that. */
-export function founderQueue(bookings = [], nowMs = Date.now()) {
+export function founderQueue(bookings = [], nowMs = Date.now(), strays = null) {
   return bookings
     .map((booking) => {
-      const item = queueItemFor(booking, nowMs);
+      const item = queueItemFor(booking, nowMs, strays);
       return item ? { ...item, booking } : null;
     })
     .filter(Boolean)

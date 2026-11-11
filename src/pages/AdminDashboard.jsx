@@ -53,6 +53,13 @@ export default function AdminDashboard() {
     queryFn: () => base44.entities.Booking.list('-created_date'),
   });
 
+  // Unmatched payments, one record each: a booking can have several, and the
+  // queue gives each its own refund button.
+  const { data: strays = null } = useQuery({
+    queryKey: ['admin-stray-payments'],
+    queryFn: () => base44.entities.StrayPayment.list('-received_at', 500).catch(() => null),
+  });
+
   // Approve / reject goes through the server, which checks the admin role,
   // emails the creator once and writes the decision to the activity log.
   const reviewApplication = useMutation({
@@ -71,7 +78,7 @@ export default function AdminDashboard() {
   });
 
   // One combined queue: everything waiting on a founder, most urgent first.
-  const heldFunds = useMemo(() => founderQueue(bookings), [bookings]);
+  const heldFunds = useMemo(() => founderQueue(bookings, Date.now(), strays), [bookings, strays]);
   const approved = lensmen.filter(l => l.status === 'approved');
   const pendingApplications = lensmen.filter((lensman) => lensman.status === 'pending');
   const filteredCreators = useMemo(() => {
@@ -310,7 +317,7 @@ export default function AdminDashboard() {
           </TabsContent>
 
           <TabsContent value="flagged">
-            <FounderQueueList bookings={bookings} />
+            <FounderQueueList bookings={bookings} strays={strays} />
           </TabsContent>
         </Tabs>
       </div>

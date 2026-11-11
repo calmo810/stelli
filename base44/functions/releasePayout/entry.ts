@@ -2,6 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { releaseBooking } from '../../shared/payouts.ts';
 import { pullBackPayout, refundBooking, refundStrayPayment } from '../../shared/refunds.ts';
 import { money } from '../../shared/money.ts';
+import { openStraysFor } from '../../shared/strayPayments.ts';
 import { logAdminAction, requireAdmin } from '../../shared/audit.ts';
 
 /**
@@ -10,7 +11,8 @@ import { logAdminAction, requireAdmin } from '../../shared/audit.ts';
  *   release        pay the held money to the creator
  *   refund         refund the client — everything left, or `amount` dollars
  *   pull_back      pull the creator's payout back (or retry a failed attempt)
- *   refund_stray   send back a payment that did not match the booking
+ *   refund_stray   send back one payment that did not match the booking
+ *                  (`strayId` says which, when the booking has more than one)
  *   mark_reviewed  take a settled booking out of the queue
  *
  * Every action answers with what actually happened, in a sentence, and only
@@ -38,6 +40,9 @@ const REFUND_REASONS = {
   'stripe-unreachable': 'Stripe couldn’t be reached. Nothing moved. Try again in a minute.',
   busy: 'Something else is updating this booking right now. Nothing moved. Try again in a moment.',
   'no-stray-payment': 'There is no unmatched payment on this booking.',
+  'which-stray': 'This booking has more than one unmatched payment. Refund them one at a time from the queue.',
+  'disputed-stray': 'The client’s bank opened a dispute on this payment, so it can’t be refunded. Respond in Stripe.',
+  'dispute-lost': 'The client’s bank already took this payment back. Nothing to refund.',
   'refund-in-stripe': 'This payment has to be refunded from the Stripe dashboard.',
 };
 
@@ -47,7 +52,7 @@ export default async function (req) {
     const user = await requireAdmin(base44);
     if (!user) return Response.json({ error: 'Forbidden' }, { status: 403 });
 
-    const { bookingId, action, note, amount, actionId } = await req.json();
+    const { bookingId, action, note, amount, actionId, strayId } = await req.json();
     if (!bookingId || !ACTIONS.includes(action)) {
       return Response.json({ error: 'A booking and an action are required.' }, { status: 400 });
     }
@@ -136,20 +141,24 @@ export default async function (req) {
     }
 
     if (action === 'refund_stray') {
-      const result = await refundStrayPayment(base44, bookingId);
+      const result = await refundStrayPayment(base44, bookingId, typeof strayId === 'string' ? strayId : '');
       const message = result.refunded
         ? `${money(result.amount)} sent back to ${booking.client_name || 'the client'}. The booking itself is unchanged.`
         : result.reason === 'refund-failed'
           ? `Stripe refused the refund: ${result.error}`
-          : REFUND_REASONS[result.reason] || 'Nothing was refunded.';
+          : result.reason === 'already-refunded'
+            ? `${money(result.stray?.amount)} was already sent back.`
+            : REFUND_REASONS[result.reason === 'disputed' ? 'disputed-stray' : result.reason] || 'Nothing was refunded.';
       return done({ ok: Boolean(result.refunded), message, result }, result.amount || 0);
     }
 
     // mark_reviewed: only for bookings where no money decision is still open.
     const fresh = await Booking.get(bookingId);
+    const openStrays = await openStraysFor(base44, bookingId);
     const stillOpen =
       (fresh.payment_status === 'held' && (fresh.problem_reported_at || fresh.payout_error)) ||
       fresh.stray_payment_intent_id ||
+      openStrays.length > 0 ||
       ['needed', 'failed'].includes(fresh.reversal_status) ||
       (fresh.dispute_status && !['won', 'lost', 'warning_closed'].includes(fresh.dispute_status));
     if (stillOpen) {

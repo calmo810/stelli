@@ -1,7 +1,8 @@
 import { stripeGet } from './stripe.ts';
 import { bookingBreakdown, fromCents, money } from './money.ts';
-import { paidSessionVerdict, strayPaymentSummary } from './bookingRules.ts';
-import { emailAdmins, notifyBoth, sendEmail } from './notify.ts';
+import { paidSessionVerdict } from './bookingRules.ts';
+import { notifyBoth, sendEmail } from './notify.ts';
+import { recordStrayPayment } from './strayPayments.ts';
 import { addLegalNamesToContract } from './bookingContract.ts';
 
 /**
@@ -15,7 +16,8 @@ import { addLegalNamesToContract } from './bookingContract.ts';
  * session on record, for the quote the client has accepted, at exactly the
  * price that quote and its add-ons come to. Anything else is still real money,
  * but it is not this booking's payment — it is kept apart as a "stray payment"
- * and a founder decides what happens to it.
+ * (one StrayPayment record each, see strayPayments.ts) and a founder decides
+ * what happens to it.
  */
 
 const SETTLED = ['held', 'released', 'partially_refunded', 'refunded'];
@@ -58,16 +60,19 @@ export async function markBookingPaid(base44, session) {
   ) {
     return { paid: false, reason: 'already-recorded' };
   }
-  if (sameIntent && booking.stray_payment_intent_id === session.payment_intent) {
-    return { paid: false, reason: 'already-recorded' };
-  }
 
   const charged = Number(session.amount_total || 0) / 100;
   const tax = Number(session.total_details?.amount_tax || 0) / 100;
   const now = new Date().toISOString();
 
   if (!verdict.clean) {
-    return recordStrayPayment(base44, booking, session, verdict, charged, now);
+    // Real money, but not this booking's payment. The booking's own state is
+    // left alone; the payment gets its own record, keyed by its PaymentIntent,
+    // so a second one can never overwrite the first.
+    const filed = await recordStrayPayment(base44, booking, session, verdict, charged);
+    return filed.recorded
+      ? { paid: false, reason: 'stray-payment', reasons: verdict.reasons, strayId: filed.stray.id }
+      : { paid: false, reason: filed.reason };
   }
 
   // The charge itself, so the later transfer can be tied back to it.
@@ -107,41 +112,6 @@ export async function markBookingPaid(base44, session) {
   );
 
   return { paid: true, charged, tax };
-}
-
-/**
- * Real money that is not this booking's payment. The booking's own state is
- * left alone — it is not confirmed and the quote is not marked paid — and the
- * payment is parked where a founder will see it.
- */
-async function recordStrayPayment(base44, booking, session, verdict, charged, now) {
-  const summary = strayPaymentSummary(verdict.reasons, money(charged));
-
-  await base44.asServiceRole.entities.Booking.update(booking.id, {
-    stray_payment_intent_id: session.payment_intent || session.id || '',
-    stray_payment_amount: charged,
-    stray_payment_reason: verdict.reasons.join(', '),
-    stray_payment_at: now,
-    flagged_for_review: true,
-    flag_reason: booking.flagged_for_review && booking.flag_reason
-      ? `${summary} (Earlier: ${booking.flag_reason})`
-      : summary,
-  });
-
-  await emailAdmins(
-    base44,
-    'A payment needs a look',
-    `${summary}\n\nBooking: ${booking.client_name || 'Client'} with ${booking.lensman_name || 'creator'}, ${booking.event_date}.\nStripe payment: ${session.payment_intent || session.id}`
-  );
-
-  await sendEmail(
-    base44,
-    booking.client_email,
-    'About your payment',
-    `We received a payment of ${money(charged)} for the ${booking.event_date} shoot, but it does not match the booking as it stands now, so the booking is not confirmed yet.\n\nNothing more is needed from you right now. A founder will sort it out and email you.`
-  );
-
-  return { paid: false, reason: 'stray-payment', reasons: verdict.reasons };
 }
 
 /**

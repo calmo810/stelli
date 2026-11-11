@@ -4,6 +4,7 @@ import { creatorPayoutCents, fromCents, money, reversalShareCents, toCents } fro
 import { disputeOpen } from './bookingRules.ts';
 import { withBookingLock } from './bookingLock.ts';
 import { emailAdmins, sendEmail } from './notify.ts';
+import { STRAY_OPEN, adoptBookingStray, refundStrayRecord, straysFor, syncStrayRefund } from './strayPayments.ts';
 
 /**
  * Money going back.
@@ -330,62 +331,29 @@ export async function pullBackHeld(base44, booking) {
 }
 
 /**
- * Refunds a stray payment in full and takes it off the booking. The booking's
- * own payment, if it has one, is not touched.
+ * Refunds one stray payment in full. `strayId` names which; without it the
+ * booking must have exactly one open, so a founder never refunds the wrong
+ * one by accident. The booking's own payment, and any other stray payment on
+ * it, are not touched.
  */
-export async function refundStrayPayment(base44, bookingRef) {
+export async function refundStrayPayment(base44, bookingRef, strayId = '') {
   const bookingId = typeof bookingRef === 'string' ? bookingRef : bookingRef?.id;
-  const outcome = await withBookingLock(
-    base44,
-    bookingId,
-    'refund',
-    async (booking) => {
-      const intentId = booking.stray_payment_intent_id;
-      if (!intentId) return { refunded: false, reason: 'no-stray-payment' };
-      if (!intentId.startsWith('pi_')) return { refunded: false, reason: 'refund-in-stripe' };
+  const booking = await base44.asServiceRole.entities.Booking.get(bookingId).catch(() => null);
+  if (!booking) return { refunded: false, reason: 'no-stray-payment' };
+  await adoptBookingStray(base44, booking);
 
-      let alreadyRefunded = false;
-      try {
-        // Keyed by the payment itself: it can only ever be refunded once.
-        await stripePost(
-          'refunds',
-          new URLSearchParams({ payment_intent: intentId, ...metadataFor(booking) }),
-          `refund-stray-${intentId}`
-        );
-      } catch (error) {
-        // Refunded by hand in Stripe already: nothing left, which is fine.
-        if (/already been refunded|greater than the unrefunded/i.test(error.message)) alreadyRefunded = true;
-        else return { refunded: false, reason: 'refund-failed', error: String(error.message).slice(0, 300) };
-      }
-
-      const amount = Number(booking.stray_payment_amount || 0);
-      const otherReasonToStayFlagged =
-        Boolean(booking.problem_reported_at && booking.payment_status === 'held') ||
-        disputeOpen(booking) ||
-        booking.reversal_status === 'failed';
-
-      await base44.asServiceRole.entities.Booking.update(booking.id, {
-        stray_payment_intent_id: '',
-        stray_payment_amount: 0,
-        stray_payment_reason: '',
-        ...(otherReasonToStayFlagged ? {} : { flagged_for_review: false, flag_reason: '' }),
-      });
-
-      if (!alreadyRefunded) {
-        await sendEmail(
-          base44,
-          booking.client_email,
-          'Refund issued',
-          `${money(amount)} has been refunded for the ${booking.event_date} shoot. That payment did not match your booking, so it has been sent back in full. It reaches your card in a few business days.`
-        );
-      }
-
-      return { refunded: true, amount };
-    },
-    { waitMs: 4000 }
-  );
-  if (!outcome.locked) return { refunded: false, reason: outcome.reason };
-  return outcome.result;
+  const all = await straysFor(base44, bookingId);
+  let target = null;
+  if (strayId) {
+    target = all.find((row) => row.id === strayId) || null;
+    if (!target) return { refunded: false, reason: 'no-stray-payment' };
+  } else {
+    const open = all.filter((row) => STRAY_OPEN.includes(row.status || 'open'));
+    if (open.length > 1) return { refunded: false, reason: 'which-stray', count: open.length };
+    target = open[0] || all.find((row) => row.status === 'refunded') || null;
+    if (!target) return { refunded: false, reason: 'no-stray-payment' };
+  }
+  return refundStrayRecord(base44, target.id);
 }
 
 /**
@@ -399,17 +367,9 @@ export async function syncRefundFromStripe(base44, charge) {
 
   const [mine] = await Booking.filter({ stripe_payment_intent_id: charge.payment_intent });
   if (!mine) {
-    // A stray payment refunded in the dashboard is simply no longer stray.
-    const [stray] = await Booking.filter({ stray_payment_intent_id: charge.payment_intent });
-    if (stray && charge.refunded === true) {
-      await Booking.update(stray.id, {
-        stray_payment_intent_id: '',
-        stray_payment_amount: 0,
-        stray_payment_reason: '',
-      });
-      return { synced: true, stray: true };
-    }
-    return { synced: false };
+    // A stray payment refunded in the dashboard is simply no longer open.
+    // Matched by its own PaymentIntent, so the other ones on the booking stay.
+    return syncStrayRefund(base44, charge);
   }
 
   const chargedCents = Number(charge.amount || 0);
