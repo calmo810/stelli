@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button';
 import {
   Check,
   CheckCircle2,
-  ChevronRight,
   ImageIcon,
   Instagram,
   Mail,
