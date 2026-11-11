@@ -1,5 +1,6 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { CONCIERGE_RULES, FIXED_LINKS } from '../../shared/concierge.ts';
+import { hasDirectContact } from '../../shared/contactGuard.ts';
 
 /**
  * The FAQ phone's brain. Open to anyone, signed in or not.
@@ -19,7 +20,9 @@ const ALL_SESSIONS_PER_HOUR = 600;
 const clean = (s: unknown, max: number) =>
   String(s ?? '')
     .replace(/\*\*(.+?)\*\*/g, '$1')
-    .replace(/[*_`#>]/g, '')
+    // No markdown, and no angle brackets: a visitor can't close the <visitor>
+    // tag and write "instructions" after it.
+    .replace(/[*_`#<>]/g, '')
     .replace(/^\s*[-•]\s+/gm, '')
     .replace(/\s+/g, ' ')
     .trim()
@@ -62,23 +65,34 @@ export default async function (req: Request) {
     }
 
     // Approved creators: only the public, non-price facts Stelli may talk about.
-    const creators = await db.Lensman.filter({ status: 'approved' }, '-avg_rating', 60).catch(() => []);
+    // Never a creator on hold, and never their prices, payout state or IDs.
+    const listed = await db.Lensman.filter({ status: 'approved' }, '-avg_rating', 60).catch(() => []);
+    const creators = listed.filter((c: any) => !c.under_review);
+    // Creators write these fields themselves. Anything that is really a phone
+    // number, an email, a handle or a link is left out rather than repeated.
+    const safe = (value: unknown, max: number) => {
+      const text = clean(value, max);
+      return hasDirectContact(text) ? '' : text;
+    };
     const allowed = new Map<string, string>(Object.entries(FIXED_LINKS));
     const roster = creators
       .filter((c: any) => c.display_name)
       .map((c: any) => {
-        const name = firstName(c.display_name);
+        const name = firstName(clean(c.display_name, 40));
         const profile = `/creators/${c.slug || c.id}`;
         const book = `/book/${c.id}`;
         allowed.set(profile, `See ${name}'s page`);
         allowed.set(book, `Request ${name}`);
         const facts = [
-          `name: ${c.display_name}`,
-          c.one_liner && `about: ${clean(c.one_liner, 140)}`,
-          c.specialties?.length && `shoots: ${c.specialties.slice(0, 6).join(', ')}`,
-          c.style_tags?.length && `style: ${c.style_tags.slice(0, 5).join(', ')}`,
-          c.neighborhoods?.length && `around: ${c.neighborhoods.slice(0, 4).join(', ')}`,
-          c.years_experience && `experience: ${c.years_experience} years`,
+          `name: ${safe(c.display_name, 40) || 'A Stelli creator'}`,
+          safe(c.one_liner, 140) && `about: ${safe(c.one_liner, 140)}`,
+          Array.isArray(c.specialties) && c.specialties.length &&
+            `shoots: ${c.specialties.slice(0, 6).map((v: unknown) => safe(v, 40)).filter(Boolean).join(', ')}`,
+          Array.isArray(c.style_tags) && c.style_tags.length &&
+            `style: ${c.style_tags.slice(0, 5).map((v: unknown) => safe(v, 24)).filter(Boolean).join(', ')}`,
+          Array.isArray(c.neighborhoods) && c.neighborhoods.length &&
+            `around: ${c.neighborhoods.slice(0, 4).map((v: unknown) => safe(v, 40)).filter(Boolean).join(', ')}`,
+          Number(c.years_experience) > 0 && `experience: ${Math.round(Number(c.years_experience))} years`,
           c.review_count ? `rating: ${Number(c.avg_rating || 0).toFixed(1)} from ${c.review_count} reviews` : 'rating: new, no reviews yet',
           `profile path: ${profile}`,
           `request path: ${book}`,
@@ -129,6 +143,12 @@ Reply as Stelli.`;
       .filter(Boolean)
       .slice(0, 3);
     if (!bubbles.length) throw new Error('empty reply');
+
+    // The rules are also checked on the way out. A reply that names a price or
+    // hands over a way to reach someone (other than Stelli's own address) is
+    // dropped, and the phone falls back to its written answers.
+    const reply = bubbles.join(' ').replace(/getstelli@gmail\.com/gi, '');
+    if (/\$\s?\d/.test(reply) || hasDirectContact(reply)) throw new Error('reply broke a hard rule');
 
     const seen = new Set<string>();
     const links = (Array.isArray(out?.links) ? out.links : [])

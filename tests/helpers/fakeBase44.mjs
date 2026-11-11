@@ -122,6 +122,11 @@ export function createFakeBase44({ user = null } = {}) {
         emails.push(email);
         return { ok: true };
       },
+      /** Tests set client.llm to see the prompt and choose the reply. */
+      async InvokeLLM(request) {
+        client.llmCalls.push(request);
+        return client.llm ? client.llm(request) : { bubbles: ['ok'] };
+      },
       async CreateFileSignedUrl({ file_uri }) {
         return { signed_url: `https://files.example/${encodeURIComponent(file_uri)}?sig=1` };
       },
@@ -130,6 +135,8 @@ export function createFakeBase44({ user = null } = {}) {
 
   const client = {
     emails,
+    llm: null,
+    llmCalls: [],
     currentUser: user,
     entities,
     integrations,
