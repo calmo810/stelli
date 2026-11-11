@@ -1,6 +1,6 @@
 # Stelli review — money, access, albums, admin
 
-This is the review for PR 1 (`fable/money-and-access`). Sections 1–7 were written **before any fix**, from a full read of every backend function, shared module, entity file, workflow and the portal/thread/admin frontend, plus a read-only look at the live app's data and settings. Each finding's status line now says what happened to it. Sections 8–13 were written after the fixes.
+This is the review for `fable/money-and-access`, which is **#2 on GitHub**. (Inside this file and the portals plan it is called "PR 1", and `fable/portals-and-admin` — **#3 on GitHub** — is "PR 2". The older GitHub #1 is closed; see section 14.) Sections 1–7 were written **before any fix**, from a full read of every backend function, shared module, entity file, workflow and the portal/thread/admin frontend, plus a read-only look at the live app's data and settings. Each finding's status line now says what happened to it. Sections 8–13 were written after the fixes.
 
 **If you read one thing:** section 8 (what changed, in plain words), then section 10 (decisions only you can make), then section 11 (the checklist to run in Stripe test mode before merging).
 
@@ -34,7 +34,9 @@ One thing shapes the whole review: **the deployed app runs on live Stripe keys.*
 
 ## 2. What the live data says (read only)
 
-Twelve bookings exist. No reviews. Seven creator profiles (three approved). Two admin accounts.
+> **Refreshed 11 November, 1 PM (New York):** the real payment below has since been delivered (9 November) and its creator finished payout setup today, so it is set to release on its own at about **6:18 PM New York time on 11 November**, under the code on `main`. Let that happen before you merge or switch `STRIPE_MODE` (section 15). A fourth creator (Elise) was approved on 9 November. One request from 27 October (to Emily) has had no reply and no quote for two weeks; the new "No reply yet" queue item (section 15) would have shown it.
+
+Twelve bookings exist. No reviews. Seven creator profiles (three approved at the time of the first read; four now). Two admin accounts.
 
 - **Add-on payout bug (known issue 1): no existing booking is affected.** No booking has any picked add-ons, so every stored `fee_amount` and `creator_payout` matches what was charged.
 - **One real payment is held:** a $20 quote, $22.80 charged, $17.20 owed to the creator. Shoot date 4 November, not delivered yet. Two things about it:
@@ -747,3 +749,35 @@ To make it a real gate, turn on GitHub → Settings → Branches → a rule for 
 | Cancelling expires an unpaid Checkout page | Covered. |
 | `docs/STRIPE.md`, a Stripe setup guide | Not carried over. §7 and §11 cover setup and testing. |
 | **A new homepage section, "Why we shoot" (`BornTo.jsx` with a typewriter effect)** | **Not on `main` and not here.** Closing #1 drops it. It's a public-site change, so it's outside this review. If you want it, it should be its own small PR. |
+
+---
+
+## 15. Second pass (11 November, afternoon)
+
+A second review of this branch, after the first one above. Everything here is on the branch; nothing was merged into `main`, and no live data was changed.
+
+**Merged `main` in.** The two admin commits on `main` from this morning only removed unused icon imports. They clashed with this branch on one import line in `AdminDashboard.jsx`; resolved by keeping this branch's line.
+
+**Fixed: test mode used to touch real payments.** The checklist (section 11) says to switch `STRIPE_MODE` to `test` before merging. While it was on, nothing stopped the code from acting on bookings paid with *real* money: the hourly sweep tried to pay them out with test keys, Stripe answered "no such destination", and after three hours the booking was flagged, you were emailed "a creator payout keeps failing", and it stopped paying out on its own even after switching back. Founder refunds, pull-backs, stray-payment refunds and cancellations had the same gap (a cancellation would mark the booking cancelled and then fail to refund). Now a booking paid in the other mode is left exactly as it is: the sweep skips it, the admin buttons say why and move nothing, and cancelling is paused with a plain message. Tests: `tests/flow-stripe-mode.test.mjs`, plus rule tests in `bookingRules.test.mjs`.
+
+**Fixed: Connect webhooks could never verify alongside the platform one.** Stripe gives every endpoint its own signing secret. The checklist asks for a platform endpoint and a Connect endpoint, but the webhook only knew one test secret name, so one of the two was always refused. The webhook now also accepts `STRIPE_CONNECT_WEBHOOK_SECRET` and `STRIPE_TEST_CONNECT_WEBHOOK_SECRET`; checklist step 1 and section 7 item 3 say which secret goes where. Test: `tests/flow-webhook-secrets.test.mjs`.
+
+**Added: unanswered requests in your queue.** A request the creator hasn't answered (no quote, no message) within 48 hours now shows as "No reply yet", with how long it has waited and whether the date has passed. Someone booking their own profile is left out. Test in `founderQueue.test.mjs`.
+
+**Fixed: "today" in the creator workspace was UTC.** From 7–8 PM in New York it already said tomorrow, so that evening's shoots dropped out of Upcoming and today greyed out on the calendar. It uses the creator's own date now.
+
+**Added: retries for Stripe blips** (the useful part of the closed #1). A network error, a rate limit (429) or a clash (409) is retried twice with a short pause, for reads and for writes with an idempotency key; reads also retry a 5xx. A 5xx on a keyed write is not retried, because Stripe saves that result under the key and would only replay it; the next sweep or button press handles it, as before. Tests: `tests/stripeRetry.test.mjs`.
+
+**Checked and fine:** the money math (whole cents, one breakdown everywhere), the booking lock, webhook signature checks and replay window, the paid-session matching rules, checkout and quote-acceptance rules, the one-time data fix (admin-only, preview by default), return-address checks, and date handling on the request form and in the portals.
+
+**State of the checks:** 249 tests pass (was 239), lint is clean, the backend type check is clean, the frontend type check has no new findings (132 known), and the production build succeeds.
+
+**Still yours to decide (unchanged):** D2–D4, D7–D11, D13–D15 in section 10. D4 matters most: the app gives 48 hours to report a problem and the Terms say 7 days; the agreement says 10 business days to deliver and the Terms say 7 calendar days. Those are legal terms, so they were left alone.
+
+**Order to go in:**
+1. Let the real payout release tonight (about 6:18 PM New York time).
+2. Turn on the CI gate: GitHub → Settings → Branches → require the four checks on `main`.
+3. In Stripe, check which webhook endpoints exist and store each one's secret under the matching name (section 7 item 3).
+4. Merge this PR with `STRIPE_MODE=test` set first (or on a remix), run the one-time data fix, then the checklist in section 11.
+5. Answer the open decisions, then give the portals plan (#3) a go.
+
