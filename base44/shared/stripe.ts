@@ -66,19 +66,56 @@ export function creatorPayout(amount) {
 const STRIPE_VERSION = '2025-10-29.clover';
 const STRIPE_PREVIEW_VERSION = '2025-10-29.preview';
 
-export async function stripePost(path, params, idempotencyKey = "") {
-  const response = await fetch(`https://api.stripe.com/v1/${path}`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${stripeKey()}`,
-      'Stripe-Version': STRIPE_VERSION,
-      'Content-Type': 'application/x-www-form-urlencoded',
-      ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}),
-    },
-    body: params,
-  });
+/**
+ * A blip is retried a couple of times with a short pause, so one hiccup doesn't
+ * turn into a failed payout or an hour-long wait for the next sweep. Only
+ * requests that are safe to repeat are retried: reads, and writes that carry
+ * an idempotency key.
+ *
+ * Which blips: a network error (the request may never have arrived), a rate
+ * limit (429) or a clash with a concurrent request (409) — Stripe saves no
+ * result for those, so a retry is a real second try. A 5xx on a keyed write is
+ * not retried here: Stripe saves that result under the key and would only
+ * replay it. The next sweep or button press handles those, as before.
+ */
+const RETRY_PAUSES_MS = [250, 1000];
 
-  const data = await response.json();
+async function sendToStripe(url, init, { retryable, retryServerErrors = false }) {
+  for (let attempt = 0; ; attempt += 1) {
+    let response;
+    try {
+      response = await fetch(url, init);
+    } catch (networkError) {
+      if (!retryable || attempt >= RETRY_PAUSES_MS.length) throw networkError;
+      await new Promise((resolve) => setTimeout(resolve, RETRY_PAUSES_MS[attempt]));
+      continue;
+    }
+    const passing =
+      response.status === 429 || response.status === 409 || (retryServerErrors && response.status >= 500);
+    if (passing && retryable && attempt < RETRY_PAUSES_MS.length) {
+      await new Promise((resolve) => setTimeout(resolve, RETRY_PAUSES_MS[attempt]));
+      continue;
+    }
+    const data = await response.json().catch(() => ({}));
+    return { response, data };
+  }
+}
+
+export async function stripePost(path, params, idempotencyKey = "") {
+  const { response, data } = await sendToStripe(
+    `https://api.stripe.com/v1/${path}`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${stripeKey()}`,
+        'Stripe-Version': STRIPE_VERSION,
+        'Content-Type': 'application/x-www-form-urlencoded',
+        ...(idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : {}),
+      },
+      body: params,
+    },
+    { retryable: Boolean(idempotencyKey) }
+  );
 
   if (!response.ok) {
     console.error(`Stripe ${path} failed:`, data?.error?.message);
@@ -89,14 +126,16 @@ export async function stripePost(path, params, idempotencyKey = "") {
 }
 
 export async function stripeGet(path) {
-  const response = await fetch(`https://api.stripe.com/v1/${path}`, {
-    headers: {
-      Authorization: `Bearer ${stripeKey()}`,
-      'Stripe-Version': STRIPE_VERSION,
+  const { response, data } = await sendToStripe(
+    `https://api.stripe.com/v1/${path}`,
+    {
+      headers: {
+        Authorization: `Bearer ${stripeKey()}`,
+        'Stripe-Version': STRIPE_VERSION,
+      },
     },
-  });
-
-  const data = await response.json();
+    { retryable: true, retryServerErrors: true }
+  );
 
   if (!response.ok) {
     console.error(`Stripe GET ${path} failed:`, data?.error?.message);
