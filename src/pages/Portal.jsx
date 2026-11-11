@@ -17,31 +17,57 @@ export default function Portal() {
   useEffect(() => {
     let active = true;
     (async () => {
+      let user = null;
       try {
-        let user = await base44.auth.me();
-        const pendingRole = localStorage.getItem('stelli_pending_account_type');
-        if (!user?.account_type && ['client', 'creator'].includes(pendingRole)) {
-          user = await base44.auth.updateMe({ account_type: pendingRole });
-          localStorage.removeItem('stelli_pending_account_type');
-        }
-        if (!active) return;
-
-        if (!user?.account_type) {
-          navigate('/onboarding', { replace: true });
-          return;
-        }
-
-        const nextStep = localStorage.getItem(NEXT_STEP_PROMPT_KEY);
-        if (nextStep === user.account_type) {
-          setPromptType(user.account_type);
-          setLoading(false);
-          return;
-        }
-
-        navigate(dashboardFor(user.account_type), { replace: true });
+        user = await base44.auth.me();
       } catch {
-        if (active) navigate('/onboarding', { replace: true });
+        user = null;
       }
+      if (!active) return;
+
+      // Signed out: log in, then come straight back here.
+      if (!user) {
+        navigate(`/login?returnTo=${encodeURIComponent('/portal')}`, { replace: true });
+        return;
+      }
+
+      try {
+        // What a Google signup chose before leaving for Google is applied now.
+        const pendingRole = localStorage.getItem('stelli_pending_account_type');
+        const pendingAdult = localStorage.getItem('stelli_pending_age_confirmed') === 'true';
+        const changes = {};
+        if (!user.account_type && ['client', 'creator'].includes(pendingRole)) changes.account_type = pendingRole;
+        if (pendingAdult && !user.age_confirmed) changes.age_confirmed = true;
+        if (Object.keys(changes).length) user = await base44.auth.updateMe(changes);
+        localStorage.removeItem('stelli_pending_account_type');
+        localStorage.removeItem('stelli_pending_age_confirmed');
+      } catch {
+        // Not fatal: onboarding asks again below if the type is still missing.
+      }
+      if (!active) return;
+
+      if (!user?.account_type) {
+        navigate(user?.role === 'admin' ? '/admin' : '/onboarding', { replace: true });
+        return;
+      }
+
+      // Someone who signed up as a client and later applied as a creator has a
+      // creator profile: their portal is the creator one.
+      let type = user.account_type;
+      if (type !== 'creator') {
+        const profiles = await base44.entities.Lensman.filter({ user_id: user.id }).catch(() => []);
+        if (profiles.length) type = 'creator';
+      }
+      if (!active) return;
+
+      const nextStep = localStorage.getItem(NEXT_STEP_PROMPT_KEY);
+      if (nextStep === type) {
+        setPromptType(type);
+        setLoading(false);
+        return;
+      }
+
+      navigate(dashboardFor(type), { replace: true });
     })();
     return () => { active = false; };
   }, [navigate]);
@@ -74,12 +100,12 @@ export default function Portal() {
         </button>
         <p className="label-mono text-[10px] text-neon-lime mb-5">Portal ready</p>
         <h1 className="font-heading font-semibold text-white leading-[0.95] mb-5" style={{ fontSize: 'clamp(38px, 6vw, 76px)' }}>
-          {isCreator ? 'Ready to get listed?' : 'Ready to book your first curator?'}
+          {isCreator ? 'Ready to get listed?' : 'Ready to book your first creator?'}
         </h1>
         <p className="font-body text-[14px] leading-relaxed text-white/55 max-w-lg mb-9">
           {isCreator
-            ? 'Your curator portal is set. The easiest next step is to start your application so Stelli can review your work and build your public profile.'
-            : 'Your client portal is set. The easiest next step is to browse vetted curators and send your first shoot request.'}
+            ? 'Your creator portal is set. Start your application and Stelli will review your work and build your public profile.'
+            : 'Your client portal is set. Browse vetted creators and send your first request.'}
         </p>
         <div className="flex flex-col sm:flex-row gap-3">
           <button
@@ -87,7 +113,7 @@ export default function Portal() {
             className="inline-flex items-center justify-center gap-2 label-mono text-[11px] font-semibold px-8 py-4 transition-transform duration-300 hover:-translate-y-0.5"
             style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }}
           >
-            {isCreator ? 'Start your application' : 'Book a curator'}
+            {isCreator ? 'Start your application' : 'Find a creator'}
             <ArrowRight className="w-4 h-4" />
           </button>
           <button

@@ -67,6 +67,13 @@ export default function useCreatorDashboard() {
     },
   });
 
+  // Someone who also books shoots as a client gets a way across to that portal.
+  const { data: hasClientBookings = false } = useQuery({
+    queryKey: ['has-client-bookings', user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => (await base44.entities.Booking.filter({ client_id: user.id }, '-created_date', 1).catch(() => [])).length > 0,
+  });
+
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['lensman-bookings'] });
 
   // Every booking is in exactly one of these two lists. (Cancelled bookings and
@@ -87,6 +94,7 @@ export default function useCreatorDashboard() {
     isLoading,
     active,
     past,
+    hasClientBookings,
     // The one real next step for each booking that has one.
     steps: nextSteps(active, 'lensman'),
     waitingPayouts,

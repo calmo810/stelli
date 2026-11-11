@@ -372,3 +372,20 @@ test('an account can\'t be deleted while a booking or money still depends on it'
   assert.equal((await w.entities.Lensman.list()).length, 0);
   assert.equal((await del(CLIENT)).status, 200);
 });
+
+/* ---------------- 18+ ---------------- */
+
+test('an account that never confirmed 18+ does so before its first request, once', async () => {
+  const w = await scenario();
+  const newcomer = { id: 'u_new', email: 'new@example.com', full_name: 'New Person', role: 'user' };
+  await w.entities.User.create({ ...newcomer });
+
+  const refused = await request(w, {}, newcomer);
+  assert.equal(refused.status, 400);
+  assert.equal(refused.data.needsAge, true);
+  assert.equal((await w.entities.Booking.filter({ client_id: 'u_new' })).length, 0);
+
+  const ok = await request(w, { ageConfirmed: true }, newcomer);
+  assert.equal(ok.status, 200);
+  assert.equal((await w.entities.User.get('u_new')).age_confirmed, true);
+});

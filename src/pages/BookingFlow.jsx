@@ -4,6 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 import { displayNameOf } from '@/lib/profilePresets';
+import { PRIVACY_VERSION, TERMS_VERSION } from '@/lib/legalDocuments';
 
 const LIME = 'hsl(var(--neon-lime))';
 const INK = 'hsl(var(--ink))';
@@ -47,6 +48,9 @@ export default function BookingFlow() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [draftReady, setDraftReady] = useState(false);
+  // New accounts made here confirm 18+ and the Terms, as on the signup page.
+  const [adult, setAdult] = useState(false);
+  const [legalAgreed, setLegalAgreed] = useState(false);
 
   const { data: creator } = useQuery({
     queryKey: ['booking-creator', lensmanId],
@@ -99,8 +103,25 @@ export default function BookingFlow() {
       eventType: form.event_type,
       brief: form.event_description,
       clientName: account.first_name || user?.full_name || '',
+      ageConfirmed: adult || Boolean(user?.age_confirmed),
     });
+    if (response.data?.needsAge) {
+      throw new Error(response.data.error || "Confirm you're 18 or older to send this.");
+    }
     return response.data?.booking;
+  };
+
+  // A brand-new account from this form is a client account with the Terms on record.
+  const setUpNewAccount = async () => {
+    try {
+      await base44.auth.updateMe({ account_type: 'client', age_confirmed: true });
+      await Promise.all([
+        base44.functions.invoke('recordAgreementAcceptance', { documentType: 'terms', documentVersion: TERMS_VERSION }),
+        base44.functions.invoke('recordAgreementAcceptance', { documentType: 'privacy', documentVersion: PRIVACY_VERSION }),
+      ]);
+    } catch {
+      // The legal banner asks again on the next page if this did not land.
+    }
   };
 
   const submit = async () => {
@@ -111,6 +132,10 @@ export default function BookingFlow() {
         if (stage === 'request') {
           if (!account.first_name.trim() || !account.email.trim() || !account.password) {
             setError('Your first name, email and a password are needed.');
+            return;
+          }
+          if (!existingAccount && (!adult || !legalAgreed)) {
+            setError("Confirm you're 18 or older and agree to the Terms to create your account.");
             return;
           }
           if (existingAccount) {
@@ -134,6 +159,7 @@ export default function BookingFlow() {
         if (stage === 'otp') {
           const result = await base44.auth.verifyOtp({ email: account.email.trim(), otpCode: otp.trim() });
           base44.auth.setToken(result.access_token);
+          await setUpNewAccount();
         }
       }
 
@@ -148,7 +174,13 @@ export default function BookingFlow() {
   };
 
   const continueWithGoogle = () => {
+    if (!adult || !legalAgreed) {
+      setError("Confirm you're 18 or older and agree to the Terms first.");
+      return;
+    }
     localStorage.setItem(draftKey(lensmanId, 'guest'), JSON.stringify({ form }));
+    localStorage.setItem('stelli_pending_age_confirmed', 'true');
+    localStorage.setItem('stelli_pending_legal_acceptance', 'true');
     base44.auth.loginWithProvider('google', `/book/${lensmanId}`);
   };
 
@@ -237,10 +269,31 @@ export default function BookingFlow() {
                   <Field label={existingAccount ? 'Password' : 'Create a password'}>
                     <input type="password" value={account.password} onChange={(e) => updateAccount('password', e.target.value)} className={fieldClass} />
                   </Field>
+                  {!existingAccount && (
+                    <div className="space-y-3">
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" checked={adult} onChange={(e) => setAdult(e.target.checked)} className="mt-1 h-4 w-4 accent-[#C4F82A]" />
+                        <span className="font-body text-[13px] text-white/60">I'm 18 or older.</span>
+                      </label>
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input type="checkbox" checked={legalAgreed} onChange={(e) => setLegalAgreed(e.target.checked)} className="mt-1 h-4 w-4 accent-[#C4F82A]" />
+                        <span className="font-body text-[13px] text-white/60">
+                          I agree to Stelli's <Link to="/terms" className="underline underline-offset-2 hover:text-white">Terms</Link>.
+                        </span>
+                      </label>
+                    </div>
+                  )}
                   <button onClick={continueWithGoogle} className="w-full py-3.5 label-mono text-[10px] border border-white/15 text-white/60 hover:text-white transition-colors" style={{ borderRadius: 4 }}>
                     Continue with Google
                   </button>
                 </div>
+              )}
+
+              {user && !user.age_confirmed && (
+                <label className="flex items-start gap-3 cursor-pointer pt-2">
+                  <input type="checkbox" checked={adult} onChange={(e) => setAdult(e.target.checked)} className="mt-1 h-4 w-4 accent-[#C4F82A]" />
+                  <span className="font-body text-[13px] text-white/60">I'm 18 or older.</span>
+                </label>
               )}
 
               {!user && stage === 'otp' && (

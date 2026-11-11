@@ -23,6 +23,8 @@ export default async function (req) {
       age_confirmed_at: new Date().toISOString(),
     });
 
+    await base44.asServiceRole.entities.User.update(user.id, { age_confirmed: true }).catch(() => {});
+
     return Response.json({ lensman: updated });
   } catch (error) {
     console.error('confirmAge error:', error.message);

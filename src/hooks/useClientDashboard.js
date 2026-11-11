@@ -32,6 +32,13 @@ export default function useClientDashboard() {
     queryFn: () => base44.entities.Quote.list('-created_date'),
   });
 
+  // Someone who is also a creator gets a way across to that portal.
+  const { data: hasCreatorProfile = false } = useQuery({
+    queryKey: ['has-creator-profile', user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => (await base44.entities.Lensman.filter({ user_id: user.id }).catch(() => [])).length > 0,
+  });
+
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ['client-bookings'] });
     queryClient.invalidateQueries({ queryKey: ['client-quotes'] });
@@ -49,6 +56,7 @@ export default function useClientDashboard() {
     isLoading,
     active,
     past,
+    hasCreatorProfile,
     // The one real next step for each booking that has one.
     steps: nextSteps(active, 'client', { quotes }),
     refresh,

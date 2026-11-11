@@ -31,6 +31,23 @@ export default function Onboarding() {
 
   const update = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
+  // Onboarding is for an account that has not picked a side yet. Signed out:
+  // log in first. Already set up: this page would overwrite the account type,
+  // so it goes to the portal instead.
+  useEffect(() => {
+    let active = true;
+    base44.auth
+      .me()
+      .then((user) => {
+        if (!active) return;
+        if (user?.account_type) navigate('/portal', { replace: true });
+      })
+      .catch(() => {
+        if (active) navigate(`/login?returnTo=${encodeURIComponent('/onboarding')}`, { replace: true });
+      });
+    return () => { active = false; };
+  }, [navigate]);
+
   useEffect(() => {
     localStorage.setItem(ONBOARDING_DRAFT_KEY, JSON.stringify({ role, form, ageConfirmed }));
   }, [role, form, ageConfirmed]);

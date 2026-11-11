@@ -66,6 +66,20 @@ export default async function (req) {
       return Response.json({ error: CONTACT_BLOCK_MESSAGE, blocked: true }, { status: 400 });
     }
 
+    // Stelli is for adults. An account that has never confirmed it does so
+    // here, once; the confirmation is kept on the account.
+    if (user.age_confirmed !== true) {
+      if (body.ageConfirmed !== true) {
+        return Response.json(
+          { error: "Confirm you're 18 or older to send a request.", needsAge: true },
+          { status: 400 }
+        );
+      }
+      await base44.asServiceRole.entities.User.update(user.id, { age_confirmed: true }).catch((error) =>
+        console.error('Age confirmation not saved -', error.message)
+      );
+    }
+
     const lensman = await base44.asServiceRole.entities.Lensman.get(lensmanId).catch(() => null);
     if (!lensman || lensman.status !== 'approved' || lensman.under_review) {
       return Response.json({ error: 'That creator is not taking requests right now.' }, { status: 404 });

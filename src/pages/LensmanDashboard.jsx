@@ -42,6 +42,7 @@ export default function LensmanDashboard() {
     active,
     past,
     steps,
+    hasClientBookings,
     waitingTotal,
     payoutState,
   } = useCreatorDashboard();
@@ -198,6 +199,7 @@ export default function LensmanDashboard() {
           ...(myProfile?.payouts_enabled
             ? [{ label: 'Payouts', value: 'On', onClick: openStripe, disabled: openingStripe }]
             : []),
+          ...(hasClientBookings ? [{ label: 'Client portal', to: '/client-dashboard' }] : []),
           { label: 'Account', to: '/account-settings' },
         ]}
       />

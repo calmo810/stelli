@@ -8,9 +8,12 @@ import PasswordBox from '@/components/account/PasswordBox';
 import DeleteAccountCard from '@/components/account/DeleteAccountCard';
 import TwoFactorCard from '@/components/account/TwoFactorCard';
 import { isGoogleUser } from '@/lib/authProvider';
+import useRequireSignIn from '@/lib/requireSignIn';
 
 export default function AccountSettings() {
-  const { data: user, isLoading } = useQuery({ queryKey: ['me'], queryFn: () => base44.auth.me() });
+  const { data: user, isLoading } = useQuery({ queryKey: ['me'], queryFn: () => base44.auth.me(), retry: false });
+  // Signed out: log in, then come straight back here (it used to spin forever).
+  const waiting = useRequireSignIn(user, isLoading);
 
   const { data: lensman } = useQuery({
     queryKey: ['my-lensman-profile', user?.id],
@@ -21,7 +24,7 @@ export default function AccountSettings() {
     },
   });
 
-  if (isLoading || !user) {
+  if (waiting || !user) {
     return (
       <div className="min-h-screen bg-ink flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-white/15 border-t-white rounded-full animate-spin" />

@@ -24,7 +24,7 @@ function SectionLabel({ children }) {
  * What needs you, your shoots, and a short list of everything else.
  */
 export default function ClientDashboard() {
-  const { user, userLoading, bookings, active, past, steps, isLoading } = useClientDashboard();
+  const { user, userLoading, bookings, active, past, steps, isLoading, hasCreatorProfile } = useClientDashboard();
   const { unreadCount } = useThreads();
   const queryClient = useQueryClient();
   // Signed out: go and log in, then come straight back here.
@@ -98,6 +98,7 @@ export default function ClientDashboard() {
         rows={[
           { label: 'Messages', to: '/messages', value: unreadCount ? `${unreadCount} new` : undefined },
           { label: 'Find a creator', to: '/creators' },
+          ...(hasCreatorProfile ? [{ label: 'Creator portal', to: '/lensman-dashboard' }] : []),
           { label: 'Account', to: '/account-settings' },
         ]}
       />

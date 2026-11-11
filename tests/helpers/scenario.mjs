@@ -7,10 +7,10 @@ import { createHmac } from 'node:crypto';
 import { createFakeBase44 } from './fakeBase44.mjs';
 import { installFakeStripe } from './fakeStripe.mjs';
 
-export const CLIENT = { id: 'u_client', email: 'jordan@example.com', full_name: 'Jordan Lee', role: 'user' };
+export const CLIENT = { id: 'u_client', email: 'jordan@example.com', full_name: 'Jordan Lee', role: 'user', age_confirmed: true };
 export const CREATOR = { id: 'u_creator', email: 'maya@example.com', full_name: 'Maya Ortiz', role: 'user' };
 export const FOUNDER = { id: 'u_founder', email: 'founder@example.com', full_name: 'Founder', role: 'admin' };
-export const STRANGER = { id: 'u_other', email: 'someone@example.com', full_name: 'Someone Else', role: 'user' };
+export const STRANGER = { id: 'u_other', email: 'someone@example.com', full_name: 'Someone Else', role: 'user', age_confirmed: true };
 
 const WEBHOOK_SECRET = 'whsec_test_secret';
 
