@@ -70,6 +70,8 @@ const firstName = (name, fallback) => String(name || '').trim().split(/\s+/)[0] 
 const DAY = 86_400_000;
 /** A paid shoot with nothing delivered this long after its date is worth a look. */
 const OVERDUE_DAYS = 10;
+/** Creators are asked to answer a request within 48 hours. */
+const UNANSWERED_HOURS = 48;
 
 const disputeOpen = (b) => Boolean(b.dispute_status) && !['won', 'lost', 'warning_closed'].includes(b.dispute_status);
 const isTestPayment = (b) =>
@@ -280,6 +282,32 @@ export function queueItemFor(booking, nowMs = Date.now(), strays = null) {
         `${creator} hasn’t delivered ${client}’s photos`,
         `The shoot was ${b.event_date}. ${money(b.amount_charged)} is still held. Check with both of them.`,
         ['refund']
+      );
+    }
+  }
+
+  // A request the creator never answered. Nothing is paid yet, but a client
+  // waiting days for a reply is how a marketplace loses them.
+  if (
+    b.status === 'requested' &&
+    !b.first_reply_at &&
+    !['held', 'processing', 'released'].includes(b.payment_status) &&
+    !(b.client_id && b.client_id === b.creator_id) &&
+    b.created_date
+  ) {
+    const asked = new Date(b.created_date).getTime();
+    if (Number.isFinite(asked) && nowMs - asked > UNANSWERED_HOURS * 3_600_000) {
+      const days = Math.floor((nowMs - asked) / DAY);
+      const shootDay = b.event_date ? new Date(`${b.event_date}T23:59:59Z`).getTime() : NaN;
+      const passed = Number.isFinite(shootDay) && shootDay < nowMs;
+      return item(
+        'unanswered_request',
+        4,
+        `${creator} hasn’t answered ${client}’s request`,
+        `Sent ${days >= 1 ? `${days} day${days === 1 ? '' : 's'}` : 'over two days'} ago${
+          b.event_date ? ` for ${b.event_date}` : ''
+        }.${passed ? ' The date has passed.' : ''} Nudge ${creator}, or help ${client} find someone else.`,
+        []
       );
     }
   }

@@ -25,6 +25,7 @@ const KIND_LABEL = {
   creator_cancelled: 'Creator cancelled',
   overdue_delivery: 'Nothing delivered',
   payout_setup: 'Waiting on payout setup',
+  unanswered_request: 'No reply yet',
 };
 
 /**

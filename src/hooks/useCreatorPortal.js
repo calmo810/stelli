@@ -12,7 +12,15 @@ export const QUOTED_STATUSES = ['quoted', 'quote_accepted'];
 export const CONFIRMED_STATUSES = ['confirmed', 'in_progress', 'awaiting_delivery'];
 export const DONE_STATUSES = ['delivered', 'completed'];
 
-export const todayKey = () => new Date().toISOString().slice(0, 10);
+/**
+ * Today's date as YYYY-MM-DD in the creator's own time zone. (toISOString()
+ * is UTC: from 7–8 PM in New York it already says tomorrow, which moved the
+ * evening's shoots out of "upcoming" and greyed out today on the calendar.)
+ */
+export const todayKey = (now = new Date()) => {
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+};
 
 /** A request should be answered inside this many hours. */
 export const REPLY_WINDOW_HOURS = 48;

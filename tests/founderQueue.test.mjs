@@ -131,3 +131,26 @@ test('what is refundable accounts for what has already gone back', () => {
   assert.equal(refundable({ ...held, refund_amount: 57 }), 57);
   assert.equal(refundable({ ...held, refund_amount: 114 }), 0);
 });
+
+test('a request the creator has not answered in 48 hours shows up for a founder', () => {
+  const request = {
+    id: 'r1',
+    client_name: 'Jordan Lee',
+    lensman_name: 'Emily',
+    client_id: 'u_client',
+    creator_id: 'u_creator',
+    status: 'requested',
+    payment_status: 'pending',
+    event_date: '2026-11-04',
+    created_date: '2026-10-27T17:46:47Z',
+  };
+  const item = queueItemFor(request, NOW);
+  assert.equal(item.kind, 'unanswered_request');
+  assert.match(item.headline, /Emily hasn’t answered Jordan’s request/);
+  assert.match(item.detail, /The date has passed/);
+
+  // Not yet 48 hours, answered, or someone booking themselves: not in the queue.
+  assert.equal(queueItemFor({ ...request, created_date: '2026-11-19T12:00:00Z' }, NOW), null);
+  assert.equal(queueItemFor({ ...request, first_reply_at: '2026-10-27T18:00:00Z' }, NOW), null);
+  assert.equal(queueItemFor({ ...request, creator_id: 'u_client' }, NOW), null);
+});
