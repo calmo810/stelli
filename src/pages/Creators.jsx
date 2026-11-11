@@ -15,7 +15,8 @@ export default function Creators() {
 
   const { data: creators = [], isLoading, isError, refetch } = useQuery({
     queryKey: APPROVED_CREATORS_QUERY_KEY,
-    queryFn: () => base44.entities.Lensman.filter({ status: 'approved' }),
+    // A creator on hold (under review) is not listed while a founder looks.
+    queryFn: async () => (await base44.entities.Lensman.filter({ status: 'approved' })).filter((c) => !c.under_review),
   });
 
   const results = useMemo(
