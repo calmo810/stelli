@@ -36,6 +36,23 @@ async function tryClaim(base44, bookingId, kind) {
   if (!booking) return { won: false, reason: 'not-found', booking: null };
   if (booking.payout_lock === token) return { won: true, token, booking };
 
+  // Nobody holds it, yet the conditional write did not land: the database
+  // did not treat the missing field as empty. Give the field a value (only
+  // ever '' — this never takes or breaks anyone's lock) and try once more.
+  if (booking.payout_lock === undefined || booking.payout_lock === null) {
+    await Booking.updateMany(
+      { id: bookingId, payout_lock: { $exists: false } },
+      { $set: { payout_lock: '' } }
+    ).catch(() => {});
+    await Booking.updateMany(
+      { id: bookingId, payout_lock: '' },
+      { $set: { payout_lock: token, payout_lock_at: stamp } }
+    ).catch((error) => console.error('Lock write failed for booking', bookingId, '-', error.message));
+    booking = await Booking.get(bookingId).catch(() => null);
+    if (booking?.payout_lock === token) return { won: true, token, booking };
+    if (!booking) return { won: false, reason: 'not-found', booking: null };
+  }
+
   // Whoever held it never let go (a crash, a timeout). Take it over — again
   // with a conditional write, so only one caller can inherit a dead lock.
   const heldSince = booking.payout_lock_at ? new Date(booking.payout_lock_at).getTime() : 0;

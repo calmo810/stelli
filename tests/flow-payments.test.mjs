@@ -400,3 +400,17 @@ test('only a founder can run the sweep or decide a payout', async () => {
   }
   assert.equal(w.stripe.transfers.size, 0);
 });
+
+test('payouts still go through if the database does not match a missing lock field to null', async () => {
+  globalThis.__strictNullIn = true;
+  try {
+    const w = await scenario();
+    await w.deliveredAndDue({ amount: 100 });
+    const sweep = await w.call('releasePayouts', {}, FOUNDER);
+    assert.equal(sweep.data.released, 1);
+    assert.equal(w.stripe.transfers.size, 1);
+    assert.equal((await w.booking()).payout_lock, '');
+  } finally {
+    globalThis.__strictNullIn = false;
+  }
+});

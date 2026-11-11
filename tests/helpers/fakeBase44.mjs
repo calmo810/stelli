@@ -18,9 +18,13 @@ function matches(record, query = {}) {
     const have = record[field];
     if (want && typeof want === 'object' && !Array.isArray(want)) {
       if ('$in' in want) {
-        return want.$in.some((v) => (v === null ? have === null || have === undefined : v === have));
+        // globalThis.__strictNullIn: behave like a database where null does not match a missing field.
+        return want.$in.some((v) =>
+          v === null ? have === null || (!globalThis.__strictNullIn && have === undefined) : v === have
+        );
       }
       if ('$ne' in want) return have !== want.$ne;
+      if ('$exists' in want) return want.$exists ? have !== undefined : have === undefined;
       throw new Error(`fakeBase44: unsupported operator in ${JSON.stringify(want)}`);
     }
     return have === want;

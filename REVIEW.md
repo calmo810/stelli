@@ -1,26 +1,32 @@
 # Stelli review — money, access, albums, admin
 
-This is the audit for PR 1 (`fable/money-and-access`). It was written **before any fix**, from a full read of every backend function, shared module, entity file, workflow and the portal/thread/admin frontend, plus a read-only look at the live app's data and settings. Each finding has a status line that is updated as fixes land on this branch.
+This is the review for PR 1 (`fable/money-and-access`). Sections 1–7 were written **before any fix**, from a full read of every backend function, shared module, entity file, workflow and the portal/thread/admin frontend, plus a read-only look at the live app's data and settings. Each finding's status line now says what happened to it. Sections 8–13 were written after the fixes.
+
+**If you read one thing:** section 8 (what changed, in plain words), then section 10 (decisions only you can make), then section 11 (the checklist to run in Stripe test mode before merging).
 
 Sections:
 
 1. [What I could and could not check](#1-what-i-could-and-could-not-check)
 2. [What the live data says](#2-what-the-live-data-says-read-only)
-3. [State map of a booking (as the code works today)](#3-state-map-as-the-code-works-today)
+3. [State map of a booking (before the fixes)](#3-state-map-as-the-code-works-today)
 4. [Verdicts on the six known issues](#4-verdicts-on-the-six-known-issues)
 5. [New findings](#5-new-findings)
 6. [Code vs. your spec](#6-where-the-code-and-your-spec-disagree)
 7. [Things only you can check](#7-things-outside-the-repo-only-you-can-check)
-
-Sections added once the fixes are in: the state map after the fixes, which findings were fixed and which only flagged, your decisions list, and the Stripe test checklist.
+8. [What changed, in plain words](#8-what-changed-in-plain-words)
+9. [State map after the fixes](#9-state-map-after-the-fixes)
+10. [Decisions for you](#10-decisions-for-you)
+11. [Your Stripe test-mode checklist](#11-your-stripe-test-mode-checklist)
+12. [What you still do by hand](#12-what-you-still-do-by-hand)
+13. [Tests, and what is still untested](#13-tests-and-what-is-still-untested)
 
 ---
 
 ## 1. What I could and could not check
 
-**Could:** read all the code; run unit tests on pure logic (added in this PR); build and lint the frontend; read live records and app settings through the Base44 connection (read only — I changed nothing in the live app).
+**Could:** read all the code; build and lint the frontend; read live records and app settings through the Base44 connection (read only — I changed nothing in the live app); and run the real backend function code in tests, against an in-memory stand-in for the Base44 database and for Stripe (section 13).
 
-**Could not:** run the Deno backend functions, call Stripe (test or live), receive a webhook, or click through the deployed app. So every backend fix in this PR is **read and unit-tested where the logic is pure, not run end to end**. The test checklist at the end of this file is how you confirm them.
+**Could not:** run the functions on Base44 itself, call Stripe (test or live), receive a real webhook, or click through the deployed app. So every fix is **tested against stand-ins, not against the real services**. The stand-ins are strict where it matters (idempotency keys, refund and reversal limits, conditional writes), but they are not Stripe. Section 11 is how you confirm the whole thing for real.
 
 One thing shapes the whole review: **the deployed app runs on live Stripe keys.** `stripeKey()` in `base44/shared/stripe.ts` uses `STRIPE_SECRET_KEY` whenever it exists, and it does. There is no switch for test mode short of deleting the live key. See finding H-12 and the checklist notes.
 
