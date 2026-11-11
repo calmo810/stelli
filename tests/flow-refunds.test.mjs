@@ -159,9 +159,12 @@ test('K4: a refund made in the Stripe dashboard after payout is noticed', async 
   assert.equal(booking.reversal_amount_due, 86);
   assert.equal(booking.flagged_for_review, true);
 
-  const pull = await w.call('releasePayout', { bookingId: 'b1', action: 'pull_back' }, FOUNDER);
+  const pull = await w.call('releasePayout', { bookingId: 'b1', action: 'retry_reversal' }, FOUNDER);
   assert.equal(pull.data.ok, true);
-  assert.equal((await w.booking()).reversal_status, 'done');
+  const after = await w.booking();
+  assert.equal(after.reversal_status, 'done');
+  assert.equal(after.flagged_for_review, false, 'settled, so it leaves the queue');
+  assert.equal([...w.stripe.transfers.values()][0].amount_reversed, 8600);
 });
 
 test('C-3: "refund" on a booking that can\'t be refunded says so and changes nothing', async () => {

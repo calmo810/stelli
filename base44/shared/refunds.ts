@@ -319,8 +319,11 @@ export async function pullBackHeld(base44, booking) {
     reversal_amount_done: fromCents(reversedCents),
     stripe_transfer_reversal_id: reversalId,
     reversal_error: '',
-    // Fully refunded and fully pulled back: nothing is left for a founder to decide.
-    ...(settled && booking.reversal_status === 'failed' ? { flagged_for_review: false } : {}),
+    // Fully refunded and fully pulled back, with no dispute still open:
+    // nothing is left for a founder to decide.
+    ...(settled && ['failed', 'needed'].includes(booking.reversal_status) && !disputeOpen(booking)
+      ? { flagged_for_review: false }
+      : {}),
   });
 
   return { status: 'done', reversed: fromCents(reversedCents), reversalId };
