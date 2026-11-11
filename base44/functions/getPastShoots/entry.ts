@@ -29,6 +29,14 @@ async function findReview(base44, release) {
   return review;
 }
 
+/** A public-safe first name: first word only, no digits or handle symbols, capitalized. */
+function firstNameOf(name) {
+  const first = String(name || '').trim().split(/[\s@._]+/)[0] || '';
+  const letters = first.replace(/[^\p{L}'-]/gu, '');
+  if (!letters) return 'A client';
+  return letters.charAt(0).toUpperCase() + letters.slice(1).toLowerCase();
+}
+
 function sharedAt(release) {
   const times = [release.client_decided_at, release.creator_decided_at].filter(Boolean).sort();
   return times[times.length - 1] || '';
@@ -55,7 +63,7 @@ export default async function (req) {
         const found = await findReview(base44, r);
         return {
           id: r.id,
-          client_first_name: String(r.client_name || '').trim().split(/\s+/)[0] || 'A client',
+          client_first_name: firstNameOf(r.client_name),
           event_type: r.event_type || '',
           event_date: r.event_date || '',
           shared_at: sharedAt(r),
