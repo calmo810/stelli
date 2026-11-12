@@ -2,25 +2,36 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { displayNameOf } from '@/lib/profilePresets';
 import { PRIVACY_VERSION, TERMS_VERSION } from '@/lib/legalDocuments';
+import { fieldClass, labelClass } from '@/lib/glassField';
+import CanvasGlow from '@/components/shared/CanvasGlow';
+import Pill from '@/components/shared/Pill';
+import StelliCheck from '@/components/shared/StelliCheck';
+import GoogleIcon from '@/components/GoogleIcon';
 
-const LIME = 'hsl(var(--neon-lime))';
-const INK = 'hsl(var(--ink))';
-
-const fieldClass =
-  'w-full border border-white/10 bg-white/[0.03] px-4 py-3 font-body text-[14px] text-white outline-none transition-colors placeholder:text-white/25 focus:border-neon-lime focus:ring-1 focus:ring-neon-lime';
+const MAGENTA = 'hsl(var(--neon-magenta))';
 
 function Field({ label, optional, children }) {
   return (
     <label className="block">
-      <span className="block label-mono text-[10px] text-white/40 mb-2.5">
+      <span className={labelClass}>
         {label}
-        {optional && <span className="text-white/20"> · optional</span>}
+        {optional && <span className="font-normal text-white/30"> · optional</span>}
       </span>
       {children}
     </label>
+  );
+}
+
+/** One block of the form: a quiet heading over a glass panel, as in the portal. */
+function Panel({ title, children }) {
+  return (
+    <section>
+      {title && <h2 className="mb-2.5 pl-1.5 text-[13px] font-semibold text-white/50">{title}</h2>}
+      <div className="glass space-y-4 rounded-3xl p-4 sm:p-5">{children}</div>
+    </section>
   );
 }
 
@@ -188,9 +199,16 @@ export default function BookingFlow() {
 
   if (!creator) {
     return (
-      <div className="min-h-screen bg-ink">
-        <div className="max-w-[1400px] mx-auto px-5 md:px-10 pt-32 pb-24">
-          <div className="h-[420px] border border-white/10" style={{ borderRadius: 4 }} />
+      <div className="relative min-h-screen overflow-hidden bg-ink">
+        <CanvasGlow />
+        <div className="relative mx-auto max-w-[1180px] px-4 pb-24 pt-6 sm:px-5 md:px-10 md:pt-10">
+          <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14">
+            <div className="glass h-[220px] animate-pulse rounded-[28px] lg:h-[520px]" />
+            <div className="space-y-4">
+              <div className="glass h-14 w-2/3 animate-pulse rounded-2xl" />
+              <div className="glass h-[300px] animate-pulse rounded-3xl" />
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -199,6 +217,7 @@ export default function BookingFlow() {
   const firstName = displayNameOf(creator).split(' ')[0];
   const heroImage = creator.portfolio_images?.[0] || creator.profile_image;
   const canSend = form.event_date && form.event_description.trim() && (user || stage === 'otp' || account.first_name);
+  const specialties = (creator.specialties?.length ? creator.specialties : ['Photography']).slice(0, 3);
 
   return (
     <div className="min-h-screen bg-ink">
