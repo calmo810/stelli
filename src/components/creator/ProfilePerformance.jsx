@@ -20,7 +20,7 @@ export default function ProfilePerformance({ profile }) {
 
   return (
     <div className="wk-card wk-card--pad">
-      <div className="grid grid-cols-2 gap-5 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4">
         <Stat label="Profile views" value={views} />
         <Stat
           label={reviews === 1 ? 'From 1 review' : `From ${reviews} reviews`}

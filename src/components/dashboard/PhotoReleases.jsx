@@ -209,8 +209,10 @@ export default function PhotoReleases({ role, user, light = false }) {
   const sorted = [...mineList].sort((a, b) => (a[key] === 'pending' ? -1 : 0) - (b[key] === 'pending' ? -1 : 0));
 
   return (
-    <section className="mt-8">
-      <h3 className="mb-2.5 pl-1.5 text-[13px] font-semibold text-white/50">Photo releases</h3>
+    <section>
+      <h3 className={`mb-2.5 pl-1.5 text-[13px] font-semibold ${light ? 'wk-grey' : 'text-white/50'}`}>
+        Photo releases
+      </h3>
       <div className="space-y-2">
         {sorted.map((r) => (
           <ReleaseCard key={r.id} release={r} role={role} light={light} />

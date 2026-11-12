@@ -102,12 +102,7 @@ export default function WorkspaceShell({ profile, user, counts = {}, children })
 
         <div className="arch-workspace__main min-w-0 flex-1 lg:max-w-none">
           {!isToday && (
-            <div className="flex items-center justify-between gap-3">
-              <p className="wk-kicker">{format(new Date(), 'EEEE, MMM d')}</p>
-              <Link to="/lensman-dashboard/profile" aria-label="Your creator profile" className="wk-avatar">
-                {avatar ? <img src={avatar} alt="" /> : (name[0] || 'S').toUpperCase()}
-              </Link>
-            </div>
+            <p className="wk-kicker">{format(new Date(), 'EEEE, MMM d')}</p>
           )}
 
           <div

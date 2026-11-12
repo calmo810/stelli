@@ -15,17 +15,18 @@ export default function CreatorPublicProfile() {
       <h1 className="wk-h1">Profile</h1>
       <p className="wk-lede">What clients see before they send a date. Tap any line to change it.</p>
 
-      <div className="arch-profile-grid mt-5">
-        <div className="flex flex-col gap-3">
-          <StorefrontCard profile={myProfile} />
-          <ProfileSetup profile={myProfile} />
-          <ProfileDetails profile={myProfile} />
-        </div>
+      <div className="mt-4">
+        <StorefrontCard profile={myProfile} />
+      </div>
 
-        <div className="flex flex-col gap-3">
-          <ProfilePerformance profile={myProfile} />
-          <PhotoReleases role="lensman" user={user} />
-        </div>
+      <div className="arch-profile-grid mt-3">
+        <ProfileSetup profile={myProfile} />
+        <ProfileDetails profile={myProfile} />
+        <ProfilePerformance profile={myProfile} />
+      </div>
+
+      <div className="mt-3">
+        <PhotoReleases role="lensman" user={user} light />
       </div>
     </div>
   );
