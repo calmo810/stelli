@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import MfaMethodSetup from "@/components/MfaMethodSetup";
 import { CodeField, MfaHeader, MfaNotice, RememberDevice, ResendLine, useAppInfo, useCooldown } from "@/components/MfaParts";
 import { finishSignIn, mfaSession } from "@/lib/authMfaFlow";
+import { authHint, authPrimary, authSecondary } from "@/lib/authStyles";
 
 const SMS_RESEND_SECONDS = 60;
 
@@ -36,8 +37,8 @@ function Enroll({ session, onDone }) {
         <MfaMethodSetup session={session} method={method} onDone={onDone} onBack={() => setMethod(null)} />
       ) : (
         <div className="space-y-3">
-          <Button className="w-full h-12 font-medium" onClick={() => setMethod("totp")}>Set up your authenticator app</Button>
-          <Button variant="outline" className="w-full h-12 font-medium" onClick={() => setMethod("sms")}>Enter your phone number</Button>
+          <Button className={authPrimary} onClick={() => setMethod("totp")}>Set up your authenticator app</Button>
+          <Button variant="outline" className={authSecondary} onClick={() => setMethod("sms")}>Enter your phone number</Button>
         </div>
       )}
     </>
@@ -95,24 +96,24 @@ function Verify({ session, challenge, returnTo, onDone }) {
       <MfaHeader title="Verify your identity" />
       <div className="space-y-4">
         <MfaNotice error={error} />
-        <p className="text-sm text-muted-foreground text-center">
+        <p className={`text-center ${authHint}`}>
           {method === "totp" ? "Enter the code from your authenticator app"
             : sending && !cooldown ? `Sending code to ${phone}…` : `Enter the code sent to ${phone}`}
         </p>
         <CodeField id="mfa-code" value={code} onChange={setCode} onComplete={verify} />
         <RememberDevice checked={remember} onChange={setRemember} />
-        <Button className="w-full h-12 font-medium" disabled={busy || code.length < 6} onClick={() => verify()}>
-          {busy && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+        <Button className={authPrimary} disabled={busy || code.length < 6} onClick={() => verify()}>
+          {busy && <Loader2 className="w-4 h-4 animate-spin" />}
           {busy ? "Verifying..." : "Verify"}
         </Button>
         {method === "sms" && <ResendLine cooldown={cooldown} disabled={sending} onResend={sendCode} />}
         {other && (
-          <Button variant="outline" className="w-full" onClick={() => { setMethod(other); setCode(""); setError(null); }}>
-            {other === "sms" ? "Verify via Text Message" : "Verify via Authenticator App"}
+          <Button variant="outline" className={authSecondary} onClick={() => { setMethod(other); setCode(""); setError(null); }}>
+            {other === "sms" ? "Verify with a text message" : "Verify with your authenticator app"}
           </Button>
         )}
         <div className="text-center">
-          <a href={returnTo && returnTo !== "/" ? "/login?returnTo=" + encodeURIComponent(returnTo) : "/login"} className="text-sm text-muted-foreground hover:underline">Back to Login</a>
+          <a href={returnTo && returnTo !== "/" ? "/login?returnTo=" + encodeURIComponent(returnTo) : "/login"} className="text-[14px] text-white/55 underline-offset-4 transition-colors hover:text-white hover:underline">Back to log in</a>
         </div>
       </div>
     </>

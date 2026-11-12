@@ -67,7 +67,7 @@ export default function ResetPassword() {
       )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="password" className={authLabel}>New Password</Label>
+          <Label htmlFor="password" className={authLabel}>New password</Label>
           <div className="relative">
             <Lock className={authFieldIcon} aria-hidden="true" />
             <Input
@@ -84,7 +84,7 @@ export default function ResetPassword() {
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="confirm" className={authLabel}>Confirm Password</Label>
+          <Label htmlFor="confirm" className={authLabel}>Confirm password</Label>
           <div className="relative">
             <Lock className={authFieldIcon} aria-hidden="true" />
             <Input

@@ -3,6 +3,7 @@ import { appParams } from "@/lib/app-params";
 import { Button } from "@/components/ui/button";
 import { ShieldCheck, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
+import { authNotice, authPrimary, authSecondary } from "@/lib/authStyles";
 
 // App-side OAuth consent page for the app's MCP server. The platform redirects
 // AI clients here (see base44/mcp/config.json `consent_path`) with an opaque
@@ -137,8 +138,8 @@ export default function OAuthConsent() {
   if (checking) {
     return (
       <AuthLayout icon={ShieldCheck} title="Authorize access">
-        <div className="flex items-center justify-center py-6 text-muted-foreground">
-          <Loader2 className="w-5 h-5 mr-2 animate-spin" aria-hidden="true" />
+        <div className="flex items-center justify-center gap-2 py-6 text-[15px] text-white/55">
+          <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
           Loading…
         </div>
       </AuthLayout>
@@ -164,7 +165,7 @@ export default function OAuthConsent() {
   if (reconnect) {
     return (
       <AuthLayout icon={ShieldCheck} title="Reconnect required">
-        <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+        <div role="alert" className={authNotice}>
           {reconnect}
         </div>
       </AuthLayout>
@@ -177,7 +178,7 @@ export default function OAuthConsent() {
   if (error && !info) {
     return (
       <AuthLayout icon={ShieldCheck} title="Authorize access">
-        <div className="p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+        <div role="alert" className={authNotice}>
           {error}
         </div>
       </AuthLayout>
@@ -193,23 +194,23 @@ export default function OAuthConsent() {
       subtitle={`${client} wants to access ${appName} on your behalf`}
     >
       {error && (
-        <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+        <div role="alert" className={`${authNotice} mb-4`}>
           {error}
         </div>
       )}
 
-      <p className="text-sm font-medium text-foreground mb-2">
+      <p className="mb-3 text-[14px] font-medium text-white/80">
         {tools.length ? `It will be able to use these tools in ${appName}:` : "No tools requested"}
       </p>
       {tools.length > 0 && (
-        <ul className="space-y-2 text-sm mb-6">
+        <ul className="mb-6 overflow-hidden rounded-[20px] border border-white/[0.1] bg-white/[0.04] text-[14px]">
           {tools.map((tool) => (
-            <li key={tool.name} className="flex flex-col">
-              <span className="text-foreground font-medium">
+            <li key={tool.name} className="flex flex-col border-t border-white/[0.08] px-4 py-3 first:border-t-0">
+              <span className="font-medium text-white">
                 {tool.title || tool.name}
               </span>
               {tool.description && (
-                <span className="text-muted-foreground">{tool.description}</span>
+                <span className="mt-0.5 text-[13px] leading-snug text-white/55">{tool.description}</span>
               )}
             </li>
           ))}
@@ -219,18 +220,18 @@ export default function OAuthConsent() {
       <div className="flex gap-3">
         <Button
           variant="outline"
-          className="flex-1 h-12 font-medium"
+          className={`${authSecondary} flex-1`}
           disabled={submitting}
           onClick={() => respond("deny")}
         >
           Deny
         </Button>
         <Button
-          className="flex-1 h-12 font-medium"
+          className={`${authPrimary} flex-1`}
           disabled={submitting}
           onClick={() => respond("approve")}
         >
-          {submitting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+          {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
           Approve
         </Button>
       </div>

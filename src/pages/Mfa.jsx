@@ -9,6 +9,8 @@ import MfaManage from "@/components/MfaManage";
 import { MfaHeader, MfaNotice, MfaScreen, useAppInfo } from "@/components/MfaParts";
 import { finishSignIn, resumeMfa, signInToManageMfa, signInWithProvider } from "@/lib/authMfaFlow";
 import { safeReturnTo } from "@/lib/authReturnTo";
+import { AuthCanvas } from "@/components/AuthLayout";
+import { authFieldIcon, authInputWithIcon, authLabel, authPrimary, authSecondary } from "@/lib/authStyles";
 
 const PROVIDERS = [
   { id: "google", flag: "enable_google_login", name: "Google" },
@@ -39,9 +41,9 @@ export default function Mfa() {
 
   if (resuming) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-      </div>
+      <AuthCanvas>
+        <Loader2 className="mx-auto h-7 w-7 animate-spin text-neon-lime" />
+      </AuthCanvas>
     );
   }
   return (
@@ -81,40 +83,40 @@ function ConfirmIdentity({ returnTo, onChallenge, initialError }) {
     <>
       <MfaHeader title={info && `Welcome to ${info.name || "the app"}`} description="Sign in to continue" />
       <MfaNotice error={error} />
-      {!options && !error && <Loader2 className="mx-auto w-6 h-6 animate-spin text-muted-foreground" />}
+      {!options && !error && <Loader2 className="mx-auto h-6 w-6 animate-spin text-white/50" />}
       {options && (
         <div className="space-y-4">
           {providers.map((provider) => (
-            <Button key={provider.id} variant="outline" className="w-full h-12 text-sm font-medium" onClick={() => withProvider(provider.id)}>
-              {provider.id === "google" && <GoogleIcon className="w-5 h-5 mr-2" />}
+            <Button key={provider.id} variant="outline" className={authSecondary} onClick={() => withProvider(provider.id)}>
+              {provider.id === "google" && <GoogleIcon className="w-5 h-5" />}
               Continue with {provider.name}
             </Button>
           ))}
           {(options.enable_sso_login || options.use_workspace_sso) && (
-            <Button variant="outline" className="w-full h-12 text-sm font-medium" onClick={() => withProvider("sso")}>
+            <Button variant="outline" className={authSecondary} onClick={() => withProvider("sso")}>
               Continue with SSO
             </Button>
           )}
           {options.enable_username_password && (
             <form onSubmit={submit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="mfa-email">Email</Label>
+                <Label htmlFor="mfa-email" className={authLabel}>Email</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+                  <Mail className={authFieldIcon} aria-hidden="true" />
                   <Input id="mfa-email" type="email" autoComplete="email" placeholder="you@example.com" value={email}
-                    onChange={(e) => setEmail(e.target.value)} className="pl-10 h-12" required />
+                    onChange={(e) => setEmail(e.target.value)} className={authInputWithIcon} required />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="mfa-password">Password</Label>
+                <Label htmlFor="mfa-password" className={authLabel}>Password</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+                  <Lock className={authFieldIcon} aria-hidden="true" />
                   <Input id="mfa-password" type="password" autoComplete="current-password" placeholder="••••••••" value={password}
-                    onChange={(e) => setPassword(e.target.value)} className="pl-10 h-12" required />
+                    onChange={(e) => setPassword(e.target.value)} className={authInputWithIcon} required />
                 </div>
               </div>
-              <Button type="submit" className="w-full h-12 font-medium" disabled={busy}>
-                {busy && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              <Button type="submit" className={authPrimary} disabled={busy}>
+                {busy && <Loader2 className="w-4 h-4 animate-spin" />}
                 Continue
               </Button>
             </form>

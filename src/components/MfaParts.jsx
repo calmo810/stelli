@@ -5,7 +5,10 @@ import { Input } from "@/components/ui/input";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import StelliCheck from "@/components/shared/StelliCheck";
 import { loadSignInOptions } from "@/lib/authMfaFlow";
+import { AuthCanvas } from "@/components/AuthLayout";
+import { authHint, authInput, authLabel, authLink, authNotice, authSecondary, otpGroup, otpSlot } from "@/lib/authStyles";
 import { safeReturnTo } from "@/lib/authReturnTo";
 
 // Building blocks shared by MfaFlow, MfaMethodSetup and MfaManage.
@@ -26,9 +29,9 @@ export function useAppInfo() {
 // shows them returns <MfaScreen> in place of its own layout instead of nesting them in its card.
 export function MfaScreen({ children }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
-      <div className="w-full max-w-md bg-card rounded-2xl shadow-sm border border-border p-8">{children}</div>
-    </div>
+    <AuthCanvas>
+      <div className="glass rounded-[28px] p-5 sm:p-7">{children}</div>
+    </AuthCanvas>
   );
 }
 
@@ -37,11 +40,16 @@ export function MfaScreen({ children }) {
 export function MfaHeader({ title, description }) {
   return (
     <div className="flex flex-col items-center text-center mb-6">
-      <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary mb-4">
-        <ShieldCheck className="w-7 h-7 text-primary-foreground" aria-hidden="true" />
+      <div className="mb-5 inline-grid h-[52px] w-[52px] place-items-center rounded-2xl bg-white/[0.08] text-white/75">
+        <ShieldCheck className="h-6 w-6" strokeWidth={1.7} aria-hidden="true" />
       </div>
-      <h1 className="text-2xl font-bold tracking-tight text-foreground min-h-[2rem]">{title}</h1>
-      {description && <p className="text-muted-foreground mt-2">{description}</p>}
+      <h1
+        className="min-h-[2rem] font-display font-medium text-white"
+        style={{ fontSize: "clamp(26px, 3.4vw, 32px)", letterSpacing: "-0.02em", lineHeight: 1.1 }}
+      >
+        {title}
+      </h1>
+      {description && <p className="mt-2.5 text-[15px] leading-snug text-white/55">{description}</p>}
     </div>
   );
 }
@@ -51,13 +59,13 @@ export function MfaHeader({ title, description }) {
 export function CodeField({ id, label = "Enter the 6-digit code", value, onChange, onComplete, hasError = false }) {
   return (
     <div className="space-y-2">
-      <Label htmlFor={id} className="block text-center font-normal text-muted-foreground">{label}</Label>
+      <Label htmlFor={id} className={`block text-center ${authLabel}`}>{label}</Label>
       <InputOTP id={id} maxLength={6} value={value} autoFocus autoComplete="one-time-code" containerClassName="justify-center"
         onChange={(next) => { onChange(next); if (next.length === 6) onComplete?.(next); }}
         onKeyDown={(e) => { if (e.key === "Enter" && onComplete) { e.preventDefault(); onComplete(value); } }}>
-        <InputOTPGroup>
+        <InputOTPGroup className={otpGroup}>
           {[0, 1, 2, 3, 4, 5].map((index) => (
-            <InputOTPSlot key={index} index={index} className={hasError ? "border-destructive" : undefined} />
+            <InputOTPSlot key={index} index={index} className={cn(otpSlot, hasError && "border-neon-magenta")} />
           ))}
         </InputOTPGroup>
       </InputOTP>
@@ -69,17 +77,17 @@ export function CodeField({ id, label = "Enter the 6-digit code", value, onChang
 export function ResendLine({ cooldown, disabled, onResend, error }) {
   return (
     <div className="space-y-1 text-center">
-      <p className="text-sm text-muted-foreground">
+      <p className={authHint}>
         Didn't receive a code?{" "}
         {cooldown > 0 ? (
           <span>Resend in {cooldown}s</span>
         ) : (
-          <button type="button" disabled={disabled} onClick={onResend} className="font-semibold text-foreground hover:underline disabled:opacity-50">
+          <button type="button" disabled={disabled} onClick={onResend} className={`${authLink} disabled:opacity-50`}>
             Resend
           </button>
         )}
       </p>
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && <p className="text-[13px] text-neon-magenta">{error}</p>}
     </div>
   );
 }
@@ -118,7 +126,7 @@ function DialCodePicker({ value, onChange }) {
       aria-label="Country code"
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="h-10 w-[100px] rounded-md border border-input bg-transparent px-2.5 text-sm"
+      className="h-12 w-[100px] rounded-2xl border border-white/[0.14] bg-white/[0.06] px-3 text-[15px] text-white outline-none focus:border-neon-lime"
     >
       {DIAL_CODES.map((code) => (
         <option key={code} value={`+${code}`}>+{code}</option>
@@ -141,11 +149,11 @@ export function PhoneField({ countryCode, onCountryCodeChange, phoneNumber, onPh
           placeholder="5551234567" aria-invalid={Boolean(message)}
           onChange={(e) => { onPhoneNumberChange(e.target.value.replace(/\D/g, "")); setTouched(true); }}
           onKeyDown={(e) => { if (e.key === "Enter" && onSubmit) { e.preventDefault(); onSubmit(); } }}
-          className={cn("h-10 flex-1", message && "border-destructive focus-visible:ring-destructive")} />
+          className={cn(authInput, "flex-1", message && "border-neon-magenta")} />
       </div>
       {message
-        ? <p className="text-sm text-destructive">{message}</p>
-        : <p className="text-sm text-muted-foreground">Standard message and data rates may apply.</p>}
+        ? <p className="text-[13px] text-neon-magenta">{message}</p>
+        : <p className={authHint}>Standard message and data rates may apply.</p>}
     </div>
   );
 }
@@ -160,14 +168,14 @@ export function CopyKeyButton({ text, wide = false }) {
   };
   if (wide) {
     return (
-      <Button type="button" variant="outline" className="w-full h-11" onClick={copy}>
+      <Button type="button" variant="outline" className={authSecondary} onClick={copy}>
         {copied ? "Copied" : "Copy key"}
       </Button>
     );
   }
   return (
     <button type="button" onClick={copy} title="Copy to clipboard" aria-label="Copy to clipboard"
-      className="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:text-foreground hover:bg-muted">
+      className="inline-flex items-center justify-center rounded-full p-2 text-white/50 transition-colors hover:bg-white/[0.1] hover:text-white">
       {copied ? <Check className="w-4 h-4" aria-hidden="true" /> : <Copy className="w-4 h-4" aria-hidden="true" />}
     </button>
   );
@@ -180,7 +188,7 @@ export function MfaNotice({ error, signInPath = "/login" }) {
   if (!error) return null;
   const returnTo = safeReturnTo();
   return (
-    <div role="alert" className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm text-center">
+    <div role="alert" className={`${authNotice} mb-4 text-center`}>
       {error.mustSignInAgain ? (
         <>
           Your sign-in expired.{" "}
@@ -195,10 +203,9 @@ export function MfaNotice({ error, signInPath = "/login" }) {
 
 export function RememberDevice({ checked, onChange }) {
   return (
-    <label className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-      <input type="checkbox" className="h-4 w-4 accent-primary" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-      Remember this device for 30 days
-    </label>
+    <div className="flex justify-center">
+      <StelliCheck checked={checked} onChange={onChange}>Remember this device for 30 days</StelliCheck>
+    </div>
   );
 }
 
