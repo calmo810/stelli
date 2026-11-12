@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
-import BrowseHero from '@/components/browse/BrowseHero';
 import BrowseFilters from '@/components/browse/BrowseFilters';
 import CreatorCard from '@/components/browse/CreatorCard';
 import QuickViewSheet from '@/components/browse/QuickViewSheet';
@@ -25,10 +24,9 @@ export default function Creators() {
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-ink text-white">
-      <div className="relative z-[1] mx-auto max-w-[1240px] px-5 pt-24 pb-24 md:px-10 md:pt-28 md:pb-32">
-        <BrowseHero />
-
-        <div className="mb-6 mt-6">
+      <div className="relative z-[1] mx-auto max-w-[1240px] px-5 pt-6 pb-24 md:px-10 md:pt-9 md:pb-32">
+        {/* The layout already clears the fixed nav, so the header starts right under it. */}
+        <div className="mb-6">
           <BrowseFilters
             filters={BROWSE_FILTERS}
             value={filter}
