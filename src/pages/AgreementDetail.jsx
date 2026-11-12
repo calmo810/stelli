@@ -83,8 +83,10 @@ export default function AgreementDetail() {
 
   const superseded = contract?.status === 'superseded';
   const needsCreatorAcceptance = contract && !superseded && !contract.creator_accepted_at;
+  // The server says why an acceptance was refused (cancelled booking, not a party to it).
+  const failure = /** @type {any} */ (acceptContract.error);
   const acceptError = acceptContract.isError
-    ? acceptContract.error?.response?.data?.error || 'That did not save. Try again.'
+    ? failure?.response?.data?.error || 'That did not save. Try again.'
     : '';
   const parties = [contract?.creator_name, contract?.client_name].filter(Boolean).join(' and ');
 
