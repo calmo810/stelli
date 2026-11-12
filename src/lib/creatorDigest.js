@@ -6,14 +6,15 @@ import shortDate from '@/lib/shortDate';
  * same facts written out for the optional AI note. Kept pure so the workspace
  * can show the plain list whenever the summary is switched off or unavailable.
  */
-export default function whatsNew({
-  newRequests = [],
-  quotedBookings = [],
-  bookings = [],
-  upcomingShoots = [],
-  myProfile = null,
-  money: totals = {},
-} = {}) {
+export default function whatsNew(data = {}) {
+  const {
+    newRequests = [],
+    quotedBookings = [],
+    bookings = [],
+    upcomingShoots = [],
+    myProfile = null,
+    money: totals = {},
+  } = /** @type {any} */ (data);
   const items = [];
   const add = (key, label, to, fact) => items.push({ key, label, to, fact });
 
