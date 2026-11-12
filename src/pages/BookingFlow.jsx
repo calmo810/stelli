@@ -199,7 +199,7 @@ export default function BookingFlow() {
 
   if (!creator) {
     return (
-      <div className="relative min-h-screen overflow-hidden bg-ink">
+      <div className="relative min-h-screen bg-ink">
         <CanvasGlow />
         <div className="relative mx-auto max-w-[1180px] px-4 pb-24 pt-6 sm:px-5 md:px-10 md:pt-10">
           <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14">
@@ -220,140 +220,187 @@ export default function BookingFlow() {
   const specialties = (creator.specialties?.length ? creator.specialties : ['Photography']).slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-ink">
-      <div className="max-w-[1400px] mx-auto px-5 md:px-10 pt-28 pb-24">
-        <div className="grid lg:grid-cols-[1fr_1.05fr] gap-10 lg:gap-16 items-start">
+    <div className="relative min-h-screen bg-ink">
+      <CanvasGlow />
+      <div className="relative mx-auto max-w-[1180px] px-4 pb-16 pt-6 sm:px-5 md:px-10 md:pt-10">
+        <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-14">
+          {/* The creator, as one photo card. Tapping it goes back to their profile. */}
           <aside className="lg:sticky lg:top-24">
-            <Link to={`/creators/${creator.id}`} className="inline-flex items-center gap-2 label-mono text-[10px] text-white/35 hover:text-neon-lime transition-colors mb-6 lg:mb-8">
-              <ArrowLeft className="w-3.5 h-3.5" /> Back to profile
-            </Link>
-
-            {heroImage && (
-              <div className="overflow-hidden h-[190px] lg:h-[520px] mb-6" style={{ borderRadius: 4 }}>
-                <img src={heroImage} alt={displayNameOf(creator)} className="w-full h-full object-cover" />
+            <Link
+              to={`/creators/${creator.id}`}
+              className="group depth relative block overflow-hidden rounded-[28px] bg-surface"
+            >
+              {heroImage ? (
+                <img
+                  src={heroImage}
+                  alt={displayNameOf(creator)}
+                  className="h-[240px] w-full object-cover transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.03] sm:h-[320px] lg:h-[540px]"
+                />
+              ) : (
+                <div
+                  className="h-[240px] sm:h-[320px] lg:h-[540px]"
+                  style={{ background: 'linear-gradient(180deg, hsl(var(--surface-2)), hsl(var(--surface)) 70%)' }}
+                />
+              )}
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/90 via-ink/45 to-transparent px-5 pb-5 pt-20">
+                <p
+                  className="font-display font-medium text-white"
+                  style={{ fontSize: 'clamp(26px, 3vw, 36px)', letterSpacing: '-0.02em', lineHeight: 1.05 }}
+                >
+                  {displayNameOf(creator)}
+                </p>
+                <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                  {specialties.map((specialty) => (
+                    <span key={specialty} className="rounded-full bg-white/[0.14] px-2.5 py-1 text-[12px] font-medium text-white/85 backdrop-blur-md">
+                      {specialty}
+                    </span>
+                  ))}
+                  <span className="ml-auto text-[13px] font-medium text-white/65 transition-colors group-hover:text-white">
+                    View profile
+                  </span>
+                </div>
               </div>
-            )}
-
-            <h1 className="font-heading font-semibold text-white leading-[0.95] mb-4" style={{ fontSize: 'clamp(30px, 5vw, 58px)' }}>
-              {displayNameOf(creator)}
-            </h1>
-            <p className="label-mono text-[10px]" style={{ color: 'hsl(var(--neon-cyan))' }}>
-              {creator.market || 'ELON'} · {creator.specialties?.join(' / ') || 'Photography'}
-            </p>
+            </Link>
           </aside>
 
           <div>
-            <h2 className="font-heading font-semibold text-white leading-[0.95] mb-5" style={{ fontSize: 'clamp(36px, 5vw, 64px)' }}>
+            <h1
+              className="font-display font-medium text-white"
+              style={{ fontSize: 'clamp(38px, 5vw, 56px)', letterSpacing: '-0.025em', lineHeight: 1.02 }}
+            >
               Book {firstName}.
-            </h2>
-            <p className="font-body text-[15px] leading-relaxed text-white/55 mb-10 max-w-md">
+            </h1>
+            <p className="mt-3 max-w-[440px] text-[15px] leading-relaxed text-white/60">
               Send a date. Work out the details together. Nothing is charged until you accept a quote.
             </p>
 
-            <div className="space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <Field label="Date">
-                  <input type="date" value={form.event_date} onChange={(e) => update('event_date', e.target.value)} className={fieldClass} />
-                </Field>
-                <Field label="Start time" optional>
-                  <input type="time" value={form.event_time} onChange={(e) => update('event_time', e.target.value)} className={fieldClass} />
-                </Field>
-              </div>
+            <div className="mt-8 space-y-7">
+              <Panel title="When">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <Field label="Date">
+                    <input type="date" value={form.event_date} onChange={(e) => update('event_date', e.target.value)} className={fieldClass} />
+                  </Field>
+                  <Field label="Start time" optional>
+                    <input type="time" value={form.event_time} onChange={(e) => update('event_time', e.target.value)} className={fieldClass} />
+                  </Field>
+                </div>
+              </Panel>
 
-              <Field label="What are you planning?">
-                <textarea
-                  rows={3}
-                  placeholder="Birthday dinner, 20 people, want a few portraits too"
-                  value={form.event_description}
-                  onChange={(e) => update('event_description', e.target.value)}
-                  className={fieldClass}
-                />
-              </Field>
-
-              <Field label="Where" optional>
-                <input type="text" placeholder="Neighborhood or address" value={form.location} onChange={(e) => update('location', e.target.value)} className={fieldClass} />
-              </Field>
-
-              <Field label="Shoot type" optional>
-                <input type="text" placeholder="Portraits, senior photos, brand content" value={form.event_type} onChange={(e) => update('event_type', e.target.value)} className={fieldClass} />
-              </Field>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <Field label="What you expect to spend" optional>
-                  <input type="text" placeholder="$200–300" value={form.budget} onChange={(e) => update('budget', e.target.value)} className={fieldClass} />
+              <Panel title="The shoot">
+                <Field label="What are you planning?">
+                  <textarea
+                    rows={3}
+                    placeholder="Birthday dinner, 20 people, want a few portraits too"
+                    value={form.event_description}
+                    onChange={(e) => update('event_description', e.target.value)}
+                    className={`${fieldClass} resize-none`}
+                  />
                 </Field>
-                <Field label="How long" optional>
-                  <input type="text" placeholder="2 hours" value={form.duration} onChange={(e) => update('duration', e.target.value)} className={fieldClass} />
+                <Field label="Where" optional>
+                  <input type="text" placeholder="Neighborhood or address" value={form.location} onChange={(e) => update('location', e.target.value)} className={fieldClass} />
                 </Field>
-              </div>
+                <Field label="Shoot type" optional>
+                  <input type="text" placeholder="Portraits, senior photos, brand content" value={form.event_type} onChange={(e) => update('event_type', e.target.value)} className={fieldClass} />
+                </Field>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <Field label="What you expect to spend" optional>
+                    <input type="text" placeholder="$200–300" value={form.budget} onChange={(e) => update('budget', e.target.value)} className={fieldClass} />
+                  </Field>
+                  <Field label="How long" optional>
+                    <input type="text" placeholder="2 hours" value={form.duration} onChange={(e) => update('duration', e.target.value)} className={fieldClass} />
+                  </Field>
+                </div>
+              </Panel>
 
               {!user && stage === 'request' && (
-                <div className="pt-4 border-t border-white/10 space-y-5">
-                  <p className="label-mono text-[10px] text-white/40">Your account</p>
+                <Panel title={existingAccount ? 'Log in to send this' : 'Your account'}>
                   <Field label="First name">
-                    <input type="text" value={account.first_name} onChange={(e) => updateAccount('first_name', e.target.value)} className={fieldClass} />
+                    <input type="text" autoComplete="given-name" value={account.first_name} onChange={(e) => updateAccount('first_name', e.target.value)} className={fieldClass} />
                   </Field>
                   <Field label="Email">
-                    <input type="email" value={account.email} onChange={(e) => updateAccount('email', e.target.value)} className={fieldClass} />
+                    <input type="email" autoComplete="email" value={account.email} onChange={(e) => updateAccount('email', e.target.value)} className={fieldClass} />
                   </Field>
                   <Field label={existingAccount ? 'Password' : 'Create a password'}>
-                    <input type="password" value={account.password} onChange={(e) => updateAccount('password', e.target.value)} className={fieldClass} />
+                    <input
+                      type="password"
+                      autoComplete={existingAccount ? 'current-password' : 'new-password'}
+                      value={account.password}
+                      onChange={(e) => updateAccount('password', e.target.value)}
+                      className={fieldClass}
+                    />
                   </Field>
                   {!existingAccount && (
-                    <div className="space-y-3">
-                      <label className="flex items-start gap-3 cursor-pointer">
-                        <input type="checkbox" checked={adult} onChange={(e) => setAdult(e.target.checked)} className="mt-1 h-4 w-4 accent-[#C4F82A]" />
-                        <span className="font-body text-[13px] text-white/60">I'm 18 or older.</span>
-                      </label>
-                      <label className="flex items-start gap-3 cursor-pointer">
-                        <input type="checkbox" checked={legalAgreed} onChange={(e) => setLegalAgreed(e.target.checked)} className="mt-1 h-4 w-4 accent-[#C4F82A]" />
-                        <span className="font-body text-[13px] text-white/60">
-                          I agree to Stelli's <Link to="/terms" className="underline underline-offset-2 hover:text-white">Terms</Link>.
-                        </span>
-                      </label>
+                    <div className="space-y-3 pt-1">
+                      <StelliCheck checked={adult} onChange={setAdult}>I'm 18 or older.</StelliCheck>
+                      <StelliCheck checked={legalAgreed} onChange={setLegalAgreed}>
+                        I agree to Stelli's{' '}
+                        <Link to="/terms" className="text-white underline underline-offset-2 hover:text-neon-lime">Terms</Link>.
+                      </StelliCheck>
                     </div>
                   )}
-                  <button onClick={continueWithGoogle} className="w-full py-3.5 label-mono text-[10px] border border-white/15 text-white/60 hover:text-white transition-colors" style={{ borderRadius: 4 }}>
+                  <div className="flex items-center gap-3 pt-1 text-[13px] text-white/35">
+                    <span className="h-px flex-1 bg-white/10" />
+                    or
+                    <span className="h-px flex-1 bg-white/10" />
+                  </div>
+                  <Pill as="button" type="button" tone="glass" onClick={continueWithGoogle} className="h-12 w-full text-[15px] font-medium">
+                    <GoogleIcon className="h-5 w-5" />
                     Continue with Google
-                  </button>
-                </div>
+                  </Pill>
+                </Panel>
               )}
 
               {user && !user.age_confirmed && (
-                <label className="flex items-start gap-3 cursor-pointer pt-2">
-                  <input type="checkbox" checked={adult} onChange={(e) => setAdult(e.target.checked)} className="mt-1 h-4 w-4 accent-[#C4F82A]" />
-                  <span className="font-body text-[13px] text-white/60">I'm 18 or older.</span>
-                </label>
+                <div className="glass rounded-3xl p-4 sm:p-5">
+                  <StelliCheck checked={adult} onChange={setAdult}>I'm 18 or older.</StelliCheck>
+                </div>
               )}
 
               {!user && stage === 'otp' && (
-                <div className="pt-4 border-t border-white/10 space-y-5">
-                  <p className="font-body text-[13px] text-white/55">
-                    We sent a six-digit code to {account.email}.
+                <Panel title="Check your email">
+                  <p className="text-[15px] leading-snug text-white/70">
+                    We sent a six-digit code to <span className="font-medium text-white">{account.email}</span>.
                   </p>
                   <Field label="Code">
-                    <input type="text" inputMode="numeric" value={otp} onChange={(e) => setOtp(e.target.value)} className={fieldClass} />
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      className={`${fieldClass} text-[20px] font-semibold tracking-[0.3em]`}
+                    />
                   </Field>
-                </div>
+                </Panel>
               )}
             </div>
 
-            <div className="sticky bottom-0 z-10 mt-9 pt-5 pb-3 bg-ink/95 backdrop-blur">
-              <button
+            {/* Sticks to the bottom of the screen, above the phone tab bar, until the form ends. */}
+            <div
+              className="sticky z-10 mt-8 pb-4 pt-6"
+              style={{
+                bottom: 'var(--tabbar-h)',
+                background: 'linear-gradient(to top, hsl(var(--ink)) 72%, hsl(var(--ink) / 0))',
+              }}
+            >
+              {error && (
+                <p role="alert" className="mb-3 text-[14px] leading-snug" style={{ color: MAGENTA }}>
+                  {error}
+                </p>
+              )}
+              <Pill
+                as="button"
+                type="button"
+                tone="lime"
                 onClick={submit}
                 disabled={!canSend || busy}
-                className="w-full flex items-center justify-center gap-2.5 label-mono text-[11px] font-semibold px-8 py-4 transition-transform duration-300 hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:translate-y-0"
-                style={{ background: LIME, color: INK, borderRadius: 4 }}
+                className="h-[52px] w-full text-[15px]"
               >
-                {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
+                {busy && <Loader2 className="h-4 w-4 animate-spin" />}
                 {stage === 'otp' ? 'Verify and send' : 'Send request'}
-              </button>
-              <p className="label-mono text-[10px] text-white/35 mt-3">Details can come later in messages.</p>
+              </Pill>
+              <p className="mt-2.5 text-center text-[13px] text-white/45">Details can come later in messages.</p>
             </div>
-
-            {error && (
-              <p className="font-body text-[13px] mt-5" style={{ color: LIME }}>{error}</p>
-            )}
           </div>
         </div>
       </div>
