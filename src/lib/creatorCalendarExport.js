@@ -18,8 +18,9 @@ function dateParts(dateKey) {
   return { year: Number(match[1]), month: Number(match[2]), day: Number(match[3]) };
 }
 
-function icsDate({ year, month, day }) {
-  return `${year}${pad(month)}${pad(day)}`;
+function icsDate(parts) {
+  if (!parts) return '';
+  return `${parts.year}${pad(parts.month)}${pad(parts.day)}`;
 }
 
 function icsDateTime(date, time, offsetMinutes = 0) {
@@ -76,9 +77,10 @@ function bookingEvent(booking) {
 
 /** Download every confirmed future shoot as one calendar file that Apple and Google Calendar can import. */
 export function downloadCreatorCalendar(bookings = []) {
-  const now = new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const today = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
   const future = bookings
-    .filter((booking) => booking?.event_date && booking.event_date >= now)
+    .filter((booking) => booking?.event_date && booking.event_date >= today)
     .sort((a, b) => `${a.event_date} ${a.event_time || ''}`.localeCompare(`${b.event_date} ${b.event_time || ''}`));
 
   if (!future.length) return false;
