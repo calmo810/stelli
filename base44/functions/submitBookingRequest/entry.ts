@@ -40,6 +40,9 @@ export default async function (req) {
     const brief = String(body.brief || '').trim();
     const location = String(body.location || '').trim().slice(0, MAX.location);
     const eventType = String(body.eventType || '').trim().slice(0, MAX.eventType);
+    const shootSetting = ['outdoor', 'indoor', 'flexible'].includes(String(body.shootSetting))
+      ? String(body.shootSetting)
+      : 'flexible';
     // In the client's own words, both optional.
     const budget = String(body.budget || '').trim().slice(0, MAX.budget);
     const duration = String(body.duration || '').trim().slice(0, MAX.duration);
@@ -126,6 +129,7 @@ export default async function (req) {
       event_time: eventTime,
       event_type: eventType || 'Custom shoot',
       location,
+      shoot_setting: shootSetting,
       event_description: brief,
       budget,
       duration,
