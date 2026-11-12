@@ -69,8 +69,16 @@ export default function CreatorOverview() {
       : 'Your studio is open and ready.';
 
   return (
-    <div className="arch-today">
-      <header className="arch-masthead">
+    <div className="arch-world">
+      <div className="arch-world__environment" aria-hidden="true">
+        <span className="arch-world__horizon" />
+        <span className="arch-world__beam arch-world__beam--cyan" />
+        <span className="arch-world__beam arch-world__beam--violet" />
+        <span className="arch-world__star arch-world__star--one">✦</span>
+        <span className="arch-world__star arch-world__star--two">✧</span>
+      </div>
+
+      <header className="arch-world__top">
         <div className="arch-masthead__copy">
           <p className="arch-today__kicker">Creator studio · {format(new Date(), 'EEEE, MMM d')}</p>
           <h1>Today</h1>
@@ -107,8 +115,8 @@ export default function CreatorOverview() {
         </PendingBanner>
       ) : null}
 
-      <div className="arch-today__grid">
-        <section className="arch-schedule">
+      <main className="arch-world__stage">
+        <section className="arch-runway">
           <div className="arch-section-title">
             <div>
               <p>Your plan</p>
@@ -189,17 +197,17 @@ export default function CreatorOverview() {
           </div>
         </section>
 
-        <aside className="arch-console">
-          <div className="arch-console__head">
+        <aside className="arch-orbit">
+          <div className="arch-orbit__head">
             <p>Studio signal</p>
             <span>Live</span>
           </div>
           <TodayShootCard shoot={upcomingShoots[0]} profile={myProfile} />
           <WhatsNewCard items={items} facts={facts} />
         </aside>
-      </div>
+      </main>
 
-      <div className="arch-bottom">
+      <footer className="arch-world__dock">
         <section className="arch-needs">
           <div className="arch-section-title">
             <div>
@@ -256,7 +264,7 @@ export default function CreatorOverview() {
             Review earnings <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.5} />
           </Link>
         </section>
-      </div>
+      </footer>
     </div>
   );
 }
