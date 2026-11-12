@@ -143,8 +143,8 @@ export default function QuickViewSheet({ creator, onClose }) {
         </div>
 
         <div
-          className="sticky bottom-0 px-[26px] pb-[22px] pt-4"
-          style={{ background: 'linear-gradient(180deg, transparent, hsl(var(--surface)) 30%)' }}
+          className="sticky bottom-0 mt-2 px-[26px] pb-[22px] pt-6"
+          style={{ background: 'linear-gradient(180deg, transparent, hsl(var(--surface)) 40%)' }}
         >
           <Link
             to={`/book/${creator.id}`}
