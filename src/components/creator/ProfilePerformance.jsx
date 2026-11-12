@@ -39,10 +39,6 @@ export default function ProfilePerformance({ profile }) {
         <Stat label="Shoots delivered" value={shoots} />
         <Stat label="Typical reply" value={reply ? `${reply}m` : '—'} />
       </div>
-
-      <Link to="/lensman-dashboard/profile" className="wk-btn wk-btn--ghost mt-4 w-full">
-        Improve your storefront
-      </Link>
     </div>
   );
 }

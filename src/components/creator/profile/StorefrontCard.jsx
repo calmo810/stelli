@@ -4,7 +4,7 @@ import { ExternalLink, Pencil } from 'lucide-react';
 import CopyLinkPill from '@/components/dashboard/CopyLinkPill';
 
 /** Who the client meets first: the face, the name, the link, and the two things you do with them. */
-export default function StorefrontCard({ profile, views = 0 }) {
+export default function StorefrontCard({ profile }) {
   const photos = profile.portfolio_images || [];
   const face = profile.profile_image || profile.cover_image || photos[0];
   const live = profile.status === 'approved';
@@ -36,9 +36,6 @@ export default function StorefrontCard({ profile, views = 0 }) {
             </span>
             <p className="mt-2 truncate text-[12.5px] wk-grey">
               getstelli.com/creators/{profile.slug || 'you'}
-            </p>
-            <p className="mt-1 text-[12.5px] wk-grey">
-              {views} views · {profile.review_count || 0} reviews
             </p>
           </div>
         </div>

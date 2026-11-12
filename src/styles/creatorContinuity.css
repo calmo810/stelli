@@ -49,6 +49,27 @@
   max-width: 100%;
 }
 
+/* ---------------------------------------------------------------
+   Profile pane. On a laptop the storefront and the checklists sit
+   side by side, so the page reads in one screen instead of a long
+   scroll of full-width cards. Phones keep one column.
+   --------------------------------------------------------------- */
+.arch-tab--profile > * {
+  max-width: 1020px;
+}
+
+.arch-profile-grid {
+  display: grid;
+  gap: 12px;
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .arch-profile-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
 /* The same compact command/pill system used on the Today workbench. */
 .arch-tab .wk-seg {
   display: inline-flex;
