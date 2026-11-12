@@ -267,13 +267,14 @@ export default function useWizard() {
   // on the account a moment later, so it can be picked up on another device
   // (start on a phone, finish on the laptop with the photos).
   const stepKey = steps[Math.min(step, steps.length - 1)]?.key;
+  const userId = user?.id;
   useEffect(() => {
-    if (!ready || !user || !applying) return undefined;
+    if (!ready || !userId || !applying) return undefined;
     setSaveState('Saving…');
     const draft = { ...s, _savedAt: new Date().toISOString(), _step: stepKey };
     const local = setTimeout(() => {
       if (sentRef.current) return;
-      writeJson(draftKey(user.id), draft);
+      writeJson(draftKey(userId), draft);
       removeKey(LEGACY_DRAFT_KEY);
       setSaveState('Draft saved');
     }, 500);
@@ -287,7 +288,7 @@ export default function useWizard() {
       clearTimeout(local);
       clearTimeout(remote);
     };
-  }, [s, stepKey, ready, user, applying]);
+  }, [s, stepKey, ready, userId, applying]);
 
   const showToast = useCallback((message) => {
     setToast(message);
