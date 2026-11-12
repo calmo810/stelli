@@ -172,6 +172,8 @@ export default function useWizard() {
   // Set the moment an application goes in, so a draft save already on its way
   // can't write the draft back over "submitted".
   const sentRef = useRef(false);
+  // The saved page as it was opened, to tell whether anything has changed.
+  const savedRef = useRef('');
   const toastTimer = useRef(null);
 
   const { data: user, isLoading: userLoading } = useQuery({
@@ -245,9 +247,21 @@ export default function useWizard() {
     // from one who is coming back to a profile they already have.
     if (!lensmanFetched) return;
     if (lensman) {
-      setS(prefill(lensman, contact, user));
-      // An existing page can be opened at any step.
-      setMaxStep(stepsFor(true).length - 1);
+      const saved = prefill(lensman, contact, user);
+      savedRef.current = JSON.stringify(saved);
+      setS(saved);
+      // An existing page can be opened at any step, and the portal opens it
+      // at the one that was tapped (/edit-profile?step=pf): no front door.
+      const all = stepsFor(true);
+      setMaxStep(all.length - 1);
+      const wanted = all.findIndex((item) => item.key === new URLSearchParams(window.location.search).get('step'));
+      if (wanted >= 0) {
+        setStep(wanted);
+        setView('wizard');
+      } else {
+        // A founder's note is read first; otherwise straight to the page.
+        setView(lensman.status === 'needs_changes' ? 'welcome' : 'preview');
+      }
     } else {
       const draft = newestDraft(user);
       if (draft) {
@@ -257,8 +271,8 @@ export default function useWizard() {
       } else {
         setS((prev) => ({ ...prev, fullName: user.full_name || '', email: user.email || '' }));
       }
+      setView('welcome');
     }
-    setView('welcome');
     loadedRef.current = true;
     setReady(true);
   }, [user, userLoading, lensman, lensmanFetched, contact]);
@@ -317,43 +331,6 @@ export default function useWizard() {
   }, [steps, goStep]);
 
   const validate = useCallback(() => stepProblem(steps[step]?.key, s), [steps, step, s]);
-
-  const applyStarter = useCallback((starter) => {
-    if (!starter) return;
-    const run = () => {
-      setConfirm(null);
-      setS((prev) => ({
-        ...prev,
-        tags: [...starter.tags],
-        oneLiner: starter.oneLiner,
-        theme: starter.theme,
-        accent: starter.accent,
-        gallery: starter.gallery,
-        layout: starter.layout,
-        curve: starter.curve,
-        frame: starter.frame,
-        mat: starter.mat,
-        captions: starter.captions,
-        what: [...new Set([...prev.what, ...starter.what])],
-        bio: starter.bio,
-        promptIdx: starter.promptIdx,
-        promptA: starter.promptA,
-        dont: starter.dont,
-      }));
-      if (!goKey('line', { jump: false })) goStep(0);
-      showToast(`Started from ${starter.name}. Every word is editable.`);
-    };
-    if (s.oneLiner || s.bio || s.tags.length || s.dont) {
-      setConfirm({
-        title: 'Use this starter style?',
-        text: 'It will replace your one-liner, tags, bio, prompt and look.',
-        yes: 'Replace',
-        onYes: run,
-      });
-    } else {
-      run();
-    }
-  }, [s, goKey, goStep, showToast]);
 
   /** One file, made web-ready and uploaded. Throws with a reason on failure. */
   const uploadOne = useCallback(async (file) => {
@@ -475,10 +452,17 @@ export default function useWizard() {
           .catch(() => {});
       }
 
-      setJustSent(applying ? 'applied' : response?.data?.resubmitted ? 'resubmitted' : 'saved');
+      const sent = applying ? 'applied' : response?.data?.resubmitted ? 'resubmitted' : 'saved';
+      setJustSent(sent);
+      savedRef.current = JSON.stringify(s);
       queryClient.invalidateQueries({ queryKey: ['my-lensman-profile'] });
       // Wait for the saved profile, so the page steps are there to walk into.
       await queryClient.refetchQueries({ queryKey: ['my-creator-profile-full'] }).catch(() => {});
+      if (sent === 'saved') {
+        // An edit from the portal ends back in the portal.
+        navigate('/lensman-dashboard/profile');
+        return;
+      }
       setView('share');
       window.scrollTo(0, 0);
     } catch (error) {
@@ -489,7 +473,17 @@ export default function useWizard() {
     } finally {
       setPublishing(false);
     }
-  }, [s, applying, needsChanges, publishing, uploading, user, queryClient, showToast, goKey]);
+  }, [s, applying, needsChanges, publishing, uploading, user, queryClient, showToast, goKey, navigate]);
+
+  /** Editing one section: check it, save the page, back to the portal. */
+  const saveNow = useCallback(() => {
+    const problem = stepProblem(steps[step]?.key, s);
+    if (problem) {
+      setErrMsg(problem);
+      return;
+    }
+    publish();
+  }, [steps, step, s, publish]);
 
   const goNext = useCallback(() => {
     const problem = validate();
@@ -511,18 +505,40 @@ export default function useWizard() {
     goStep(step + 1);
   }, [validate, step, steps, applying, publish, goStep]);
 
+  const dirty = !applying && Boolean(savedRef.current) && JSON.stringify(s) !== savedRef.current;
+
+  const exit = useCallback(() => {
+    if (applying) {
+      if (user) writeJson(draftKey(user.id), { ...s, _savedAt: new Date().toISOString(), _step: stepKey });
+      navigate('/');
+      return;
+    }
+    const leave = () => {
+      setConfirm(null);
+      navigate('/lensman-dashboard/profile');
+    };
+    if (dirty) {
+      setConfirm({
+        title: 'Leave without saving?',
+        text: "Your changes haven't been saved.",
+        yes: 'Leave',
+        onYes: leave,
+      });
+    } else {
+      leave();
+    }
+  }, [s, stepKey, applying, user, dirty, navigate]);
+
   const goBack = useCallback(() => {
     if (step === 0) {
-      setView('welcome');
+      // The application and a founder's note have a front door; a page being
+      // edited from the portal goes back to the portal.
+      if (applying || needsChanges) setView('welcome');
+      else exit();
       return;
     }
     goStep(step - 1);
-  }, [step, goStep]);
-
-  const exit = useCallback(() => {
-    if (applying && user) writeJson(draftKey(user.id), { ...s, _savedAt: new Date().toISOString(), _step: stepKey });
-    navigate(lensman ? '/lensman-dashboard' : '/');
-  }, [s, stepKey, applying, user, lensman, navigate]);
+  }, [step, goStep, applying, needsChanges, exit]);
 
   const copy = useCallback(async (text, message) => {
     try {
@@ -543,7 +559,7 @@ export default function useWizard() {
     changesNote: needsChanges ? contact?.changes_requested || '' : '',
     errMsg, setErrMsg, toast, showToast, confirm, setConfirm,
     sheetOpen, setSheetOpen, uploading, uploadNote, publishing, flash, saveState,
-    goStep, goKey, goNext, goBack, applyStarter, validate,
+    goStep, goKey, goNext, goBack, saveNow, dirty, validate,
     uploadPhoto, uploadPortfolio, publish, exit, copy,
     missing: reqs, pct, strength: strength(s), readyToPublish: reqs.length === 0,
     approved: lensman?.status === 'approved',
