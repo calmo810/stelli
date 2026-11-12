@@ -170,7 +170,7 @@ export default async function (req) {
     await emailAdmins(
       base44,
       `New creator application: ${details.fullName}`,
-      `${details.fullName}\nEmail: ${details.email}\nPhone: ${details.phone || '—'}\nInstagram: ${details.instagram ? '@' + details.instagram : '—'}\nShoots: ${specialties.join(', ')}\nPhotos: ${portfolio.length}\nMarket: ${market}\nApplied: ${new Date(now).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}\n\nReview it in Stelli: ${SITE_ORIGIN}/admin → Applications. Approve & publish, ask for changes, or decline.`
+      `${details.fullName}\nEmail: ${details.email}\nPhone: ${details.phone || '—'}\nInstagram: ${details.instagram ? '@' + details.instagram : '—'}\nShoots: ${specialties.join(', ')}\nPhotos: ${portfolio.length}\nMarket: ${market}\nApplied: ${new Date(now).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}\n\nReview it in Stelli: https://getstelli.base44.app/admin → Applications. Approve & publish, ask for changes, or decline.`
     );
 
     return Response.json({ lensman });
