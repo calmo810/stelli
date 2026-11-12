@@ -42,6 +42,20 @@
     "bio": {
       "type": "string",
       "description": "Creator bio collected during onboarding"
+    },
+    "creator_draft": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "A creator application in progress, saved to the account so it can be picked up on any device. Cleared when the application is sent."
+    },
+    "creator_draft_step": {
+      "type": "string",
+      "description": "The last application screen this person was on (you, work, pf, priv), or 'submitted'. Shows founders where someone stopped."
+    },
+    "creator_draft_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the application draft was last saved"
     }
   }
 }
