@@ -238,7 +238,7 @@ export default function CreatorOverview() {
               scheduleItems.map((item) => (
                 <Link
                   key={item.id}
-                  to={scheduleView === 'upcoming' ? '/messages/' + item.id : '/lensman-dashboard/bookings'}
+                  to={'/messages/' + item.id}
                   className="arch-agenda__item"
                 >
                   <span className="arch-agenda__time">{timeLabel(item.event_time)}</span>
