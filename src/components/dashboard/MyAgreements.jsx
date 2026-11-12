@@ -5,10 +5,17 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 
 /** Booking contracts, folded into one compact list. `light` draws it on a bright card. */
-export default function MyAgreements({ role = 'client', light = false }) {
+export default function MyAgreements({ role = 'client', light = false, userId = null }) {
+  const creatorScope = role === 'lensman' && userId ? { creator_user_id: userId } : null;
   const { data: allContracts = [], isLoading } = useQuery({
-    queryKey: ['my-agreements', role],
-    queryFn: () => base44.entities.BookingContract.list('-created_at'),
+    queryKey: ['my-agreements', role, userId || 'current'],
+    enabled: role !== 'lensman' || !!userId,
+    queryFn: () =>
+      creatorScope
+        ? base44.entities.BookingContract.filter(creatorScope, '-created_at')
+        : base44.entities.BookingContract.list('-created_at'),
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
   });
   // An agreement replaced by a newer quote is kept on record but not listed.
   const contracts = allContracts.filter((contract) => contract.status !== 'superseded');
