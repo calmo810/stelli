@@ -62,7 +62,7 @@ export default function WorkspaceShell({ profile, user, counts = {}, children })
     if (target) navigate(target.to);
   };
 
-  const badgeFor = (key) => (key === 'work' ? counts.requests || 0 : 0);
+  const badgeFor = (key) => (key === 'work' ? Number((/** @type {any} */ (counts)).requests || 0) : 0);
 
   return (
     <div className="wk arch-workspace">
