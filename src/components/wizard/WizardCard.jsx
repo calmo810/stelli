@@ -14,7 +14,7 @@ export default function WizardCard({ w, children }) {
           {String(w.step + 1).padStart(2, '0')} · {meta.chapter}
         </span>
         {reqs.length > 0 && <span className={`badge ${met ? 'met' : ''}`}>{met ? 'Done' : 'Needed'}</span>}
-        {reqs.length === 0 && meta.optional && <span className="badge">Optional</span>}
+        {reqs.length === 0 && meta.optional && <span className="badge met">Optional</span>}
       </div>
 
       <h1 className="step-title" id="stepTitle">
