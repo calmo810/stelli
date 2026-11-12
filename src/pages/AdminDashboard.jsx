@@ -67,6 +67,7 @@ export default function AdminDashboard() {
   // Approve / reject goes through the server, which checks the admin role,
   // emails the creator once and writes the decision to the activity log.
   const reviewApplication = useMutation({
+    /** @param {{ lensmanId: string, status: string, note?: string }} decision */
     mutationFn: async ({ lensmanId, status, note }) => {
       const response = await base44.functions.invoke('reviewCreatorApplication', { lensmanId, decision: status, note });
       if (response.data?.error) throw new Error(response.data.error);
