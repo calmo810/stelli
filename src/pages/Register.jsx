@@ -159,6 +159,9 @@ export default function Register() {
     base44.auth.loginWithProvider("google", afterAuth());
   };
 
+  // Sent here by "Apply to join": the role is already chosen.
+  const applyingAsCreator = new URLSearchParams(window.location.search).get('role') === 'creator';
+
   if (showOtp) {
     return (
       <AuthLayout
@@ -216,18 +219,23 @@ export default function Register() {
   return (
     <AuthLayout
       icon={UserPlus}
-      title="Create your account"
-      subtitle="Pick a role once, then Stelli routes you to the right portal"
+      title={applyingAsCreator ? 'Create your creator account' : 'Create your account'}
+      subtitle={
+        applyingAsCreator
+          ? 'One quick step, then straight to your application'
+          : 'Pick a role once, then Stelli routes you to the right portal'
+      }
       footer={
         <>
           Already have an account?{" "}
-          <Link to="/login" className="text-primary font-medium hover:underline">
+          {/* Keeps where they were headed across the switch. */}
+          <Link to={`/login${window.location.search}`} className="text-primary font-medium hover:underline">
             Log in
           </Link>
         </>
       }
     >
-      <div className="grid grid-cols-2 gap-3 mb-5">
+      {!applyingAsCreator && <div className="grid grid-cols-2 gap-3 mb-5">
         {[
           { id: 'client', label: 'Client' },
           { id: 'creator', label: 'Creator' },
@@ -241,7 +249,7 @@ export default function Register() {
             {option.label}
           </button>
         ))}
-      </div>
+      </div>}
 
       <Button
         variant="outline"
