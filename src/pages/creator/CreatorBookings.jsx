@@ -18,7 +18,7 @@ export default function CreatorBookings() {
   return (
     <div className="arch-tab arch-tab--work">
       <h1 className="wk-h1">Shoots</h1>
-      <p className="wk-lede">Tap a shoot to open the thread, post the gallery, and close it out.</p>
+      <p className="wk-lede">Open a shoot to message the client, share the gallery, or wrap it up.</p>
 
       <div className="mt-4">
         <WorkTabs requests={newRequests.length} />
@@ -34,18 +34,18 @@ export default function CreatorBookings() {
             shoots={list}
             emptyText={
               tab === 'next'
-                ? 'Accepted quotes show up here as shoots.'
-                : 'Finished shoots will show up here.'
+                ? 'Confirmed bookings appear here.'
+                : 'Completed shoots appear here.'
             }
           />
         ) : (
           <WorkspaceEmpty
             icon={Camera}
-            title={tab === 'next' ? 'No shoots booked' : 'Nothing finished yet'}
+            title={tab === 'next' ? 'No upcoming shoots' : 'Nothing completed yet'}
             body={
               tab === 'next'
-                ? 'Accepted quotes show up here as shoots.'
-                : 'Finished shoots will show up here.'
+                ? 'Confirmed bookings appear here.'
+                : 'Completed shoots appear here.'
             }
           />
         )}
