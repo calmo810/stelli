@@ -23,7 +23,6 @@ export default function CreatorOverview() {
   /** @type {any} */
   const data = useOutletContext();
   const {
-    user,
     myProfile,
     bookings,
     steps,
@@ -35,7 +34,6 @@ export default function CreatorOverview() {
 
   const [scheduleView, setScheduleView] = useState('upcoming');
   const [selectedDate, setSelectedDate] = useState(() => dateKey(new Date()));
-  const firstName = (user?.full_name || '').split(' ')[0] || 'there';
   const today = dateKey(new Date());
   const { items, facts } = whatsNew(data);
 
