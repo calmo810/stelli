@@ -83,7 +83,7 @@ export default function CreatorCalendar() {
   return (
     <div className="arch-tab arch-tab--calendar">
       <h1 className="wk-h1">Schedule</h1>
-      <p className="wk-lede">Four weeks ahead. Tap a day to see it, or to tell clients you are off.</p>
+      <p className="wk-lede">Four weeks at a glance. Pick a day to view it or block it.</p>
 
       <div className="wk-strip mt-5">
         {strip.map((day) => {
@@ -121,7 +121,7 @@ export default function CreatorCalendar() {
           {selectedKey === today ? 'Today' : format(selected, 'EEEE')}, {format(selected, 'MMM d')}
         </h2>
         <span className="text-[12px] font-semibold text-white/45">
-          {dayItems.length ? `${dayItems.length} on the books` : offOnSelected ? "You're off" : 'Nothing booked'}
+          {dayItems.length ? `${dayItems.length} on the books` : offOnSelected ? "You're unavailable" : 'Nothing scheduled'}
         </span>
       </div>
 
@@ -146,7 +146,7 @@ export default function CreatorCalendar() {
                       {item.client_name || 'Client'}
                     </b>
                     <span className={`wk-chip shrink-0 ${shoot ? 'wk-chip--lime' : 'wk-chip--cyan'}`}>
-                      {shoot ? 'CONFIRMED' : 'REQUEST'}
+                      {shoot ? 'Confirmed' : 'Request'}
                     </span>
                   </span>
                   {meta && <small className="mt-1 block truncate text-[12.5px] wk-grey">{meta}</small>}
@@ -175,7 +175,7 @@ export default function CreatorCalendar() {
           className={`wk-btn mt-3 w-full ${offOnSelected ? 'wk-btn--ghost' : 'wk-btn--ink'}`}
         >
           {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-          {offOnSelected ? "I'm available this day" : "I'm off this day"}
+          {offOnSelected ? 'Mark available' : 'Mark unavailable'}
         </button>
       ) : (
         <p className="mt-3 text-[12px] text-white/40">Past dates cannot be changed.</p>
