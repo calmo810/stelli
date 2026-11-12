@@ -1184,51 +1184,33 @@
 }
 
 /* ---------------------------------------------------------------
-   Every door holds still, not just Today. Work, Calendar and Profile are
-   sized to the screen too, so the page itself never scrolls. The pane takes
-   whatever room is left under the top bar; if one of its lists runs long,
-   that pane alone moves.
+   Today is intentionally a fixed scene. The other doors are documents:
+   their surface ends after the workbench and the Stelli canvas continues
+   beneath it, instead of forcing a screen-sized pale rectangle.
    --------------------------------------------------------------- */
 @media (min-width: 1024px) {
-  .arch-workspace {
-    height: calc(100dvh - 64px - var(--safe-top));
+  .arch-workspace:not(.arch-workspace--today) {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  .arch-workspace:not(.arch-workspace--today) .arch-workspace__frame {
+    height: auto;
     min-height: 0;
-    overflow: hidden;
+    overflow: visible;
+    align-items: flex-start;
   }
 
-  .arch-workspace .arch-workspace__frame {
-    height: 100%;
-    overflow: hidden;
-    align-items: stretch;
-    padding-top: 14px;
-    padding-bottom: 14px;
-  }
-
-  .arch-workspace__main {
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-  }
-
-  .arch-workspace__body {
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
+  .arch-workspace:not(.arch-workspace--today) .arch-workspace__main,
+  .arch-workspace:not(.arch-workspace--today) .arch-workspace__body {
+    display: block;
     min-height: 0;
   }
 
-  /* The pane is the one elastic block: it fills the screen and never adds
-     height to the page. */
-  .arch-workspace__body > .arch-tab,
-  .arch-workspace__body > .arch-world {
-    flex: 1 1 auto;
+  .arch-workspace:not(.arch-workspace--today) .arch-workspace__body > .arch-tab {
+    flex: 0 0 auto;
     min-height: 0;
-  }
-
-  .arch-workspace__body > .arch-tab {
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(19, 42, 77, .22) transparent;
+    overflow: visible;
   }
 }
