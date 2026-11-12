@@ -16,7 +16,7 @@ export default function CreatorBookings() {
   const list = tab === 'next' ? confirmed : past;
 
   return (
-    <div>
+    <div className="arch-tab arch-tab--work">
       <h1 className="wk-h1">Shoots</h1>
       <p className="wk-lede">Tap a shoot to open the thread, post the gallery, and close it out.</p>
 
@@ -51,7 +51,7 @@ export default function CreatorBookings() {
         )}
       </div>
 
-      <MyAgreements role="lensman" light />
+      <MyAgreements role="lensman" />
     </div>
   );
 }
