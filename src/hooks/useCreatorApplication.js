@@ -68,6 +68,7 @@ export default function useCreatorApplication() {
   const [saved, setSaved] = useState(false);
 
   const loaded = useRef(false);
+  const settled = useRef(false);
   // Set the moment the application goes in, so a draft save already on its way
   // can't write the draft back over "submitted".
   const sent = useRef(false);
@@ -91,7 +92,8 @@ export default function useCreatorApplication() {
   // what the portal would have: the account type chosen before a Google
   // sign-in, and no "ready to apply?" prompt waiting for later.
   useEffect(() => {
-    if (!user || loaded.current) return;
+    if (!user || settled.current) return;
+    settled.current = true;
     (async () => {
       const current = await applyPendingSignupChoices(user);
       if (!current?.account_type) await base44.auth.updateMe({ account_type: 'creator' }).catch(() => {});
@@ -144,6 +146,18 @@ export default function useCreatorApplication() {
       clearTimeout(remote);
     };
   }, [form, sectionKey, status, userId]);
+
+  // Leaving mid-keystroke (Save & exit) still keeps the latest version.
+  const latest = useRef({ form, sectionKey, status, userId });
+  latest.current = { form, sectionKey, status, userId };
+  useEffect(
+    () => () => {
+      const now = latest.current;
+      if (sent.current || now.status !== 'applying' || !now.userId || !hasContent(now.form)) return;
+      writeJson(draftKey(now.userId), { ...now.form, _savedAt: new Date().toISOString(), _step: now.sectionKey });
+    },
+    []
+  );
 
   // A problem on screen goes away as soon as the form changes.
   useEffect(() => {
