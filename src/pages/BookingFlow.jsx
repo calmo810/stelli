@@ -40,7 +40,7 @@ export default function BookingFlow() {
   const { lensmanId } = useParams();
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({ event_date: '', event_time: '', location: '', shoot_setting: 'flexible', event_type: '', event_description: '', budget: '', duration: '' });
+  const [form, setForm] = useState({ event_date: '', event_time: '', location: '', shoot_setting: 'flexible', weather_alerts_enabled: false, event_type: '', event_description: '', budget: '', duration: '' });
   const [account, setAccount] = useState({ first_name: '', email: '', password: '' });
   const [otp, setOtp] = useState('');
   const [stage, setStage] = useState('request');
@@ -101,6 +101,7 @@ export default function BookingFlow() {
       eventTime: form.event_time,
       location: form.location,
       shootSetting: form.shoot_setting,
+      weatherAlertsEnabled: form.weather_alerts_enabled,
       eventType: form.event_type,
       brief: form.event_description,
       budget: form.budget,
@@ -279,6 +280,21 @@ export default function BookingFlow() {
                   ))}
                 </div>
               </Field>
+
+              {form.shoot_setting === 'outdoor' && (
+                <label className="flex items-start gap-3 border border-white/10 bg-white/[0.03] px-4 py-3.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.weather_alerts_enabled}
+                    onChange={(e) => update('weather_alerts_enabled', e.target.checked)}
+                    className="mt-0.5 h-4 w-4 accent-[#C4F82A]"
+                  />
+                  <span className="min-w-0">
+                    <span className="block font-body text-[13px] font-semibold text-white">Email weather updates to both of us</span>
+                    <span className="mt-0.5 block font-body text-[11px] leading-relaxed text-white/45">Optional updates before the shoot, including rain and wind conditions.</span>
+                  </span>
+                </label>
+              )}
 
               <Field label="Shoot type" optional>
                 <input type="text" placeholder="Portraits, senior photos, brand content" value={form.event_type} onChange={(e) => update('event_type', e.target.value)} className={fieldClass} />
