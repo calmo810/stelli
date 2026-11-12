@@ -8,7 +8,15 @@ export default function StorefrontCard({ profile }) {
   const photos = profile.portfolio_images || [];
   const face = profile.profile_image || profile.cover_image || photos[0];
   const live = profile.status === 'approved';
-  const state = profile.under_review ? 'Under review' : live ? 'Live' : 'In review';
+  const state = profile.under_review
+    ? 'Under review'
+    : live
+      ? 'Live'
+      : profile.status === 'needs_changes'
+        ? 'Changes needed'
+        : profile.status === 'rejected'
+          ? 'Not approved'
+          : 'In review';
   const initial = (profile.display_name || 'S').trim().charAt(0).toUpperCase();
 
   return (
@@ -41,8 +49,8 @@ export default function StorefrontCard({ profile }) {
         </div>
 
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-          <Link to="/edit-profile" className="wk-btn wk-btn--ink">
-            Edit profile <Pencil className="h-3.5 w-3.5" />
+          <Link to="/lensman-dashboard/profile/portfolio" className="wk-btn wk-btn--ink">
+            Add photos <Pencil className="h-3.5 w-3.5" />
           </Link>
           <CopyLinkPill creator={profile} />
           <Link
