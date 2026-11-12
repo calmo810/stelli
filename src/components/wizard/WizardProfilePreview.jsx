@@ -1,13 +1,15 @@
 import React, { useMemo } from 'react';
-import { PH, PROMPTS, activeTiers, orderedPortfolio } from '@/lib/wizardData';
+import { PH, PROMPTS, orderedPortfolio } from '@/lib/wizardData';
 import PrintWall from '@/components/profile/PrintWall';
 import { accentColor, printLabel } from '@/lib/profilePresets';
 
-/** The creator's public page, exactly as the wizard shows it while they build. */
+/**
+ * The creator's public page as the wizard shows it while they build. Packages
+ * are left out on purpose: clients never see prices on a page, they get a
+ * private quote, so the preview doesn't show them either.
+ */
 export default function WizardProfilePreview({ s }) {
   const ordered = orderedPortfolio(s);
-  const tiers = activeTiers(s);
-  const from = tiers.length ? Math.min(...tiers.map((tier) => Number(tier.price))) : null;
   // The same prints the public page hangs, with soft placeholders until photos are added.
   const photos = useMemo(
     () =>
@@ -35,33 +37,11 @@ export default function WizardProfilePreview({ s }) {
           Elon University · <span className="new">New on Stelli</span>
         </div>
         <div className="p-book">Request a date</div>
-        <div className="p-from">{from != null ? `Packages from $${from}` : 'Add pricing to show packages'}</div>
       </div>
 
       {s.oneLiner.trim() && (
         <div className="p-section">
           <div className="p-oneliner">“{s.oneLiner.trim()}”</div>
-        </div>
-      )}
-
-      {tiers.length > 0 && (
-        <div className="p-section">
-          <div className="p-sec-label">Packages</div>
-          <div className="p-pkgs">
-            {tiers.map((tier, i) => (
-              <div key={`${tier.name}-${i}`} className={`p-pkg ${tier.level === 'mid' && tiers.length > 1 ? 'mid' : ''}`}>
-                <div>
-                  {tier.level === 'mid' && tiers.length > 1 && <span className="p-pop">Most booked</span>}
-                  <div className="p-pkg-name">{tier.name.trim() || 'Package'}</div>
-                  <div className="p-pkg-sub">
-                    {tier.duration}
-                    {tier.includes.trim() ? ` · ${tier.includes.trim()}` : ''}
-                  </div>
-                </div>
-                <div className="p-pkg-price">${Number(tier.price)}</div>
-              </div>
-            ))}
-          </div>
         </div>
       )}
 
