@@ -124,6 +124,16 @@
       "type": "string",
       "description": "Shoot location/address"
     },
+    "shoot_setting": {
+      "type": "string",
+      "enum": [
+        "outdoor",
+        "indoor",
+        "flexible"
+      ],
+      "default": "flexible",
+      "description": "Whether the shoot takes place outdoors, indoors, or is still being decided"
+    },
     "attendees": {
       "type": "number",
       "description": "Number of attendees"
