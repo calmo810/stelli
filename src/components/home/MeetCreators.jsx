@@ -15,7 +15,7 @@ const HIGHLIGHT = {
   background: 'hsl(var(--neon-lime))',
   color: 'hsl(var(--ink))',
   padding: '.02em .22em .06em',
-  borderRadius: 6,
+  borderRadius: 16,
   WebkitBoxDecorationBreak: 'clone',
   boxDecorationBreak: 'clone',
 };
@@ -63,10 +63,10 @@ export default function MeetCreators() {
   };
 
   return (
-    <section className="py-[44px] md:py-[60px] border-t border-white/10">
+    <section className="py-[44px] md:py-[60px] border-t border-line">
       <div className="max-w-[1440px] mx-auto px-5 md:px-10 flex items-end justify-between gap-5">
         <h2
-          className="font-display font-medium text-white leading-[1.08] tracking-[-0.02em]"
+          className="font-display font-medium text-fg leading-[1.08] tracking-[-0.02em]"
           style={{ fontSize: 'clamp(30px, 4.6vw, 64px)' }}
         >
           Meet the{' '}
@@ -76,8 +76,8 @@ export default function MeetCreators() {
         </h2>
         <Link
           to="/creators"
-          className="shrink-0 font-body text-[15px] font-medium whitespace-nowrap transition-colors hover:underline"
-          style={{ color: 'hsl(var(--neon-lime))', textUnderlineOffset: 4 }}
+          className="shrink-0 text-[15px] font-medium whitespace-nowrap transition-colors hover:underline"
+          style={{ color: 'var(--st-accent)', textUnderlineOffset: 4 }}
         >
           See all ›
         </Link>
@@ -113,7 +113,7 @@ export default function MeetCreators() {
               width: CARD_WIDTH,
               borderRadius: CARD_RADIUS,
               background: 'radial-gradient(120% 80% at 20% 0%, hsl(75 100% 72%), hsl(var(--neon-lime)) 55%, hsl(75 85% 48%))',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,.5), 0 30px 60px -30px hsl(var(--neon-lime) / 0.5)',
+              boxShadow: 'inset 0 1px 0 var(--fg-3), 0 30px 60px -30px hsl(var(--neon-lime) / 0.5)',
               color: 'hsl(var(--ink))',
               padding: 26,
             }}
@@ -123,7 +123,7 @@ export default function MeetCreators() {
               <br />
               could be here.
             </p>
-            <p className="font-body text-[15px]" style={{ color: 'hsl(var(--ink) / 0.7)' }}>
+            <p className="text-[15px]" style={{ color: 'hsl(var(--ink) / 0.7)' }}>
               Take photos? Apply to join ›
             </p>
           </Link>
@@ -138,7 +138,7 @@ export default function MeetCreators() {
           onClick={() => scroll(-1)}
           disabled={edges.start}
           aria-label="Previous creators"
-          className="w-11 h-11 grid place-items-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors disabled:opacity-30"
+          className="w-11 h-11 grid place-items-center rounded-full bg-fill hover:bg-fill-2 text-fg transition-colors disabled:opacity-30"
         >
           <ChevronLeft className="w-[18px] h-[18px]" />
         </button>
@@ -147,7 +147,7 @@ export default function MeetCreators() {
           onClick={() => scroll(1)}
           disabled={edges.end}
           aria-label="Next creators"
-          className="w-11 h-11 grid place-items-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors disabled:opacity-30"
+          className="w-11 h-11 grid place-items-center rounded-full bg-fill hover:bg-fill-2 text-fg transition-colors disabled:opacity-30"
         >
           <ChevronRight className="w-[18px] h-[18px]" />
         </button>

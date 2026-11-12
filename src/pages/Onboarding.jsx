@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
-import { Check, Loader2 } from 'lucide-react';
+import { Camera, Search } from 'lucide-react';
+import { fetchCurrentUser, refreshCurrentUser } from '@/hooks/useCurrentUser';
+import { loginUrl } from '@/lib/requireSignIn';
+import AuthLayout from '@/components/AuthLayout';
+import { Btn, Check, Field, Note } from '@/components/system';
 
 const ROLES = [
-  { id: 'client', title: 'I want to book', body: 'Find a creator, request a shoot, get a private quote.', accent: 'hsl(var(--neon-lime))' },
-  { id: 'creator', title: 'I shoot', body: 'Get a public profile, quote your work, get paid on delivery.', accent: 'hsl(var(--neon-cyan))' },
+  { id: 'client', kicker: 'Client', title: 'I want to book', body: 'Find a creator, request a shoot, get a private quote.', icon: Search, tint: '!bg-tint-lime' },
+  { id: 'creator', kicker: 'Creator', title: 'I shoot', body: 'Get a public profile, quote your work, get paid on delivery.', icon: Camera, tint: '!bg-tint-sky' },
 ];
 
-const inputClass = 'w-full bg-surface-2 border border-white/12 px-4 py-3 font-body text-[13px] text-white placeholder:text-white/25 outline-none focus:border-neon-lime transition-colors';
 const ONBOARDING_DRAFT_KEY = 'stelli_onboarding_draft';
 
 function getOnboardingDraft() {
@@ -19,6 +22,7 @@ function getOnboardingDraft() {
   }
 }
 
+/** The one question a new account has to answer: which side of a booking are you on? */
 export default function Onboarding() {
   const navigate = useNavigate();
 
@@ -36,30 +40,38 @@ export default function Onboarding() {
   // so it goes to the portal instead.
   useEffect(() => {
     let active = true;
-    base44.auth
-      .me()
-      .then((user) => {
-        if (!active) return;
-        if (user?.account_type) navigate('/portal', { replace: true });
-      })
-      .catch(() => {
-        if (active) navigate(`/login?returnTo=${encodeURIComponent('/onboarding')}`, { replace: true });
-      });
+    fetchCurrentUser().then((user) => {
+      if (!active) return;
+      if (!user) navigate(loginUrl('/onboarding'), { replace: true });
+      else if (user.account_type) navigate('/portal', { replace: true });
+    });
     return () => { active = false; };
   }, [navigate]);
 
   useEffect(() => {
-    localStorage.setItem(ONBOARDING_DRAFT_KEY, JSON.stringify({ role, form, ageConfirmed }));
+    try {
+      localStorage.setItem(ONBOARDING_DRAFT_KEY, JSON.stringify({ role, form, ageConfirmed }));
+    } catch {
+      /* the draft is a convenience */
+    }
   }, [role, form, ageConfirmed]);
 
-  const canSubmit =
-    role &&
-    form.full_name.trim().length > 1 &&
-    ageConfirmed &&
-    (role === 'client' || (form.specialty.trim() && form.bio.trim()));
+  const missing = !role
+    ? 'Pick a side to continue.'
+    : form.full_name.trim().length < 2
+      ? 'Add your name.'
+      : role === 'creator' && !(form.specialty.trim() && form.bio.trim())
+        ? 'Add what you shoot and a short bio.'
+        : !ageConfirmed
+          ? 'Confirm you are 18 or older.'
+          : '';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (missing) {
+      setError(missing);
+      return;
+    }
     setError('');
     setSaving(true);
     try {
@@ -72,6 +84,7 @@ export default function Onboarding() {
           ? { specialty: form.specialty.trim(), instagram: form.instagram.trim(), bio: form.bio.trim() }
           : {}),
       });
+      await refreshCurrentUser();
       localStorage.removeItem(ONBOARDING_DRAFT_KEY);
       localStorage.setItem('stelli_next_step_prompt', role);
       navigate('/portal', { replace: true });
@@ -83,96 +96,66 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-ink">
-      <div className="max-w-3xl mx-auto px-5 md:px-10 pt-32 pb-24">
-        <p className="label-mono text-[9px] text-white/35 mb-5">One last thing</p>
-        <h1 className="font-heading font-semibold text-white leading-[0.95] mb-5" style={{ fontSize: 'clamp(38px, 6vw, 76px)' }}>
-          Which side are you on?
-        </h1>
-        <p className="font-body text-[14px] leading-relaxed text-white/45 max-w-lg mb-12">
-          Clients and creators see completely different portals. Pick once — it decides everything after this.
-        </p>
+    <AuthLayout title="Which side are you on?" subtitle="Clients and creators get different portals. Pick once.">
+      <form onSubmit={handleSubmit} noValidate>
+        <div role="radiogroup" aria-label="Account type" className="grid gap-2.5 sm:grid-cols-2">
+          {ROLES.map((r) => {
+            const active = role === r.id;
+            const Icon = r.icon;
+            return (
+              <button
+                key={r.id}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                onClick={() => setRole(r.id)}
+                className={`st-choice ${active ? r.tint : ''}`}
+              >
+                <span className="mb-3 grid h-10 w-10 place-items-center rounded-full bg-ink text-white" aria-hidden>
+                  <Icon className="h-[18px] w-[18px]" />
+                </span>
+                <span className="st-kicker block">{r.kicker}</span>
+                <span className="mt-1 block text-[20px] font-extrabold tracking-[-0.03em]">{r.title}</span>
+                <span className="mt-1.5 block text-[13.5px] leading-snug text-fg-2">{r.body}</span>
+              </button>
+            );
+          })}
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-10">
-          <div className="grid sm:grid-cols-2 gap-4">
-            {ROLES.map((r) => {
-              const active = role === r.id;
-              return (
-                <button
-                  key={r.id}
-                  type="button"
-                  onClick={() => setRole(r.id)}
-                  className="text-left p-6 border transition-colors duration-300"
-                  style={{
-                    borderRadius: 4,
-                    borderColor: active ? r.accent : 'rgba(255,255,255,0.12)',
-                    background: 'hsl(var(--surface))',
-                  }}
-                >
-                  <p className="label-mono text-[9px] mb-4" style={{ color: active ? r.accent : 'rgba(255,255,255,0.3)' }}>
-                    {r.id === 'client' ? 'Client' : 'Creator'}
-                  </p>
-                  <p className="font-heading text-[24px] font-semibold text-white mb-2">{r.title}</p>
-                  <p className="font-body text-[12px] leading-relaxed text-white/45">{r.body}</p>
-                </button>
-              );
-            })}
-          </div>
+        <div className="mt-6">
+          <Field label="Full name">
+            <input className="st-input" value={form.full_name} autoComplete="name"
+              onChange={(e) => update('full_name', e.target.value)} placeholder="Your name" />
+          </Field>
 
-          <div className="space-y-5">
-            <div>
-              <label className="label-mono text-[9px] text-white/40 block mb-2">Full name</label>
-              <input className={inputClass} style={{ borderRadius: 4 }} value={form.full_name}
-                onChange={(e) => update('full_name', e.target.value)} placeholder="Your name" />
-            </div>
+          {role === 'creator' && (
+            <>
+              <Field label="What you shoot">
+                <input className="st-input" value={form.specialty}
+                  onChange={(e) => update('specialty', e.target.value)} placeholder="Portraits, events, music videos…" />
+              </Field>
+              <Field label="Instagram handle" optional>
+                <input className="st-input" value={form.instagram} autoComplete="off"
+                  onChange={(e) => update('instagram', e.target.value)} placeholder="@yourhandle" />
+              </Field>
+              <Field label="Short bio">
+                <textarea className="st-textarea" rows={3} value={form.bio}
+                  onChange={(e) => update('bio', e.target.value)} placeholder="Why you shoot." />
+              </Field>
+            </>
+          )}
+        </div>
 
-            {role === 'creator' && (
-              <>
-                <div>
-                  <label className="label-mono text-[9px] text-white/40 block mb-2">Specialty</label>
-                  <input className={inputClass} style={{ borderRadius: 4 }} value={form.specialty}
-                    onChange={(e) => update('specialty', e.target.value)} placeholder="Portraits, events, music videos…" />
-                </div>
-                <div>
-                  <label className="label-mono text-[9px] text-white/40 block mb-2">Instagram handle</label>
-                  <input className={inputClass} style={{ borderRadius: 4 }} value={form.instagram}
-                    onChange={(e) => update('instagram', e.target.value)} placeholder="@yourhandle" />
-                </div>
-                <div>
-                  <label className="label-mono text-[9px] text-white/40 block mb-2">Short bio</label>
-                  <textarea className={inputClass} style={{ borderRadius: 4 }} rows={3} value={form.bio}
-                    onChange={(e) => update('bio', e.target.value)} placeholder="Why you shoot." />
-                </div>
-              </>
-            )}
-          </div>
+        <Check checked={ageConfirmed} onChange={setAgeConfirmed} className="mt-3">
+          I confirm I am 18 or older.
+        </Check>
 
-          <button type="button" onClick={() => setAgeConfirmed(!ageConfirmed)} className="flex items-start gap-3 text-left">
-            <span className="w-4 h-4 border flex items-center justify-center shrink-0 mt-0.5 transition-colors"
-              style={{ borderRadius: 3, borderColor: ageConfirmed ? 'hsl(var(--neon-lime))' : 'rgba(255,255,255,0.2)', background: ageConfirmed ? 'hsl(var(--neon-lime))' : 'transparent' }}>
-              {ageConfirmed && <Check className="w-3 h-3" strokeWidth={3} style={{ color: 'hsl(var(--ink))' }} />}
-            </span>
-            <span className="font-body text-[12px] leading-relaxed text-white/50">I confirm I am 18 or older.</span>
-          </button>
+        {error && <Note tone="error" className="mt-2">{error}</Note>}
 
-          {error && <p className="font-body text-[12px]" style={{ color: 'hsl(var(--neon-magenta))' }}>{error}</p>}
-
-          <button
-            type="submit"
-            disabled={!canSubmit || saving}
-            className="inline-flex items-center gap-2 label-mono text-[11px] font-semibold px-8 py-4 transition-transform duration-300"
-            style={{
-              borderRadius: 4,
-              background: canSubmit && !saving ? 'hsl(var(--neon-lime))' : 'rgba(255,255,255,0.08)',
-              color: canSubmit && !saving ? 'hsl(var(--ink))' : 'rgba(255,255,255,0.3)',
-              cursor: canSubmit && !saving ? 'pointer' : 'not-allowed',
-            }}
-          >
-            {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-            Continue
-          </button>
-        </form>
-      </div>
-    </div>
+        <Btn type="submit" loading={saving} arrow="end" block className="mt-5">
+          Continue
+        </Btn>
+      </form>
+    </AuthLayout>
   );
 }

@@ -6,11 +6,11 @@ import ConfirmAction, { newActionId } from '@/components/shared/ConfirmAction';
 
 // The admin page's card look (see AdminDashboard.jsx).
 const SURFACE = {
-  background: 'linear-gradient(145deg, hsl(var(--surface-2) / .86), hsl(var(--surface) / .94))',
+  background: 'var(--st-card)',
   borderRadius: 22,
-  boxShadow: 'inset 0 1px 0 rgba(255,255,255,.08), 0 18px 42px -30px rgba(0,0,0,.78)',
+  boxShadow: 'inset 0 1px 0 var(--line), 0 18px 42px -30px rgba(0,0,0,.78)',
 };
-const CARD = 'border border-white/10';
+const CARD = 'border border-line';
 
 const KIND_LABEL = {
   dispute: 'Card dispute',
@@ -83,7 +83,7 @@ export default function FounderQueueList({ bookings, strays = null }) {
   };
 
   if (!queue.length) {
-    return <p className="py-20 text-center font-body text-[13px] text-white/45">Nothing is waiting on you.</p>;
+    return <p className="py-20 text-center text-[13px] text-fg-3">Nothing is waiting on you.</p>;
   }
 
   return (
@@ -93,21 +93,21 @@ export default function FounderQueueList({ bookings, strays = null }) {
         const note = notes[item.id];
         return (
           <div key={item.id} className={`${CARD} p-5 sm:p-6`} style={SURFACE}>
-            <p className="label-mono text-[9px] text-neon-magenta">{KIND_LABEL[item.kind] || 'Needs a look'}</p>
-            <h3 className="mt-2 font-heading text-[20px] font-semibold leading-tight text-white">{item.headline}</h3>
-            <p className="mt-2 label-mono text-[9px] text-white/40">
+            <p className="st-kicker text-danger">{KIND_LABEL[item.kind] || 'Needs a look'}</p>
+            <h3 className="mt-2 text-[20px] font-semibold leading-tight text-fg">{item.headline}</h3>
+            <p className="mt-2 st-kicker text-fg-3">
               {b.client_name || 'Client'} with {b.lensman_name || 'creator'} · {b.event_date || 'no date'}
               {Number(b.amount_charged) > 0 ? ` · charged ${money(b.amount_charged)}` : ''}
             </p>
 
             {item.detail && (
-              <p className="mt-3 font-body text-[13px] leading-relaxed text-white/60">{item.detail}</p>
+              <p className="mt-3 text-[13px] leading-relaxed text-fg-2">{item.detail}</p>
             )}
 
             {b.problem_note && (
               <p
-                className="mt-3 border-l-2 pl-4 font-body text-[13px] leading-relaxed text-white/75"
-                style={{ borderColor: 'hsl(var(--neon-magenta) / 0.5)' }}
+                className="mt-3 border-l-2 pl-4 text-[13px] leading-relaxed text-fg-2"
+                style={{ borderColor: 'var(--line-2)' }}
               >
                 {b.problem_note}
               </p>
@@ -121,12 +121,12 @@ export default function FounderQueueList({ bookings, strays = null }) {
                     type="button"
                     onClick={() => start(item, action)}
                     disabled={busy}
-                    className={`min-h-[48px] flex-1 px-4 font-body text-[14px] font-semibold transition-colors disabled:opacity-50 ${
-                      action.tone === 'lime' ? '' : 'border border-white/15 text-white/75 hover:bg-white/5 hover:text-white'
+                    className={`min-h-[48px] flex-1 px-4 text-[14px] font-semibold transition-colors disabled:opacity-50 ${
+                      action.tone === 'lime' ? '' : 'border border-line text-fg-2 hover:bg-fill-2 hover:text-fg'
                     }`}
                     style={
                       action.tone === 'lime'
-                        ? { background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 14 }
+                        ? { background: 'var(--st-primary)', color: 'var(--st-on-primary)', borderRadius: 14 }
                         : { borderRadius: 14 }
                     }
                   >
@@ -139,8 +139,8 @@ export default function FounderQueueList({ bookings, strays = null }) {
             {note?.message && (
               <p
                 role="status"
-                className="mt-4 font-body text-[13px]"
-                style={{ color: note.ok ? 'hsl(var(--neon-lime))' : 'hsl(var(--neon-magenta))' }}
+                className="mt-4 text-[13px]"
+                style={{ color: note.ok ? 'var(--st-accent)' : 'var(--danger)' }}
               >
                 {note.message}
               </p>

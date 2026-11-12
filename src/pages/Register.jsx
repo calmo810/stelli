@@ -12,6 +12,8 @@ import GoogleIcon from "@/components/GoogleIcon";
 import { toast } from "@/components/ui/use-toast";
 import { PRIVACY_VERSION, TERMS_VERSION } from "@/lib/legalDocuments";
 import { safeReturnTo } from "@/lib/authReturnTo";
+import { fetchCurrentUser } from "@/hooks/useCurrentUser";
+import { rememberLegalAcceptance, rememberSignupChoices } from "@/lib/pendingSignup";
 
 // Honor ?returnTo= (used by the MCP consent flow), else the app's portal.
 const afterAuth = () =>
@@ -50,11 +52,9 @@ export default function Register() {
 
   useEffect(() => {
     let active = true;
-    base44.auth.isAuthenticated()
-      .then((ok) => {
-        if (active && ok) window.location.replace(afterAuth());
-      })
-      .catch(() => {});
+    fetchCurrentUser().then((user) => {
+      if (active && user) window.location.replace(afterAuth());
+    });
     return () => { active = false; };
   }, []);
 
@@ -114,7 +114,7 @@ export default function Register() {
           base44.functions.invoke('recordAgreementAcceptance', { documentType: 'privacy', documentVersion: PRIVACY_VERSION }),
         ]);
       } catch {
-        localStorage.setItem('stelli_pending_legal_acceptance', 'true');
+        rememberLegalAcceptance();
       }
       localStorage.removeItem(REGISTER_DRAFT_KEY);
       window.location.href = afterAuth();
@@ -151,11 +151,9 @@ export default function Register() {
       setError("Please accept Stelli's Terms and Conditions to continue.");
       return;
     }
-    localStorage.setItem('stelli_pending_account_type', accountType);
+    // Put on the account once Google sends them back (see lib/pendingSignup).
+    rememberSignupChoices({ accountType, adult: true, legal: true });
     localStorage.setItem('stelli_next_step_prompt', accountType);
-    localStorage.setItem('stelli_pending_legal_acceptance', 'true');
-    // Applied on the account by /portal once Google sends them back.
-    localStorage.setItem('stelli_pending_age_confirmed', 'true');
     base44.auth.loginWithProvider("google", afterAuth());
   };
 
@@ -217,7 +215,7 @@ export default function Register() {
     <AuthLayout
       icon={UserPlus}
       title="Create your account"
-      subtitle="Pick a role once, then Stelli routes you to the right portal"
+      subtitle="Pick a side once. It decides which portal you get."
       footer={
         <>
           Already have an account?{" "}
@@ -227,18 +225,21 @@ export default function Register() {
         </>
       }
     >
-      <div className="grid grid-cols-2 gap-3 mb-5">
+      <div role="radiogroup" aria-label="Account type" className="mb-5 grid grid-cols-2 gap-2.5">
         {[
-          { id: 'client', label: 'Client' },
-          { id: 'creator', label: 'Creator' },
+          { id: 'client', label: 'I want to book', body: 'Find a creator and get a private quote.' },
+          { id: 'creator', label: 'I shoot', body: 'Get a page, get booked, get paid.' },
         ].map((option) => (
           <button
             key={option.id}
             type="button"
+            role="radio"
+            aria-checked={accountType === option.id}
             onClick={() => setAccountType(option.id)}
-            className={`h-11 rounded-md border text-xs font-semibold transition-colors ${accountType === option.id ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-transparent text-muted-foreground hover:text-foreground'}`}
+            className={`st-choice !p-3.5 ${accountType === option.id ? (option.id === 'client' ? '!bg-tint-lime' : '!bg-tint-sky') : ''}`}
           >
-            {option.label}
+            <span className="block text-[15px] font-extrabold tracking-[-0.02em]">{option.label}</span>
+            <span className="mt-1 block text-[12.5px] leading-snug text-fg-2">{option.body}</span>
           </button>
         ))}
       </div>
@@ -318,13 +319,13 @@ export default function Register() {
             />
           </div>
         </div>
-        <label className="flex items-start gap-3 rounded-lg border border-border p-3 cursor-pointer">
-          <Checkbox checked={adult} onCheckedChange={setAdult} className="mt-0.5" />
-          <span className="text-xs leading-relaxed text-muted-foreground">I'm 18 or older.</span>
+        <label className="flex min-h-[48px] cursor-pointer items-center gap-3 rounded-2xl bg-fill px-4 py-3">
+          <Checkbox checked={adult} onCheckedChange={setAdult} />
+          <span className="text-[14px] leading-snug text-fg-2">I'm 18 or older.</span>
         </label>
-        <label className="flex items-start gap-3 rounded-lg border border-border p-3 cursor-pointer">
-          <Checkbox checked={legalAgreed} onCheckedChange={setLegalAgreed} className="mt-0.5" />
-          <span className="text-xs leading-relaxed text-muted-foreground">
+        <label className="flex min-h-[48px] cursor-pointer items-center gap-3 rounded-2xl bg-fill px-4 py-3">
+          <Checkbox checked={legalAgreed} onCheckedChange={setLegalAgreed} />
+          <span className="text-[14px] leading-snug text-fg-2">
             I agree to Stelli's <Link to="/terms" className="text-primary underline">Terms and Conditions</Link>.
           </span>
         </label>

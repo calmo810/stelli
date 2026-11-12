@@ -7,7 +7,7 @@ import PayoutsCard from '@/components/dashboard/PayoutsCard';
 import NextPast from '@/components/creator/workspace/NextPast';
 import WorkspaceEmpty from '@/components/creator/workspace/WorkspaceEmpty';
 import WorkTabs from '@/components/creator/workspace/WorkTabs';
-import money from '@/lib/money';
+import { money } from '@/lib/format';
 
 const LABELS = {
   released: 'Paid out',
@@ -35,12 +35,16 @@ export default function CreatorEarnings() {
   } = /** @type {any} */ (useOutletContext());
   const [tab, setTab] = useState('next');
 
+  // "Held" is money actually sitting with Stelli for this creator: the same
+  // bookings the Held total above adds up. A refunded or cancelled booking is
+  // settled, so it sits with the paid-out ones under Past, never under Held.
   const withMoney = bookings.filter((b) => Number(b.creator_payout) > 0);
+  const isPaidOut = (b) => b.payment_status === 'released' || Boolean(b.released_at);
   const held = withMoney
-    .filter((b) => b.payment_status !== 'released' && !b.released_at)
+    .filter((b) => !isPaidOut(b) && ['held', 'processing'].includes(b.payment_status))
     .sort(byDateAsc);
   const paid = withMoney
-    .filter((b) => b.payment_status === 'released' || b.released_at)
+    .filter((b) => isPaidOut(b) || ['refunded', 'partially_refunded'].includes(b.payment_status))
     .sort(byDateDesc);
 
   const openStripe = async () => {
@@ -99,7 +103,7 @@ export default function CreatorEarnings() {
 
       <div className="arch-tab__toolbar mt-5">
         <NextPast value={tab} onChange={setTab} nextCount={held.length} pastCount={paid.length} />
-        <p className="arch-tab__count">{tab === 'next' ? `${held.length} held` : `${paid.length} paid`}</p>
+        <p className="arch-tab__count">{tab === 'next' ? `${held.length} held` : `${paid.length} settled`}</p>
       </div>
 
       <div className="mt-3">

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Check, ChevronDown, X } from 'lucide-react';
-import { DURATIONS } from '@/lib/wizardData';
+import { DURATIONS } from '@/lib/creatorProfile';
 
 /**
  * Length picker for a package: the field opens a dark sheet of every duration

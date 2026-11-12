@@ -11,7 +11,7 @@ export default function AlbumGrid({ photos, onOpen }) {
           type="button"
           onClick={() => onOpen(index)}
           aria-label={`Open photo ${index + 1} of ${photos.length}`}
-          className="group relative aspect-square overflow-hidden rounded-[18px] border border-white/10 bg-white/[0.04] transition-transform duration-300 active:scale-[0.985]"
+          className="group relative aspect-square overflow-hidden rounded-[18px] border border-line bg-fill transition-transform duration-300 active:scale-[0.985]"
         >
           <SmoothImage
             src={photo.url}

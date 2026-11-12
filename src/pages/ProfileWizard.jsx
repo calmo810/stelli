@@ -14,8 +14,9 @@ import WizardSheet from '@/components/wizard/WizardSheet';
 import { STEP_BODIES } from '@/components/wizard/steps';
 
 /**
- * Creator profile creation: thirteen steps, a live preview the whole way,
- * and one publish that files the profile with Stelli.
+ * The creator profile wizard: thirteen steps, a live preview the whole way,
+ * and one publish that files the profile with Stelli. /apply and /edit-profile
+ * both land here; a creator who already has a page opens on its review.
  */
 export default function ProfileWizard() {
   const w = useWizard();
@@ -34,10 +35,10 @@ export default function ProfileWizard() {
         if (wizard.sheetOpen) wizard.setSheetOpen(false);
         return;
       }
-      if (event.key !== 'Enter' || event.isComposing || wizard.view !== 'wizard') return;
+      if (event.key !== 'Enter' || event.isComposing || wizard.view !== 'wizard' || wizard.confirm) return;
       const target = event.target;
       const tag = target?.tagName;
-      if (tag === 'TEXTAREA' || tag === 'BUTTON' || tag === 'SELECT') return;
+      if (tag === 'TEXTAREA' || tag === 'BUTTON' || tag === 'SELECT' || tag === 'A') return;
       if (target?.dataset?.noEnter === 'true') return;
       event.preventDefault();
       wizard.goNext();
@@ -46,11 +47,25 @@ export default function ProfileWizard() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  if (w.loadFailed) {
+    return (
+      <div className="pw-root">
+        <div className="pw-state" role="alert">
+          <h1>Your profile didn't load.</h1>
+          <p>Nothing has been changed. Check your connection and try again.</p>
+          <button type="button" className="btn btn-primary" onClick={() => w.retryLoad()}>
+            Try again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!w.ready) {
     return (
       <div className="pw-root">
-        <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center' }}>
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-white/15 border-t-white" />
+        <div className="pw-state" role="status" aria-label="Loading your profile">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-line border-t-[var(--fg)]" />
         </div>
       </div>
     );
@@ -83,8 +98,8 @@ export default function ProfileWizard() {
 
       {w.sheetOpen && <WizardSheet w={w} />}
       <WizardAlert w={w} />
-      <div className={`toast ${w.toast ? 'show' : ''}`}>{w.toast}</div>
-      <div className={`flash ${w.flash ? 'go' : ''}`} />
+      <div className={`toast ${w.toast ? 'show' : ''}`} role="status" aria-live="polite">{w.toast}</div>
+      <div className={`flash ${w.flash ? 'go' : ''}`} aria-hidden />
     </div>
   );
 }

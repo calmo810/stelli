@@ -79,8 +79,8 @@ export default function WorkspaceShell({ profile, user, counts = {}, children })
               {avatar ? <img src={avatar} alt="" /> : (name[0] || 'S').toUpperCase()}
             </span>
             <div className="min-w-0">
-              <p className="truncate text-[15px] font-bold text-white">{name}</p>
-              <p className="mt-0.5 text-[10.5px] font-bold uppercase tracking-[0.12em] text-white/35">
+              <p className="truncate text-[15px] font-bold text-fg">{name}</p>
+              <p className="mt-0.5 text-[10.5px] font-bold uppercase tracking-[0.12em] text-fg-3">
                 Creator
               </p>
             </div>

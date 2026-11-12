@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { accentOf, cardImages, cssUrl, ratingLabel, taglineOf } from '@/lib/creatorBrowse';
-import { displayNameOf } from '@/lib/profilePresets';
+import { displayNameOf } from '@/lib/creatorProfile';
 
 const CYCLE_MS = 1700;
 const EASE_OUT = 'cubic-bezier(.2,.7,.2,1)';
@@ -124,12 +124,12 @@ export default function CreatorCard({ creator, index = 0, onOpen }) {
     >
       <div
         ref={innerRef}
-        className="absolute inset-0 overflow-hidden rounded-[22px] bg-surface transition-[transform,box-shadow] duration-300 ease-out"
+        className="absolute inset-0 overflow-hidden rounded-[22px] bg-[var(--st-card)] transition-[transform,box-shadow] duration-300 ease-out"
         style={{
           transformStyle: 'preserve-3d',
           boxShadow: active
             ? `0 0 0 1px ${accent}, 0 34px 70px -28px ${accent}`
-            : 'inset 0 1px 0 rgba(255,255,255,.08), inset 0 0 0 1px rgba(255,255,255,.06), 0 24px 48px -28px rgba(0,0,0,.7)',
+            : 'inset 0 1px 0 var(--line), inset 0 0 0 1px var(--line), 0 24px 48px -28px rgba(0,0,0,.7)',
         }}
       >
         {/* Photos sit in their own rounded mask so the zoom can't poke past the
@@ -164,7 +164,7 @@ export default function CreatorCard({ creator, index = 0, onOpen }) {
           }`}
         >
           {images.map((url, i) => (
-            <span key={`bar-${url}-${i}`} className="h-[2px] flex-1 overflow-hidden rounded bg-white/25">
+            <span key={`bar-${url}-${i}`} className="h-[2px] flex-1 overflow-hidden rounded bg-fill-2">
               <i
                 key={`${current}-${i}`}
                 className="block h-full bg-white"
@@ -180,7 +180,7 @@ export default function CreatorCard({ creator, index = 0, onOpen }) {
         {/* Their face in the corner, so the person behind the work is on the card. */}
         {showFace && (
           <div
-            className="absolute left-4 top-[26px] z-[3] h-[54px] w-[54px] overflow-hidden rounded-full bg-surface-2"
+            className="absolute left-4 top-[26px] z-[3] h-[54px] w-[54px] overflow-hidden rounded-full bg-fill-2"
             style={{
               transform: 'translateZ(40px)',
               boxShadow: `0 0 0 2.5px hsl(var(--ink)), 0 0 0 4px ${accent}, 0 14px 26px -10px rgba(0,0,0,.85)`,
@@ -189,7 +189,7 @@ export default function CreatorCard({ creator, index = 0, onOpen }) {
             {face ? (
               <img src={face} alt="" loading="lazy" className="h-full w-full object-cover" />
             ) : (
-              <div className="grid h-full w-full place-items-center font-display text-[22px] text-white/70">
+              <div className="grid h-full w-full place-items-center font-display text-[22px] text-fg-2">
                 {initial}
               </div>
             )}
@@ -197,20 +197,20 @@ export default function CreatorCard({ creator, index = 0, onOpen }) {
         )}
 
         {creator?.is_sample && (
-          <div className="absolute right-4 top-[26px] z-[3] label-mono text-[10px] text-white/55">
+          <div className="absolute right-4 top-[26px] z-[3] st-kicker text-fg-3">
             Sample
           </div>
         )}
 
         <div className="absolute bottom-5 left-5 right-5 z-[3]" style={{ transform: 'translateZ(30px)' }}>
           <div className="flex items-baseline gap-2.5">
-            <span className="text-[28px] font-bold tracking-[-0.03em] text-white">{name}</span>
+            <span className="text-[28px] font-bold tracking-[-0.03em] text-fg">{name}</span>
             <span className="text-[13px] font-medium" style={{ color: accent }}>
               {ratingLabel(creator)}
             </span>
           </div>
 
-          <div className="mt-1 truncate text-[14px] text-white/70">{tagline}</div>
+          <div className="mt-1 truncate text-[14px] text-fg-2">{tagline}</div>
 
           <div
             aria-hidden="true"

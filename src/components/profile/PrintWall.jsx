@@ -136,6 +136,7 @@ export default function PrintWall({
   name = 'their',
   compact = false,
   showAll = false,
+  inert = false,
   className = '',
 }) {
   const wallRef = useRef(null);
@@ -205,7 +206,7 @@ export default function PrintWall({
         </section>
       )}
 
-      {open && !compact && (
+      {open && !compact && !inert && (
         <PhotoViewer photos={photos} index={open.index} fromEl={open.fromEl} onClose={close} onStep={stepBy} />
       )}
     </div>

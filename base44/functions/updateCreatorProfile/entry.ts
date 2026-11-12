@@ -30,6 +30,21 @@ export default async function (req) {
       return Response.json({ error: errors[firstError], field: firstError, errors }, { status: 400 });
     }
 
+    // The private section is checked up front too. It used to be checked after
+    // the public profile had already been written, so a save that came back
+    // "Your name is required" had in fact changed the live page.
+    const privatePatch: Record<string, any> = {};
+    for (const field of PRIVATE_TEXT_FIELDS) {
+      if (typeof body[field] === 'string') privatePatch[field] = body[field].trim().slice(0, 200);
+    }
+    if (typeof privatePatch.instagram === 'string') privatePatch.instagram = privatePatch.instagram.replace(/^@+/, '');
+    if (privatePatch.email === '') {
+      return Response.json({ error: 'A contact email is required.', field: 'email' }, { status: 400 });
+    }
+    if (privatePatch.full_name === '') {
+      return Response.json({ error: 'Your name is required.', field: 'full_name' }, { status: 400 });
+    }
+
     const mine = await base44.asServiceRole.entities.Lensman.filter({ user_id: user.id });
     const lensman = mine[0];
     if (!lensman) return Response.json({ error: 'You do not have a creator profile yet.' }, { status: 404 });
@@ -92,16 +107,6 @@ export default async function (req) {
 
     const updated = await base44.asServiceRole.entities.Lensman.update(lensman.id, patch);
 
-    const privatePatch: Record<string, any> = {};
-    for (const field of PRIVATE_TEXT_FIELDS) {
-      if (typeof body[field] === 'string') privatePatch[field] = body[field].trim().slice(0, 200);
-    }
-    if (privatePatch.email === '') {
-      return Response.json({ error: 'A contact email is required.', field: 'email' }, { status: 400 });
-    }
-    if (privatePatch.full_name === '') {
-      return Response.json({ error: 'Your name is required.', field: 'full_name' }, { status: 400 });
-    }
     if (Object.keys(privatePatch).length) {
       if (contact) {
         await base44.asServiceRole.entities.CreatorContact.update(contact.id, privatePatch);

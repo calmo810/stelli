@@ -2,14 +2,11 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { viewerRole } from '@/lib/threadStatus';
+import useCurrentUser from '@/hooks/useCurrentUser';
 
 /** Every conversation this person is part of, newest first. */
 export default function useThreads() {
-  const { data: user, isLoading: userLoading } = useQuery({
-    queryKey: ['inbox-user'],
-    queryFn: () => base44.auth.me(),
-    retry: false,
-  });
+  const { user, isLoading: userLoading } = useCurrentUser();
 
   const { data: creators = [], isLoading: creatorsLoading } = useQuery({
     queryKey: ['messages-creators'],
@@ -79,6 +76,7 @@ export default function useThreads() {
 
   return {
     user,
+    userLoading,
     threads,
     unreadCount: threads.filter((t) => t.unread).length,
     isLoading: isLoading || userLoading || creatorsLoading,

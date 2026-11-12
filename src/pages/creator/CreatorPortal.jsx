@@ -9,7 +9,9 @@ import PullToRefresh from '@/components/shared/PullToRefresh';
 import Pill from '@/components/shared/Pill';
 import WorkspaceShell from '@/components/creator/workspace/WorkspaceShell';
 import useCreatorPortal from '@/hooks/useCreatorPortal';
+import { hasApplicationDraft } from '@/hooks/useWizard';
 import { preloadCreatorWorkspace } from '@/lib/preloadCreatorWorkspace';
+import { loginUrl } from '@/lib/requireSignIn';
 
 /**
  * The creator workspace: four panes — Today, Requests, Shoots, Money — plus
@@ -67,7 +69,7 @@ export default function CreatorPortal() {
   if (userLoading || (user && (isLoading || !profileFetched))) {
     return (
       <DashboardShell>
-        <div className="glass h-[260px] animate-pulse rounded-[28px]" />
+        <div className="st-card h-[260px] animate-pulse rounded-[28px]" />
       </DashboardShell>
     );
   }
@@ -80,7 +82,7 @@ export default function CreatorPortal() {
           title="Sign in to continue"
           body="Your workspace holds your requests, shoots and payouts."
           cta={
-            <Pill as={Link} to="/login" tone="lime">
+            <Pill as={Link} to={loginUrl('/lensman-dashboard')} tone="lime">
               Sign in
             </Pill>
           }
@@ -90,15 +92,21 @@ export default function CreatorPortal() {
   }
 
   if (!myProfile) {
+    // An application started on this device is picked back up, not restarted.
+    const started = hasApplicationDraft();
     return (
       <DashboardShell>
         <EmptyPanel
           icon={Camera}
-          title="No creator page yet"
-          body="Apply once and this workspace opens with your requests and shoots."
+          title={started ? 'Your page is half built' : 'No creator page yet'}
+          body={
+            started
+              ? 'Your draft is saved on this device. Finish it and this workspace opens with your requests and shoots.'
+              : 'Apply once and this workspace opens with your requests and shoots.'
+          }
           cta={
             <Pill as={Link} to="/apply" tone="lime">
-              Apply to shoot
+              {started ? 'Continue your application' : 'Apply to shoot'}
             </Pill>
           }
         />

@@ -1,4 +1,5 @@
 import React from 'react';
+import { timeLabel } from '@/lib/format';
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
@@ -20,7 +21,7 @@ export default function RequestRow({ booking }) {
   const late = hours !== null && hours <= 0;
   const closing = hours !== null && hours > 0 && hours <= 12;
 
-  const meta = [booking.event_time, date, booking.location].filter(Boolean).join(' · ');
+  const meta = [timeLabel(booking.event_time), date, booking.location].filter(Boolean).join(' · ');
 
   return (
     <Link to={`/lensman-dashboard/requests/${booking.id}`} className="wk-row">

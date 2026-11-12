@@ -155,13 +155,13 @@ export default function DeliveryPhotos({ booking, role, onChanged }) {
   return (
     <div
       className="mt-4 rounded-2xl p-4"
-      style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+      style={{ background: 'var(--fill)', border: '1px solid var(--line)' }}
     >
       <div className="flex items-center justify-between gap-3">
-        <p className="text-[11px] font-semibold text-white/40">
+        <p className="text-[11px] font-semibold text-fg-3">
           {isCreator ? 'PHOTOS FOR YOUR CLIENT' : `YOUR PHOTOS${photos.length ? ` · ${photos.length}` : ''}`}
         </p>
-        {!isCreator && photos.length > 0 && <Images className="h-4 w-4 shrink-0 text-white/30" />}
+        {!isCreator && photos.length > 0 && <Images className="h-4 w-4 shrink-0 text-fg-3" />}
       </div>
 
       {photos.length > 0 && (
@@ -182,7 +182,7 @@ export default function DeliveryPhotos({ booking, role, onChanged }) {
                   onClick={() => remove(photo.id)}
                   disabled={busy}
                   aria-label="Remove photo"
-                  className="absolute right-1.5 top-1.5 grid h-6 w-6 place-items-center rounded-full bg-black/60 text-white/80 backdrop-blur-sm transition-colors hover:text-white disabled:opacity-40"
+                  className="absolute right-1.5 top-1.5 grid h-6 w-6 place-items-center rounded-full bg-black/60 text-fg-2 backdrop-blur-sm transition-colors hover:text-fg disabled:opacity-40"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -193,7 +193,7 @@ export default function DeliveryPhotos({ booking, role, onChanged }) {
       )}
 
       {isCreator && locked && (
-        <p className="mt-3 text-[12px] leading-relaxed text-white/40">
+        <p className="mt-3 text-[12px] leading-relaxed text-fg-3">
           Delivered. The album is locked so your client keeps exactly what you sent.
         </p>
       )}
@@ -244,26 +244,26 @@ export default function DeliveryPhotos({ booking, role, onChanged }) {
                     href={albumLink}
                     target="_blank"
                     rel="noreferrer"
-                    className="glass flex flex-1 items-center justify-center gap-2 rounded-[980px] px-4 py-3 text-[14px] font-semibold text-white transition-transform active:scale-[0.96]"
+                    className="st-card flex flex-1 items-center justify-center gap-2 rounded-[980px] px-4 py-3 text-[14px] font-semibold text-fg transition-transform active:scale-[0.96]"
                   >
                     <Eye className="h-4 w-4" /> Preview album
                   </a>
                 )}
-                <Pill as="button" type="button" tone="glass" onClick={copyAlbumLink} className="flex-1 py-3">
+                <Pill as="button" type="button" tone="st-card" onClick={copyAlbumLink} className="flex-1 py-3">
                   {linkCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   {linkCopied ? 'Copied' : 'Copy link'}
                 </Pill>
               </div>
             </>
           )}
-          <p className="text-center text-[11px] text-white/30">
+          <p className="text-center text-[11px] text-fg-3">
             Photos save to the album first. {clientFirst} is not emailed until you send. Up to 20 at a time.
           </p>
         </div>
       )}
 
       {error && (
-        <p className="mt-3 text-[13px]" style={{ color: 'hsl(var(--neon-magenta))' }}>
+        <p className="mt-3 text-[13px]" style={{ color: 'var(--danger)' }}>
           {error}
         </p>
       )}

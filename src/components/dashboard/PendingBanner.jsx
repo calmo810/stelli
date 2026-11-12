@@ -7,7 +7,7 @@ export default function PendingBanner({ children = 'Your profile is under review
       <span
         aria-hidden
         className="h-2.5 w-2.5 shrink-0 rounded-full"
-        style={{ background: `hsl(var(--neon-${tone}))` }}
+        style={{ background: `var(--chip-${tone}-fg)` }}
       />
       <p className="wk-body">{children}</p>
     </div>

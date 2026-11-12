@@ -1,16 +1,13 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { isPast, nextSteps } from '@/lib/bookingNextStep';
+import useCurrentUser from '@/hooks/useCurrentUser';
 
 /** Everything the client's dashboard and its sheets read. */
 export default function useClientDashboard() {
   const queryClient = useQueryClient();
 
-  const { data: user, isLoading: userLoading } = useQuery({
-    queryKey: ['me'],
-    queryFn: () => base44.auth.me(),
-    retry: false,
-  });
+  const { user, isLoading: userLoading } = useCurrentUser();
 
   const { data: bookings = [], isLoading } = useQuery({
     queryKey: ['client-bookings', user?.id, user?.email],

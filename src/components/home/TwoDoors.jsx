@@ -27,7 +27,7 @@ export default function TwoDoors() {
   return (
     <section className="max-w-[1040px] mx-auto px-3 sm:px-5 md:px-10 py-[40px] md:py-[56px]">
       <h2
-        className="text-center font-display font-medium leading-[1.08] tracking-[-0.02em] text-white/70"
+        className="text-center font-display font-medium leading-[1.08] tracking-[-0.02em] text-fg-2"
         style={{ fontSize: 'clamp(22px, 2.6vw, 34px)' }}
       >
         Which one are you?
@@ -65,7 +65,7 @@ export default function TwoDoors() {
             </p>
 
             <p
-              className="mt-2.5 text-white/85 max-w-[300px] leading-[1.4]"
+              className="mt-2.5 text-fg max-w-[300px] leading-[1.4]"
               style={{ fontSize: 'clamp(13px, 1.3vw, 17px)' }}
             >
               {tile.line}

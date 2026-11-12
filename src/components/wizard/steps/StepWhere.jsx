@@ -1,5 +1,5 @@
 import React from 'react';
-import { HOT_SPOTS, SPOTS } from '@/lib/wizardData';
+import { HOT_SPOTS, SPOTS } from '@/lib/creatorProfile';
 
 export default function StepWhere({ w }) {
   const picked = w.s.where;

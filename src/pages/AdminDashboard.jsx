@@ -17,18 +17,18 @@ import CreatorHoldButton from '@/components/admin/CreatorHoldButton';
 import { founderQueue } from '@/lib/founderQueue';
 
 const SURFACE = {
-  background: 'linear-gradient(145deg, hsl(var(--surface-2) / .86), hsl(var(--surface) / .94))',
+  background: 'var(--st-card)',
   borderRadius: 22,
-  boxShadow: 'inset 0 1px 0 rgba(255,255,255,.08), 0 18px 42px -30px rgba(0,0,0,.78)',
+  boxShadow: 'inset 0 1px 0 var(--line), 0 18px 42px -30px rgba(0,0,0,.78)',
 };
 const CARD = 'admin-surface';
 
 function Pill({ children, tone = 'cyan' }) {
-  const color = `hsl(var(--neon-${tone}))`;
+  const color = `var(--chip-${tone}-fg)`;
   return (
     <span
-      className="label-mono inline-flex rounded-full px-2.5 py-1.5 text-[8px] font-semibold"
-      style={{ background: `hsl(var(--neon-${tone}) / 0.12)`, color }}
+      className="st-kicker inline-flex rounded-full px-2.5 py-1.5 text-[8px] font-semibold"
+      style={{ background: `var(--chip-${tone}-bg)`, color }}
     >
       {children}
     </span>
@@ -117,44 +117,44 @@ export default function AdminDashboard() {
   });
 
   const stats = [
-    { icon: Users, label: 'Active creators', value: approved.length, color: 'hsl(var(--neon-lime))', people: approved.slice(0, 4) },
-    { icon: Calendar, label: 'Total bookings', value: bookings.length, color: 'hsl(var(--neon-magenta))' },
-    { icon: DollarSign, label: 'Fees earned', value: feesEarnedLabel, color: 'hsl(var(--neon-lime))' },
-    { icon: ClipboardCheck, label: 'Awaiting review', value: loadingLensmen ? '—' : pendingApplications.length, color: 'hsl(var(--neon-cyan))' },
+    { icon: Users, label: 'Active creators', value: approved.length, color: 'var(--st-accent)', people: approved.slice(0, 4) },
+    { icon: Calendar, label: 'Total bookings', value: bookings.length, color: 'var(--danger)' },
+    { icon: DollarSign, label: 'Fees earned', value: feesEarnedLabel, color: 'var(--st-accent)' },
+    { icon: ClipboardCheck, label: 'Awaiting review', value: loadingLensmen ? '—' : pendingApplications.length, color: 'var(--st-accent)' },
   ];
 
   return (
     <div className="admin-shell min-h-screen">
-      <div className="mx-auto max-w-[1400px] px-5 py-7 md:px-10 md:py-10">
+      <div className="st-wrap st-wrap--wide pb-16 pt-3"><div className="st-sheet st-paper">
         <motion.section
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-          className="admin-hero p-6 sm:p-8 lg:p-10"
+          className="admin-hero st-card--ink p-6 sm:p-8 lg:p-10"
         >
           <div className="relative z-10 flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
-              <p className="admin-kicker label-mono text-[8px]"><Sparkles className="h-3 w-3" aria-hidden="true" /> Internal command center</p>
-              <h1 className="mt-5 font-heading text-white font-semibold leading-[0.9] tracking-[-0.055em]" style={{ fontSize: 'clamp(42px, 6vw, 78px)' }}>
-                Stelli <span className="text-neon-lime">operations.</span>
+              <p className="admin-kicker st-kicker"><Sparkles className="h-3 w-3" aria-hidden="true" /> Internal command center</p>
+              <h1 className="mt-5 text-fg font-semibold leading-[0.9] tracking-[-0.055em]" style={{ fontSize: 'clamp(42px, 6vw, 78px)' }}>
+                Stelli <span className="text-accent2">operations.</span>
               </h1>
-              <p className="mt-5 max-w-xl font-body text-[14px] leading-relaxed text-white/55">
+              <p className="mt-5 max-w-xl text-[14px] leading-relaxed text-fg-3">
                 A focused workspace for approvals, bookings, payouts, and the day-to-day running of the marketplace.
               </p>
-              <p className="mt-3 font-body text-[12px] text-white/40">
+              <p className="mt-3 text-[12px] text-fg-3">
                 This page can move money. Keep two-factor sign-in on for this account.{' '}
-                <a href="/mfa?returnTo=%2Fadmin" className="underline underline-offset-4 hover:text-white">Set up or check</a>
+                <a href="/mfa?returnTo=%2Fadmin" className="underline underline-offset-4 hover:text-fg">Set up or check</a>
               </p>
             </div>
 
             <button
               type="button"
               onClick={() => setActiveTab('applications')}
-              className="group relative z-10 flex min-w-[245px] items-center justify-between rounded-[20px] border border-neon-cyan/25 bg-neon-cyan/[0.09] p-4 text-left transition hover:border-neon-cyan/55 hover:bg-neon-cyan/[0.13]"
+              className="group relative z-10 flex min-w-[245px] items-center justify-between rounded-[20px] border border-line-2 bg-[var(--chip-cyan-bg)] p-4 text-left transition hover:border-line-2 hover:bg-[var(--chip-cyan-bg)]"
             >
               <span>
-                <span className="label-mono text-[8px] text-neon-cyan">Next up</span>
-                <span className="mt-2 block text-[14px] font-semibold text-white">
+                <span className="st-kicker text-accent2">Next up</span>
+                <span className="mt-2 block text-[14px] font-semibold text-fg">
                   {pendingApplications.length ? pendingApplications.length + ' creator application' + (pendingApplications.length === 1 ? '' : 's') + ' waiting' : 'Review queue is clear'}
                 </span>
               </span>
@@ -188,24 +188,24 @@ export default function AdminDashboard() {
                         <span
                           key={creator.id}
                           title={creator.display_name || 'Creator'}
-                          className="-ml-3 grid h-9 w-9 place-items-center rounded-full border-2 border-[hsl(var(--surface-2))] bg-neon-lime/15 text-[10px] font-semibold text-neon-lime first:ml-0"
+                          className="-ml-3 grid h-9 w-9 place-items-center rounded-full border-2 border-[hsl(var(--surface-2))] bg-fill-2 text-[10px] font-semibold text-accent2 first:ml-0"
                           style={{ zIndex: stat.people.length - index }}
                         >
                           {(creator.display_name || 'C').slice(0, 1).toUpperCase()}
                         </span>
                       )
                     )) : (
-                      <span className="label-mono text-[8px] text-white/35">No profiles yet</span>
+                      <span className="st-kicker text-fg-3">No profiles yet</span>
                     )}
                   </div>
                 ) : (
-                  <span className="label-mono text-[8px] text-white/30">Live</span>
+                  <span className="st-kicker text-fg-3">Live</span>
                 )}
               </div>
-              <p className="mt-6 font-heading text-4xl font-semibold leading-none text-white">{stat.value}</p>
-              <p className="mt-2 label-mono text-[8px] text-white/42">{stat.label}</p>
+              <p className="mt-6 text-4xl font-semibold leading-none text-fg">{stat.value}</p>
+              <p className="mt-2 st-kicker text-fg-3">{stat.label}</p>
               {stat.people && stat.people.length > 0 && (
-                <p className="mt-3 text-[11px] text-white/35">The faces in your marketplace</p>
+                <p className="mt-3 text-[11px] text-fg-3">The faces in your marketplace</p>
               )}
             </div>
           ))}
@@ -213,31 +213,31 @@ export default function AdminDashboard() {
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-8">
           <TabsList className="admin-tabbar mb-8 h-auto w-full justify-start">
-            <TabsTrigger value="overview" className="admin-tab shrink-0 gap-2 px-4 label-mono text-[9px]">
+            <TabsTrigger value="overview" className="admin-tab shrink-0 gap-2 px-4 st-kicker">
               <LayoutDashboard className="h-3.5 w-3.5" /> Overview
             </TabsTrigger>
-            <TabsTrigger value="applications" className="admin-tab shrink-0 gap-2 px-4 label-mono text-[9px]">
-              <ClipboardCheck className="h-3.5 w-3.5" /> Applications <span className="rounded-full bg-black/10 px-1.5 py-0.5">{pendingApplications.length}</span>
+            <TabsTrigger value="applications" className="admin-tab shrink-0 gap-2 px-4 st-kicker">
+              <ClipboardCheck className="h-3.5 w-3.5" /> Applications <span className="rounded-full bg-[var(--field)] px-1.5 py-0.5">{pendingApplications.length}</span>
             </TabsTrigger>
-            <TabsTrigger value="lensmen" className="admin-tab shrink-0 gap-2 px-4 label-mono text-[9px]">
-              <Users className="h-3.5 w-3.5" /> Creators <span className="rounded-full bg-black/10 px-1.5 py-0.5">{approved.length}</span>
+            <TabsTrigger value="lensmen" className="admin-tab shrink-0 gap-2 px-4 st-kicker">
+              <Users className="h-3.5 w-3.5" /> Creators <span className="rounded-full bg-[var(--field)] px-1.5 py-0.5">{approved.length}</span>
             </TabsTrigger>
-            <TabsTrigger value="bookings" className="admin-tab shrink-0 gap-2 px-4 label-mono text-[9px]">
-              <Calendar className="h-3.5 w-3.5" /> Bookings <span className="rounded-full bg-black/10 px-1.5 py-0.5">{bookings.length}</span>
+            <TabsTrigger value="bookings" className="admin-tab shrink-0 gap-2 px-4 st-kicker">
+              <Calendar className="h-3.5 w-3.5" /> Bookings <span className="rounded-full bg-[var(--field)] px-1.5 py-0.5">{bookings.length}</span>
             </TabsTrigger>
-            <TabsTrigger value="flagged" className="admin-tab shrink-0 gap-2 px-4 label-mono text-[9px]">
-              <CircleDollarSign className="h-3.5 w-3.5" /> Needs you <span className="rounded-full bg-black/10 px-1.5 py-0.5">{heldFunds.length}</span>
+            <TabsTrigger value="flagged" className="admin-tab shrink-0 gap-2 px-4 st-kicker">
+              <CircleDollarSign className="h-3.5 w-3.5" /> Needs you <span className="rounded-full bg-[var(--field)] px-1.5 py-0.5">{heldFunds.length}</span>
             </TabsTrigger>
-            <TabsTrigger value="pay" className="admin-tab shrink-0 gap-2 px-4 label-mono text-[9px]">
+            <TabsTrigger value="pay" className="admin-tab shrink-0 gap-2 px-4 st-kicker">
               <DollarSign className="h-3.5 w-3.5" /> Pay creators
             </TabsTrigger>
-            <TabsTrigger value="charge" className="admin-tab shrink-0 gap-2 px-4 label-mono text-[9px]">
+            <TabsTrigger value="charge" className="admin-tab shrink-0 gap-2 px-4 st-kicker">
               <DollarSign className="h-3.5 w-3.5" /> Payments
             </TabsTrigger>
-            <TabsTrigger value="faq" className="admin-tab shrink-0 gap-2 px-4 label-mono text-[9px]">
+            <TabsTrigger value="faq" className="admin-tab shrink-0 gap-2 px-4 st-kicker">
               <MessageCircle className="h-3.5 w-3.5" /> FAQ chat
             </TabsTrigger>
-            <TabsTrigger value="activity" className="admin-tab shrink-0 gap-2 px-4 label-mono text-[9px]">
+            <TabsTrigger value="activity" className="admin-tab shrink-0 gap-2 px-4 st-kicker">
               <History className="h-3.5 w-3.5" /> Activity
             </TabsTrigger>
           </TabsList>
@@ -287,9 +287,9 @@ export default function AdminDashboard() {
           <TabsContent value="lensmen" className="space-y-5">
             <section className="admin-surface flex flex-col gap-5 p-5 sm:flex-row sm:items-end sm:justify-between sm:p-6">
               <div>
-                <p className="admin-kicker label-mono text-[8px]"><Users className="h-3 w-3" aria-hidden="true" /> Marketplace talent</p>
-                <h2 className="mt-4 font-heading text-3xl font-semibold tracking-tight text-white">Active creators</h2>
-                <p className="mt-2 font-body text-[13px] text-white/45">The people clients can currently discover and book.</p>
+                <p className="admin-kicker st-kicker"><Users className="h-3 w-3" aria-hidden="true" /> Marketplace talent</p>
+                <h2 className="mt-4 text-3xl font-semibold tracking-tight text-fg">Active creators</h2>
+                <p className="mt-2 text-[13px] text-fg-3">The people clients can currently discover and book.</p>
               </div>
               <label className="relative block w-full sm:max-w-[330px]">
                 <span className="sr-only">Search active creators</span>
@@ -298,16 +298,16 @@ export default function AdminDashboard() {
                   value={creatorSearch}
                   onChange={(event) => setCreatorSearch(event.target.value)}
                   placeholder="Search name, specialty, or area…"
-                  className="w-full rounded-2xl border border-white/12 bg-black/15 px-4 py-3 text-[13px] text-white placeholder:text-white/35 transition focus:border-neon-lime/60 focus:outline-none focus:ring-2 focus:ring-neon-lime/15"
+                  className="w-full rounded-2xl border border-line bg-[var(--field)] px-4 py-3 text-[13px] text-fg placeholder:text-fg-3 transition focus:border-[var(--st-ring)] focus:outline-none focus:ring-2 focus:ring-neon-lime/15"
                 />
               </label>
             </section>
 
             {lensmenError ? (
-              <p role="alert" className="rounded-2xl border border-neon-magenta/30 bg-neon-magenta/5 p-4 text-[13px] text-white/70">Creator profiles could not be loaded. Refresh the page and try again.</p>
+              <p role="alert" className="rounded-2xl border border-[var(--chip-magenta-fg)] bg-[var(--chip-magenta-bg)] p-4 text-[13px] text-fg-2">Creator profiles could not be loaded. Refresh the page and try again.</p>
             ) : loadingLensmen ? (
               <div className="grid gap-3 md:grid-cols-2">
-                {Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-32 rounded-[22px] bg-white/5" />)}
+                {Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-32 rounded-[22px] bg-fill" />)}
               </div>
             ) : filteredCreators.length ? (
               <div className="grid gap-3 md:grid-cols-2">
@@ -321,24 +321,24 @@ export default function AdminDashboard() {
                         className="h-16 w-16 shrink-0 rounded-[20px] object-cover ring-1 ring-white/12"
                       />
                     ) : (
-                      <span className="grid h-16 w-16 shrink-0 place-items-center rounded-[20px] bg-neon-lime/12 text-lg font-semibold text-neon-lime">
+                      <span className="grid h-16 w-16 shrink-0 place-items-center rounded-[20px] bg-fill-2 text-lg font-semibold text-accent2">
                         {(creator.display_name || 'C').slice(0, 1).toUpperCase()}
                       </span>
                     )}
 
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="truncate font-heading text-[19px] font-semibold leading-tight text-white">{creator.display_name || 'Stelli creator'}</h3>
+                        <h3 className="truncate text-[19px] font-semibold leading-tight text-fg">{creator.display_name || 'Stelli creator'}</h3>
                         {creator.under_review ? (
-                          <span className="label-mono rounded-full bg-neon-magenta/12 px-2 py-1 text-[7px] text-neon-magenta">On hold</span>
+                          <span className="st-kicker rounded-full bg-[var(--chip-magenta-bg)] px-2 py-1 text-[7px] text-danger">On hold</span>
                         ) : (
-                          <span className="label-mono rounded-full bg-neon-lime/12 px-2 py-1 text-[7px] text-neon-lime">Live</span>
+                          <span className="st-kicker rounded-full bg-fill-2 px-2 py-1 text-[7px] text-accent2">Live</span>
                         )}
                       </div>
-                      <p className="mt-2 truncate text-[12px] text-white/45">
+                      <p className="mt-2 truncate text-[12px] text-fg-3">
                         {creator.neighborhoods?.join(' · ') || 'Area not listed'}
                       </p>
-                      <p className="mt-1 truncate text-[12px] text-white/35">
+                      <p className="mt-1 truncate text-[12px] text-fg-3">
                         {creator.specialties?.slice(0, 2).join(' · ') || 'Specialties not listed'}
                       </p>
                     </div>
@@ -346,7 +346,7 @@ export default function AdminDashboard() {
                     <div className="flex shrink-0 flex-col items-end gap-2 text-right">
                       <div className="hidden sm:block">
                         <RatingDisplay rating={creator.avg_rating} reviewCount={creator.review_count} />
-                        <p className="mt-2 label-mono text-[8px] text-white/35">{creator.review_count || 0} review{creator.review_count === 1 ? '' : 's'}</p>
+                        <p className="mt-2 st-kicker text-fg-3">{creator.review_count || 0} review{creator.review_count === 1 ? '' : 's'}</p>
                       </div>
                       <CreatorHoldButton lensman={creator} />
                     </div>
@@ -355,7 +355,7 @@ export default function AdminDashboard() {
               </div>
             ) : (
               <div className="admin-surface p-12 text-center">
-                <p className="font-body text-[13px] text-white/40">
+                <p className="text-[13px] text-fg-3">
                   {approved.length ? 'No creators match that search.' : 'No approved creators yet.'}
                 </p>
               </div>
@@ -371,7 +371,7 @@ export default function AdminDashboard() {
                   value={bookingSearch}
                   onChange={(event) => setBookingSearch(event.target.value)}
                   placeholder="Search client, creator, event, or date…"
-                  className="w-full rounded-2xl border border-white/12 bg-black/15 px-4 py-3 text-[13px] text-white placeholder:text-white/35 transition focus:border-neon-lime/60 focus:outline-none focus:ring-2 focus:ring-neon-lime/15"
+                  className="w-full rounded-2xl border border-line bg-[var(--field)] px-4 py-3 text-[13px] text-fg placeholder:text-fg-3 transition focus:border-[var(--st-ring)] focus:outline-none focus:ring-2 focus:ring-neon-lime/15"
                 />
               </label>
               <label className="block sm:w-[220px]">
@@ -379,7 +379,7 @@ export default function AdminDashboard() {
                 <select
                   value={bookingStatus}
                   onChange={(event) => setBookingStatus(event.target.value)}
-                  className="w-full rounded-2xl border border-white/12 bg-[hsl(var(--surface))] px-4 py-3 text-[13px] text-white transition focus:border-neon-lime/60 focus:outline-none focus:ring-2 focus:ring-neon-lime/15"
+                  className="w-full rounded-2xl border border-line bg-[var(--field)] px-4 py-3 text-[13px] text-fg transition focus:border-[var(--st-ring)] focus:outline-none focus:ring-2 focus:ring-neon-lime/15"
                 >
                   <option value="all">All statuses</option>
                   {bookingStatuses.map((status) => <option key={status} value={status}>{status.replace(/_/g, ' ')}</option>)}
@@ -387,28 +387,28 @@ export default function AdminDashboard() {
               </label>
             </div>
             {bookingsError ? (
-              <p role="alert" className="border border-neon-magenta/30 p-4 text-[13px] text-white/70">Bookings could not be loaded. Refresh the page and try again.</p>
+              <p role="alert" className="border border-[var(--chip-magenta-fg)] p-4 text-[13px] text-fg-2">Bookings could not be loaded. Refresh the page and try again.</p>
             ) : loadingBookings ? (
               Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-20" />)
             ) : filteredBookings.length > 0 ? (
               filteredBookings.map(b => (
                 <div key={b.id} className={`${CARD} p-5 flex items-center justify-between gap-4`} style={SURFACE}>
                   <div>
-                    <h3 className="font-heading text-[18px] font-semibold text-white capitalize leading-tight">
+                    <h3 className="text-[18px] font-semibold text-fg capitalize leading-tight">
                       {b.event_type?.replace(/_/g, ' ') || 'Booking'}
                     </h3>
-                    <p className="label-mono text-[9px] text-white/40 mt-2">
+                    <p className="st-kicker text-fg-3 mt-2">
                       {b.client_name} → {b.lensman_name} · {b.event_date}
                     </p>
                   </div>
                   <div className="flex items-center gap-4 shrink-0">
-                    <span className="font-heading text-[18px] font-semibold text-white">${b.total_price || 0}</span>
+                    <span className="text-[18px] font-semibold text-fg">${b.total_price || 0}</span>
                     <Pill>{b.status?.replace(/_/g, ' ')}</Pill>
                   </div>
                 </div>
               ))
             ) : (
-              <p className="font-body text-[13px] text-center py-20 text-white/35">
+              <p className="text-[13px] text-center py-20 text-fg-3">
                 {bookings.length ? 'No bookings match those filters.' : 'No bookings yet.'}
               </p>
             )}
@@ -418,7 +418,7 @@ export default function AdminDashboard() {
             <FounderQueueList bookings={bookings} strays={strays} />
           </TabsContent>
         </Tabs>
-      </div>
+      </div></div>
     </div>
   );
 }

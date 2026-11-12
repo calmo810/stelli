@@ -1,5 +1,5 @@
 import React from 'react';
-import { TIER_LEVELS } from '@/lib/wizardData';
+import { LIMITS, TIER_LEVELS } from '@/lib/creatorProfile';
 import DurationPicker from '@/components/wizard/DurationPicker';
 
 export default function StepPricing({ w }) {
@@ -39,7 +39,7 @@ export default function StepPricing({ w }) {
                   <input
                     className="inp"
                     value={tier.name}
-                    maxLength={28}
+                    maxLength={LIMITS.tier_name}
                     placeholder="Package name"
                     onChange={(event) => setTier(i, { name: event.target.value })}
                   />
@@ -69,7 +69,7 @@ export default function StepPricing({ w }) {
                   <span className="mini-lbl">What's included</span>
                   <input
                     className="inp"
-                    maxLength={60}
+                    maxLength={LIMITS.tier_includes}
                     value={tier.includes}
                     placeholder="e.g. 15 edited photos, 1 location"
                     onChange={(event) => setTier(i, { includes: event.target.value })}
@@ -80,7 +80,10 @@ export default function StepPricing({ w }) {
           );
         })}
       </div>
-      <p className="hint">Turn off any tier you don't want to offer. At least one priced package is needed to publish.</p>
+      <p className="hint">
+        Turn off any tier you don't want to offer. Packages are your own starting point for quotes: clients never see
+        them on your page.{w.existing ? '' : ' At least one priced package is needed to publish.'}
+      </p>
     </>
   );
 }

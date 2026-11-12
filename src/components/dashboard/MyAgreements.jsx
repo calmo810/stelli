@@ -25,24 +25,24 @@ export default function MyAgreements({ role = 'client', light = false, userId = 
 
   const shell = light
     ? 'overflow-hidden rounded-[24px] bg-white'
-    : 'glass overflow-hidden rounded-3xl';
+    : 'st-card overflow-hidden rounded-3xl';
   const row = light
     ? 'flex items-center gap-3.5 px-[18px] py-3 transition-colors hover:bg-[#f2f4f8]'
-    : 'flex items-center gap-3.5 px-[18px] py-3 transition-colors hover:bg-white/[0.05]';
-  const divider = light ? ' border-t border-[rgba(10,18,38,0.08)]' : ' border-t border-white/[0.08]';
-  const name = light ? 'text-ink' : 'text-white';
-  const meta = light ? 'wk-mute' : 'text-white/45';
-  const chevron = light ? 'wk-mute' : 'text-white/35';
+    : 'flex items-center gap-3.5 px-[18px] py-3 transition-colors hover:bg-fill-2';
+  const divider = light ? ' border-t border-[rgba(10,18,38,0.08)]' : ' border-t border-line';
+  const name = light ? 'text-ink' : 'text-fg';
+  const meta = light ? 'wk-mute' : 'text-fg-3';
+  const chevron = light ? 'wk-mute' : 'text-fg-3';
 
   return (
     <section className="mt-8">
       <div className="mb-2.5 flex items-baseline justify-between pl-1.5 pr-1.5">
-        <h3 className="text-[13px] font-semibold text-white/50">Agreements</h3>
-        {contracts.length > 0 && <span className="text-[12px] text-white/35">{contracts.length} signed</span>}
+        <h3 className="text-[13px] font-semibold text-fg-3">Agreements</h3>
+        {contracts.length > 0 && <span className="text-[12px] text-fg-3">{contracts.length} signed</span>}
       </div>
 
       {isLoading ? (
-        <div className={`${light ? 'bg-white' : 'glass'} h-[58px] animate-pulse rounded-3xl`} />
+        <div className={`${light ? 'bg-white' : 'st-card'} h-[58px] animate-pulse rounded-3xl`} />
       ) : (
         <div className={shell}>
           {contracts.map((contract, i) => (

@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
@@ -40,6 +40,7 @@ const Onboarding = lazy(() => import('./pages/Onboarding'));
 const Portal = lazy(() => import('./pages/Portal'));
 const AccountSettings = lazy(() => import('./pages/AccountSettings'));
 import AdminRoute from '@/components/AdminRoute';
+import ErrorBoundary from '@/components/shared/ErrorBoundary';
 import LegacyRedirect from '@/components/LegacyRedirect';
 
 // Old portal sub-pages now live on the one portal page. Keep any ?query (e.g. Stripe's payout return).
@@ -48,14 +49,23 @@ const ToPortal = ({ to }) => {
   return <Navigate to={`${to}${search}`} replace />;
 };
 
+// Sending someone to sign in is a side effect, so it happens after the
+// render, not in the middle of one.
+const RedirectToLogin = ({ go }) => {
+  useEffect(() => {
+    go();
+  }, [go]);
+  return null;
+};
+
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+      <div className="fixed inset-0 flex items-center justify-center bg-ink" role="status" aria-label="Loading Stelli">
+        <div className="w-8 h-8 border-4 border-white/15 border-t-white rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -66,8 +76,7 @@ const AuthenticatedApp = () => {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
       // Redirect to login automatically
-      navigateToLogin();
-      return null;
+      return <RedirectToLogin go={navigateToLogin} />;
     }
   }
 
@@ -135,7 +144,9 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <ScrollToTop />
-          <AuthenticatedApp />
+          <ErrorBoundary>
+            <AuthenticatedApp />
+          </ErrorBoundary>
         </Router>
         <Toaster />
       </QueryClientProvider>

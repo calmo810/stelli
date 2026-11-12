@@ -37,7 +37,7 @@ const HIGHLIGHT = {
   background: 'hsl(var(--neon-lime))',
   color: 'hsl(var(--ink))',
   padding: '.02em .22em .06em',
-  borderRadius: 6,
+  borderRadius: 16,
   WebkitBoxDecorationBreak: 'clone',
   boxDecorationBreak: 'clone',
 };
@@ -204,24 +204,24 @@ export default function HeroVideo() {
           <div className="flex flex-wrap justify-center" style={{ marginTop: 40, gap: 12 }}>
             <Link
               to="/creators"
-              className="label-mono text-[11px] font-semibold w-full sm:w-auto text-center transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-0.5"
+              className="st-kicker font-semibold w-full sm:w-auto text-center transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-0.5"
               style={{
                 ...BUTTON,
                 background: 'hsl(var(--neon-lime))',
                 color: 'hsl(var(--ink))',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,.45), 0 10px 30px -10px hsl(var(--neon-lime) / 0.55)',
+                boxShadow: 'inset 0 1px 0 var(--fg-3), 0 10px 30px -10px hsl(var(--neon-lime) / 0.55)',
               }}
             >
               Book a creator
             </Link>
             <Link
               to="/register?role=creator"
-              className="label-mono text-[11px] font-semibold w-full sm:w-auto text-center transition-colors duration-300 hover:bg-white/10"
+              className="st-kicker font-semibold w-full sm:w-auto text-center transition-colors duration-300 hover:bg-fill-2"
               style={{
                 ...BUTTON,
-                border: '1px solid rgba(255,255,255,0.3)',
+                border: '1px solid var(--line-2)',
                 color: '#fff',
-                background: 'rgba(255,255,255,0.04)',
+                background: 'var(--fill)',
                 backdropFilter: 'blur(12px) saturate(1.4)',
                 WebkitBackdropFilter: 'blur(12px) saturate(1.4)',
               }}

@@ -48,13 +48,12 @@ export default function BrowseFilters({ filters, value, onChange, count = 0 }) {
     <div className="flex w-full flex-wrap items-end justify-between gap-x-6 gap-y-4">
       <div>
         <h1
-          className="font-semibold leading-[1.05] tracking-[-0.025em] text-white"
-          style={{ fontSize: 'clamp(26px, 3vw, 38px)' }}
+          className="st-h1"
         >
-          Creators at Elon
+          Creators at <span className="st-serif text-neon-lime">Elon</span>
         </h1>
-        <p className="mt-1.5 text-[14px] text-white/45 tabular-nums" aria-live="polite">
-          <b className="font-semibold text-white">{shown}</b> available to book
+        <p className="mt-2 text-[15px] text-fg-2 tabular-nums" aria-live="polite">
+          <b className="font-semibold text-fg">{shown}</b> available to book
         </p>
       </div>
 
@@ -62,7 +61,7 @@ export default function BrowseFilters({ filters, value, onChange, count = 0 }) {
         ref={rowRef}
         role="group"
         aria-label="Filter creators"
-        className="relative inline-flex max-w-full overflow-x-auto rounded-full border border-white/10 bg-surface p-[5px] no-scrollbar"
+        className="relative inline-flex max-w-full overflow-x-auto rounded-full border border-line bg-[var(--st-card)] p-[5px] no-scrollbar"
       >
         <span
           aria-hidden="true"
@@ -82,8 +81,8 @@ export default function BrowseFilters({ filters, value, onChange, count = 0 }) {
             type="button"
             aria-pressed={value === filter.id}
             onClick={() => value !== filter.id && onChange(filter.id)}
-            className="relative z-[1] whitespace-nowrap rounded-full px-[18px] py-2.5 text-[14px] font-medium transition-colors duration-300"
-            style={{ color: value === filter.id ? 'hsl(var(--ink))' : 'rgba(255,255,255,0.55)' }}
+            className="relative z-[1] whitespace-nowrap rounded-full px-[18px] min-h-[42px] text-[14px] font-bold transition-colors duration-300"
+            style={{ color: value === filter.id ? 'hsl(var(--ink))' : 'var(--fg-2)' }}
           >
             {filter.label}
           </button>

@@ -370,66 +370,8 @@
 }
 .ring::after{content:"";display:block;width:14px;height:14px;margin:4px;border-radius:50%;background:var(--bg)}
 
-/* ============ PROFILE RENDER ============ */
-.profile{
-  --p-accent:#C4F82A;--p-bg:#0d1324;--p-panel:#151c33;--p-text:#ffffff;--p-dim:#9aa3b8;--p-line:#232b45;--p-ink:#0a0f1e;
-  background:var(--p-bg);color:var(--p-text);font-size:14px;min-height:100%;padding-bottom:18px;
-}
-.profile.theme-clean{--p-bg:#f4f6f8;--p-panel:#ffffff;--p-text:#0a0f1e;--p-dim:#6b7389;--p-line:#e2e6ea;--p-ink:#fff}
-.profile.acc-lime{--p-accent:#C4F82A}
-.profile.acc-cyan{--p-accent:#2AE8F8}
-.profile.acc-magenta{--p-accent:#F82AC4}
-.profile.theme-clean.acc-lime{--p-accent:#7f9800}
-.profile.theme-clean.acc-cyan{--p-accent:#0e8f99}
-.profile.theme-clean.acc-magenta{--p-accent:#b3268f}
-.p-hero{position:relative;aspect-ratio:4/4.4;overflow:hidden}
-.p-hero img,.p-hero .ph{width:100%;height:100%;object-fit:cover;display:block}
-.p-hero::after{content:"";position:absolute;inset:0;background:linear-gradient(to top,var(--p-bg) 2%,transparent 50%)}
-.p-id{position:relative;z-index:2;margin-top:-58px;padding:0 20px}
-.p-ava{
-  width:58px;height:58px;border-radius:50%;overflow:hidden;border:3px solid var(--p-bg);
-  background:var(--p-panel);display:flex;align-items:center;justify-content:center;
-  font-weight:600;font-size:20px;color:var(--p-dim);
-}
-.p-ava img{width:100%;height:100%;object-fit:cover}
-.p-name{font-family:var(--serif);font-weight:600;font-size:26px;letter-spacing:-.01em;margin-top:8px;line-height:1.1}
-.p-tags{color:var(--p-dim);font-size:13px;margin-top:4px}
-.p-meta{color:var(--p-dim);font-size:11.5px;margin-top:6px;display:flex;align-items:center;gap:6px}
-.p-meta .new{color:var(--p-accent);font-weight:600}
-.p-book{
-  display:flex;align-items:center;justify-content:center;margin-top:14px;height:44px;border-radius:999px;
-  background:var(--p-accent);color:var(--p-ink);font-weight:600;font-size:14px;
-}
-.p-from{text-align:center;font-size:11.5px;color:var(--p-dim);margin-top:8px}
-.p-oneliner{font-style:italic;font-size:15px;line-height:1.45}
-.p-section{padding:16px 20px;border-top:1px solid var(--p-line);margin-top:14px}
-.p-section+.p-section{margin-top:0}
-.p-sec-label{font-size:10px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--p-dim);margin-bottom:10px}
-.p-body{font-size:13.5px;line-height:1.55;opacity:.92}
-.p-chiprow{display:flex;flex-wrap:wrap;gap:6px}
-.p-chip{border:1px solid var(--p-line);color:var(--p-dim);border-radius:999px;padding:5px 11px;font-size:12px}
-.p-pkgs{display:flex;flex-direction:column;gap:8px}
-.p-pkg{border:1px solid var(--p-line);background:var(--p-panel);border-radius:14px;padding:12px 14px;display:flex;justify-content:space-between;gap:10px;align-items:center}
-.p-pkg-name{font-weight:600;font-size:13.5px}
-.p-pkg-sub{font-size:11.5px;color:var(--p-dim);margin-top:2px}
-.p-pkg-price{font-weight:600;font-size:16px;color:var(--p-text);white-space:nowrap}
-.p-pkg.mid{border-color:var(--p-accent)}
-.p-pop{font-size:8.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--p-accent);display:block;margin-bottom:3px}
-.p-gallery{display:grid;gap:5px}
-.p-gallery .g-tile{border-radius:8px;overflow:hidden;position:relative;aspect-ratio:1/1}
-.p-gallery .g-tile img,.p-gallery .g-tile .ph{width:100%;height:100%;object-fit:cover;display:block}
-.p-gallery.g-hero{grid-template-columns:1fr 1fr}
-.p-gallery.g-hero .g-tile:first-child{grid-column:1/-1;aspect-ratio:16/10}
-.p-gallery.g-ordered{grid-template-columns:repeat(3,1fr)}
-.p-gallery.g-contact{grid-template-columns:repeat(4,1fr);gap:3px}
-.p-gallery.g-contact .g-tile{border-radius:3px}
-.p-gallery.g-contact .g-tile::after{content:attr(data-n);position:absolute;bottom:2px;right:4px;font-size:8px;color:var(--p-accent);font-weight:600}
-.p-kv{display:flex;flex-direction:column;gap:8px;font-size:13px}
-.p-kv .row{display:flex;justify-content:space-between;gap:14px}
-.p-kv .k{color:var(--p-dim);flex:none}
-.p-kv .row span:last-child{text-align:right}
-.p-prompt-q{font-size:12px;color:var(--p-accent);font-weight:600;margin-bottom:4px}
-.p-dont{color:var(--p-dim);font-size:13px;font-style:italic}
+/* The preview inside the phone is the real profile component (components/profile). */
+.phone-screen{background:hsl(var(--ink))}
 
 /* ============ REVIEW PAGE ============ */
 .pv{display:grid;grid-template-columns:390px minmax(0,1fr);gap:48px;align-items:start;animation:pwRise .45s var(--ease) both}
@@ -612,3 +554,76 @@
   .save-state .t{display:none}
   .where{display:none}
 }
+/* Loading and "could not load": one centred column. */
+.pw-root .pw-state { min-height: 100vh; display: grid; place-content: center; justify-items: center; gap: 12px; padding: 24px; text-align: center; }
+.pw-root .pw-state h1 { font-family: var(--font-display); font-size: 28px; color: #fff; }
+.pw-root .pw-state p { color: rgba(255, 255, 255, .6); font-size: 14px; max-width: 34ch; margin-bottom: 8px; }
+
+/* =====================================================================
+   PAPER ON INK
+   The wizard follows the design system (src/styles/system.css): the bar, the
+   live preview and the action bar stay on the ink; the step being filled in,
+   the welcome, the review and the "you're in" screen are sheets of paper.
+   Re-pointing the wizard's own tokens inside those sheets re-colours every
+   field, chip and switch at once. On paper the accent is ink, not lime.
+===================================================================== */
+.pw-root{--bg:#0a1226;--panel:#101a33;--raise:#18233f;--ink:#0a1226;--r:16px;--r-sm:14px;--r-lg:26px}
+.pw-root .welcome,
+.pw-root .card,
+.pw-root .pv > div:last-child,
+.pw-root .share,
+.pw-root .alert,
+.pw-root .pick-card,
+.pw-root .pw-state{
+  --bg:#ffffff;
+  --panel:#ffffff;
+  --raise:#f1f4f9;
+  --line:#e2e7ef;
+  --line-2:#c6cedb;
+  --text:#0a1226;
+  --dim:#414b61;
+  --faint:#626d82;
+  --lime:#0a1226;
+  --accent:#0a1226;
+  --ink:#ffffff;
+  --danger:#b3173f;
+  color:var(--text);
+}
+.pw-root .welcome,
+.pw-root .card,
+.pw-root .pv > div:last-child,
+.pw-root .share{
+  background:linear-gradient(180deg,#ffffff 0%,#f3f7fc 55%,#edf3fa 100%);
+  border-radius:26px;
+  padding:24px 18px 26px;
+  box-shadow:0 30px 80px -40px rgba(0,0,0,.85), inset 0 1px 0 rgba(255,255,255,.8);
+}
+@media(min-width:640px){
+  .pw-root .welcome,
+  .pw-root .card,
+  .pw-root .pv > div:last-child,
+  .pw-root .share{border-radius:34px;padding:38px 36px 40px}
+}
+.pw-root .pw-state{background:none}
+.pw-root .pw-state h1,.pw-root .pw-state p{color:#fff}
+.pw-root .pw-state p{color:rgba(255,255,255,.7)}
+.pw-root .stage{padding:20px 12px 150px}
+@media(min-width:640px){.pw-root .stage{padding:32px 24px 160px}}
+
+/* Headlines: the heavy, tight sans; one phrase in the serif italic. */
+.pw-root .step-title,.pw-root .pv-head h1,.pw-root .share h1,.pw-root .welcome h1,.pw-root .starters-head h2{
+  font-family:var(--font-heading);font-weight:800;letter-spacing:-.04em;line-height:1.02;
+}
+.pw-root .welcome h1 em{font-family:var(--font-display);font-style:italic;font-weight:500;letter-spacing:-.02em;color:inherit}
+.pw-root .lbl,.pw-root .kicker{font-weight:700;letter-spacing:.13em}
+
+/* Buttons and fields take the system's shapes. */
+.pw-root .btn,.pw-root .go,.pw-root .back{border-radius:999px;font-weight:700}
+.pw-root .go{background:hsl(var(--neon-lime));color:#0a1226;min-height:48px}
+.pw-root .inp{border-radius:14px}
+.pw-root .big-check{background:hsl(var(--neon-lime));color:#0a1226}
+.pw-root .check.ok .ic{background:hsl(var(--neon-lime));color:#0a1226}
+.pw-root .bar i,.pw-root .meter i.on{background:#0a1226}
+.pw-root .switch.on{background:#0a1226}
+.pw-root .starter{border-radius:22px;overflow:hidden}
+.pw-root .toast{border-radius:999px}

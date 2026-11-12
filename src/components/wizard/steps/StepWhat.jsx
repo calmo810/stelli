@@ -1,5 +1,5 @@
 import React from 'react';
-import { HOT_SHOOTS, SHOOTS } from '@/lib/wizardData';
+import { HOT_SHOOTS, SHOOTS } from '@/lib/creatorProfile';
 
 export default function StepWhat({ w }) {
   const picked = w.s.what;

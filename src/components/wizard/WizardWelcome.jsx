@@ -1,5 +1,6 @@
 import React from 'react';
-import { MIN_SHOTS, STARTERS, hasContent } from '@/lib/wizardData';
+import { STARTERS } from '@/lib/wizardData';
+import { ACCENTS, LAYOUTS, MIN_SHOTS, hasContent } from '@/lib/creatorProfile';
 
 /** The front door: what is needed, and three starter styles. */
 export default function WizardWelcome({ w }) {
@@ -37,7 +38,7 @@ export default function WizardWelcome({ w }) {
             <button type="button" className="btn btn-primary" onClick={() => w.goStep(w.maxStep)}>
               Continue where you left off
             </button>
-            <button type="button" className="btn btn-ghost" onClick={() => w.setView('preview')}>
+            <button type="button" className="btn btn-ghost" onClick={w.openReview}>
               Preview my page
             </button>
             <button
@@ -79,7 +80,7 @@ export default function WizardWelcome({ w }) {
               <div className="starter-art">
                 <div className="glow" style={{ background: starter.art }} />
                 <span className="chip-demo">
-                  {starter.theme === 'clean' ? 'Clean' : 'Night'} · {starter.accent}
+                  {LAYOUTS.find((o) => o.v === starter.layout)?.l} · {ACCENTS.find((o) => o.v === starter.accent)?.l}
                 </span>
               </div>
               <div className="starter-body">

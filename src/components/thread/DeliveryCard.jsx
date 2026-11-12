@@ -10,9 +10,9 @@ import { effectiveStatus, shootPassed } from '@/lib/bookingNextStep';
 
 const stepPill = (active) => ({
   borderRadius: 980,
-  borderColor: active ? 'hsl(var(--neon-lime))' : 'rgba(255,255,255,0.14)',
-  background: active ? 'hsl(var(--neon-lime) / 0.12)' : 'transparent',
-  color: active ? 'hsl(var(--neon-lime))' : 'rgba(255,255,255,0.6)',
+  borderColor: active ? 'var(--fg)' : 'var(--line-2)',
+  background: active ? 'var(--fill-2)' : 'transparent',
+  color: active ? 'var(--fg)' : 'var(--fg-2)',
 });
 
 /** Two delivery steps, the 48 hour window, and reporting a problem. */
@@ -81,46 +81,46 @@ export default function DeliveryCard({ booking, role, onChanged }) {
   };
 
   return (
-    <div className="glass rounded-[26px] p-5 sm:p-6">
-      <p className="text-[11px] font-semibold text-white/40">DELIVERY</p>
+    <div className="st-card rounded-[26px] p-5 sm:p-6">
+      <p className="text-[11px] font-semibold text-fg-3">DELIVERY</p>
 
       <div className="mt-4 space-y-3">
         <div className="flex items-start gap-3">
-          <ImageIcon className="mt-0.5 h-4 w-4 shrink-0 text-white/35" />
+          <ImageIcon className="mt-0.5 h-4 w-4 shrink-0 text-fg-3" />
           <div className="min-w-0">
-            <p className="text-[12px] text-white/45">Unedited set</p>
+            <p className="text-[12px] text-fg-3">Unedited set</p>
             {booking.unedited_link ? (
               <a
                 href={safeHref(booking.unedited_link)}
                 target="_blank"
                 rel="noreferrer"
                 className="text-[14px] break-all"
-                style={{ color: 'hsl(var(--neon-cyan))' }}
+                style={{ color: 'var(--st-accent)' }}
               >
                 {booking.unedited_link}
               </a>
             ) : (
-              <p className="text-[14px] text-white/35">Not posted yet</p>
+              <p className="text-[14px] text-fg-3">Not posted yet</p>
             )}
           </div>
         </div>
 
         <div className="flex items-start gap-3">
-          <Link2 className="mt-0.5 h-4 w-4 shrink-0 text-white/35" />
+          <Link2 className="mt-0.5 h-4 w-4 shrink-0 text-fg-3" />
           <div className="min-w-0">
-            <p className="text-[12px] text-white/45">Final edits</p>
+            <p className="text-[12px] text-fg-3">Final edits</p>
             {booking.delivery_link ? (
               <a
                 href={safeHref(booking.delivery_link)}
                 target="_blank"
                 rel="noreferrer"
                 className="text-[14px] break-all"
-                style={{ color: 'hsl(var(--neon-lime))' }}
+                style={{ color: 'var(--st-accent)' }}
               >
                 {booking.delivery_link}
               </a>
             ) : (
-              <p className="text-[14px] text-white/35">Not posted yet</p>
+              <p className="text-[14px] text-fg-3">Not posted yet</p>
             )}
           </div>
         </div>
@@ -129,7 +129,7 @@ export default function DeliveryCard({ booking, role, onChanged }) {
       <DeliveryPhotos booking={booking} role={role} onChanged={onChanged} />
 
       {delivered && windowOpen && !booking.problem_reported_at && (
-        <p className="mt-4 text-[12px] text-white/45">
+        <p className="mt-4 text-[12px] text-fg-3">
           {role === 'client'
             ? `You have ${formatDistanceToNow(new Date(booking.release_due_at))} to report a problem. After that the payment goes to your creator.`
             : `Your payment is released in ${formatDistanceToNow(new Date(booking.release_due_at))}.`}
@@ -139,13 +139,13 @@ export default function DeliveryCard({ booking, role, onChanged }) {
       {booking.problem_reported_at && (
         <div
           className="mt-4 rounded-2xl px-4 py-3"
-          style={{ background: 'hsl(var(--neon-magenta) / 0.08)', border: '1px solid hsl(var(--neon-magenta) / 0.4)' }}
+          style={{ background: 'var(--chip-magenta-bg)', border: '1px solid var(--chip-magenta-fg)' }}
         >
-          <p className="text-[11px] font-semibold" style={{ color: 'hsl(var(--neon-magenta))' }}>
+          <p className="text-[11px] font-semibold" style={{ color: 'var(--danger)' }}>
             PROBLEM REPORTED
           </p>
-          <p className="mt-2 text-[14px] leading-relaxed text-white/75">{booking.problem_note}</p>
-          <p className="mt-2 text-[13px] text-white/45">
+          <p className="mt-2 text-[14px] leading-relaxed text-fg-2">{booking.problem_note}</p>
+          <p className="mt-2 text-[13px] text-fg-3">
             The payment stays held while a founder reviews it.
           </p>
         </div>
@@ -178,7 +178,7 @@ export default function DeliveryCard({ booking, role, onChanged }) {
             placeholder="Gallery link (optional)"
             className={fieldClass}
           />
-          <p className="text-[12px] leading-relaxed text-white/40">
+          <p className="text-[12px] leading-relaxed text-fg-3">
             {step === 'unedited'
               ? 'Photos you add above reach your client on their own. A link is optional.'
               : 'Photos you add above are delivered to your client. A link is optional.'}
@@ -210,7 +210,7 @@ export default function DeliveryCard({ booking, role, onChanged }) {
                   {busy && <Loader2 className="h-4 w-4 animate-spin" />}
                   Send report
                 </Pill>
-                <Pill as="button" type="button" tone="glass" onClick={() => setReporting(false)}>
+                <Pill as="button" type="button" tone="st-card" onClick={() => setReporting(false)}>
                   Cancel
                 </Pill>
               </div>
@@ -219,7 +219,7 @@ export default function DeliveryCard({ booking, role, onChanged }) {
             <Pill
               as="button"
               type="button"
-              tone="glass"
+              tone="st-card"
               onClick={() => setReporting(true)}
               className="mt-4"
             >
@@ -230,7 +230,7 @@ export default function DeliveryCard({ booking, role, onChanged }) {
       )}
 
       {error && (
-        <p className="mt-3 text-[13px]" style={{ color: 'hsl(var(--neon-magenta))' }}>
+        <p className="mt-3 text-[13px]" style={{ color: 'var(--danger)' }}>
           {error}
         </p>
       )}

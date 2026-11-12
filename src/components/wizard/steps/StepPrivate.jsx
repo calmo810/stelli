@@ -12,6 +12,7 @@ export default function StepPrivate({ w }) {
           className="inp"
           maxLength={60}
           value={w.s.fullName}
+          placeholder="Your real name, for Stelli only"
           autoComplete="name"
           onChange={(event) => w.patch({ fullName: event.target.value })}
         />

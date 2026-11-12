@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import SegmentedTabs from '@/components/dashboard/SegmentedTabs';
 import { CHIP_TONE, statusChip } from '@/lib/threadStatus';
-import shortDate from '@/lib/shortDate';
+import { shortDate } from '@/lib/format';
 
 function rowLink(booking, role) {
   if (role === 'client' && booking.delivered_at && ['delivered', 'completed'].includes(booking.status)) {
@@ -33,9 +33,9 @@ export default function ShootList({ active = [], past = [], role, isLoading, emp
 
       <div className="mt-3">
         {isLoading ? (
-          <div className="glass h-[132px] animate-pulse rounded-3xl" />
+          <div className="st-card h-[132px] animate-pulse rounded-3xl" />
         ) : list.length ? (
-          <div className="glass overflow-hidden rounded-3xl">
+          <div className="st-card overflow-hidden rounded-3xl">
             {list.map((booking, i) => {
               const chip = statusChip(booking);
               const tone = CHIP_TONE[chip] || 'cyan';
@@ -51,28 +51,28 @@ export default function ShootList({ active = [], past = [], role, isLoading, emp
                 <Link
                   key={booking.id}
                   to={rowLink(booking, role)}
-                  className={`flex items-center gap-3.5 px-[18px] py-3.5 transition-colors hover:bg-white/[0.05]${
-                    i ? ' border-t border-white/[0.08]' : ''
+                  className={`flex items-center gap-3.5 px-[18px] py-3.5 transition-colors hover:bg-fill-2${
+                    i ? ' border-t border-line' : ''
                   }`}
                 >
                   <span className="min-w-0 flex-1">
-                    <b className="block truncate text-[15px] font-medium text-white">{who}</b>
-                    {meta && <small className="mt-0.5 block truncate text-[13px] capitalize text-white/50">{meta}</small>}
+                    <b className="block truncate text-[15px] font-medium text-fg">{who}</b>
+                    {meta && <small className="mt-0.5 block truncate text-[13px] capitalize text-fg-3">{meta}</small>}
                   </span>
                   <span
                     className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                    style={{ background: `hsl(var(--neon-${tone}) / 0.14)`, color: `hsl(var(--neon-${tone}))` }}
+                    style={{ background: `var(--chip-${tone}-bg)`, color: `var(--chip-${tone}-fg)` }}
                   >
                     {chip}
                   </span>
-                  <ChevronRight className="h-4 w-4 shrink-0 text-white/35" strokeWidth={2.4} />
+                  <ChevronRight className="h-4 w-4 shrink-0 text-fg-3" strokeWidth={2.4} />
                 </Link>
               );
             })}
           </div>
         ) : (
-          <div className="glass rounded-3xl px-[18px] py-4">
-            <p className="text-[14px] text-white/50">{tab === 'active' ? emptyText : 'Finished shoots will show up here.'}</p>
+          <div className="st-card rounded-3xl px-[18px] py-4">
+            <p className="text-[14px] text-fg-3">{tab === 'active' ? emptyText : 'Finished shoots will show up here.'}</p>
           </div>
         )}
       </div>

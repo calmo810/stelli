@@ -1,22 +1,26 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Check, Instagram } from 'lucide-react';
+import { sharePreviewUrl } from '@/lib/creatorProfile';
 
 /** What a creator sees once their profile is in. */
 export default function WizardShare({ w }) {
   const { s } = w;
+  const name = s.name.trim();
   const caption = `Now booking on Stelli ✦ ${s.what.slice(0, 2).join(' + ').toLowerCase() || 'shoots'} around Elon. Link in bio.`;
+  const heading = w.approved ? "You're live" : "You're in";
 
   return (
     <div className="share">
-      <div className="big-check">
+      <div className="big-check" aria-hidden>
         <Check className="w-8 h-8" strokeWidth={3} />
       </div>
 
-      <h1>{s.name.trim() ? `${w.approved ? "You're live" : "You're in"}, ${s.name.trim()}.` : "You're in."}</h1>
+      <h1>{name ? `${heading}, ${name}.` : `${heading}.`}</h1>
       <p>
         {w.approved
-          ? 'Your page is up. Now put it where clients will actually see it.'
-          : "Your page is with us for review. It goes live the moment you're approved — the link below starts working then."}
+          ? 'Your page is up to date. Now put it where clients will actually see it.'
+          : "Your page is with us for review. It goes live the moment you're approved, and the link below starts working then."}
       </p>
 
       <div className="url-box">
@@ -27,25 +31,28 @@ export default function WizardShare({ w }) {
       </div>
 
       <div className="share-actions">
-        {typeof navigator !== 'undefined' && navigator.share && (
+        <Link to="/lensman-dashboard/profile" className="btn btn-primary btn-sm">
+          Go to your portal
+        </Link>
+        {w.approved && typeof navigator !== 'undefined' && navigator.share && (
           <button
             type="button"
             className="btn btn-ghost btn-sm"
             onClick={() => {
-              navigator.share({ title: `Book ${s.name} on Stelli`, url: w.link }).catch(() => {});
+              navigator.share({ title: `Book ${name} on Stelli`, url: sharePreviewUrl(w.lensman) }).catch(() => {});
             }}
           >
             Share…
           </button>
         )}
-        <button type="button" className="btn btn-ghost btn-sm" onClick={() => w.setView('preview')}>
-          View my page
+        <button type="button" className="btn btn-ghost btn-sm" onClick={w.openReview}>
+          {w.approved ? 'Keep editing' : 'Review my page'}
         </button>
       </div>
 
       <div className="ig-card">
         <h3>
-          <Instagram className="w-5 h-5" /> Add it to your Instagram
+          <Instagram className="w-5 h-5" aria-hidden /> Add it to your Instagram
         </h3>
         <p>Most Elon clients will find you through Instagram. Two minutes, and every profile visit becomes a possible booking.</p>
         <ol className="ig-steps">
@@ -66,7 +73,7 @@ export default function WizardShare({ w }) {
             type="button"
             className="btn btn-primary btn-sm"
             onClick={async () => {
-              await w.copy(w.link, 'Link copied — paste it in Edit profile → Links');
+              await w.copy(w.link, 'Link copied. Paste it in Edit profile → Links');
               window.open('https://www.instagram.com/accounts/edit/', '_blank', 'noopener');
             }}
           >

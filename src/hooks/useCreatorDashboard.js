@@ -1,18 +1,13 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { isPast, nextSteps } from '@/lib/bookingNextStep';
+import useCurrentUser from '@/hooks/useCurrentUser';
 
 /** Everything the creator's dashboard and its sheets read. */
 export default function useCreatorDashboard() {
   const queryClient = useQueryClient();
 
-  // A visitor who is not signed in gets null rather than a failed query, so the
-  // workspace can offer them the sign-in door instead of spinning forever.
-  const { data: user, isLoading: userLoading } = useQuery({
-    queryKey: ['me'],
-    queryFn: () => base44.auth.me().catch(() => null),
-    retry: false,
-  });
+  const { user, isLoading: userLoading } = useCurrentUser();
 
   // Payout status, the Stripe account and holds are readable by founders
   // only, so the creator's own full record comes from the server.

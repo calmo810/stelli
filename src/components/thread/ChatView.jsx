@@ -6,6 +6,7 @@ import { format, isToday, isYesterday } from 'date-fns';
 import { Loader2, Lock } from 'lucide-react';
 import { viewerRole, firstName } from '@/lib/threadStatus';
 import { effectiveStatus } from '@/lib/bookingNextStep';
+import useCurrentUser from '@/hooks/useCurrentUser';
 import ThreadHeader from '@/components/thread/ThreadHeader';
 import RequestSummary from '@/components/thread/RequestSummary';
 import QuoteCard from '@/components/thread/QuoteCard';
@@ -45,11 +46,7 @@ export default function ChatView({ bookingId }) {
   const scroller = useRef(null);
   const firstScroll = useRef(true);
 
-  const { data: user, isLoading: userLoading } = useQuery({
-    queryKey: ['thread-user'],
-    queryFn: () => base44.auth.me(),
-    retry: false,
-  });
+  const { user, isLoading: userLoading } = useCurrentUser();
 
   const { data: booking, isLoading: bookingLoading } = useQuery({
     queryKey: ['booking', bookingId],
@@ -179,7 +176,7 @@ export default function ChatView({ bookingId }) {
   if (userLoading || bookingLoading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <Loader2 className="h-5 w-5 animate-spin text-neon-lime" />
+        <Loader2 className="h-5 w-5 animate-spin text-accent2" />
       </div>
     );
   }
@@ -187,10 +184,10 @@ export default function ChatView({ bookingId }) {
   if (!booking || !role) {
     return (
       <div className="flex h-full items-center justify-center px-5">
-        <div className="glass w-full max-w-[440px] rounded-[28px] p-7 text-center">
-          <Lock className="mx-auto mb-4 h-5 w-5 text-white/35" />
-          <h1 className="text-[22px] font-semibold text-white">This conversation isn't yours.</h1>
-          <p className="mt-2 text-[14px] text-white/50">
+        <div className="st-card w-full max-w-[440px] rounded-[28px] p-7 text-center">
+          <Lock className="mx-auto mb-4 h-5 w-5 text-fg-3" />
+          <h1 className="text-[22px] font-semibold text-fg">This conversation isn't yours.</h1>
+          <p className="mt-2 text-[14px] text-fg-3">
             Sign in with the account that made this booking to open it.
           </p>
           <Link to="/portal" className="mt-5 inline-block">
@@ -225,7 +222,7 @@ export default function ChatView({ bookingId }) {
           {params.get('payment') === 'success' && (
             <p
               className="mb-3 rounded-[980px] px-4 py-2.5 text-center text-[13px] font-semibold"
-              style={{ background: 'hsl(var(--neon-lime) / 0.14)', color: 'hsl(var(--neon-lime))' }}
+              style={{ background: 'var(--chip-lime-bg)', color: 'var(--st-accent)' }}
             >
               Thanks. Your payment is being confirmed, and the date locks in as soon as it is.
             </p>
@@ -244,7 +241,7 @@ export default function ChatView({ bookingId }) {
             const next = items[i + 1];
             const newDay = !prev || !sameDay(prev.date, item.date);
             const divider = newDay ? (
-              <p className="pb-2 pt-4 text-center text-[11px] font-semibold text-white/30">
+              <p className="pb-2 pt-4 text-center text-[11px] font-semibold text-fg-3">
                 {dayLabel(item.date).toUpperCase()}
               </p>
             ) : null;
@@ -291,7 +288,7 @@ export default function ChatView({ bookingId }) {
           ))}
 
           {items.length === 0 && (booking.payment_status || 'pending') === 'pending' && (
-            <p className="py-6 text-center text-[13px] text-white/35">
+            <p className="py-6 text-center text-[13px] text-fg-3">
               {role === 'client'
                 ? `${firstName(creatorName)} will reply here. Add anything you forgot below.`
                 : 'Say hi and work out the details, then send your quote.'}

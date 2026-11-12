@@ -84,9 +84,9 @@ export default function PullToRefresh({ onRefresh, children, scrollRef, classNam
           transition: `${motion}, opacity .2s linear`,
         }}
       >
-        <span className="grid h-9 w-9 place-items-center rounded-full border border-white/15 bg-ink/90 shadow-[0_8px_20px_-8px_rgba(0,0,0,.8)] backdrop-blur-md">
+        <span className="grid h-9 w-9 place-items-center rounded-full border border-line bg-[var(--bar)] shadow-[0_8px_20px_-8px_rgba(0,0,0,.8)] backdrop-blur-md">
           <Loader2
-            className={`h-4 w-4 text-neon-lime ${refreshing ? 'animate-spin' : ''}`}
+            className={`h-4 w-4 text-accent2 ${refreshing ? 'animate-spin' : ''}`}
             style={refreshing ? undefined : { transform: `rotate(${pull * 4}deg)` }}
           />
         </span>

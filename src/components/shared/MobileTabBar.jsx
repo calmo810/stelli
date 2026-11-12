@@ -2,9 +2,10 @@ import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { Home as HomeIcon, Search, MessageCircle, User as UserIcon } from 'lucide-react';
 
-/* The four doors on a phone. Each tab keeps its own place: come back to Browse
-   and you land on the creator you were looking at, not the top of the list.
-   The memory lives outside the component so it survives re-renders. */
+/* The four doors on a phone, as one floating pill. Each tab keeps its own
+   place: come back to Browse and you land on the creator you were looking at,
+   not the top of the list. The memory lives outside the component so it
+   survives re-renders. */
 
 const TABS = [
   { key: 'home', label: 'Home', icon: HomeIcon, root: '/' },
@@ -24,7 +25,9 @@ export function tabForPath(pathname) {
     pathname.startsWith('/portal') ||
     pathname.startsWith('/client-dashboard') ||
     pathname.startsWith('/lensman-dashboard') ||
-    pathname.startsWith('/account-settings')
+    pathname.startsWith('/account-settings') ||
+    pathname.startsWith('/agreements') ||
+    pathname.startsWith('/album')
   ) {
     return 'portal';
   }
@@ -37,8 +40,8 @@ export default function MobileTabBar() {
   const active = tabForPath(location.pathname);
 
   useEffect(() => {
-    if (active) lastVisit[active] = location.pathname;
-  }, [active, location.pathname]);
+    if (active) lastVisit[active] = location.pathname + location.search;
+  }, [active, location.pathname, location.search]);
 
   // The creator workspace runs its own four tabs, so this bar stays away.
   if (location.pathname.startsWith('/lensman-dashboard')) return null;
@@ -49,7 +52,7 @@ export default function MobileTabBar() {
       navigate(tab.root);
       return;
     }
-    if (tab.key === active && tab.key === 'home' && location.pathname === '/') {
+    if (tab.key === active) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
@@ -57,7 +60,7 @@ export default function MobileTabBar() {
   };
 
   return (
-    <nav className="tabbar md:hidden" aria-label="Primary">
+    <nav className="st-tabbar md:hidden" aria-label="Primary">
       {TABS.map((tab) => {
         const Icon = tab.icon;
         const isActive = tab.key === active;
@@ -67,9 +70,9 @@ export default function MobileTabBar() {
             type="button"
             onClick={() => select(tab)}
             aria-current={isActive ? 'page' : undefined}
-            className={`tabbar-item ${isActive ? 'is-active' : ''}`}
+            className="st-tabbar__item"
           >
-            <Icon className="w-[21px] h-[21px]" strokeWidth={isActive ? 2.2 : 1.8} />
+            <Icon strokeWidth={isActive ? 2.4 : 2} aria-hidden />
             <span>{tab.label}</span>
           </button>
         );

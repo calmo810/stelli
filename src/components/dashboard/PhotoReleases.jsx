@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ImagePlus, Loader2, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import shortDate from '@/lib/shortDate';
+import { shortDate } from '@/lib/format';
 
 const MAX_PHOTOS = 6;
 
@@ -39,7 +39,7 @@ function PhotoPicker({ photos, setPhotos, light }) {
   };
   const addTile = light
     ? 'border-[#0a1226]/20 text-[#667085] hover:border-[#0a1226]/40 hover:text-[#0a1226]'
-    : 'border-white/25 text-white/55 hover:border-white/50 hover:text-white';
+    : 'border-line-2 text-fg-3 hover:border-line-2 hover:text-fg';
   return (
     <div className="mt-3 flex flex-wrap gap-2">
       {photos.map((src) => (
@@ -49,7 +49,7 @@ function PhotoPicker({ photos, setPhotos, light }) {
             type="button"
             aria-label="Remove photo"
             onClick={() => setPhotos(photos.filter((p) => p !== src))}
-            className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full bg-black/60 text-white"
+            className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full bg-black/60 text-fg"
           >
             <X className="h-3 w-3" strokeWidth={2.6} />
           </button>
@@ -83,14 +83,14 @@ function ReleaseCard({ release: r, role, light }) {
   // A client can't say yes to photos that haven't been chosen.
   const waitingOnPhotos = role === 'client' && !(r.photos || []).length;
 
-  const shell = light ? 'rounded-[20px] bg-white px-4 py-3.5' : 'glass rounded-[20px] px-4 py-3.5';
-  const heading = light ? 'text-ink' : 'text-white';
-  const meta = light ? 'wk-grey' : 'text-white/55';
-  const body = light ? 'wk-grey' : 'text-white/70';
-  const fine = light ? 'wk-mute' : 'text-white/40';
-  const quiet = light ? 'border border-[#0a1226]/15 text-ink/70 hover:bg-[#0a1226]/[0.04]' : 'border border-white/20 text-white/75 hover:bg-white/[0.06]';
-  const plain = light ? 'wk-mute hover:text-ink' : 'text-white/55 hover:text-white';
-  const yes = light ? 'wk-ink' : 'text-neon-lime';
+  const shell = light ? 'rounded-[20px] bg-white px-4 py-3.5' : 'st-card rounded-[20px] px-4 py-3.5';
+  const heading = light ? 'text-ink' : 'text-fg';
+  const meta = light ? 'wk-grey' : 'text-fg-3';
+  const body = light ? 'wk-grey' : 'text-fg-2';
+  const fine = light ? 'wk-mute' : 'text-fg-3';
+  const quiet = light ? 'border border-[#0a1226]/15 text-ink/70 hover:bg-[#0a1226]/[0.04]' : 'border border-line-2 text-fg-2 hover:bg-fill-2';
+  const plain = light ? 'wk-mute hover:text-ink' : 'text-fg-3 hover:text-fg';
+  const yes = light ? 'wk-ink' : 'text-accent2';
 
   const answer = async (decision) => {
     setSaving(decision);
@@ -181,7 +181,7 @@ function ReleaseCard({ release: r, role, light }) {
           )}
         </div>
       )}
-      {error && <p className="mt-2 text-[12.5px] text-neon-magenta">{error}</p>}
+      {error && <p className="mt-2 text-[12.5px] text-danger">{error}</p>}
     </div>
   );
 }
@@ -216,7 +216,7 @@ export default function PhotoReleases({ role, user, light = false }) {
 
   return (
     <section>
-      <h3 className={`mb-2.5 pl-1.5 text-[13px] font-semibold ${light ? 'wk-grey' : 'text-white/50'}`}>
+      <h3 className={`mb-2.5 pl-1.5 text-[13px] font-semibold ${light ? 'wk-grey' : 'text-fg-3'}`}>
         Photo releases
       </h3>
       <div className="space-y-2">

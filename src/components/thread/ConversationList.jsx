@@ -60,22 +60,22 @@ export default function ConversationList({ threads, activeId, isLoading, unreadC
           <Link
             to="/portal"
             aria-label="Back to your portal"
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/[0.07] text-white/70 transition-colors hover:text-white lg:hidden"
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-fill text-fg-2 transition-colors hover:text-fg lg:hidden"
           >
             <ArrowLeft className="h-4 w-4" />
           </Link>
-          <h1 className="text-[28px] font-semibold leading-none text-white">Messages</h1>
+          <h1 className="text-[28px] font-semibold leading-none text-fg">Messages</h1>
         </div>
 
         {threads.length > 0 && (
           <>
-            <div className="glass mt-4 flex items-center gap-2.5 rounded-full px-4 py-2.5">
-              <Search className="h-4 w-4 shrink-0 text-white/35" />
+            <div className="st-card mt-4 flex items-center gap-2.5 rounded-full px-4 py-2.5">
+              <Search className="h-4 w-4 shrink-0 text-fg-3" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search by name"
-                className="min-w-0 flex-1 bg-transparent text-[14px] text-white outline-none placeholder:text-white/30"
+                className="min-w-0 flex-1 bg-transparent text-[14px] text-fg outline-none placeholder:text-fg-3"
               />
             </div>
 
@@ -91,8 +91,8 @@ export default function ConversationList({ threads, activeId, isLoading, unreadC
                   className="rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors"
                   style={
                     tab === key
-                      ? { background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))' }
-                      : { background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.6)' }
+                      ? { background: 'var(--st-primary)', color: 'var(--st-on-primary)' }
+                      : { background: 'var(--fill)', color: 'var(--fg-2)' }
                   }
                 >
                   {label}
@@ -107,16 +107,16 @@ export default function ConversationList({ threads, activeId, isLoading, unreadC
       <div ref={listRef} className="h-full overflow-y-auto px-2 pb-4 sm:px-3">
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
-            <Loader2 className="h-5 w-5 animate-spin text-neon-lime" />
+            <Loader2 className="h-5 w-5 animate-spin text-accent2" />
           </div>
         ) : threads.length === 0 ? (
           <div className="px-6 py-16 text-center">
-            <MessageCircle className="mx-auto mb-4 h-8 w-8 text-white/25" />
-            <p className="text-[15px] font-semibold text-white/70">No conversations yet</p>
-            <p className="mt-1 text-[13px] text-white/40">A conversation opens when a shoot request is sent.</p>
+            <MessageCircle className="mx-auto mb-4 h-8 w-8 text-fg-3" />
+            <p className="text-[15px] font-semibold text-fg-2">No conversations yet</p>
+            <p className="mt-1 text-[13px] text-fg-3">A conversation opens when a shoot request is sent.</p>
           </div>
         ) : shown.length === 0 ? (
-          <p className="px-6 py-12 text-center text-[14px] text-white/40">
+          <p className="px-6 py-12 text-center text-[14px] text-fg-3">
             {tab === 'unread' ? "You're all caught up." : 'No one by that name.'}
           </p>
         ) : (
@@ -130,29 +130,29 @@ export default function ConversationList({ threads, activeId, isLoading, unreadC
                   <Link
                     to={`/messages/${thread.booking.id}`}
                     aria-current={active ? 'page' : undefined}
-                    className="flex items-center gap-3.5 rounded-[22px] px-3 py-3.5 transition-colors hover:bg-white/[0.06]"
-                    style={active ? { background: 'rgba(255,255,255,0.10)' } : undefined}
+                    className="flex items-center gap-3.5 rounded-[22px] px-3 py-3.5 transition-colors hover:bg-fill-2"
+                    style={active ? { background: 'var(--line)' } : undefined}
                   >
-                    <span className="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-white/10">
+                    <span className="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-full bg-fill">
                       {thread.otherPhoto ? (
                         <img src={thread.otherPhoto} alt="" className="h-full w-full object-cover" />
                       ) : (
-                        <span className="text-[13px] font-semibold text-white/60">{initials(thread.otherName)}</span>
+                        <span className="text-[13px] font-semibold text-fg-2">{initials(thread.otherName)}</span>
                       )}
                     </span>
 
                     <span className="min-w-0 flex-1">
                       <span className="flex items-baseline justify-between gap-3">
-                        <b className={`truncate text-[15px] ${thread.unread ? 'font-semibold text-white' : 'font-medium text-white/80'}`}>
+                        <b className={`truncate text-[15px] ${thread.unread ? 'font-semibold text-fg' : 'font-medium text-fg-2'}`}>
                           {thread.otherName || 'Stelli user'}
                         </b>
-                        <small className={`shrink-0 text-[12px] ${thread.unread ? 'font-semibold text-neon-lime' : 'text-white/35'}`}>
+                        <small className={`shrink-0 text-[12px] ${thread.unread ? 'font-semibold text-accent2' : 'text-fg-3'}`}>
                           {stamp(thread.latest?.created_date || thread.booking.updated_date)}
                         </small>
                       </span>
 
                       <span className="mt-0.5 flex items-center gap-2">
-                        <small className={`min-w-0 flex-1 truncate text-[13px] ${thread.unread ? 'font-semibold text-white/80' : 'text-white/45'}`}>
+                        <small className={`min-w-0 flex-1 truncate text-[13px] ${thread.unread ? 'font-semibold text-fg-2' : 'text-fg-3'}`}>
                           {preview(thread)}
                         </small>
                         {thread.unread && (
@@ -166,7 +166,7 @@ export default function ConversationList({ threads, activeId, isLoading, unreadC
 
                       <span
                         className="mt-1.5 inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                        style={{ background: `hsl(var(--neon-${tone}) / 0.14)`, color: `hsl(var(--neon-${tone}))` }}
+                        style={{ background: `var(--chip-${tone}-bg)`, color: `var(--chip-${tone}-fg)` }}
                       >
                         {chip}
                       </span>

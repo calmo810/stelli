@@ -1,4 +1,4 @@
-import { galleryComposition } from '@/lib/profilePresets';
+import { galleryComposition } from '@/lib/creatorProfile';
 
 export const APPROVED_CREATORS_QUERY_KEY = ['approved-creators'];
 

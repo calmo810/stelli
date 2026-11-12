@@ -37,7 +37,7 @@ export default function AlbumViewer({ photos, index, onClose, onIndex }) {
       role="dialog"
       aria-modal="true"
       aria-label="Photo viewer"
-      className="fixed inset-0 z-[70] flex flex-col bg-ink/95"
+      className="fixed inset-0 z-[70] flex flex-col bg-[var(--bar)]"
       style={{ WebkitBackdropFilter: 'blur(24px)', backdropFilter: 'blur(24px)' }}
       onTouchStart={(event) => {
         startX.current = event.touches[0]?.clientX ?? null;
@@ -50,7 +50,7 @@ export default function AlbumViewer({ photos, index, onClose, onIndex }) {
       }}
     >
       <div className="flex items-center justify-between gap-3 px-4 pb-2 pt-[calc(14px+var(--safe-top))]">
-        <span className="label-mono text-[10px] text-white/55">
+        <span className="st-kicker text-fg-3">
           {index + 1} / {total}
         </span>
         <div className="flex items-center gap-2">
@@ -58,7 +58,7 @@ export default function AlbumViewer({ photos, index, onClose, onIndex }) {
             href={photo.url}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3 py-2 text-[12px] font-semibold text-white/75 transition-colors hover:text-white"
+            className="inline-flex items-center gap-1.5 rounded-full border border-line px-3 py-2 text-[12px] font-semibold text-fg-2 transition-colors hover:text-fg"
           >
             <ExternalLink className="h-3.5 w-3.5" /> Original
           </a>
@@ -66,7 +66,7 @@ export default function AlbumViewer({ photos, index, onClose, onIndex }) {
             type="button"
             onClick={onClose}
             aria-label="Close viewer"
-            className="grid h-9 w-9 place-items-center rounded-full border border-white/15 text-white/80 transition-colors hover:text-white"
+            className="grid h-9 w-9 place-items-center rounded-full border border-line text-fg-2 transition-colors hover:text-fg"
           >
             <X className="h-4 w-4" />
           </button>
@@ -87,7 +87,7 @@ export default function AlbumViewer({ photos, index, onClose, onIndex }) {
               type="button"
               onClick={() => step(-1)}
               aria-label="Previous photo"
-              className="absolute left-2 grid h-11 w-11 place-items-center rounded-full border border-white/15 bg-ink/50 text-white/80 backdrop-blur-md transition-colors hover:text-white"
+              className="absolute left-2 grid h-11 w-11 place-items-center rounded-full border border-line bg-ink/50 text-fg-2 backdrop-blur-md transition-colors hover:text-fg"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
@@ -95,7 +95,7 @@ export default function AlbumViewer({ photos, index, onClose, onIndex }) {
               type="button"
               onClick={() => step(1)}
               aria-label="Next photo"
-              className="absolute right-2 grid h-11 w-11 place-items-center rounded-full border border-white/15 bg-ink/50 text-white/80 backdrop-blur-md transition-colors hover:text-white"
+              className="absolute right-2 grid h-11 w-11 place-items-center rounded-full border border-line bg-ink/50 text-fg-2 backdrop-blur-md transition-colors hover:text-fg"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
@@ -103,7 +103,7 @@ export default function AlbumViewer({ photos, index, onClose, onIndex }) {
         )}
       </div>
 
-      <p className="px-5 pb-[calc(16px+var(--safe-bottom))] pt-3 text-center text-[12px] text-white/40">
+      <p className="px-5 pb-[calc(16px+var(--safe-bottom))] pt-3 text-center text-[12px] text-fg-3">
         {total > 1 ? 'Swipe or use the arrows to keep going' : photo.name || ''}
       </p>
     </div>

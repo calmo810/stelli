@@ -1,4 +1,5 @@
 import React from 'react';
+import { LIMITS } from '@/lib/creatorProfile';
 
 export default function StepBio({ w }) {
   return (
@@ -7,12 +8,12 @@ export default function StepBio({ w }) {
         <label className="lbl" htmlFor="fBio">
           Bio
         </label>
-        <span className={`count ${w.s.bio.length > 250 ? 'near' : ''}`}>{w.s.bio.length}/280</span>
+        <span className={`count ${w.s.bio.length > LIMITS.bio - 40 ? 'near' : ''}`}>{w.s.bio.length}/{LIMITS.bio}</span>
       </div>
       <textarea
         id="fBio"
         className="inp"
-        maxLength={280}
+        maxLength={LIMITS.bio}
         value={w.s.bio}
         placeholder="I keep sessions relaxed and direct just enough that you never feel stiff."
         onChange={(event) => w.patch({ bio: event.target.value })}

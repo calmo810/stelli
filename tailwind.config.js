@@ -2,9 +2,17 @@
 module.exports = {
     darkMode: ["class"],
     content: ["./index.html", "./src/**/*.{ts,tsx,js,jsx}"],
+    // The design system (src/styles/system.css) is kept whole, so a class picked
+    // at run time (a chip tone, a card tint) is always there.
+    safelist: [{ pattern: /^st-/ }],
   theme: {
   	extend: {
   		borderRadius: {
+  			'st-xs': 'var(--r-xs)',
+  			'st-sm': 'var(--r-sm)',
+  			'st-md': 'var(--r-md)',
+  			'st-lg': 'var(--r-lg)',
+  			'st-xl': 'var(--r-xl)',
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)'
@@ -13,7 +21,7 @@ module.exports = {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
-  				DEFAULT: 'hsl(var(--card))',
+  				DEFAULT: 'hsl(var(--st-card))',
   				foreground: 'hsl(var(--card-foreground))'
   			},
   			popover: {
@@ -21,7 +29,7 @@ module.exports = {
   				foreground: 'hsl(var(--popover-foreground))'
   			},
   			primary: {
-  				DEFAULT: 'hsl(var(--primary))',
+  				DEFAULT: 'hsl(var(--st-primary))',
   				foreground: 'hsl(var(--primary-foreground))'
   			},
   			secondary: {
@@ -33,7 +41,7 @@ module.exports = {
   				foreground: 'hsl(var(--muted-foreground))'
   			},
   			accent: {
-  				DEFAULT: 'hsl(var(--accent))',
+  				DEFAULT: 'hsl(var(--st-accent))',
   				foreground: 'hsl(var(--accent-foreground))'
   			},
   			destructive: {
@@ -42,8 +50,37 @@ module.exports = {
   			},
   			border: 'hsl(var(--border))',
   			input: 'hsl(var(--input))',
-  			ring: 'hsl(var(--ring))',
+  			ring: 'hsl(var(--st-ring))',
   			ink: 'hsl(var(--ink))',
+  			/* Surface-aware colours from the design system (src/styles/system.css):
+  			   they read correctly on ink and on paper alike. */
+  			fg: {
+  				DEFAULT: 'var(--fg)',
+  				2: 'var(--fg-2)',
+  				3: 'var(--fg-3)'
+  			},
+  			line: {
+  				DEFAULT: 'var(--line)',
+  				2: 'var(--line-2)'
+  			},
+  			fill: {
+  				DEFAULT: 'var(--fill)',
+  				2: 'var(--fill-2)'
+  			},
+  			accent2: 'var(--st-accent)',
+  			danger: 'var(--danger)',
+  			paper: {
+  				DEFAULT: '#ffffff',
+  				2: '#f4f6fa'
+  			},
+  			tint: {
+  				lime: 'var(--tint-lime)',
+  				sky: 'var(--tint-sky)',
+  				blush: 'var(--tint-blush)',
+  				butter: 'var(--tint-butter)',
+  				lilac: 'var(--tint-lilac)',
+  				peach: 'var(--tint-peach)'
+  			},
   			surface: {
   				DEFAULT: 'hsl(var(--surface))',
   				2: 'hsl(var(--surface-2))'
@@ -85,6 +122,13 @@ module.exports = {
   				DEFAULT: 'hsl(var(--cream))',
   				dark: 'hsl(var(--cream-dark))'
   			}
+  		},
+  		boxShadow: {
+  			'st-card': 'var(--shadow-card)',
+  			'st-float': 'var(--shadow-float)'
+  		},
+  		transitionTimingFunction: {
+  			st: 'cubic-bezier(0.16, 1, 0.3, 1)'
   		},
   		fontFamily: {
   			heading: ['var(--font-heading)'],

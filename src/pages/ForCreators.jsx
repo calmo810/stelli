@@ -1,124 +1,118 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, BadgeCheck, Link as LinkIcon, ShieldCheck } from 'lucide-react';
+import { BadgeCheck, Camera, Link as LinkIcon, ShieldCheck, Star, Users } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { displayNameOf } from '@/lib/profilePresets';
-import PageShell from '@/components/shared/PageShell';
-import SectionHeader from '@/components/shared/SectionHeader';
-import Surface from '@/components/shared/Surface';
+import { displayNameOf, profilePath, profileUrlLabel } from '@/lib/creatorProfile';
+import { Avatar, Btn, Card, Chip, Page, Sheet, Stat } from '@/components/system';
 
 const PILLARS = [
   {
     icon: LinkIcon,
+    tone: 'lime',
     title: 'A profile worth putting in your bio',
     desc: 'Your Stelli page is your portfolio, booking link, and credibility signal in one clean URL.',
   },
   {
     icon: BadgeCheck,
+    tone: 'sky',
     title: 'A collective people want into',
     desc: 'Selected creators get a public profile and visibility inside the Stelli network.',
   },
   {
     icon: ShieldCheck,
+    tone: 'butter',
     title: 'Book safely, not through DMs',
     desc: 'Stop chasing clients, getting ghosted, or eating bad checks. Payments are protected before the shoot starts.',
   },
 ];
 
+/** The pitch to photographers and filmmakers, with a real creator's page as the proof. */
 export default function ForCreators() {
-  // The sample profile is a real, approved creator — never a hardcoded name.
+  // The sample profile is a real, approved creator, never a hardcoded name.
   const { data: sample } = useQuery({
     queryKey: ['for-creators-sample'],
     queryFn: async () => {
-      const list = await base44.entities.Lensman.filter({ status: 'approved' }, '-created_date', 1);
+      const list = await base44.entities.Lensman.filter({ status: 'approved' }, '-created_date', 1).catch(() => []);
       return list[0] || null;
     },
   });
 
   const sampleName = sample ? displayNameOf(sample) : 'A Stelli creator';
+  const cover = sample?.cover_image || sample?.portfolio_images?.[0] || '';
+  const rating = Number(sample?.avg_rating) || 0;
+  const shoots = Number(sample?.completed_shoots) || 0;
+  const photos = (sample?.portfolio_images || []).length;
 
   return (
-    <PageShell>
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-14 lg:gap-16 items-start">
-        <div>
-          <SectionHeader
-            eyebrow="For creators"
-            title="Your next paying gig is one click away."
-            intro="Stelli gives photographers and filmmakers a bio link that looks better than a DM — and books safer than one."
-          />
-          <div className="mt-10 flex flex-col sm:flex-row gap-3">
-            <Link
-              to="/apply"
-              className="inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 label-mono text-[11px] font-semibold transition-transform duration-300 hover:-translate-y-0.5"
-              style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))' }}
-            >
-              Apply to join <ArrowRight className="w-4 h-4" />
-            </Link>
-            {sample && (
-              <Link
-                to={`/creators/${sample.slug || sample.id}`}
-                className="inline-flex items-center justify-center rounded-full border border-white/15 px-8 py-4 label-mono text-[11px] text-white/60 hover:text-white transition-colors"
-              >
-                View a sample profile
-              </Link>
-            )}
+    <Page>
+      <Sheet>
+        <div className="grid items-center gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-12">
+          <div>
+            <Chip tone="ink">For creators</Chip>
+            <h1 className="st-display mt-5">
+              Your next paying gig is <span className="st-serif">one click away.</span>
+            </h1>
+            <p className="st-lede mt-5">
+              Stelli gives photographers and filmmakers a bio link that looks better than a DM, and books safer than one.
+            </p>
+            <div className="mt-8 flex flex-col gap-2.5 sm:flex-row">
+              <Btn to="/apply" size="lg" arrow="end">
+                Apply to join
+              </Btn>
+              {sample && (
+                <Btn to={profilePath(sample)} variant="outline" size="lg">
+                  View a sample profile
+                </Btn>
+              )}
+            </div>
           </div>
+
+          {/* A real creator's card, the way it reads in a bio link. */}
+          <Card pad={false} large className="mx-auto w-full max-w-[400px] overflow-hidden lg:rotate-[1.5deg]">
+            <div className="st-aurora st-aurora--lime h-[190px]">
+              {cover && <img src={cover} alt="" className="h-full w-full object-cover" />}
+            </div>
+            <div className="px-5 pb-5">
+              <div className="-mt-9 flex items-end justify-between gap-3">
+                <Avatar src={sample?.profile_image} name={sampleName} size="lg" ring className="!h-[76px] !w-[76px]" />
+                <Chip tone="lime">Bio link preview</Chip>
+              </div>
+              <p className="mt-3 text-[22px] font-extrabold tracking-[-0.035em]">{sampleName}</p>
+              <p className="text-[13.5px] text-fg-3">{sample ? profileUrlLabel(sample) : 'getstelli.com/creators/you'}</p>
+              <div className="mt-4 grid grid-cols-3 gap-2 border-t border-line pt-4">
+                <Stat icon={Star} value={rating ? rating.toFixed(1) : 'New'} label="Rating" />
+                <Stat icon={Camera} value={photos || '—'} label="Photos" />
+                <Stat icon={Users} value={shoots || '—'} label="Shoots" />
+              </div>
+              <Btn variant="ink" arrow="start" block className="mt-5 !justify-start pointer-events-none" aria-hidden tabIndex={-1}>
+                <span className="flex-1 text-center">Request a date</span>
+              </Btn>
+            </div>
+          </Card>
         </div>
 
-        <Surface className="p-6">
-          <p className="label-mono text-[9px] text-white/35 mb-5">Bio link preview</p>
-          <div className="aspect-[4/5] overflow-hidden rounded-[12px] bg-surface-2">
-            <img
-              src={sample?.profile_image || sample?.portfolio_images?.[0] || 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=700&h=900&fit=crop&q=85'}
-              alt="Creator profile preview"
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <p className="mt-5 text-[22px] font-semibold leading-none text-white">{sampleName}</p>
-          <p className="mt-2 text-[13px] text-white/45">
-            {sample?.profile_tagline || sample?.specialties?.slice(0, 3).join(' · ') || 'direct flash · nightlife · content days'}
-          </p>
-          <div className="mt-5 border-t border-white/10 pt-4 flex items-center justify-between">
-            <span className="text-[12px] text-white/35">getstelli.com/creators/{sample?.slug || ''}</span>
-            <span className="label-mono text-[9px] text-neon-lime">Book</span>
-          </div>
-        </Surface>
-      </div>
+        <section aria-label="Why creators join" className="mt-10 grid gap-3 md:grid-cols-3">
+          {PILLARS.map((pillar) => (
+            <Card key={pillar.title} tone={pillar.tone} hover>
+              <span className="grid h-11 w-11 place-items-center rounded-full bg-ink text-white" aria-hidden>
+                <pillar.icon className="h-[18px] w-[18px]" />
+              </span>
+              <h2 className="st-h2 mt-5">{pillar.title}</h2>
+              <p className="st-body mt-2.5">{pillar.desc}</p>
+            </Card>
+          ))}
+        </section>
 
-      <section className="mt-20 md:mt-24 border-t border-white/10">
-        {PILLARS.map((pillar) => (
-          <div
-            key={pillar.title}
-            className="grid grid-cols-1 md:grid-cols-[56px_1fr_1fr] gap-5 md:gap-10 py-9 md:py-11 border-b border-white/10 items-start"
-          >
-            <span className="grid place-items-center w-10 h-10 rounded-full border border-white/10 text-neon-lime">
-              <pillar.icon className="w-4 h-4" strokeWidth={1.6} />
-            </span>
-            <h2 className="text-[22px] md:text-[30px] font-semibold leading-tight text-white">{pillar.title}</h2>
-            <p className="text-[14px] md:text-[15px] leading-relaxed text-white/45 max-w-md">{pillar.desc}</p>
-          </div>
-        ))}
-      </section>
-
-      <section className="mt-20 md:mt-24 text-center">
-        <h2
-          className="mx-auto max-w-[720px] font-semibold leading-[1] tracking-[-0.02em] text-white"
-          style={{ fontSize: 'clamp(30px, 4.6vw, 56px)' }}
-        >
-          Stop sending clients to your DMs.
-        </h2>
-        <p className="mx-auto mt-5 max-w-md text-[15px] leading-relaxed text-white/45">
-          Send them somewhere that makes you look booked, protected, and worth paying.
-        </p>
-        <Link
-          to="/apply"
-          className="mt-9 inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 label-mono text-[11px] font-semibold transition-transform duration-300 hover:-translate-y-0.5"
-          style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))' }}
-        >
-          Apply to join Stelli <ArrowRight className="w-4 h-4" />
-        </Link>
-      </section>
-    </PageShell>
+        <Card tone="ink" large className="mt-3 px-6 py-12 text-center sm:py-16">
+          <h2 className="st-display mx-auto max-w-[14ch] !text-[clamp(32px,5vw,58px)]">
+            Stop sending clients to your <span className="st-serif text-neon-lime">DMs.</span>
+          </h2>
+          <p className="st-lede mx-auto mt-5">Send them somewhere that makes you look booked, protected, and worth paying.</p>
+          <Btn to="/apply" variant="lime" size="lg" arrow="end" className="mt-8">
+            Apply to join Stelli
+          </Btn>
+        </Card>
+      </Sheet>
+    </Page>
   );
 }

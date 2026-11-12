@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronRight } from 'lucide-react';
-import { EXTRAS, PROMPTS, REQS, stepIdx } from '@/lib/wizardData';
+import { stepIdx } from '@/lib/wizardData';
+import { EXTRAS, applicableReqs, lookSummary } from '@/lib/creatorProfile';
 import WizardPhone from './WizardPhone';
 import WizardProfilePreview from './WizardProfilePreview';
 
@@ -9,7 +10,7 @@ export default function WizardReview({ w }) {
   const { s } = w;
   const missing = w.missing;
   // A live page updates without a priced package; only an application needs one.
-  const reqList = w.lensman ? REQS.filter((req) => req.k !== 'price') : REQS;
+  const reqList = applicableReqs(s, w.existing);
   const extrasMissing = EXTRAS.filter((extra) => !extra.ok(s));
 
   const rows = [
@@ -18,36 +19,47 @@ export default function WizardReview({ w }) {
     { t: 'One-liner & tags', k: 'line', v: s.oneLiner || s.tags.join(' · ') || 'Empty' },
     { t: 'Where you shoot', k: 'where', v: s.where.join(', ') || 'None picked' },
     { t: 'What you shoot', k: 'what', v: s.what.join(', ') || 'None picked' },
-    { t: 'Portfolio', k: 'pf', v: s.portfolio.length ? `${s.portfolio.length} shots` : 'Empty' },
-    { t: 'Packages', k: 'price', v: w.tiers.map((tier) => `$${Number(tier.price)}`).join(' · ') || 'No prices yet' },
+    { t: 'Portfolio', k: 'pf', v: s.portfolio.length ? `${s.portfolio.length} shot${s.portfolio.length === 1 ? '' : 's'}` : 'Empty' },
+    { t: 'Packages · private', k: 'price', v: w.tiers.map((tier) => `$${Number(tier.price)}`).join(' · ') || 'No prices yet' },
     { t: 'Bio', k: 'bio', v: s.bio || 'Empty' },
     { t: 'Kit', k: 'kit', v: [s.equip, s.years && `${s.years} yrs`].filter(Boolean).join(' · ') || 'Empty' },
-    { t: 'Prompt', k: 'prompt', v: s.promptIdx != null ? PROMPTS[s.promptIdx] : 'Not picked' },
+    { t: 'Prompt', k: 'prompt', v: s.prompt || 'Not picked' },
     { t: "Don't shoot", k: 'dont', v: s.dont || 'Empty' },
-    { t: 'The look', k: 'look', v: `${s.theme === 'clean' ? 'Clean' : 'Night Flash'} · ${s.accent}` },
-    { t: 'Private info', k: 'priv', v: s.email || 'No email yet' },
+    { t: 'The look', k: 'look', v: lookSummary(w.profile) },
+    { t: 'Private info', k: 'priv', v: [s.fullName, s.email].filter(Boolean).join(' · ') || 'Not added yet' },
   ];
+
+  const heading = !w.existing ? 'This is your page.' : w.approved ? 'Your live page.' : 'Your page, in review.';
+  const lede = !w.existing
+    ? "Exactly what Elon clients see when they're deciding who to book. Tap anything to jump back and edit it."
+    : w.approved
+      ? 'This is what clients see right now. Tap anything to change it, then update your page.'
+      : 'Stelli is reviewing this page. You can keep improving it while you wait.';
+  const publishLabel = w.publishing
+    ? w.existing ? 'Saving…' : 'Publishing…'
+    : !w.existing ? 'Publish profile' : w.approved ? 'Update live page' : 'Save changes';
+  const nothingToSave = w.existing && !w.dirty;
 
   return (
     <div className="pv">
       <div>
         <WizardPhone>
-          <WizardProfilePreview s={s} />
+          <WizardProfilePreview profile={w.profile} />
         </WizardPhone>
       </div>
 
       <div>
         <div className="pv-head">
           <p className="lbl" style={{ marginBottom: 10 }}>
-            Review
+            {w.existing ? 'Edit profile' : 'Review'}
           </p>
-          <h1>{w.approved ? 'Your live page.' : 'This is your page.'}</h1>
-          <p>Exactly what Elon clients see when they're deciding who to book. Tap anything to jump back and edit it.</p>
+          <h1>{heading}</h1>
+          <p>{lede}</p>
         </div>
 
         <div className="panel">
           <div className="panel-head">
-            <h3>{missing.length === 0 ? 'Ready to go live ✓' : 'To go live'}</h3>
+            <h3>{missing.length === 0 ? (w.existing ? 'Everything needed is here ✓' : 'Ready to go live ✓') : w.existing ? 'Needed on your page' : 'To go live'}</h3>
             <span className="count">
               {reqList.length - missing.length}/{reqList.length}
             </span>
@@ -57,7 +69,7 @@ export default function WizardReview({ w }) {
               const done = req.ok(s);
               return (
                 <div key={req.t} className={`check ${done ? 'ok' : 'no'}`}>
-                  <span className="ic">{done ? '✓' : ''}</span>
+                  <span className="ic" aria-hidden>{done ? '✓' : ''}</span>
                   <span className="t">{req.t}</span>
                   {!done && (
                     <button type="button" className="link-btn" onClick={() => w.goStep(stepIdx(req.k), { jump: true })}>
@@ -75,7 +87,7 @@ export default function WizardReview({ w }) {
             <h3>Profile strength</h3>
             <span style={{ fontWeight: 700, color: 'var(--accent)' }}>{w.strength}%</span>
           </div>
-          <div className="bar">
+          <div className="bar" role="progressbar" aria-valuenow={w.strength} aria-valuemin={0} aria-valuemax={100} aria-label="Profile strength">
             <i style={{ width: `${w.strength}%` }} />
           </div>
           {extrasMissing.length ? (
@@ -106,7 +118,7 @@ export default function WizardReview({ w }) {
                   <span className="ei-t">{row.t}</span>
                   <span className="ei-v">{row.v}</span>
                 </span>
-                <span className="chev">
+                <span className="chev" aria-hidden>
                   <ChevronRight className="w-3.5 h-3.5" />
                 </span>
               </button>
@@ -119,17 +131,43 @@ export default function WizardReview({ w }) {
             type="button"
             className="btn btn-primary"
             onClick={w.publish}
-            disabled={missing.length > 0 || w.publishing}
+            disabled={missing.length > 0 || w.publishing || nothingToSave}
           >
-            {w.publishing ? 'Publishing…' : w.approved ? 'Update live page' : 'Publish profile'}
+            {publishLabel}
           </button>
-          <button type="button" className="btn btn-ghost" onClick={() => w.goStep(Math.min(w.maxStep, 12), { jump: true })}>
-            Keep editing
-          </button>
-          {missing.length > 0 && (
+          {w.existing ? (
+            w.dirty && (
+              <button
+                type="button"
+                className="btn btn-ghost"
+                disabled={w.publishing}
+                onClick={() =>
+                  w.setConfirm({
+                    title: 'Discard your changes?',
+                    text: 'Your page goes back to how it was last saved.',
+                    yes: 'Discard',
+                    onYes: w.discardChanges,
+                  })
+                }
+              >
+                Discard changes
+              </button>
+            )
+          ) : (
+            <button type="button" className="btn btn-ghost" onClick={() => w.goStep(w.maxStep, { jump: true })}>
+              Keep editing
+            </button>
+          )}
+          {missing.length > 0 ? (
             <span className="hint" style={{ margin: 0 }}>
-              {missing.length} item{missing.length > 1 ? 's' : ''} left before you can publish
+              {missing.length} item{missing.length > 1 ? 's' : ''} left before you can {w.existing ? 'save' : 'publish'}
             </span>
+          ) : (
+            nothingToSave && (
+              <span className="hint" style={{ margin: 0 }}>
+                No changes yet. Tap any line above to edit it.
+              </span>
+            )
           )}
         </div>
       </div>

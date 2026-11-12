@@ -1,67 +1,124 @@
 import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { base44 } from '@/api/base44Client';
+import { base44, errorMessage } from '@/api/base44Client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import { CheckCircle2, FileX2, History } from 'lucide-react';
+import useCurrentUser from '@/hooks/useCurrentUser';
+import useRequireSignIn from '@/lib/requireSignIn';
+import { mediumDate, money, timeLabel } from '@/lib/format';
+import { Btn, Card, Check, EmptyState, Note, Page, PageHeader, Sheet, Skeleton, Stat } from '@/components/system';
 
+/** One booking agreement: the facts at the top, the full text, and the creator's acceptance. */
 export default function AgreementDetail() {
   const { contractId } = useParams();
   const [agreed, setAgreed] = useState(false);
   const queryClient = useQueryClient();
+  const { user, isLoading: userLoading } = useCurrentUser();
+  const waiting = useRequireSignIn(user, userLoading);
 
   const { data: contract, isLoading } = useQuery({
     queryKey: ['booking-contract', contractId],
-    queryFn: () => base44.entities.BookingContract.get(contractId),
+    enabled: !!user,
+    retry: false,
+    // An agreement that is missing, or not yours, reads the same: not found.
+    queryFn: () => base44.entities.BookingContract.get(contractId).catch(() => null),
   });
 
   const acceptContract = useMutation({
     // Which side you are is decided on the server, from the booking.
     mutationFn: () => base44.functions.invoke('acceptBookingContract', { bookingId: contract.booking_id }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['booking-contract', contractId] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['booking-contract', contractId] });
+      queryClient.invalidateQueries({ queryKey: ['lensman-bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['my-agreements'] });
+    },
   });
 
   const paragraphs = contract?.contract_text?.split('\n').filter(Boolean) || [];
   const superseded = contract?.status === 'superseded';
+  const isCreator = Boolean(user && contract && [contract.creator_user_id, contract.creator_id].includes(user.id));
   const needsCreatorAcceptance = contract && !superseded && !contract.creator_accepted_at;
 
-  return (
-    <div className="min-h-screen bg-[#10182d] text-[#f0ede6] px-6 md:px-14 pt-24 pb-16">
-      <div className="max-w-4xl mx-auto">
-        <Link to="/portal" className="text-[10px] font-body tracking-[0.18em] uppercase" style={{ color: 'rgba(242,220,169,0.6)' }}>Back to dashboard</Link>
-        <div className="mt-8 mb-10">
-          <p className="text-[8px] font-body tracking-[0.45em] uppercase mb-4" style={{ color: 'rgba(242,220,169,0.5)' }}>Booking Agreement</p>
-          <h1 className="font-display text-4xl md:text-6xl font-semibold">Review your booking agreement</h1>
-        </div>
+  if (waiting || isLoading) {
+    return (
+      <Page width="reading">
+        <Skeleton className="h-[520px] !rounded-st-lg" />
+      </Page>
+    );
+  }
 
-        {isLoading ? (
-          <Skeleton className="h-96 bg-white/10" />
-        ) : contract ? (
-          <>
-            <article className="border p-6 md:p-8 space-y-4" style={{ borderColor: 'rgba(242,220,169,0.18)', background: 'rgba(255,255,255,0.04)' }}>
-              {paragraphs.map((p, i) => <p key={i} className="font-body text-sm leading-[1.9]" style={{ color: i === 0 ? '#F2DCA9' : 'rgba(240,237,230,0.72)' }}>{p}</p>)}
-            </article>
-            {needsCreatorAcceptance ? (
-              <div className="mt-8 border p-5" style={{ borderColor: 'rgba(242,220,169,0.18)' }}>
-                <label className="flex items-start gap-3 cursor-pointer mb-5">
-                  <Checkbox checked={agreed} onCheckedChange={setAgreed} className="mt-1 border-[#F2DCA9]" />
-                  <span className="text-sm leading-relaxed" style={{ color: 'rgba(240,237,230,0.72)' }}>
-                    I agree to this booking agreement and Stelli's <Link to="/terms" className="underline">Terms and Conditions</Link>.
-                  </span>
-                </label>
-                <Button onClick={() => acceptContract.mutate()} disabled={!agreed || acceptContract.isPending} className="rounded-full bg-[#F2DCA9] text-[#10182d]">Accept agreement</Button>
-              </div>
-            ) : superseded ? (
-              <p className="mt-6 text-sm" style={{ color: 'rgba(242,220,169,0.72)' }}>A newer quote replaced this agreement. It is kept here for the record.</p>
-            ) : (
-              <p className="mt-6 text-sm" style={{ color: 'rgba(242,220,169,0.72)' }}>This agreement has been accepted and is read-only.</p>
+  if (!contract) {
+    return (
+      <Page width="reading">
+        <Sheet>
+          <EmptyState
+            icon={FileX2}
+            title="Agreement not found."
+            body="It may belong to another account, or the link is out of date."
+            action={<Btn to="/portal">Back to your portal</Btn>}
+          />
+        </Sheet>
+      </Page>
+    );
+  }
+
+  const when = [mediumDate(contract.shoot_date), timeLabel(contract.shoot_time)].filter(Boolean).join(' · ');
+
+  return (
+    <Page width="reading">
+      <Sheet>
+        <PageHeader
+          kicker="Booking agreement"
+          title={<>{contract.format_name || 'Your shoot'} <span className="st-serif">agreement</span></>}
+          lede={`Between ${contract.client_name || 'the client'} and ${contract.creator_name || 'the creator'}, arranged through Stelli.`}
+          back={{ to: '/portal', label: 'Your portal' }}
+        />
+
+        <Card tone="butter" className="mt-7 grid grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-4">
+          <Stat value={when || 'To be set'} label="Shoot" className="col-span-2 [&_.st-stat\_\_value]:text-[19px]" />
+          <Stat value={money(contract.creator_fee ?? contract.base_price)} label="Creator fee" />
+          <Stat value={money(contract.total_paid)} label="Client total" />
+        </Card>
+
+        <Card as="article" className="mt-3">
+          <div className="space-y-4">
+            {paragraphs.map((p, i) => (
+              <p key={i} className={i === 0 ? 'text-[16px] font-semibold leading-relaxed text-fg' : 'text-[15px] leading-[1.75] text-fg-2'}>
+                {p}
+              </p>
+            ))}
+          </div>
+        </Card>
+
+        {superseded ? (
+          <Note tone="warn" icon={History} className="mt-3">
+            A newer quote replaced this agreement. It is kept here for the record.
+          </Note>
+        ) : needsCreatorAcceptance && isCreator ? (
+          <Card tone="lime" className="mt-3">
+            <h2 className="st-h3">Your acceptance</h2>
+            <Check checked={agreed} onChange={setAgreed} className="mt-1">
+              I agree to this booking agreement and Stelli's{' '}
+              <Link to="/terms" className="st-link" onClick={(e) => e.stopPropagation()}>
+                Terms and Conditions
+              </Link>
+              .
+            </Check>
+            {acceptContract.isError && (
+              <Note tone="error" className="mt-2">{errorMessage(acceptContract.error, 'That did not save. Try again.')}</Note>
             )}
-          </>
+            <Btn onClick={() => acceptContract.mutate()} disabled={!agreed} loading={acceptContract.isPending} className="mt-3">
+              Accept agreement
+            </Btn>
+          </Card>
+        ) : needsCreatorAcceptance ? (
+          <Note tone="info" className="mt-3">You have accepted this agreement. It is waiting on the creator.</Note>
         ) : (
-          <p>Agreement not found.</p>
+          <Note tone="success" icon={CheckCircle2} className="mt-3">
+            Accepted by both sides{contract.creator_accepted_at ? ` on ${mediumDate(contract.creator_accepted_at)}` : ''}. This copy is read-only.
+          </Note>
         )}
-      </div>
-    </div>
+      </Sheet>
+    </Page>
   );
 }

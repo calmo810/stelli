@@ -37,14 +37,14 @@ export default function LegalPage({ title, type, content, lastUpdated }) {
         action={
           <button
             onClick={handleDownloadPdf}
-            className="shrink-0 rounded-full border border-white/15 px-6 py-3 label-mono text-[10px] text-white/60 hover:text-white transition-colors"
+            className="st-btn st-btn--outline st-btn--sm shrink-0"
           >
             Download PDF
           </button>
         }
       />
 
-      <article className="mt-14 md:mt-16 border-t border-white/10 pt-10 space-y-5">
+      <article className="mt-8 border-t border-line pt-8 space-y-4">
         {blocks.map((block, index) => {
           if (block.rows) {
             const [header, ...body] = block.rows;
@@ -56,7 +56,7 @@ export default function LegalPage({ title, type, content, lastUpdated }) {
                       {header.map((cell, column) => (
                         <th
                           key={column}
-                          className="border-b border-white/15 py-3 pr-4 font-semibold text-white"
+                          className="border-b border-line py-3 pr-4 font-semibold text-fg"
                         >
                           {cell}
                         </th>
@@ -69,7 +69,7 @@ export default function LegalPage({ title, type, content, lastUpdated }) {
                         {row.map((cell, column) => (
                           <td
                             key={column}
-                            className="border-b border-white/10 py-3 pr-4 align-top leading-relaxed text-white/55"
+                            className="border-b border-line py-3 pr-4 align-top leading-relaxed text-fg-2"
                           >
                             {cell}
                           </td>
@@ -88,12 +88,12 @@ export default function LegalPage({ title, type, content, lastUpdated }) {
           return isHeading ? (
             <h2
               key={index}
-              className="pt-5 text-[20px] md:text-[24px] font-semibold leading-snug text-white"
+              className="pt-5 text-[20px] md:text-[24px] font-semibold leading-snug text-fg"
             >
               {block.text}
             </h2>
           ) : (
-            <p key={index} className="text-[14px] md:text-[15px] leading-[1.9] text-white/55">
+            <p key={index} className="text-[15px] leading-[1.8] text-fg-2">
               {block.text}
             </p>
           );

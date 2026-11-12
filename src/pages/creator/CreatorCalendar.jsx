@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { timeLabel } from '@/lib/format';
 import { Link, useOutletContext } from 'react-router-dom';
 import { addDays, format } from 'date-fns';
 import { CalendarDays, ChevronLeft, ChevronRight, Download, Loader2 } from 'lucide-react';
@@ -14,16 +15,6 @@ function keyOf(date) {
   return format(date, 'yyyy-MM-dd');
 }
 
-/** "14:30" reads as 2:30 PM; anything else is left as the client wrote it. */
-function timeLabel(value) {
-  if (!value) return 'Time TBD';
-  const match = /^(\d{1,2}):(\d{2})/.exec(value);
-  if (!match) return value;
-  const hours = Number(match[1]);
-  const suffix = hours >= 12 ? 'PM' : 'AM';
-  const hour = hours % 12 === 0 ? 12 : hours % 12;
-  return hour + ':' + match[2] + ' ' + suffix;
-}
 
 /** A focused seven-day view: easy to scan, with calm week-to-week navigation. */
 export default function CreatorCalendar() {
@@ -157,7 +148,7 @@ export default function CreatorCalendar() {
                 <span className="wk-day-w">{key === today ? 'Today' : format(day, 'EEE')}</span>
                 <span className="wk-day-n">{format(day, 'd')}</span>
                 <span className="wk-day-dots">
-                  {hasShoot && <i style={{ background: isOn ? 'rgba(255,255,255,.9)' : INK }} />}
+                  {hasShoot && <i style={{ background: isOn ? 'var(--fg-2)' : INK }} />}
                   {hasRequest && <i style={{ background: LIME }} />}
                 </span>
               </button>
@@ -209,7 +200,7 @@ export default function CreatorCalendar() {
                   className={['wk-appt', shoot ? 'is-shoot' : 'is-request'].join(' ')}
                 >
                   <span className="wk-appt-time">
-                    <b>{timeLabel(item.event_time)}</b>
+                    <b>{timeLabel(item.event_time, 'Time TBD')}</b>
                     <small>{item.duration || (shoot ? 'Booked' : 'To answer')}</small>
                   </span>
                   <span className="min-w-0 flex-1">

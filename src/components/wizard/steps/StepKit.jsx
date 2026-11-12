@@ -10,7 +10,7 @@ export default function StepKit({ w }) {
         <input
           id="fEquip"
           className="inp"
-          maxLength={80}
+          maxLength={Math.max(120, w.s.equip.length)}
           value={w.s.equip}
           placeholder="Sony A7IV, 35mm, one flash"
           autoComplete="off"

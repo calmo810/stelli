@@ -4,9 +4,9 @@ import { useQuery } from '@tanstack/react-query';
 
 // The admin page's card look (see AdminDashboard.jsx).
 const SURFACE = {
-  background: 'linear-gradient(145deg, hsl(var(--surface-2) / .86), hsl(var(--surface) / .94))',
+  background: 'var(--st-card)',
   borderRadius: 22,
-  boxShadow: 'inset 0 1px 0 rgba(255,255,255,.08), 0 18px 42px -30px rgba(0,0,0,.78)',
+  boxShadow: 'inset 0 1px 0 var(--line), 0 18px 42px -30px rgba(0,0,0,.78)',
 };
 
 const OUTCOME_TONE = { ok: 'lime', refused: 'cyan', failed: 'magenta' };
@@ -35,7 +35,7 @@ export default function AdminActivity() {
     return (
       <div className="space-y-2" aria-label="Loading activity">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="h-16 animate-pulse rounded border border-white/10 bg-white/[0.03]" />
+          <div key={i} className="h-16 animate-pulse rounded border border-line bg-fill" />
         ))}
       </div>
     );
@@ -43,7 +43,7 @@ export default function AdminActivity() {
 
   if (isError) {
     return (
-      <p role="alert" className="border border-neon-magenta/30 p-4 font-body text-[13px] text-white/70">
+      <p role="alert" className="border border-[var(--chip-magenta-fg)] p-4 text-[13px] text-fg-2">
         The activity log could not be loaded. Refresh the page and try again.
       </p>
     );
@@ -51,7 +51,7 @@ export default function AdminActivity() {
 
   if (!entries.length) {
     return (
-      <p className="py-20 text-center font-body text-[13px] text-white/45">
+      <p className="py-20 text-center text-[13px] text-fg-3">
         Nothing yet. Releases, refunds, payouts and creator decisions made here are listed as they happen.
       </p>
     );
@@ -62,14 +62,14 @@ export default function AdminActivity() {
       {entries.map((entry) => {
         const tone = OUTCOME_TONE[entry.outcome] || 'cyan';
         return (
-          <li key={entry.id} className="border border-white/10 p-4" style={SURFACE}>
-            <p className="font-body text-[14px] leading-relaxed text-white/85">{entry.summary || entry.action}</p>
-            <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 label-mono text-[9px] text-white/40">
+          <li key={entry.id} className="border border-line p-4" style={SURFACE}>
+            <p className="text-[14px] leading-relaxed text-fg">{entry.summary || entry.action}</p>
+            <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 st-kicker text-fg-3">
               <span>{when(entry.at)}</span>
               <span>{entry.actor_email || 'system'}</span>
               <span>{String(entry.action || '').replace(/_/g, ' ')}</span>
               {Number(entry.amount) > 0 && <span>${Number(entry.amount).toFixed(2)}</span>}
-              <span style={{ color: `hsl(var(--neon-${tone}))` }}>{entry.outcome || 'ok'}</span>
+              <span style={{ color: `var(--chip-${tone}-fg)` }}>{entry.outcome || 'ok'}</span>
             </p>
           </li>
         );

@@ -5,31 +5,30 @@ export default function Faq() {
   return (
     <section
       aria-labelledby="askTitle"
-      className="min-h-screen overflow-x-clip bg-ink px-5 pb-24 pt-4 text-white md:px-10 md:pb-32 md:pt-6"
+      className="st-page st-ink overflow-x-clip px-4 pb-20 pt-4 md:px-10 md:pb-28 md:pt-6"
     >
       <div className="text-center">
         <h1
           id="askTitle"
-          className="font-display font-medium leading-[1.08] tracking-[-0.02em]"
-          style={{ fontSize: 'clamp(30px, 4.6vw, 64px)' }}
+          className="st-display !text-[clamp(34px,5vw,66px)]"
         >
           Questions?{' '}
           <span className="mt-[.14em] inline-block -rotate-[1.5deg]">
-            <span className="inline rounded-md bg-neon-lime px-[.22em] pb-[.06em] pt-[.02em] italic text-ink">
+            <span className="st-serif inline rounded-xl bg-neon-lime px-[.22em] pb-[.06em] pt-[.02em] text-ink">
               Ask away.
             </span>
           </span>
         </h1>
-        <p className="mt-3 text-[15px] text-white/55">Tap a question or type your own. Stelli texts you back.</p>
+        <p className="st-lede mx-auto mt-4">Tap a question or type your own. Stelli texts you back.</p>
       </div>
 
       <FaqThread />
 
-      <p className="mt-2 text-center text-[14px] text-white/50">
+      <p className="mt-2 text-center text-[14px] text-fg-3">
         Something else?{' '}
         <a
           href="mailto:getstelli@gmail.com"
-          className="font-medium text-neon-lime hover:underline hover:underline-offset-4"
+          className="st-link"
         >
           Email getstelli@gmail.com
         </a>
