@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { loadSignInOptions } from "@/lib/authMfaFlow";
 import { safeReturnTo } from "@/lib/authReturnTo";
+import AuthLayout from "@/components/AuthLayout";
 
 // Building blocks shared by MfaFlow, MfaMethodSetup and MfaManage.
 
@@ -25,23 +26,19 @@ export function useAppInfo() {
 // A whole page holding one MFA card. MfaFlow and MfaManage are card content, so a page that
 // shows them returns <MfaScreen> in place of its own layout instead of nesting them in its card.
 export function MfaScreen({ children }) {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
-      <div className="w-full max-w-md bg-card rounded-2xl shadow-sm border border-border p-8">{children}</div>
-    </div>
-  );
+  return <AuthLayout bare>{children}</AuthLayout>;
 }
 
 // An icon, a title and a description, then the step's controls. A title that waits for the app's
 // name is null until it loads, so the right text appears once instead of replacing a placeholder.
 export function MfaHeader({ title, description }) {
   return (
-    <div className="flex flex-col items-center text-center mb-6">
-      <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary mb-4">
-        <ShieldCheck className="w-7 h-7 text-primary-foreground" aria-hidden="true" />
-      </div>
-      <h1 className="text-2xl font-bold tracking-tight text-foreground min-h-[2rem]">{title}</h1>
-      {description && <p className="text-muted-foreground mt-2">{description}</p>}
+    <div className="mb-6">
+      <span className="mb-4 grid h-12 w-12 place-items-center rounded-2xl bg-tint-lime text-[var(--tint-lime-ink)]">
+        <ShieldCheck className="h-[22px] w-[22px]" strokeWidth={2} aria-hidden="true" />
+      </span>
+      <h1 className="st-h1 min-h-[2rem]">{title}</h1>
+      {description && <p className="st-lede mt-2.5">{description}</p>}
     </div>
   );
 }

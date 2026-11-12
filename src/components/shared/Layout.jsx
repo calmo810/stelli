@@ -34,7 +34,7 @@ export default function Layout() {
       {/* The way back rides in the page's own flow, never pinned to the screen. */}
       <main className={`flex-1 ${isHome || isWorkspace ? '' : 'nav-offset'}`}>
         {!isHome && !isRootTab && !isCreatorProfile && !isMessages && !isWorkspace && (
-          <div className="mx-auto max-w-[1500px] px-5 pt-6 md:px-10">
+          <div className="st-wrap st-wrap--wide pt-4 md:pt-5">
             <BackButton />
           </div>
         )}

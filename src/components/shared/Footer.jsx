@@ -3,56 +3,79 @@ import { Link } from 'react-router-dom';
 import { Instagram } from 'lucide-react';
 import StelliWordmark from './StelliWordmark';
 import IchigoPopup from './IchigoPopup';
+import { Btn } from '@/components/system';
 
-const LINKS = [
-  { to: '/creators', text: 'Browse creators' },
-  { to: '/faq', text: 'FAQ' },
-  { to: '/register?role=client', text: 'Sign up' },
-  { to: '/register?role=creator', text: 'Shoot with Stelli' },
-  { to: '/portal', text: 'Your portal' },
-  { to: '/terms', text: 'Terms & Conditions' },
+const COLUMNS = [
+  {
+    title: 'Book',
+    links: [
+      { to: '/creators', text: 'Browse creators' },
+      { to: '/register?role=client', text: 'Sign up' },
+      { to: '/faq', text: 'FAQ' },
+    ],
+  },
+  {
+    title: 'Shoot',
+    links: [
+      { to: '/for-creators', text: 'For creators' },
+      { to: '/register?role=creator', text: 'Shoot with Stelli' },
+    ],
+  },
+  {
+    title: 'Account',
+    links: [
+      { to: '/portal', text: 'Your portal' },
+      { to: '/messages', text: 'Messages' },
+      { to: '/terms', text: 'Terms & Conditions' },
+    ],
+  },
 ];
 
-const PANEL = {
-  borderRadius: 28,
-  // Solid surface + a static gradient tint. No backdrop-filter or blurred
-  // glow behind it — that combination repainted on scroll and flickered.
-  background:
-    'radial-gradient(120% 140% at 85% 120%, hsl(var(--neon-lime) / 0.07), transparent 55%), #10162a',
-  border: '1px solid rgba(255,255,255,0.09)',
-  boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08)',
-};
+const LINK = 'inline-flex min-h-[36px] items-center text-[14px] text-white/70 transition-colors hover:text-white';
 
-const LINK = 'font-body text-[13px] text-white/60 hover:text-white transition-colors whitespace-nowrap';
-
-/** The footer: one floating sheet of liquid glass, and very little else. */
+/** The footer: one ink card with the wordmark, three short columns and the small print. */
 export default function Footer() {
   return (
-    <footer className="relative bg-ink px-4 md:px-10 pb-6 md:pb-8 pt-2">
-      <div className="relative max-w-[1500px] mx-auto" style={PANEL}>
-        <div className="px-6 md:px-10 py-9 md:py-11">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-            <div>
+    <footer className="st-ink relative bg-ink px-3 pb-4 pt-2 sm:px-5 md:pb-8 lg:px-8">
+      <div className="st-card st-card--ink st-card--lg relative mx-auto max-w-[1400px] overflow-hidden">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -bottom-40 -right-24 h-[380px] w-[380px] rounded-full opacity-60"
+          style={{ background: 'radial-gradient(closest-side, hsl(var(--neon-lime) / 0.16), transparent)' }}
+        />
+        <div className="relative px-5 py-9 sm:px-8 md:px-12 md:py-12">
+          <div className="flex flex-col gap-10 lg:flex-row lg:justify-between">
+            <div className="max-w-[340px]">
               <StelliWordmark />
-              <p className="mt-4 font-body text-[13px] leading-relaxed text-white/50 max-w-[230px]">
-                You're the star — we just bring the camera.
+              <p className="mt-5 text-[22px] font-extrabold leading-[1.1] tracking-[-0.035em] text-white">
+                You're the star.
+                <span className="st-serif block text-neon-lime">We just bring the camera.</span>
               </p>
+              <Btn to="/creators" variant="lime" arrow="end" className="mt-6">
+                Find a creator
+              </Btn>
             </div>
 
-            <nav className="flex flex-wrap gap-x-6 gap-y-3 md:justify-end md:max-w-[560px]">
-              {LINKS.map((link) => (
-                <Link key={link.text} to={link.to} className={LINK}>
-                  {link.text}
-                </Link>
+            <nav aria-label="Footer" className="grid grid-cols-2 gap-x-8 gap-y-8 sm:grid-cols-3 lg:gap-x-16">
+              {COLUMNS.map((column) => (
+                <div key={column.title}>
+                  <p className="st-kicker mb-2">{column.title}</p>
+                  <ul>
+                    {column.links.map((link) => (
+                      <li key={link.text}>
+                        <Link to={link.to} className={LINK}>
+                          {link.text}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))}
             </nav>
           </div>
 
-          <div
-            className="mt-9 pt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-            style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}
-          >
-            <p className="label-mono text-[9px] text-white/30">© {new Date().getFullYear()} Stelli · Elon, NC</p>
+          <div className="mt-10 flex flex-col justify-between gap-4 border-t border-white/10 pt-6 sm:flex-row sm:items-center">
+            <p className="text-[12.5px] text-white/55">© {new Date().getFullYear()} Stelli · Elon, NC</p>
 
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
               <a href="mailto:getstelli@gmail.com" className={LINK}>
@@ -62,10 +85,10 @@ export default function Footer() {
                 href="https://instagram.com/getstelli"
                 target="_blank"
                 rel="noreferrer"
-                aria-label="Stelli on Instagram"
-                className="text-white/55 hover:text-neon-lime transition-colors"
+                aria-label="Stelli on Instagram (opens in a new tab)"
+                className="grid h-10 w-10 place-items-center rounded-full text-white/70 transition-colors hover:bg-white/10 hover:text-neon-lime"
               >
-                <Instagram className="w-4 h-4" />
+                <Instagram className="h-[18px] w-[18px]" aria-hidden />
               </a>
               <IchigoPopup />
             </div>

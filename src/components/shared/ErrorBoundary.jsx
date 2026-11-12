@@ -44,12 +44,12 @@ export default class ErrorBoundary extends React.Component {
     const stale = isStaleChunk(error);
 
     return (
-      <div className="flex min-h-screen items-center justify-center bg-ink px-6 py-24" role="alert">
-        <div className="w-full max-w-md text-center">
-          <h1 className="font-heading text-[34px] font-semibold leading-[1.05] text-white">
+      <div className="st-page st-ink flex min-h-screen items-center justify-center px-3 py-16" role="alert">
+        <div className="st-sheet st-paper w-full max-w-md px-6 py-10 text-center">
+          <h1 className="st-h1">
             {stale ? 'Stelli was just updated.' : 'Something broke on this screen.'}
           </h1>
-          <p className="mt-4 font-body text-[14px] leading-relaxed text-white/60">
+          <p className="st-body mt-4">
             {stale
               ? 'Reload to get the newest version. Nothing you saved is lost.'
               : 'Nothing you saved is lost. Reload the page, or head back to the start.'}
@@ -58,13 +58,13 @@ export default class ErrorBoundary extends React.Component {
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-neon-lime px-7 font-body text-[14px] font-semibold text-ink"
+              className="st-btn st-btn--primary"
             >
               Reload
             </button>
             <a
               href="/"
-              className="inline-flex min-h-[48px] items-center justify-center rounded-full border border-white/20 px-7 font-body text-[14px] font-semibold text-white/80 hover:text-white"
+              className="st-btn st-btn--outline"
             >
               Back to Stelli
             </a>

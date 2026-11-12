@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { PRIVACY_VERSION, TERMS_VERSION } from '@/lib/legalDocuments';
-import { Checkbox } from '@/components/ui/checkbox';
 import { applyPendingSignup } from '@/lib/pendingSignup';
 import { fetchCurrentUser } from '@/hooks/useCurrentUser';
+import { Btn, Check, Dialog, Note } from '@/components/system';
 
 /** Each document's current version, so updating one doesn't re-prompt the other. */
 const REQUIRED_VERSIONS = { terms: TERMS_VERSION, privacy: PRIVACY_VERSION };
 
+/**
+ * Asks a signed-in account to accept the Terms when a newer version exists
+ * than the one they accepted. It can't be dismissed, but it never appears on
+ * the Terms page itself, so the document can always be read first.
+ */
 export default function LegalUpdateBanner() {
   const [needed, setNeeded] = useState([]);
   const [checked, setChecked] = useState(false);
@@ -66,35 +71,30 @@ export default function LegalUpdateBanner() {
   if (!needed.length || location.pathname === '/terms') return null;
 
   return (
-    <div className="fixed inset-0 z-[80] flex items-end md:items-center justify-center bg-[#0a0f1e]/85 backdrop-blur-sm px-4 py-6">
-      <div className="max-w-xl w-full border p-6 md:p-8" style={{ background: 'hsl(var(--surface))', borderColor: 'rgba(255,255,255,0.14)', borderRadius: 4 }}>
-        <p className="label-mono text-[9px] text-white/40 mb-4">Updated legal terms</p>
-        <h2 className="font-heading text-3xl font-semibold mb-4 text-white">
-          We have new Terms and Conditions.
-        </h2>
-        <p className="font-body text-sm leading-relaxed mb-6 text-white/55">
-          You must accept them to continue using Stelli.
-        </p>
-        <label className="flex items-start gap-3 mb-6 cursor-pointer">
-          <Checkbox checked={checked} onCheckedChange={setChecked} className="mt-1" />
-          <span className="font-body text-sm leading-relaxed text-white/70">
-            I agree to Stelli's Terms and Conditions.
-          </span>
-        </label>
-        {error && (
-          <p role="alert" className="mb-4 font-body text-sm" style={{ color: 'hsl(var(--neon-magenta))' }}>
-            {error}
-          </p>
-        )}
-        <button
-          onClick={accept}
-          disabled={!checked || saving}
-          className="w-full py-3.5 label-mono text-[10px] font-semibold disabled:opacity-40"
-          style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }}
-        >
+    <Dialog open busy kicker="Updated legal terms" title="We have new Terms and Conditions.">
+      <p className="st-body mt-3">
+        Please accept them to keep using Stelli. You can{' '}
+        <Link to="/terms" className="st-link">
+          read them first
+        </Link>
+        .
+      </p>
+
+      <Check checked={checked} onChange={setChecked} className="mt-3" data-autofocus>
+        I agree to Stelli's Terms and Conditions.
+      </Check>
+
+      {error && (
+        <Note tone="error" className="mt-3">
+          {error}
+        </Note>
+      )}
+
+      <div className="st-dialog__actions">
+        <Btn onClick={accept} disabled={!checked} loading={saving} block>
           Accept and continue
-        </button>
+        </Btn>
       </div>
-    </div>
+    </Dialog>
   );
 }

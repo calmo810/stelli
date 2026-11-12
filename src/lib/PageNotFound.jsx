@@ -1,5 +1,5 @@
-import { Link } from 'react-router-dom';
 import useNoIndex from '@/lib/useNoIndex';
+import { Btn, Page, Sheet } from '@/components/system';
 
 /**
  * The one "page not found" screen. A broken link shows it, and so does a page
@@ -10,23 +10,22 @@ export default function PageNotFound() {
   useNoIndex();
 
   return (
-    <div className="flex min-h-[70vh] items-center justify-center bg-ink px-6 py-24">
-      <div className="w-full max-w-md text-center">
-        <p className="label-mono text-[10px] text-white/35">404</p>
-        <h1 className="mt-4 font-heading text-[40px] font-semibold leading-[1.05] text-white">
-          Nothing here.
+    <Page width="narrow">
+      <Sheet className="st-aurora st-aurora--sky px-6 py-14 text-center sm:py-20">
+        <p className="st-kicker">404</p>
+        <h1 className="st-display mt-3">
+          Nothing <span className="st-serif">here.</span>
         </h1>
-        <p className="mt-4 font-body text-[14px] leading-relaxed text-white/55">
-          That page doesn’t exist, or the link is out of date.
-        </p>
-        <Link
-          to="/"
-          className="mt-8 inline-flex min-h-[48px] items-center justify-center px-7 font-body text-[14px] font-semibold"
-          style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 980 }}
-        >
-          Back to Stelli
-        </Link>
-      </div>
-    </div>
+        <p className="st-lede mx-auto mt-5">That page doesn’t exist, or the link is out of date.</p>
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-2.5">
+          <Btn to="/" variant="ink" arrow="end">
+            Back to Stelli
+          </Btn>
+          <Btn to="/creators" variant="outline">
+            Browse creators
+          </Btn>
+        </div>
+      </Sheet>
+    </Page>
   );
 }

@@ -79,7 +79,7 @@ function ConfirmIdentity({ returnTo, onChallenge, initialError }) {
 
   return (
     <>
-      <MfaHeader title={info && `Welcome to ${info.name || "the app"}`} description="Sign in to continue" />
+      <MfaHeader title="Confirm it's you" description="Sign in again to set up or change two-factor sign-in." />
       <MfaNotice error={error} />
       {!options && !error && <Loader2 className="mx-auto w-6 h-6 animate-spin text-muted-foreground" />}
       {options && (
