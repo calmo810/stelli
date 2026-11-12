@@ -9,7 +9,7 @@ import WorkTabs from '@/components/creator/workspace/WorkTabs';
 
 /** The shoots themselves — what is booked, what is done, what needs signing. */
 export default function CreatorBookings() {
-  const { confirmed, finished, newRequests } = /** @type {any} */ (useOutletContext());
+  const { confirmed, finished, newRequests, user } = /** @type {any} */ (useOutletContext());
   const [tab, setTab] = useState('next');
 
   const past = [...finished].reverse();
@@ -57,7 +57,7 @@ export default function CreatorBookings() {
       </div>
 
       <div className="arch-tab__secondary">
-        <MyAgreements role="lensman" />
+        <MyAgreements role="lensman" userId={user?.id} />
       </div>
     </div>
   );
