@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import '@/styles/profileWizard.css';
-import { STEPS } from '@/lib/wizardData';
 import useWizard from '@/hooks/useWizard';
 import WizardTopbar from '@/components/wizard/WizardTopbar';
 import WizardCard from '@/components/wizard/WizardCard';
@@ -14,8 +13,9 @@ import WizardSheet from '@/components/wizard/WizardSheet';
 import { STEP_BODIES } from '@/components/wizard/steps';
 
 /**
- * Creator profile creation: thirteen steps, a live preview the whole way,
- * and one publish that files the profile with Stelli.
+ * The creator application and the page editor, in one place. Applying is
+ * four short screens and a send; once a profile exists the same wizard opens
+ * every step, with a live preview the whole way.
  */
 export default function ProfileWizard() {
   const w = useWizard();
@@ -56,7 +56,7 @@ export default function ProfileWizard() {
     );
   }
 
-  const StepBody = STEP_BODIES[STEPS[w.step].key];
+  const StepBody = STEP_BODIES[w.steps[Math.min(w.step, w.steps.length - 1)].key];
 
   return (
     <div className="pw-root">
