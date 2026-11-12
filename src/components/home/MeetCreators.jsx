@@ -137,6 +137,19 @@ export default function MeetCreators() {
                   />
                 </div>
                 <div className="absolute left-[22px] right-[22px] bottom-[22px] z-10">
+                  {creator.profile_image && (
+                    <img
+                      src={creator.profile_image}
+                      alt=""
+                      loading="lazy"
+                      draggable={false}
+                      className="mb-3 h-11 w-11 rounded-full object-cover"
+                      style={{
+                        boxShadow:
+                          '0 0 0 1.5px rgba(255,255,255,.9), 0 0 0 3px rgba(10,15,31,.35), 0 10px 22px -10px rgba(0,0,0,.9)',
+                      }}
+                    />
+                  )}
                   <p className="font-display font-medium text-white leading-none" style={{ fontSize: 30 }}>
                     {displayNameOf(creator)}
                   </p>
