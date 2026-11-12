@@ -42,7 +42,7 @@ export default function WorkspaceShell({ profile, user, counts = {}, children })
   const activeKey = sectionOf(path);
   const isToday = path === '/lensman-dashboard';
   const index = TABS.findIndex((tab) => tab.key === activeKey);
-  const name = profile?.display_name || user?.full_name || 'Your studio';
+  const name = profile?.display_name || user?.full_name || 'Your profile';
   const avatar = profile?.profile_image;
 
   const startTouch = (event) => {
@@ -77,7 +77,7 @@ export default function WorkspaceShell({ profile, user, counts = {}, children })
             <div className="min-w-0">
               <p className="truncate text-[15px] font-bold text-white">{name}</p>
               <p className="mt-0.5 text-[10.5px] font-bold uppercase tracking-[0.12em] text-white/35">
-                Creator studio
+                Creator
               </p>
             </div>
           </div>
