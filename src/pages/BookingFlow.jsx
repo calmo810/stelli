@@ -343,7 +343,7 @@ export default function BookingFlow() {
                     or
                     <span className="h-px flex-1 bg-white/10" />
                   </div>
-                  <Pill as="button" type="button" tone="glass" onClick={continueWithGoogle} className="h-12 w-full text-[15px] font-medium">
+                  <Pill as="button" type="button" tone="glass" onClick={continueWithGoogle} className="h-12 w-full">
                     <GoogleIcon className="h-5 w-5" />
                     Continue with Google
                   </Pill>
@@ -394,7 +394,7 @@ export default function BookingFlow() {
                 tone="lime"
                 onClick={submit}
                 disabled={!canSend || busy}
-                className="h-[52px] w-full text-[15px]"
+                className="h-[52px] w-full"
               >
                 {busy && <Loader2 className="h-4 w-4 animate-spin" />}
                 {stage === 'otp' ? 'Verify and send' : 'Send request'}
