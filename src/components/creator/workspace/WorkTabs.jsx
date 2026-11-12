@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { preloadCreatorPane } from '@/lib/preloadCreatorWorkspace';
 
 const SECTIONS = [
   { to: '/lensman-dashboard/requests', label: 'Requests', counted: true },
@@ -15,6 +16,9 @@ export default function WorkTabs({ requests = 0 }) {
         <NavLink
           key={to}
           to={to}
+          onMouseEnter={() => preloadCreatorPane('work')}
+          onFocus={() => preloadCreatorPane('work')}
+          onTouchStart={() => preloadCreatorPane('work')}
           className={({ isActive }) => `wk-seg-btn ${isActive ? 'is-on' : ''}`}
         >
           {label}
