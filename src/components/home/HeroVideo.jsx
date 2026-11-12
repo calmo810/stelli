@@ -145,7 +145,12 @@ export default function HeroVideo() {
   const longest = PHRASES.reduce((a, phrase) => (phrase.length > a.length ? phrase : a), '');
 
   return (
-    <section ref={heroRef} className="relative w-full overflow-hidden bg-ink" style={{ height: '100svh', minHeight: 600 }}>
+    <section
+      ref={heroRef}
+      data-hero
+      className="relative w-full overflow-hidden bg-ink"
+      style={{ height: '100svh', minHeight: 600 }}
+    >
       <style>{`@keyframes stelliCaretBlink { 50% { opacity: 0 } }`}</style>
 
       <div ref={parallaxRef} className="absolute inset-0 will-change-transform">

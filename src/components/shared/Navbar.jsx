@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { Menu } from 'lucide-react';
@@ -9,48 +9,49 @@ import StelliWordmark from './StelliWordmark';
 // screens (the creator workspace) use this so nothing is ever covered by it.
 export default function Navbar({ inFlow = false }) {
   const [open, setOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [pastHero, setPastHero] = useState(false);
+  const headerRef = useRef(null);
   const location = useLocation();
 
-  const [hidden, setHidden] = useState(false);
-
+  // Over the home hero the bar stays clear; it turns solid once the photo is
+  // gone and only the solid page sits behind it.
   useEffect(() => {
-    let last = window.scrollY;
+    if (location.pathname !== '/') {
+      setPastHero(false);
+      return undefined;
+    }
     const onScroll = () => {
-      const y = window.scrollY;
-      setScrolled(y > 12);
-      // Fade out on the way down, back in on the way up. Small moves are
-      // ignored so the bar does not flicker while the page settles.
-      if (Math.abs(y - last) > 6) {
-        setHidden(y > last && y > 120);
-        last = y;
-      }
+      const hero = document.querySelector('[data-hero]');
+      if (!hero) return;
+      const barH = headerRef.current?.offsetHeight || 64;
+      setPastHero(hero.getBoundingClientRect().bottom <= barH);
     };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, [location.pathname]);
 
   useEffect(() => {
     setOpen(false);
   }, [location.pathname]);
 
   const isHome = location.pathname === '/';
-  const solid = scrolled || !isHome;
-  const faded = hidden && !inFlow && !open;
+  const solid = !isHome || pastHero;
 
   return (
     <>
       <header
-        className={`${inFlow ? 'relative' : 'fixed top-0'} inset-x-0 z-50 transition-[background-color,border-color,opacity,transform] duration-500 ease-out`}
+        ref={headerRef}
+        className={`${inFlow ? 'relative' : 'fixed top-0'} inset-x-0 z-50 transition-colors duration-500`}
         style={{
           paddingTop: 'var(--safe-top)',
           background: solid ? 'hsl(var(--ink) / 0.88)' : 'transparent',
           backdropFilter: solid ? 'blur(14px)' : 'none',
           borderBottom: solid ? '1px solid rgba(255,255,255,0.08)' : '1px solid transparent',
-          opacity: faded ? 0 : 1,
-          transform: faded ? 'translateY(-100%)' : 'none',
-          pointerEvents: faded ? 'none' : 'auto',
         }}
       >
         <div className="max-w-[1500px] mx-auto px-5 md:px-10 h-16 flex items-center justify-between">
