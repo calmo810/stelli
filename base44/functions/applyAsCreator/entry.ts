@@ -1,17 +1,33 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
-import { sendEmail } from '../../shared/notify.ts';
-import { slugify, displayNameFrom } from '../../shared/creatorApplication.ts';
+import { sendEmail, emailAdmins } from '../../shared/notify.ts';
+import { slugify, displayNameFrom, applicationProblem, validEmail } from '../../shared/creatorApplication.ts';
 import { buildProfilePatch } from '../../shared/profileRules.ts';
+import { SITE_ORIGIN } from '../../shared/origins.ts';
 
 const DUPLICATE_EMAIL =
   "There's already a creator profile with this email. Log in to that account instead.";
 
+function privateDetails(body, user) {
+  return {
+    fullName: String(body.full_name || body.fullName || '').trim().slice(0, 200),
+    email: String(body.email || user.email || '').trim().toLowerCase().slice(0, 200),
+    phone: String(body.phone || '').trim().slice(0, 200),
+    instagram: String(body.instagram || '').replace(/^@/, '').trim().slice(0, 200),
+  };
+}
+
 /**
  * Creator signup — the only way a creator profile can be created.
  *
- * The profile wizard sends the whole page it built: the public fields land on
+ * The application is the short version of a profile: a face, a name, what
+ * they shoot, at least three photos and a way to reach them. Everything is
+ * checked before anything is written, so every application in the review
+ * queue is one a founder can actually review. The public fields land on
  * Lensman (status pending, so nothing goes live before vetting) and the real
  * name, email, phone and handle stay in the private CreatorContact record.
+ *
+ * Sending it twice is safe: the second call finds the first application,
+ * finishes anything the first one left undone, and says it is already in.
  */
 export default async function (req) {
   try {
@@ -19,25 +35,33 @@ export default async function (req) {
     const user = await base44.auth.me().catch(() => null);
     if (!user) return Response.json({ error: 'Please sign in to apply.' }, { status: 401 });
 
-    const body = await req.json();
-    const fullName = (body.full_name || body.fullName || '').trim();
-    if (!fullName) return Response.json({ error: 'Your name is required.' }, { status: 400 });
+    const body = await req.json().catch(() => ({}));
+    const details = privateDetails(body, user);
+    const Lensman = base44.asServiceRole.entities.Lensman;
+    const CreatorContact = base44.asServiceRole.entities.CreatorContact;
 
-    const email = (body.email || user.email || '').trim().toLowerCase();
-    if (!email) return Response.json({ error: 'A contact email is required.' }, { status: 400 });
+    const newContact = (lensmanId) => ({
+      lensman_id: lensmanId,
+      user_id: user.id,
+      full_name: details.fullName,
+      email: details.email,
+      phone: details.phone,
+      instagram: details.instagram,
+      admin_notes: '',
+      review_note: '',
+    });
 
-    const existing = await base44.asServiceRole.entities.Lensman.filter({ user_id: user.id });
-    if (existing.length) return Response.json({ lensman: existing[0], alreadyApplied: true });
-
-    // One creator profile per person, matched on the contact email or on the
-    // address they sign in with.
-    const contacts = await base44.asServiceRole.entities.CreatorContact.list('-created_date', 500);
-    const taken = contacts.some(
-      (contact) =>
-        String(contact.email || '').toLowerCase() === email ||
-        String(contact.email || '').toLowerCase() === String(user.email || '').toLowerCase()
-    );
-    if (taken) return Response.json({ error: DUPLICATE_EMAIL }, { status: 409 });
+    // Already applied: nothing is created twice. If an earlier attempt saved
+    // the profile but not the private contact record, this one finishes it.
+    const existing = await Lensman.filter({ user_id: user.id });
+    if (existing.length) {
+      const lensman = existing[0];
+      const contacts = await CreatorContact.filter({ lensman_id: lensman.id });
+      if (!contacts.length && details.fullName && validEmail(details.email)) {
+        await CreatorContact.create(newContact(lensman.id));
+      }
+      return Response.json({ lensman, alreadyApplied: true });
+    }
 
     // The same rules the profile editor saves by: limits, contact protection,
     // the fixed prompt list, the tag cap.
@@ -47,22 +71,38 @@ export default async function (req) {
       return Response.json({ error: errors[firstError], field: firstError, errors }, { status: 400 });
     }
 
-    const displayName = (body.display_name || displayNameFrom(fullName, body.displayName)).trim();
-    if (!displayName) {
-      return Response.json({ error: 'A display name is required.', field: 'display_name' }, { status: 400 });
-    }
+    const displayName = String(body.display_name || displayNameFrom(details.fullName, body.displayName)).trim();
 
-    let slug = slugify(body.slug || displayName || fullName);
-    const takenSlug = await base44.asServiceRole.entities.Lensman.filter({ slug });
+    // The minimum a founder needs to make a decision.
+    const problem = applicationProblem({
+      fullName: details.fullName,
+      email: details.email,
+      displayName,
+      profile: patch,
+    });
+    if (problem) return Response.json(problem, { status: 400 });
+
+    // One creator profile per person, matched on the contact email or on the
+    // address they sign in with.
+    const contacts = await CreatorContact.list('-created_date', 500);
+    const loginEmail = String(user.email || '').toLowerCase();
+    const taken = contacts.some((contact) => {
+      const contactEmail = String(contact.email || '').toLowerCase();
+      return contactEmail && (contactEmail === details.email || contactEmail === loginEmail);
+    });
+    if (taken) return Response.json({ error: DUPLICATE_EMAIL, field: 'email' }, { status: 409 });
+
+    let slug = slugify(body.slug || displayName || details.fullName) || 'creator';
+    const takenSlug = await Lensman.filter({ slug });
     if (takenSlug.length) slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
 
     const now = new Date().toISOString();
     const market = 'ELON';
-    const specialties = Array.isArray(patch.specialties) ? patch.specialties : [];
-    const portfolio = Array.isArray(patch.portfolio_images) ? patch.portfolio_images.filter(Boolean) : [];
+    const specialties = patch.specialties;
+    const portfolio = patch.portfolio_images;
     const cover = portfolio.includes(patch.cover_image) ? patch.cover_image : portfolio[0] || '';
 
-    const lensman = await base44.asServiceRole.entities.Lensman.create({
+    const lensman = await Lensman.create({
       user_id: user.id,
       display_name: displayName,
       slug,
@@ -79,7 +119,7 @@ export default async function (req) {
       print_frame: patch.print_frame || 'mat',
       print_mat: patch.print_mat || 'mixed',
       show_captions: patch.show_captions ?? true,
-      profile_image: patch.profile_image || '',
+      profile_image: patch.profile_image,
       cover_image: cover,
       portfolio_images: portfolio,
       pinned_images: portfolio.slice(0, 3),
@@ -105,41 +145,33 @@ export default async function (req) {
       ...(user.age_confirmed === true ? { age_confirmed_at: now } : {}),
     });
 
-    await base44.asServiceRole.entities.CreatorContact.create({
-      lensman_id: lensman.id,
-      user_id: user.id,
-      full_name: fullName,
-      email,
-      phone: (body.phone || '').trim(),
-      instagram: (body.instagram || '').replace(/^@/, '').trim(),
-      admin_notes: '',
-      review_note: '',
-    });
+    // The profile and its private record belong together. If the second one
+    // does not save, the first is taken back, so the applicant can simply try
+    // again and a founder never opens an application with nobody to contact.
+    try {
+      await CreatorContact.create(newContact(lensman.id));
+    } catch (error) {
+      console.error('applyAsCreator: contact record failed -', error.message);
+      await Lensman.delete(lensman.id).catch((undo) =>
+        console.error('applyAsCreator: could not take back profile', lensman.id, '-', undo.message)
+      );
+      return Response.json({ error: 'Your application did not send. Try again.' }, { status: 500 });
+    }
 
+    // From here the application is in. Emails never fail it (sendEmail and
+    // emailAdmins swallow their own errors).
     await sendEmail(
       base44,
-      email,
-      'Your profile is under review.',
-      "We look at every creator ourselves and we'll be in touch soon. Keep building your profile in the meantime. It goes live the moment you're approved."
+      details.email,
+      'We got your Stelli application.',
+      `We look at every creator ourselves, and you'll get an email as soon as there's a decision.\n\nWhile you wait, you can finish your page: add a bio, your kit, and choose how your photos hang. It goes live the moment you're approved.\n\n${SITE_ORIGIN}/edit-profile`
     );
 
-    try {
-      const admins = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
-      await Promise.all(
-        admins
-          .filter((admin) => admin?.email)
-          .map((admin) =>
-            sendEmail(
-              base44,
-              admin.email,
-              `New creator application: ${fullName}`,
-              `${fullName}\nEmail: ${email}\nPhone: ${body.phone || '—'}\nMarket: ${market}\nSigned up: ${new Date(now).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}\n\nReview the application in Stelli: https://getstelli.base44.app/admin → Applications. Their portfolio and contact details are shown together, with Approve & publish or Reject application.`
-            )
-          )
-      );
-    } catch (error) {
-      console.error('Admin application notice failed:', error.message);
-    }
+    await emailAdmins(
+      base44,
+      `New creator application: ${details.fullName}`,
+      `${details.fullName}\nEmail: ${details.email}\nPhone: ${details.phone || '—'}\nInstagram: ${details.instagram ? '@' + details.instagram : '—'}\nShoots: ${specialties.join(', ')}\nPhotos: ${portfolio.length}\nMarket: ${market}\nApplied: ${new Date(now).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}\n\nReview it in Stelli: ${SITE_ORIGIN}/admin → Applications. Approve & publish, ask for changes, or decline.`
+    );
 
     return Response.json({ lensman });
   } catch (error) {
