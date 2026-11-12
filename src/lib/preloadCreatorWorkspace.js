@@ -6,7 +6,10 @@ const PANES = {
     () => import('@/pages/creator/CreatorEarnings'),
   ],
   calendar: [() => import('@/pages/creator/CreatorCalendar')],
-  profile: [() => import('@/pages/creator/CreatorPublicProfile')],
+  profile: [
+    () => import('@/pages/creator/CreatorPublicProfile'),
+    () => import('@/pages/creator/CreatorProfileSection'),
+  ],
 };
 
 const warm = (loader) => loader().catch(() => undefined);
