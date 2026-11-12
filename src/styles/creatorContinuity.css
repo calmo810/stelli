@@ -226,6 +226,99 @@
 }
 
 /* Calendar keeps the playful, immediately readable date rail from the mobile references. */
+.arch-tab--calendar .calendar-export {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 13px 14px;
+  border: 1px solid rgba(31,65,108,.10);
+  border-radius: 20px;
+  background: rgba(255,255,255,.52);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.82), 0 12px 24px -25px rgba(26,59,98,.42);
+}
+
+.arch-tab--calendar .calendar-export__copy {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.arch-tab--calendar .calendar-export__icon {
+  display: grid;
+  width: 31px;
+  height: 31px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 10px;
+  background: rgba(209,244,71,.48);
+  color: #405712;
+}
+
+.arch-tab--calendar .calendar-export__copy > span:last-child {
+  min-width: 0;
+}
+
+.arch-tab--calendar .calendar-export small,
+.arch-tab--calendar .calendar-export strong,
+.arch-tab--calendar .calendar-export em {
+  display: block;
+}
+
+.arch-tab--calendar .calendar-export small {
+  color: #6f7e96;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.arch-tab--calendar .calendar-export strong {
+  margin-top: 1px;
+  color: #0a1730;
+  font-size: 12px;
+  letter-spacing: -.02em;
+}
+
+.arch-tab--calendar .calendar-export em {
+  margin-top: 2px;
+  overflow: hidden;
+  color: #6f7e96;
+  font-size: 10.5px;
+  font-style: normal;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arch-tab--calendar .calendar-export__button {
+  display: inline-flex;
+  min-height: 34px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 11px;
+  border: 0;
+  border-radius: 999px;
+  background: #111e37;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  transition: transform .18s ease, background .18s ease, opacity .18s ease;
+}
+
+.arch-tab--calendar .calendar-export__button:hover:not(:disabled) {
+  background: #1c2f51;
+  transform: translateY(-1px);
+}
+
+.arch-tab--calendar .calendar-export__button:disabled {
+  cursor: default;
+  opacity: .42;
+}
+
+/* Calendar keeps the playful, immediately readable date rail from the mobile references. */
 .arch-tab--calendar .wk-strip {
   gap: 7px;
   margin-top: 19px;
