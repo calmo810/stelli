@@ -172,12 +172,12 @@
 }
 
 .arch-masthead__copy h1 {
-  margin: 8px 0 0;
+  margin: 6px 0 0;
   color: var(--stelli-ink);
-  font-size: clamp(52px, 5.1vw, 74px);
+  font-size: clamp(36px, 3.5vw, 48px);
   font-weight: 820;
-  letter-spacing: -.082em;
-  line-height: .8;
+  letter-spacing: -.055em;
+  line-height: 1.04;
 }
 
 .arch-masthead__copy strong {
@@ -1039,7 +1039,7 @@
   }
 
   .arch-masthead__copy h1 {
-    font-size: 53px;
+    font-size: 34px;
   }
 
   .arch-masthead__copy strong {
