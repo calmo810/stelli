@@ -4,10 +4,11 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { UserPlus, Mail, Lock, Loader2 } from "lucide-react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { authFieldIcon, authHint, authInputWithIcon, authLabel, authLink, authNotice, authPrimary, authSecondary, otpGroup, otpSlot } from "@/lib/authStyles";
 import AuthLayout from "@/components/AuthLayout";
+import StelliCheck from "@/components/shared/StelliCheck";
 import GoogleIcon from "@/components/GoogleIcon";
 import { toast } from "@/components/ui/use-toast";
 import { PRIVACY_VERSION, TERMS_VERSION } from "@/lib/legalDocuments";
@@ -167,7 +168,7 @@ export default function Register() {
         subtitle={`We sent a code to ${email}`}
       >
         {error && (
-          <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+          <div role="alert" className={`${authNotice} mb-4`}>
             {error}
           </div>
         )}
@@ -179,33 +180,30 @@ export default function Register() {
             autoFocus
             autoComplete="one-time-code"
           >
-            <InputOTPGroup>
-              <InputOTPSlot index={0} />
-              <InputOTPSlot index={1} />
-              <InputOTPSlot index={2} />
-              <InputOTPSlot index={3} />
-              <InputOTPSlot index={4} />
-              <InputOTPSlot index={5} />
+            <InputOTPGroup className={otpGroup}>
+              {[0, 1, 2, 3, 4, 5].map((index) => (
+                <InputOTPSlot key={index} index={index} className={otpSlot} />
+              ))}
             </InputOTPGroup>
           </InputOTP>
         </div>
         <Button
-          className="w-full h-12 font-medium"
+          className={authPrimary}
           onClick={handleVerify}
           disabled={loading || otpCode.length < 6}
         >
           {loading ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
               Verifying...
             </>
           ) : (
             "Verify"
           )}
         </Button>
-        <p className="text-center text-sm text-muted-foreground mt-4">
+        <p className={`mt-4 text-center ${authHint}`}>
           Didn't receive the code?{" "}
-          <button onClick={handleResend} className="text-primary font-medium hover:underline">
+          <button type="button" onClick={handleResend} className={authLink}>
             Resend
           </button>
         </p>
@@ -221,58 +219,62 @@ export default function Register() {
       footer={
         <>
           Already have an account?{" "}
-          <Link to="/login" className="text-primary font-medium hover:underline">
+          <Link to="/login" className={authLink}>
             Log in
           </Link>
         </>
       }
     >
-      <div className="grid grid-cols-2 gap-3 mb-5">
+      {/* Client or creator: the home page's two doors, as one switch. */}
+      <div role="radiogroup" aria-label="Account type" className="mb-5 grid grid-cols-2 gap-1 rounded-full border border-white/[0.12] bg-white/[0.05] p-1">
         {[
-          { id: 'client', label: 'Client' },
-          { id: 'creator', label: 'Creator' },
-        ].map((option) => (
-          <button
-            key={option.id}
-            type="button"
-            onClick={() => setAccountType(option.id)}
-            className={`h-11 rounded-md border text-xs font-semibold transition-colors ${accountType === option.id ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-transparent text-muted-foreground hover:text-foreground'}`}
-          >
-            {option.label}
-          </button>
-        ))}
+          { id: 'client', label: 'Client', accent: 'var(--neon-lime)' },
+          { id: 'creator', label: 'Creator', accent: 'var(--neon-cyan)' },
+        ].map((option) => {
+          const active = accountType === option.id;
+          return (
+            <button
+              key={option.id}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              onClick={() => setAccountType(option.id)}
+              className={`h-11 rounded-full text-[14px] font-semibold transition-colors ${active ? 'text-ink' : 'text-white/60 hover:text-white'}`}
+              style={active ? { background: `hsl(${option.accent})`, boxShadow: `0 8px 22px -12px hsl(${option.accent} / 0.85)` } : undefined}
+            >
+              {option.label}
+            </button>
+          );
+        })}
       </div>
 
       <Button
         variant="outline"
-        className="w-full h-12 text-sm font-medium mb-6"
+        className={`${authSecondary} mb-5`}
         onClick={handleGoogle}
         disabled={!legalAgreed || !adult || !accountType}
       >
-        <GoogleIcon className="w-5 h-5 mr-2" />
+        <GoogleIcon className="w-5 h-5" />
         Continue with Google
       </Button>
 
-      <div className="relative mb-6">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-border" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card px-3 text-muted-foreground">or</span>
-        </div>
+      <div className="mb-5 flex items-center gap-3 text-[13px] text-white/35">
+        <span className="h-px flex-1 bg-white/10" />
+        or
+        <span className="h-px flex-1 bg-white/10" />
       </div>
 
       {error && (
-        <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
+        <div role="alert" className={`${authNotice} mb-4`}>
           {error}
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email" className={authLabel}>Email</Label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+            <Mail className={authFieldIcon} aria-hidden="true" />
             <Input
               id="email"
               type="email"
@@ -281,15 +283,15 @@ export default function Register() {
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="pl-10 h-12"
+              className={authInputWithIcon}
               required
             />
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password" className={authLabel}>Password</Label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+            <Lock className={authFieldIcon} aria-hidden="true" />
             <Input
               id="password"
               type="password"
@@ -297,15 +299,15 @@ export default function Register() {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="pl-10 h-12"
+              className={authInputWithIcon}
               required
             />
           </div>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="confirm">Confirm Password</Label>
+          <Label htmlFor="confirm" className={authLabel}>Confirm password</Label>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
+            <Lock className={authFieldIcon} aria-hidden="true" />
             <Input
               id="confirm"
               type="password"
@@ -313,25 +315,22 @@ export default function Register() {
               placeholder="••••••••"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="pl-10 h-12"
+              className={authInputWithIcon}
               required
             />
           </div>
         </div>
-        <label className="flex items-start gap-3 rounded-lg border border-border p-3 cursor-pointer">
-          <Checkbox checked={adult} onCheckedChange={setAdult} className="mt-0.5" />
-          <span className="text-xs leading-relaxed text-muted-foreground">I'm 18 or older.</span>
-        </label>
-        <label className="flex items-start gap-3 rounded-lg border border-border p-3 cursor-pointer">
-          <Checkbox checked={legalAgreed} onCheckedChange={setLegalAgreed} className="mt-0.5" />
-          <span className="text-xs leading-relaxed text-muted-foreground">
-            I agree to Stelli's <Link to="/terms" className="text-primary underline">Terms and Conditions</Link>.
-          </span>
-        </label>
-        <Button type="submit" className="w-full h-12 font-medium" disabled={loading || !legalAgreed || !adult || !accountType}>
+        <div className="space-y-3 pt-1">
+          <StelliCheck checked={adult} onChange={setAdult}>I'm 18 or older.</StelliCheck>
+          <StelliCheck checked={legalAgreed} onChange={setLegalAgreed}>
+            I agree to Stelli's{" "}
+            <Link to="/terms" className="text-white underline underline-offset-2 hover:text-neon-lime">Terms and Conditions</Link>.
+          </StelliCheck>
+        </div>
+        <Button type="submit" className={authPrimary} disabled={loading || !legalAgreed || !adult || !accountType}>
           {loading ? (
             <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <Loader2 className="w-4 h-4 animate-spin" />
               Creating account...
             </>
           ) : (
