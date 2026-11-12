@@ -70,37 +70,6 @@ export const STEPS = [
 /** The steps this person walks: the application, or the whole page. */
 export const stepsFor = (existing) => (existing ? STEPS : STEPS.filter((step) => step.apply));
 
-/** Starter styles: they fill the creator's own fields, which they then rewrite. */
-export const STARTERS = [
-  {
-    key: 'flash', name: 'Night Flash', color: '#d6f344',
-    art: 'radial-gradient(circle at 30% 40%,#d6f34455,transparent 55%),radial-gradient(circle at 80% 70%,#4fd8e033,transparent 50%),#10141f',
-    tags: ['direct flash', 'nightlife', 'unposed'], oneLiner: "Flash on, hands up, we'll fix it in the blur.",
-    theme: 'night', accent: 'lime', gallery: 'hero', what: ['Nightlife', 'Events', 'Portraits'],
-    layout: 'wall', curve: 'full', frame: 'mat', mat: 'ink', captions: true,
-    bio: 'I shoot mostly at night and keep it relaxed. Show up, be yourself, I\'ll handle the rest.',
-    promptIdx: 4, promptA: 'you want photos that look like the night actually felt.', dont: 'No weddings or newborns.',
-  },
-  {
-    key: 'daylight', name: 'Daylight', color: '#4fd8e0',
-    art: 'radial-gradient(circle at 70% 30%,#f5c26b55,transparent 55%),radial-gradient(circle at 20% 80%,#4fd8e033,transparent 50%),#f6f6f2',
-    tags: ['natural light', 'unposed', 'bright & airy'], oneLiner: 'Good light, no stiff poses. Your mom will cry (good tears).',
-    theme: 'clean', accent: 'cyan', gallery: 'ordered', what: ['Graduation', 'Couples', 'Portraits'],
-    layout: 'wall', curve: 'soft', frame: 'mat', mat: 'paper', captions: true,
-    bio: 'Warm, easy sessions built around real moments. I direct just enough that you never feel stiff.',
-    promptIdx: 1, promptA: 'the photos felt like us, not a photoshoot.', dont: 'No late-night events.',
-  },
-  {
-    key: 'film', name: 'Film Editorial', color: '#e356c4',
-    art: 'radial-gradient(circle at 25% 30%,#e356c455,transparent 55%),radial-gradient(circle at 80% 80%,#7b3ff244,transparent 50%),#10141f',
-    tags: ['film', 'editorial', 'moody'], oneLiner: 'Film first. Digital when the brief calls for it.',
-    theme: 'night', accent: 'magenta', gallery: 'contact', what: ['Editorial', 'Music Videos', 'Commercial'],
-    layout: 'strip', curve: 'flat', frame: 'bleed', mat: 'mixed', captions: false,
-    bio: 'Editorial eye, run-and-gun energy. I plan the shot list so your shoot day is pure execution.',
-    promptIdx: 0, promptA: 'a rooftop at blue hour with a smoke machine.', dont: 'Nothing corporate-stiff.',
-  },
-];
-
 export const defaultTiers = () => [
   { on: true, name: 'Quick Session', price: '', duration: '30 min', includes: '' },
   { on: true, name: 'Standard', price: '', duration: '1 hr', includes: '' },

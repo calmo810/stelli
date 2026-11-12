@@ -220,12 +220,6 @@
 .shows-as{margin-top:12px;font-size:13.5px;color:var(--faint)}
 .shows-as b{color:var(--text);font-weight:500}
 .subhead{display:block;margin:26px 0 10px;font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
-.steal{display:flex;flex-direction:column;gap:8px}
-.steal-btn{
-  text-align:left;border:1px solid var(--line);background:var(--panel);border-radius:var(--r-sm);
-  padding:12px 15px;font-size:14px;color:var(--dim);transition:border-color .15s,color .15s;
-}
-.steal-btn:hover{border-color:var(--dim);color:var(--text)}
 
 /* ============ PHOTO ============ */
 .photo-zone{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
@@ -507,24 +501,6 @@
 .need span b{color:var(--text);font-weight:500}
 .welcome-actions{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
 
-.starters{margin-top:64px}
-.starters-head h2{font-family:var(--serif);font-weight:600;font-size:24px;letter-spacing:-.01em}
-.starters-head p{color:var(--faint);font-size:14px;margin-top:4px}
-.starter-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:20px}
-.starter{text-align:left;border-radius:var(--r);overflow:hidden;background:var(--panel);border:1px solid var(--line);transition:transform .2s var(--ease),border-color .2s}
-.starter:hover{transform:translateY(-2px);border-color:var(--line-2)}
-.starter-art{height:110px;position:relative}
-.starter-art .glow{position:absolute;inset:0}
-.starter-art .chip-demo{
-  position:absolute;left:14px;bottom:12px;border-radius:999px;padding:5px 10px;
-  font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
-  color:var(--ink);background:var(--sc);
-}
-.starter-body{padding:16px 18px 18px}
-.starter-name{font-weight:600;font-size:16px}
-.starter-tags{color:var(--dim);font-size:13px;margin-top:4px}
-.starter-line{font-size:13.5px;color:var(--text);opacity:.8;font-style:italic;margin-top:10px}
-.starter-use{margin-top:14px;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--sc)}
 
 /* ============ SHEET ============ */
 .sheet-back{position:fixed;inset:0;z-index:80;background:rgba(5,7,12,.6);backdrop-filter:blur(6px);animation:pwFade .25s both}
