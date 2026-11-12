@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Plus } from 'lucide-react';
-import { MAX_SHOTS, MIN_SHOTS, PH } from '@/lib/wizardData';
+import { MAX_SHOTS, MIN_SHOTS } from '@/lib/wizardData';
 
 export default function StepPortfolio({ w }) {
   const { s } = w;
@@ -96,14 +96,14 @@ export default function StepPortfolio({ w }) {
         {s.portfolio.length < MAX_SHOTS && (
           <button type="button" className="pf-add" onClick={() => inputRef.current?.click()} disabled={w.uploading}>
             <Plus className="w-5 h-5" />
-            {w.uploading ? 'Uploading…' : s.portfolio.length ? 'Add more' : 'Add shots'}
+            {w.uploading ? w.uploadNote || 'Uploading…' : s.portfolio.length ? 'Add more' : 'Add shots'}
           </button>
         )}
 
         <input
           ref={inputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,.heic,.heif"
           multiple
           hidden
           onChange={(event) => {
@@ -133,8 +133,8 @@ export default function StepPortfolio({ w }) {
         </span>
       </div>
       <p className="hint">
-        The first photo leads your page. Star another one to make it the cover —{' '}
-        {PH.length ? 'your portfolio shows in the order above.' : ''}
+        The first photo leads your page. Star another one to make it the cover. Big files are fine: we resize them
+        as they upload.
       </p>
     </>
   );
