@@ -2,6 +2,7 @@
  * Shared email helper for the booking pipeline.
  * Sends never throw — a failed notification must not fail the action.
  */
+
 /**
  * Escapes text so nothing a person typed can render as markup in an email.
  * Every body below is plain text written by us around user-supplied values.
