@@ -712,7 +712,13 @@ Make three paid bookings: one about 4 days out, one about 60 hours out, one abou
 - **Type checks:** the backend (every function and the shared money code) must pass `deno check` with no errors. The frontend is plain JavaScript under `checkJs`. It has 132 known findings, mostly from React Router's untyped outlet context, and may not add a new one (`ci/typecheck-baseline.json`).
 - **Build:** `npm run build`.
 
-To make it a real gate, turn on GitHub → Settings → Branches → a rule for `main` → *Require status checks to pass*, and pick the four jobs. That's a repository setting I can't change from here.
+To make it a real gate, import `ci/github-ruleset-main.json`. That's a repository setting I can't change from here:
+
+1. GitHub → the repository → **Settings → Rules → Rulesets → New ruleset → Import a ruleset**, and pick that file.
+2. **Before saving, add the Base44 builder to the bypass list:** *Bypass list → Add bypass →* the Base44 app → *Always allow*. The builder commits straight to `main`. Without the bypass, the ruleset would refuse its commits and break Base44's sync with GitHub.
+3. Save.
+
+From then on, everyone else's changes reach `main` only through a pull request. The four checks have to pass on the PR as it would look merged with the latest `main`, and `main` can't be force-pushed or deleted.
 
 - **Pure rules:** money and rounding (`money.test.mjs`), cancellation tiers and New York time including daylight saving (`cancellation.test.mjs`), booking states and what each move needs (`bookingRules.test.mjs`), the portals' next steps and status lines and their agreement with the server (`bookingNextStep.test.mjs`), the founder queue (`founderQueue.test.mjs`), the contact guard (`contactGuard.test.mjs`).
 - **Real function code, end to end:** `flow-*.test.mjs` load the actual backend functions and run them against an in-memory Base44 database and a fake Stripe (`tests/helpers`). Covered: the whole payment path, every known issue as a "how it happens" scenario, races (report vs payout at 41 timings, manual vs automatic payout at 11, refund vs sweep, double delivery, double reviews, double clicks), refunds and pull-backs, cancellations, disputes, contracts, albums, the concierge, and who may call each function.
