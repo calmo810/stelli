@@ -66,7 +66,9 @@ function entityStore(name) {
     },
     async create(data) {
       await tick();
-      const id = data.id || `${name.toLowerCase()}_${nextId++}`;
+      // A run prefix keeps IDs unique across runs (the real-Stripe harness sets it,
+      // since Stripe remembers idempotency keys built from these IDs).
+      const id = data.id || `${globalThis.__idPrefix || ''}${name.toLowerCase()}_${nextId++}`;
       const row = { created_date: new Date().toISOString(), ...data, id };
       rows.set(id, row);
       return { ...row };
