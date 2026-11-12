@@ -148,7 +148,7 @@ export default function useCreatorApplication() {
   // A problem on screen goes away as soon as the form changes.
   useEffect(() => {
     setProblem('');
-  }, [form, step]);
+  }, [form]);
 
   const goTo = useCallback((index) => {
     setStep(Math.max(0, Math.min(index, APPLICATION_SECTIONS.length - 1)));
@@ -159,7 +159,7 @@ export default function useCreatorApplication() {
     const missing = applicationProblem(form);
     if (missing) {
       goTo(APPLICATION_SECTIONS.indexOf(missing.section));
-      setTimeout(() => setProblem(missing.problem), 0);
+      setProblem(missing.problem);
       return;
     }
     setSending(true);
@@ -192,7 +192,7 @@ export default function useCreatorApplication() {
       const { message, field } = readFailure(error);
       const section = APPLICATION_SECTIONS.indexOf(FIELD_SECTION[field]);
       if (section >= 0) goTo(section);
-      setTimeout(() => setProblem(message), 0);
+      setProblem(message);
     } finally {
       setSending(false);
     }
@@ -207,11 +207,15 @@ export default function useCreatorApplication() {
       setProblem(stuck);
       return;
     }
+    setProblem('');
     if (last) send();
     else goTo(step + 1);
   }, [uploads.uploading, sectionKey, form, last, send, goTo, step]);
 
-  const back = useCallback(() => goTo(step - 1), [goTo, step]);
+  const back = useCallback(() => {
+    setProblem('');
+    goTo(step - 1);
+  }, [goTo, step]);
 
   return {
     status,
