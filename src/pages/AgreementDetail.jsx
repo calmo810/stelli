@@ -9,7 +9,7 @@ import Pill from '@/components/shared/Pill';
 import StelliCheck from '@/components/shared/StelliCheck';
 
 /** "Shoot date: 2026-11-20" reads as a label and a value; prose stays prose. */
-const LABELLED_LINE = /^([^:.()]{1,40}):\s+(.+)$/;
+const LABELLED_LINE = /^([^:.]{1,40}):\s+(.+)$/;
 
 /**
  * The agreement text, laid out to read like a receipt. The words are the
@@ -48,8 +48,13 @@ function AgreementText({ text }) {
                 </div>
               );
             }
+            // A bracketed aside, like the note about the legal name, reads as a footnote.
+            const aside = line.startsWith('(');
             return (
-              <p key={i} className={`text-[15px] leading-[1.75] text-white/70${i ? ' mt-3' : ''}`}>
+              <p
+                key={i}
+                className={`${aside ? 'pb-1 text-[13px] leading-snug text-white/45' : 'text-[15px] leading-[1.75] text-white/70'}${i ? ' mt-3' : ''}`}
+              >
                 {line}
               </p>
             );
