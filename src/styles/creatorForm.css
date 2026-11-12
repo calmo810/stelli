@@ -1,0 +1,530 @@
+/*
+ * The creator profile form: fields on the workspace's paper cards.
+ * Used by the application and by the portal's section editor, so both look
+ * like the portal. Everything is prefixed cf- and scoped under .wk.
+ */
+
+/* ---------- fields ---------- */
+.wk .cf-stack > * + * {
+  margin-top: 22px;
+}
+
+.wk .cf-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  color: var(--wk-ink);
+}
+
+.wk .cf-label small {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--wk-mute);
+}
+
+.wk .cf-input {
+  display: block;
+  width: 100%;
+  border: 1.5px solid transparent;
+  border-radius: 16px;
+  background: var(--wk-soft);
+  padding: 13px 15px;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--wk-ink);
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.wk .cf-input::placeholder {
+  color: var(--wk-mute);
+}
+
+.wk .cf-input:focus {
+  border-color: var(--wk-ink);
+  background: #fff;
+}
+
+.wk textarea.cf-input {
+  min-height: 112px;
+  resize: vertical;
+}
+
+.wk .cf-hint {
+  margin-top: 8px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--wk-grey);
+}
+
+.wk .cf-hint a {
+  color: var(--wk-ink);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.wk .cf-row {
+  display: grid;
+  gap: 14px;
+}
+
+@media (min-width: 640px) {
+  .wk .cf-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .wk .cf-row--wide-first {
+    grid-template-columns: 2.2fr 1fr;
+  }
+}
+
+.wk .cf-prefix {
+  position: relative;
+}
+
+.wk .cf-prefix > span {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--wk-mute);
+  pointer-events: none;
+}
+
+.wk .cf-prefix > .cf-input {
+  padding-left: 30px;
+}
+
+/* ---------- chips ---------- */
+.wk .cf-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.wk .cf-chip {
+  border-radius: 999px;
+  background: var(--wk-soft);
+  padding: 9px 15px;
+  font-size: 13.5px;
+  font-weight: 650;
+  color: var(--wk-ink);
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.wk .cf-chip:active {
+  transform: scale(0.97);
+}
+
+.wk .cf-chip.is-on {
+  background: var(--wk-ink);
+  color: #fff;
+}
+
+.wk .cf-chip--small {
+  padding: 6px 12px;
+  font-size: 12.5px;
+}
+
+.wk .cf-chip:disabled {
+  opacity: 0.4;
+}
+
+/* ---------- the face photo ---------- */
+.wk .cf-face {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.wk .cf-face__img {
+  display: grid;
+  height: 96px;
+  width: 96px;
+  flex-shrink: 0;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 30px;
+  background: var(--wk-soft);
+  color: var(--wk-mute);
+}
+
+.wk .cf-face__img img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.wk .cf-link {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--wk-grey);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ---------- the portfolio ---------- */
+.wk .cf-shots {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (min-width: 768px) {
+  .wk .cf-shots {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.wk .cf-shot,
+.wk .cf-shot-add {
+  position: relative;
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--wk-soft);
+}
+
+.wk .cf-shot img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.wk .cf-shot.is-cover {
+  box-shadow: 0 0 0 3px var(--wk-ink);
+}
+
+.wk .cf-shot__flag {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  border-radius: 999px;
+  background: hsl(var(--neon-lime));
+  padding: 3px 8px;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--wk-ink);
+}
+
+.wk .cf-shot__bar {
+  position: absolute;
+  inset: auto 6px 6px 6px;
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.wk .cf-shot__bar span {
+  display: flex;
+  gap: 4px;
+}
+
+.wk .cf-shot__bar button {
+  display: grid;
+  height: 30px;
+  width: 30px;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(10, 18, 38, 0.72);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+  backdrop-filter: blur(6px);
+}
+
+.wk .cf-shot__bar button:disabled {
+  opacity: 0.35;
+}
+
+.wk .cf-shot-add {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1.5px dashed rgba(10, 18, 38, 0.2);
+  background: transparent;
+  padding: 8px;
+  text-align: center;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--wk-ink);
+}
+
+.wk .cf-shot-add.is-drop {
+  border-color: var(--wk-ink);
+  background: var(--wk-soft);
+}
+
+/* ---------- segmented choices (the look) ---------- */
+.wk .cf-seg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.wk .cf-seg button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border-radius: 999px;
+  background: var(--wk-soft);
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--wk-ink);
+}
+
+.wk .cf-seg button.is-on {
+  background: var(--wk-ink);
+  color: #fff;
+}
+
+.wk .cf-seg.is-off {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.wk .cf-seg i {
+  height: 13px;
+  width: 13px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(10, 18, 38, 0.15);
+}
+
+.wk .cf-look {
+  display: grid;
+  gap: 22px;
+}
+
+@media (min-width: 1024px) {
+  .wk .cf-look {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    align-items: start;
+  }
+}
+
+.wk .cf-look__wall {
+  overflow: hidden;
+  border-radius: 22px;
+  background: hsl(var(--ink));
+  padding: 18px 0;
+}
+
+/* ---------- prompts ---------- */
+.wk .cf-options {
+  display: grid;
+  gap: 6px;
+}
+
+.wk .cf-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-radius: 16px;
+  background: var(--wk-soft);
+  padding: 12px 15px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--wk-ink);
+}
+
+.wk .cf-option.is-on {
+  background: var(--wk-ink);
+  color: #fff;
+}
+
+/* ---------- packages ---------- */
+.wk .cf-tier {
+  border-radius: 20px;
+  background: var(--wk-soft);
+  padding: 16px;
+}
+
+.wk .cf-tier + .cf-tier {
+  margin-top: 10px;
+}
+
+.wk .cf-tier .cf-input {
+  background: #fff;
+}
+
+.wk .cf-tier.is-off .cf-tier__fields {
+  display: none;
+}
+
+.wk .cf-tier__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--wk-ink);
+}
+
+.wk .cf-tier__fields {
+  margin-top: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .wk .cf-tier__fields {
+    grid-template-columns: 2fr 1fr 1fr;
+  }
+  .wk .cf-tier__fields > .is-full {
+    grid-column: 1 / -1;
+  }
+}
+
+.wk .cf-toggle {
+  position: relative;
+  height: 26px;
+  width: 44px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: rgba(10, 18, 38, 0.16);
+  transition: background 0.18s ease;
+}
+
+.wk .cf-toggle::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  height: 20px;
+  width: 20px;
+  border-radius: 999px;
+  background: #fff;
+  transition: transform 0.18s ease;
+}
+
+.wk .cf-toggle.is-on {
+  background: var(--wk-ink);
+}
+
+.wk .cf-toggle.is-on::after {
+  transform: translateX(18px);
+}
+
+/* ---------- page furniture ---------- */
+.wk .cf-back {
+  display: inline-flex;
+  width: auto;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 14px;
+  font-size: 12.5px;
+  font-weight: 750;
+  color: #657791;
+}
+
+.wk .cf-back:hover {
+  color: var(--wk-ink);
+}
+
+.wk .cf-error {
+  margin-top: 14px;
+  border-radius: 16px;
+  background: var(--wk-blush);
+  padding: 12px 15px;
+  font-size: 13.5px;
+  font-weight: 650;
+  color: var(--wk-blush-ink);
+}
+
+.wk .cf-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.wk .cf-actions__note {
+  margin-left: auto;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #657791;
+}
+
+/* ---------- the application page ---------- */
+.wk.cf-apply {
+  background: hsl(var(--ink));
+}
+
+.wk .cf-apply__frame {
+  margin: 0 auto;
+  width: 100%;
+  max-width: 760px;
+  padding: 18px 16px 72px;
+}
+
+.wk .cf-apply__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 4px 22px;
+}
+
+.wk .cf-apply__top img {
+  height: 30px;
+  width: auto;
+}
+
+.wk .cf-apply__exit {
+  font-size: 13px;
+  font-weight: 650;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.wk .cf-apply__exit:hover {
+  color: #fff;
+}
+
+.wk .cf-steps {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0 16px;
+}
+
+.wk .cf-steps i {
+  height: 4px;
+  flex: 1;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  transition: background 0.2s ease;
+}
+
+.wk .cf-steps i.is-on {
+  background: hsl(var(--neon-lime));
+}
+
+.wk .cf-sent {
+  display: grid;
+  height: 56px;
+  width: 56px;
+  place-items: center;
+  border-radius: 999px;
+  background: hsl(var(--neon-lime));
+  color: var(--wk-ink);
+  margin-bottom: 18px;
+}
