@@ -133,29 +133,49 @@ export default function MeetCreators() {
                   <span
                     aria-hidden
                     className="absolute inset-0"
-                    style={{ background: 'linear-gradient(to top, hsl(var(--ink) / 0.9) 0%, transparent 50%)' }}
+                    style={{
+                      background:
+                        'linear-gradient(to top, hsl(var(--ink) / 0.92) 0%, hsl(var(--ink) / 0.45) 34%, transparent 64%)',
+                    }}
+                  />
+                  <span
+                    aria-hidden
+                    className="absolute inset-0 z-[2] pointer-events-none"
+                    style={{ borderRadius: CARD_RADIUS, boxShadow: 'inset 0 0 0 1px rgba(255,255,255,.12)' }}
                   />
                 </div>
-                <div className="absolute left-[22px] right-[22px] bottom-[22px] z-10">
+                <div className="absolute inset-x-[20px] bottom-[20px] z-10 flex items-center gap-3">
                   {creator.profile_image && (
                     <img
                       src={creator.profile_image}
                       alt=""
                       loading="lazy"
                       draggable={false}
-                      className="mb-3 h-11 w-11 rounded-full object-cover"
-                      style={{
-                        boxShadow:
-                          '0 0 0 1.5px rgba(255,255,255,.9), 0 0 0 3px rgba(10,15,31,.35), 0 10px 22px -10px rgba(0,0,0,.9)',
-                      }}
+                      className="h-10 w-10 shrink-0 rounded-full object-cover"
+                      style={{ boxShadow: '0 0 0 1px rgba(255,255,255,.42)' }}
                     />
                   )}
-                  <p className="font-display font-medium text-white leading-none" style={{ fontSize: 30 }}>
-                    {displayNameOf(creator)}
-                  </p>
-                  <p className="mt-2 font-body text-[14px] text-white/70">
-                    Elon · {creator.specialties?.[0] || 'Photography'}
-                  </p>
+                  <div className="min-w-0">
+                    <p
+                      className="font-display font-medium text-white leading-[1.02] tracking-[-0.025em] truncate"
+                      style={{ fontSize: 28 }}
+                    >
+                      {displayNameOf(creator)}
+                    </p>
+                    <p className="mt-1.5 flex items-center gap-1.5 font-body text-[12.5px] text-white/55">
+                      {Number(creator.avg_rating) > 0 && Number(creator.review_count) > 0 ? (
+                        <>
+                          <span className="font-semibold" style={{ color: 'hsl(var(--neon-lime))' }}>
+                            ★ {Number(creator.avg_rating).toFixed(1)}
+                          </span>
+                          <span className="text-white/25">·</span>
+                        </>
+                      ) : null}
+                      <span className="truncate">
+                        {(creator.specialties?.[0] || 'Photography')} · Elon
+                      </span>
+                    </p>
+                  </div>
                 </div>
               </Link>
             );
