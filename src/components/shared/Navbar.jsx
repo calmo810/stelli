@@ -12,8 +12,20 @@ export default function Navbar({ inFlow = false }) {
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
 
+  const [hidden, setHidden] = useState(false);
+
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12);
+    let last = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      setScrolled(y > 12);
+      // Fade out on the way down, back in on the way up. Small moves are
+      // ignored so the bar does not flicker while the page settles.
+      if (Math.abs(y - last) > 6) {
+        setHidden(y > last && y > 120);
+        last = y;
+      }
+    };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -25,16 +37,20 @@ export default function Navbar({ inFlow = false }) {
 
   const isHome = location.pathname === '/';
   const solid = scrolled || !isHome;
+  const faded = hidden && !inFlow && !open;
 
   return (
     <>
       <header
-        className={`${inFlow ? 'relative' : 'fixed top-0'} inset-x-0 z-50 transition-colors duration-500`}
+        className={`${inFlow ? 'relative' : 'fixed top-0'} inset-x-0 z-50 transition-[background-color,border-color,opacity,transform] duration-500 ease-out`}
         style={{
           paddingTop: 'var(--safe-top)',
           background: solid ? 'hsl(var(--ink) / 0.88)' : 'transparent',
           backdropFilter: solid ? 'blur(14px)' : 'none',
           borderBottom: solid ? '1px solid rgba(255,255,255,0.08)' : '1px solid transparent',
+          opacity: faded ? 0 : 1,
+          transform: faded ? 'translateY(-100%)' : 'none',
+          pointerEvents: faded ? 'none' : 'auto',
         }}
       >
         <div className="max-w-[1500px] mx-auto px-5 md:px-10 h-16 flex items-center justify-between">

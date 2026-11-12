@@ -86,54 +86,19 @@ export default function HeroVideo() {
   const [typer, setTyper] = useState(EMPTY_TYPER);
   const heroRef = useRef(null);
   const parallaxRef = useRef(null);
-  const copyRef = useRef(null);
-  const scrimRef = useRef(null);
 
-  // The hero copy rides out as a header: it climbs with the page until it
-  // rests under the nav, holds there while the Elon photo is still on screen,
-  // then fades away as the photo's bottom edge leaves the top of the viewport.
+  // The photo drifts down slightly as the page scrolls; the copy stays put.
   useEffect(() => {
     if (reduced) return undefined;
     const hero = heroRef.current;
-    const copy = copyRef.current;
-    if (!hero || !copy) return undefined;
-
-    // Just under the fixed nav (4rem plus the notch inset).
-    const nav = document.querySelector('header');
-    const restTop = (nav ? nav.getBoundingClientRect().height : 64) + 24;
-
-    copy.style.position = 'fixed';
-    copy.style.top = '0';
-    copy.style.left = '0';
-    copy.style.right = '0';
-    copy.style.bottom = 'auto';
-    copy.style.zIndex = '40';
+    if (!hero) return undefined;
 
     let frame = 0;
     const update = () => {
       frame = 0;
       const heroH = hero.offsetHeight;
-      const copyH = copy.offsetHeight;
-      const y = window.scrollY;
-
-      // Where the copy would sit if it just scrolled with the page; it stops
-      // climbing at restTop and stays there.
-      const natural = heroH - copyH - y;
-      copy.style.transform = `translate3d(0, ${Math.max(restTop, natural)}px, 0)`;
-
-      // The band darkens as the copy settles into its header position.
-      if (scrimRef.current) {
-        scrimRef.current.style.opacity = String(Math.min(1, Math.max(0, (restTop - natural) / 70)));
-      }
-
-      // The photo is gone once the hero's bottom edge clears the viewport top.
-      const remaining = heroH - y;
-      const fade = Math.min(1, Math.max(0, remaining / 190));
-      copy.style.opacity = String(fade);
-      copy.style.pointerEvents = fade < 0.05 ? 'none' : 'auto';
-
       if (parallaxRef.current) {
-        parallaxRef.current.style.transform = `translate3d(0, ${Math.min(y, heroH) * 0.32}px, 0)`;
+        parallaxRef.current.style.transform = `translate3d(0, ${Math.min(window.scrollY, heroH) * 0.32}px, 0)`;
       }
     };
     const onScroll = () => {
@@ -146,9 +111,6 @@ export default function HeroVideo() {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onScroll);
       cancelAnimationFrame(frame);
-      ['position', 'top', 'left', 'right', 'bottom', 'zIndex', 'transform', 'opacity', 'pointerEvents'].forEach(
-        (prop) => copy.style.removeProperty(prop.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`))
-      );
     };
   }, [reduced]);
 
@@ -212,22 +174,8 @@ export default function HeroVideo() {
         }}
       />
 
-      <div
-        ref={copyRef}
-        className="absolute inset-x-0 bottom-0 z-40 px-5 md:px-10 pb-16 sm:pb-[88px] text-center will-change-transform"
-      >
-        {/* The band that appears once the copy settles at the top, so it reads
-            as a header over the photo. */}
-        <div
-          ref={scrimRef}
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-0"
-          style={{
-            background:
-              'linear-gradient(to bottom, hsl(var(--ink) / 0.82) 0%, hsl(var(--ink) / 0.5) 58%, transparent 100%)',
-          }}
-        />
-        <div className="relative w-full max-w-[900px] mx-auto">
+      <div className="absolute inset-0 flex items-end justify-center text-center px-5 md:px-10 pb-16 sm:pb-[88px]">
+        <div className="w-full max-w-[900px]">
           <h1
             className="font-display"
             style={{ fontWeight: 500, lineHeight: 1.08, letterSpacing: '-0.015em', fontSize: 'clamp(28px, 4.8vw, 68px)' }}
