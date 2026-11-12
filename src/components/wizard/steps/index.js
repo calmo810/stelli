@@ -1,8 +1,6 @@
-import StepPhoto from './StepPhoto';
-import StepName from './StepName';
+import StepYou from './StepYou';
+import StepWork from './StepWork';
 import StepOneLiner from './StepOneLiner';
-import StepWhere from './StepWhere';
-import StepWhat from './StepWhat';
 import StepPortfolio from './StepPortfolio';
 import StepPricing from './StepPricing';
 import StepBio from './StepBio';
@@ -14,17 +12,15 @@ import StepPrivate from './StepPrivate';
 
 /** Which body each step key renders. */
 export const STEP_BODIES = {
-  photo: StepPhoto,
-  name: StepName,
-  line: StepOneLiner,
-  where: StepWhere,
-  what: StepWhat,
+  you: StepYou,
+  work: StepWork,
   pf: StepPortfolio,
-  price: StepPricing,
+  priv: StepPrivate,
+  line: StepOneLiner,
   bio: StepBio,
   kit: StepKit,
   prompt: StepPrompt,
   dont: StepDont,
   look: StepLook,
-  priv: StepPrivate,
+  price: StepPricing,
 };
