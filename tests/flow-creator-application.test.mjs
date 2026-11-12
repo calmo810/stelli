@@ -149,7 +149,7 @@ test('ask for changes → creator fixes and sends it back → founder approves',
   const note = w.emailsTo('riley@example.com').slice(before);
   assert.equal(note.length, 1);
   assert.match(note[0].body, /Swap the profile photo/);
-  assert.match(note[0].body, /\/edit-profile/);
+  assert.match(note[0].body, /lensman-dashboard\/profile/);
 
   // Their own profile tells them what was asked.
   const own = await w.call('getMyCreatorProfile', {}, APPLICANT);
