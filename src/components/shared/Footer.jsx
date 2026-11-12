@@ -6,7 +6,6 @@ import IchigoPopup from './IchigoPopup';
 
 const LINKS = [
   { to: '/creators', text: 'Browse creators' },
-  { to: '/how-it-works', text: 'How it works' },
   { to: '/faq', text: 'FAQ' },
   { to: '/register?role=client', text: 'Sign up' },
   { to: '/register?role=creator', text: 'Shoot with Stelli' },

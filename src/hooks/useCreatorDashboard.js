@@ -34,14 +34,6 @@ export default function useCreatorDashboard() {
     },
   });
 
-  // Founder payouts made outside a booking, still waiting to go out.
-  const { data: waitingManual = [] } = useQuery({
-    queryKey: ['waiting-manual-payouts', user?.id],
-    enabled: !!user?.id,
-    queryFn: () =>
-      base44.entities.ManualPayout.filter({ creator_user_id: user.id, status: 'waiting' }).catch(() => []),
-  });
-
   // Stripe is asked where a mid-setup creator stands, once per profile — the
   // dashboard and any open sheet share this one check.
   const { data: payoutState = null } = useQuery({
@@ -66,13 +58,6 @@ export default function useCreatorDashboard() {
     },
   });
 
-  // Someone who also books shoots as a client gets a way across to that portal.
-  const { data: hasClientBookings = false } = useQuery({
-    queryKey: ['has-client-bookings', user?.id],
-    enabled: !!user?.id,
-    queryFn: async () => (await base44.entities.Booking.filter({ client_id: user.id }, '-created_date', 1).catch(() => [])).length > 0,
-  });
-
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['lensman-bookings'] });
 
   // Every booking is in exactly one of these two lists. (Cancelled bookings and
@@ -93,13 +78,10 @@ export default function useCreatorDashboard() {
     isLoading,
     active,
     past,
-    hasClientBookings,
     // The one real next step for each booking that has one.
     steps: nextSteps(active, 'lensman'),
     waitingPayouts,
-    waitingTotal:
-      waitingPayouts.reduce((sum, b) => sum + Number(b.creator_payout || 0), 0) +
-      waitingManual.reduce((sum, p) => sum + Number(p.amount || 0), 0),
+    waitingTotal: waitingPayouts.reduce((sum, b) => sum + Number(b.creator_payout || 0), 0),
     payoutState,
     refresh,
   };

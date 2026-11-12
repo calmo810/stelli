@@ -13,7 +13,6 @@ const PUBLIC_LINKS = [
 
 const SHARED_LINKS = [
   { label: 'Browse creators', to: '/creators' },
-  { label: 'How it works', to: '/how-it-works' },
   { label: 'FAQ', to: '/faq' },
   { label: 'Terms & Conditions', to: '/terms' },
 ];

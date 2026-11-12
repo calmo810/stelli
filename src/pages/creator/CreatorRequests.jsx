@@ -1,63 +1,55 @@
 import React, { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Inbox } from 'lucide-react';
-import SegmentedTabs from '@/components/dashboard/SegmentedTabs';
-import EmptyPanel from '@/components/dashboard/EmptyPanel';
+import NextPast from '@/components/creator/workspace/NextPast';
+import WorkspaceEmpty from '@/components/creator/workspace/WorkspaceEmpty';
 import RequestRow from '@/components/creator/RequestRow';
+import WorkTabs from '@/components/creator/workspace/WorkTabs';
 
 const EMPTY = {
-  new: 'New requests land here. Answer inside 48 hours to keep your response time strong.',
-  quoted: 'Quotes you send wait here until the client answers.',
-  confirmed: 'Accepted quotes become shoots here.',
-  done: 'Delivered shoots move here once they close.',
+  next: 'New requests land here. Answer inside 48 hours to keep your response time strong.',
+  past: 'Delivered and closed requests move here.',
 };
 
-/** Every request in one place, sorted by how far along it is. */
+/** Every request, split into what still wants an answer and what is done. */
 export default function CreatorRequests() {
-  const { newRequests, quotedBookings, confirmed, finished, isLoading } = useOutletContext();
-  const [tab, setTab] = useState('new');
+  const { newRequests, quotedBookings, finished, isLoading } = useOutletContext();
+  const [tab, setTab] = useState('next');
 
-  const groups = {
-    new: newRequests,
-    quoted: quotedBookings,
-    confirmed,
-    done: finished,
-  };
-  const list = groups[tab] || [];
+  const next = [...newRequests, ...quotedBookings].sort((a, b) =>
+    String(b.created_date).localeCompare(String(a.created_date))
+  );
+  const past = [...finished].reverse();
+  const list = tab === 'next' ? next : past;
 
   return (
-    <div>
-      <h1 className="font-display text-[30px] font-medium leading-tight text-white">Booking requests</h1>
-      <p className="mt-1.5 text-[14px] leading-snug text-white/50">
-        Open a request to read the brief, message the client, and send your quote.
-      </p>
-
-      <div className="mt-5">
-        <SegmentedTabs
-          value={tab}
-          onChange={setTab}
-          options={[
-            { value: 'new', label: 'New', count: newRequests.length },
-            { value: 'quoted', label: 'Quoted', count: quotedBookings.length },
-            { value: 'confirmed', label: 'Confirmed', count: confirmed.length },
-            { value: 'done', label: 'Done', count: finished.length },
-          ]}
-        />
+    <div className="arch-tab arch-tab--work">
+      <div className="arch-tab__topline">
+        <div className="arch-tab__heading">
+          <h1 className="wk-h1">Requests</h1>
+          <p className="wk-lede">Read the brief, message the client, and send your quote.</p>
+        </div>
+        <nav className="arch-tab__nav" aria-label="Work sections">
+          <WorkTabs requests={next.length} />
+        </nav>
       </div>
 
-      <div className="mt-3">
+      <div className="arch-tab__toolbar">
+        <NextPast value={tab} onChange={setTab} nextCount={next.length} pastCount={past.length} />
+        <p className="arch-tab__count">{tab === 'next' ? `${next.length} open` : `${past.length} past`}</p>
+      </div>
+
+      <div className="arch-tab__content">
         {isLoading ? (
-          <div className="glass h-[160px] animate-pulse rounded-[24px]" />
+          <div className="wk-card h-[160px] animate-pulse" />
         ) : list.length ? (
-          <div className="glass overflow-hidden rounded-[24px]">
-            {list.map((booking, i) => (
-              <div key={booking.id} className={i ? 'border-t border-white/[0.08]' : ''}>
-                <RequestRow booking={booking} />
-              </div>
+          <div className="wk-list">
+            {list.map((booking) => (
+              <RequestRow key={booking.id} booking={booking} />
             ))}
           </div>
         ) : (
-          <EmptyPanel icon={Inbox} title="Nothing here yet" body={EMPTY[tab]} />
+          <WorkspaceEmpty tone="workbench" icon={Inbox} title="Nothing here yet" body={EMPTY[tab]} />
         )}
       </div>
     </div>

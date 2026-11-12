@@ -21,15 +21,19 @@ export default function Layout() {
   const isCreatorProfile = /^\/creators\/[^/]+$/.test(location.pathname);
   // Messages is a full-height chat screen: it brings its own back arrow and needs no footer.
   const isMessages = /^\/(portal\/)?messages(\/[^/]+)?$/.test(location.pathname);
+  // The creator workspace is an app screen: its own tabs, its own way back.
+  const isWorkspace = location.pathname.startsWith('/lensman-dashboard');
   // Switching conversations doesn't remount the messages screen.
   const transitionKey = isMessages ? '/messages' : location.pathname;
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground tabbar-gap">
-      <Navbar />
+      {/* The workspace is an app screen: its bar rides in the flow, so page
+          content never slides underneath it. */}
+      <Navbar inFlow={isWorkspace} />
       {/* The way back rides in the page's own flow, never pinned to the screen. */}
-      <main className={`flex-1 ${isHome ? '' : 'nav-offset'}`}>
-        {!isHome && !isRootTab && !isCreatorProfile && !isMessages && (
+      <main className={`flex-1 ${isHome || isWorkspace ? '' : 'nav-offset'}`}>
+        {!isHome && !isRootTab && !isCreatorProfile && !isMessages && !isWorkspace && (
           <div className="mx-auto max-w-[1500px] px-5 pt-6 md:px-10">
             <BackButton />
           </div>
@@ -45,7 +49,7 @@ export default function Layout() {
           </AnimatePresence>
         </RoleGate>
       </main>
-      {!isMessages && <Footer />}
+      {!isMessages && !isWorkspace && <Footer />}
       <MobileTabBar />
       <LegalUpdateBanner />
     </div>

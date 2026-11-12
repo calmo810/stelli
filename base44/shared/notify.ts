@@ -2,10 +2,33 @@
  * Shared email helper for the booking pipeline.
  * Sends never throw — a failed notification must not fail the action.
  */
+
+/**
+ * Escapes text so nothing a person typed can render as markup in an email.
+ * Every body below is plain text written by us around user-supplied values.
+ */
+export function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/** The plain text becomes escaped HTML, with line breaks kept. */
+function toEmailHtml(body) {
+  return escapeHtml(body).replace(/\r?\n/g, '<br>');
+}
+
 export async function sendEmail(base44, to, subject, body) {
   if (!to) return;
   try {
-    await base44.asServiceRole.integrations.Core.SendEmail({ to, subject, body });
+    await base44.asServiceRole.integrations.Core.SendEmail({
+      to,
+      subject: String(subject ?? ''),
+      body: toEmailHtml(body),
+    });
   } catch (error) {
     console.error('Email failed for', to, '-', error.message);
   }

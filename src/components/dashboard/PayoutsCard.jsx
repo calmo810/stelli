@@ -1,9 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Loader2 } from 'lucide-react';
-import Pill from '@/components/shared/Pill';
-
-const CYAN = 'hsl(var(--neon-cyan))';
 
 function money(amount) {
   const value = Number(amount || 0);
@@ -88,41 +85,34 @@ export default function PayoutsCard({ profile, needsInfo, waitingTotal = 0, onRe
 
   return (
     <div>
-      <div
-        className="glass flex items-center gap-3.5 rounded-[26px] p-5"
-        style={{ borderColor: waiting ? CYAN : undefined }}
-      >
+      <div className={`wk-card wk-card--pad flex flex-wrap items-center gap-3.5 ${waiting && !active ? 'wk-card--lime' : ''}`}>
         <span
           aria-hidden
           className="h-2.5 w-2.5 shrink-0 rounded-full"
-          style={{ background: CYAN }}
+          style={{ background: active ? '#8fa52c' : '#1b5a66' }}
         />
 
-        <p className="min-w-0 flex-1">
-          <b className="block text-[16px] font-semibold text-white">{heading}</b>
-          <small className="mt-0.5 block text-[14px] leading-snug text-white/60">{text}</small>
+        <p className="min-w-0 flex-1 basis-[60%]">
+          <b className="block text-[15px] font-bold text-ink">{heading}</b>
+          <small className="mt-0.5 block text-[13px] leading-snug wk-grey">{text}</small>
         </p>
 
         {button && (
-          <Pill as="button" type="button" onClick={() => run()} disabled={busy}>
+          <button type="button" className="wk-btn wk-btn--ink" onClick={() => run()} disabled={busy}>
             {busy && <Loader2 className="h-4 w-4 animate-spin" />}
             {button}
-          </Pill>
+          </button>
         )}
 
         {link && (
-          <Pill as="button" type="button" tone="glass" onClick={() => run('dashboard')} disabled={busy}>
+          <button type="button" className="wk-btn wk-btn--ghost" onClick={() => run('dashboard')} disabled={busy}>
             {busy && <Loader2 className="h-4 w-4 animate-spin" />}
             {link}
-          </Pill>
+          </button>
         )}
       </div>
 
-      {error && (
-        <p className="mt-2 pl-1 text-[13px]" style={{ color: 'hsl(var(--neon-magenta))' }}>
-          {error}
-        </p>
-      )}
+      {error && <p className="mt-2 pl-1 text-[13px] wk-chip--blush">{error}</p>}
     </div>
   );
 }

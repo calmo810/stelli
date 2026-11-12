@@ -40,7 +40,7 @@ export default function BookingFlow() {
   const { lensmanId } = useParams();
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({ event_date: '', event_time: '', location: '', event_type: '', event_description: '', budget: '', duration: '' });
+  const [form, setForm] = useState({ event_date: '', event_time: '', location: '', shoot_setting: 'flexible', weather_alerts_enabled: false, event_type: '', event_description: '', budget: '', duration: '' });
   const [account, setAccount] = useState({ first_name: '', email: '', password: '' });
   const [otp, setOtp] = useState('');
   const [stage, setStage] = useState('request');
@@ -100,6 +100,8 @@ export default function BookingFlow() {
       eventDate: form.event_date,
       eventTime: form.event_time,
       location: form.location,
+      shootSetting: form.shoot_setting,
+      weatherAlertsEnabled: form.weather_alerts_enabled,
       eventType: form.event_type,
       brief: form.event_description,
       budget: form.budget,
@@ -251,9 +253,48 @@ export default function BookingFlow() {
                 />
               </Field>
 
-              <Field label="Where" optional>
-                <input type="text" placeholder="Neighborhood or address" value={form.location} onChange={(e) => update('location', e.target.value)} className={fieldClass} />
+              <Field label="Location" optional>
+                <input type="text" placeholder="Street address for outdoor weather" value={form.location} onChange={(e) => update('location', e.target.value)} className={fieldClass} />
               </Field>
+
+              <Field label="Shoot setting" optional>
+                <div className="grid grid-cols-3 gap-2" role="group" aria-label="Shoot setting">
+                  {[
+                    { value: 'outdoor', label: 'Outdoors' },
+                    { value: 'indoor', label: 'Indoors' },
+                    { value: 'flexible', label: 'Not sure' },
+                  ].map(({ value, label }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => update('shoot_setting', value)}
+                      aria-pressed={form.shoot_setting === value}
+                      className={`min-h-11 border px-3 font-body text-[12px] font-semibold transition-colors ${
+                        form.shoot_setting === value
+                          ? 'border-neon-lime bg-neon-lime text-ink'
+                          : 'border-white/10 bg-white/[0.03] text-white/60 hover:border-white/25 hover:text-white'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </Field>
+
+              {form.shoot_setting === 'outdoor' && (
+                <label className="flex items-start gap-3 border border-white/10 bg-white/[0.03] px-4 py-3.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.weather_alerts_enabled}
+                    onChange={(e) => update('weather_alerts_enabled', e.target.checked)}
+                    className="mt-0.5 h-4 w-4 accent-[#C4F82A]"
+                  />
+                  <span className="min-w-0">
+                    <span className="block font-body text-[13px] font-semibold text-white">Email weather updates to both of us</span>
+                    <span className="mt-0.5 block font-body text-[11px] leading-relaxed text-white/45">Optional updates before the shoot, including rain and wind conditions.</span>
+                  </span>
+                </label>
+              )}
 
               <Field label="Shoot type" optional>
                 <input type="text" placeholder="Portraits, senior photos, brand content" value={form.event_type} onChange={(e) => update('event_type', e.target.value)} className={fieldClass} />

@@ -1,113 +1,172 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
-import { CalendarDays, Inbox, Wallet, Eye, Sparkles } from 'lucide-react';
+import { addDays, format } from 'date-fns';
+import { motion, useReducedMotion } from 'framer-motion';
+import { ArrowUpRight, CalendarDays, ChevronRight, Sparkles } from 'lucide-react';
 import PendingBanner from '@/components/dashboard/PendingBanner';
-import NeedsYou from '@/components/dashboard/NeedsYou';
-import CopyLinkPill from '@/components/dashboard/CopyLinkPill';
-import GlassRows from '@/components/shared/GlassRows';
-import MetricGrid from '@/components/creator/MetricGrid';
-import SectionLabel from '@/components/creator/SectionLabel';
-import UpcomingShoots from '@/components/creator/UpcomingShoots';
-import ProfilePerformance from '@/components/creator/ProfilePerformance';
+import TodayShootCard from '@/components/creator/workspace/TodayShootCard';
+import WhatsNewCard from '@/components/creator/workspace/WhatsNewCard';
+import whatsNew from '@/lib/creatorDigest';
 import money from '@/lib/money';
-import shortDate from '@/lib/shortDate';
 
-const viewAll = (to) => (
-  <Link to={to} className="text-[12.5px] font-semibold text-white/45 hover:text-white">
-    See all
-  </Link>
-);
+const dateKey = (date) => format(date, 'yyyy-MM-dd');
+const ASSEMBLY_EASE = [0.22, 1, 0.36, 1];
 
-/** The creator's morning read: four numbers, what needs them, what is next. */
+function DashboardAssembly({ reduceMotion }) {
+  const transition = reduceMotion ? { duration: 0 } : { duration: .64, ease: ASSEMBLY_EASE };
+
+  return (
+    <motion.span
+      className="arch-assembly"
+      aria-hidden="true"
+      initial={reduceMotion ? false : { opacity: 0, rotate: -18, scale: .72 }}
+      animate={{ opacity: 1, rotate: 0, scale: 1 }}
+      transition={{ ...transition, delay: .12 }}
+    >
+      <motion.i
+        className="arch-assembly__orbit arch-assembly__orbit--one"
+        initial={reduceMotion ? false : { rotate: -70, scale: .76 }}
+        animate={{ rotate: 0, scale: 1 }}
+        transition={{ ...transition, delay: .20 }}
+      />
+      <motion.i
+        className="arch-assembly__orbit arch-assembly__orbit--two"
+        initial={reduceMotion ? false : { rotate: 52, scale: .72 }}
+        animate={{ rotate: 0, scale: 1 }}
+        transition={{ ...transition, delay: .26 }}
+      />
+      <motion.i
+        className="arch-assembly__dot arch-assembly__dot--lime"
+        initial={reduceMotion ? false : { x: -25, y: 18, opacity: 0 }}
+        animate={{ x: 0, y: 0, opacity: 1 }}
+        transition={{ ...transition, delay: .28 }}
+      />
+      <motion.i
+        className="arch-assembly__dot arch-assembly__dot--cyan"
+        initial={reduceMotion ? false : { x: 23, y: -18, opacity: 0 }}
+        animate={{ x: 0, y: 0, opacity: 1 }}
+        transition={{ ...transition, delay: .34 }}
+      />
+    </motion.span>
+  );
+}
+
+function timeLabel(value) {
+  if (!value) return 'Time TBD';
+  const match = /^(\d{1,2}):(\d{2})/.exec(value);
+  if (!match) return value;
+  const hours = Number(match[1]);
+  const hour = hours % 12 || 12;
+  return hour + ':' + match[2] + (hours >= 12 ? ' PM' : ' AM');
+}
+
 export default function CreatorOverview() {
+  /** @type {any} */
+  const data = useOutletContext();
   const {
-    user,
     myProfile,
     bookings,
     steps,
     upcomingShoots,
     finished,
     metrics,
-    hasClientBookings,
     money: totals,
-  } = useOutletContext();
+  } = data;
 
-  const firstName = (user?.full_name || '').split(' ')[0] || 'there';
+  const [scheduleView, setScheduleView] = useState('upcoming');
+  const reduceMotion = useReducedMotion();
+  const shouldAnimate = !reduceMotion && !data.todayEnteredRef?.current;
 
-  // The one real next step on each booking that has one (bookingNextStep.js):
-  // a request to quote, an agreement to accept, the unedited set once the
-  // shoot has happened, then the final edits. Most pressing first.
-  const attention = [
-    ...steps.map((step) => {
-      const booking = bookings.find((b) => b.id === step.bookingId);
-      const isRequest = step.key === 'request';
-      return {
-        id: step.id,
-        title: step.title,
-        meta: [shortDate(booking?.event_date), booking?.location].filter(Boolean).join(' · ') || (isRequest ? 'New request' : ''),
-        action: isRequest ? 'Review' : step.action,
-        to: isRequest ? `/lensman-dashboard/requests/${step.bookingId}` : step.to,
-      };
-    }),
-    ...(myProfile.payouts_enabled
-      ? []
-      : [
-          {
-            id: 'payouts',
-            title: 'Set up payouts',
-            meta: 'Add your payout details so your earnings can reach you.',
-            action: 'Set up',
-            to: '/lensman-dashboard/earnings',
-          },
-        ]),
-  ];
+  // The open has its little camera-like assembly once; returning from another
+  // tab should feel immediate, not like waiting for the dashboard again.
+  useEffect(() => {
+    if (data.todayEnteredRef) data.todayEnteredRef.current = true;
+  }, [data.todayEnteredRef]);
 
-  const nextShoot = upcomingShoots[0];
+  const settle = shouldAnimate ? { duration: .56, ease: ASSEMBLY_EASE } : { duration: 0 };
+  const [selectedDate, setSelectedDate] = useState(() => dateKey(new Date()));
+  const today = dateKey(new Date());
+  const creatorFirstName = String(myProfile?.display_name || '').trim().split(/\s+/)[0] || 'there';
+  const { items, facts } = whatsNew(data);
 
-  const tiles = [
-    {
-      key: 'upcoming',
-      label: 'Upcoming shots',
-      value: metrics.upcoming,
-      note: nextShoot ? `Next ${shortDate(nextShoot.event_date)}` : 'Nothing booked yet',
-      icon: CalendarDays,
-      to: '/lensman-dashboard/bookings',
-    },
-    {
-      key: 'requests',
-      label: 'New requests',
-      value: metrics.requests,
-      note: metrics.requests ? 'Answer within 48h' : 'All answered',
-      icon: Inbox,
-      to: '/lensman-dashboard/requests',
-    },
-    {
-      key: 'earnings',
-      label: 'Expected earnings',
-      value: money(totals.heldTotal),
-      note: 'Held until delivery',
-      icon: Wallet,
-      to: '/lensman-dashboard/earnings',
-    },
-    {
-      key: 'views',
-      label: 'Profile views',
-      value: metrics.views,
-      note: 'All time',
-      icon: Eye,
-      to: '/lensman-dashboard/profile',
-    },
-  ];
+  const days = useMemo(() => {
+    const start = new Date();
+    return Array.from({ length: 7 }, (_, index) => addDays(start, index));
+  }, []);
+
+  const scheduledForDay = upcomingShoots.filter((item) => item.event_date === selectedDate);
+  const scheduleItems = scheduleView === 'completed'
+    ? finished.slice(0, 3)
+    : scheduledForDay.length
+      ? scheduledForDay
+      : selectedDate === today
+        ? upcomingShoots.slice(0, 3)
+        : [];
+
+  const attention = steps.slice(0, 3).map((step) => {
+    const booking = bookings.find((item) => item.id === step.bookingId);
+    return {
+      id: step.id,
+      title: step.title,
+      meta: booking?.client_name || 'Creator workspace',
+      action: step.key === 'request' ? 'Review' : step.action,
+      to: step.key === 'request' ? '/lensman-dashboard/requests/' + step.bookingId : step.to,
+    };
+  });
+
+  const summary = metrics.requests
+    ? metrics.requests + ' request' + (metrics.requests === 1 ? '' : 's') + ' need your attention.'
+    : upcomingShoots[0]
+      ? 'Your next shoot is lined up.'
+      : 'You’re ready for new work.';
 
   return (
-    <div>
-      <h1
-        className="font-display font-medium text-white"
-        style={{ fontSize: 38, letterSpacing: '-0.02em', lineHeight: 1.05 }}
-      >
-        Hey, {firstName}.
-      </h1>
+    <motion.div
+      className="arch-world"
+      initial={shouldAnimate ? { opacity: 0 } : false}
+      animate={{ opacity: 1 }}
+      transition={settle}
+    >
+      <div className="arch-world__environment" aria-hidden="true">
+        <span className="arch-world__horizon" />
+        <span className="arch-world__beam arch-world__beam--cyan" />
+        <span className="arch-world__beam arch-world__beam--violet" />
+        <span className="arch-world__star arch-world__star--one">✦</span>
+        <span className="arch-world__star arch-world__star--two">✧</span>
+      </div>
 
+      <motion.header
+        className="arch-world__top"
+        initial={shouldAnimate ? { opacity: 0, y: 14, scale: .985 } : false}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ ...settle, delay: .04 }}
+      >
+        <div className="arch-masthead__copy">
+          <p className="arch-today__kicker">Today · {format(new Date(), 'EEEE, MMM d')}</p>
+          <h1>Hi, {creatorFirstName}.</h1>
+          <strong>{summary}</strong>
+          <small>Your schedule, updates, and next steps.</small>
+        </div>
+        <div className="arch-masthead__tools">
+          <span className="arch-masthead__state">
+            <i />
+            {upcomingShoots[0] ? 'Next up' : 'Available'}
+          </span>
+          <Link to="/lensman-dashboard/calendar" className="arch-masthead__calendar">
+            Calendar <CalendarDays className="h-3.5 w-3.5" strokeWidth={2.4} />
+          </Link>
+        </div>
+        <div className="arch-masthead__lens" aria-hidden="true">
+          <DashboardAssembly reduceMotion={!shouldAnimate} />
+          <span className="arch-masthead__ring arch-masthead__ring--outer" />
+          <span className="arch-masthead__ring arch-masthead__ring--inner" />
+          <span className="arch-masthead__star arch-masthead__star--one">✦</span>
+          <span className="arch-masthead__star arch-masthead__star--two">✧</span>
+          <span className="arch-masthead__camera">📸</span>
+        </div>
+      </motion.header>
+
+      <div className="arch-world__notice">
       {myProfile.under_review ? (
         <PendingBanner tone="magenta">
           Your profile is on hold while the Stelli team reviews it. Your current bookings carry on.
@@ -116,43 +175,175 @@ export default function CreatorOverview() {
         <PendingBanner />
       ) : myProfile.status === 'rejected' ? (
         <PendingBanner tone="magenta">
-          Your application wasn’t approved, so your profile isn’t public. Email getstelli@gmail.com with any questions.
+          Your application wasn&apos;t approved, so your profile isn&apos;t public. Email getstelli@gmail.com with any questions.
         </PendingBanner>
       ) : null}
-
-      <div className="mt-6">
-        <MetricGrid tiles={tiles} />
       </div>
 
-      <SectionLabel>Needs your attention</SectionLabel>
-      <NeedsYou
-        items={attention}
-        empty={{
-          icon: Sparkles,
-          title: "You're all caught up.",
-          body: 'Share your profile to get your next booking.',
-          cta: <CopyLinkPill creator={myProfile} />,
-        }}
-      />
+      <motion.main
+        className="arch-world__stage"
+        initial={shouldAnimate ? { opacity: 0, y: 18, scale: .988 } : false}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ ...settle, delay: .13 }}
+      >
+        <section className="arch-runway">
+          <div className="arch-section-title">
+            <div>
+              <p>Schedule</p>
+              <h2>{scheduleView === 'completed' ? 'Recently finished' : selectedDate === today ? 'Today' : format(new Date(selectedDate + 'T12:00:00'), 'EEEE')}</h2>
+            </div>
+            <Link to="/lensman-dashboard/calendar">
+              Calendar <CalendarDays className="h-3.5 w-3.5" strokeWidth={2.3} />
+            </Link>
+          </div>
 
-      <SectionLabel action={viewAll('/lensman-dashboard/bookings')}>Upcoming shoots</SectionLabel>
-      <UpcomingShoots
-        shoots={upcomingShoots.slice(0, 3)}
-        emptyText="Confirmed shoots will appear here."
-      />
+          {scheduleView === 'upcoming' && (
+            <div className="arch-week" role="tablist" aria-label="Choose a day">
+              {days.map((day) => {
+                const key = dateKey(day);
+                const hasBooking = upcomingShoots.some((item) => item.event_date === key);
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    role="tab"
+                    aria-selected={key === selectedDate}
+                    onClick={() => setSelectedDate(key)}
+                    className={key === selectedDate ? 'is-on' : ''}
+                  >
+                    <span>{key === today ? 'Now' : format(day, 'EEE')}</span>
+                    <b>{format(day, 'd')}</b>
+                    <i className={hasBooking ? 'has-booking' : ''} />
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
-      <SectionLabel action={viewAll('/lensman-dashboard/requests')}>Profile performance</SectionLabel>
-      <ProfilePerformance profile={myProfile} />
+          <div className="arch-switcher" role="tablist" aria-label="Upcoming or completed shoots">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={scheduleView === 'upcoming'}
+              onClick={() => setScheduleView('upcoming')}
+              className={scheduleView === 'upcoming' ? 'is-on' : ''}
+            >
+              Upcoming <span>{upcomingShoots.length}</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={scheduleView === 'completed'}
+              onClick={() => setScheduleView('completed')}
+              className={scheduleView === 'completed' ? 'is-on' : ''}
+            >
+              Completed <span>{finished.length}</span>
+            </button>
+          </div>
 
-      <GlassRows
-        className="mt-8"
-        rows={[
-          { label: 'Messages', to: '/messages' },
-          { label: 'Completed shoots', to: '/lensman-dashboard/bookings', value: String(finished.length) },
-          ...(hasClientBookings ? [{ label: 'Client portal', to: '/client-dashboard' }] : []),
-          { label: 'Account', to: '/account-settings' },
-        ]}
-      />
-    </div>
+          <div className="arch-agenda">
+            {scheduleItems.length ? (
+              scheduleItems.map((item) => (
+                <Link
+                  key={item.id}
+                  to={
+                    scheduleView === 'upcoming'
+                      ? '/lensman-dashboard/requests/' + item.id
+                      : '/messages/' + item.id
+                  }
+                  className="arch-agenda__item"
+                >
+                  <span className="arch-agenda__time">{timeLabel(item.event_time)}</span>
+                  <span className="arch-agenda__copy">
+                    <strong>{item.client_name || 'Client shoot'}</strong>
+                    <small>{[item.event_type, item.location].filter(Boolean).join(' · ') || 'Shoot details'}</small>
+                  </span>
+                  <span className="arch-agenda__arrow"><ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.5} /></span>
+                </Link>
+              ))
+            ) : (
+              <div className="arch-agenda__empty">
+                <CalendarDays className="h-4 w-4" strokeWidth={2.2} />
+                <span>{scheduleView === 'completed' ? 'No completed shoots yet.' : 'Nothing is scheduled for this day.'}</span>
+                <Link to="/lensman-dashboard/calendar">See calendar</Link>
+              </div>
+            )}
+          </div>
+        </section>
+
+        <aside className="arch-orbit">
+          <div className="arch-orbit__head">
+            <p>Next up</p>
+            <span>Today</span>
+          </div>
+          <TodayShootCard shoot={upcomingShoots[0]} profile={myProfile} />
+          <WhatsNewCard items={items} facts={facts} />
+        </aside>
+      </motion.main>
+
+      <motion.footer
+        className="arch-world__dock"
+        initial={shouldAnimate ? { opacity: 0, y: 13, scale: .99 } : false}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ ...settle, delay: .22 }}
+      >
+        <section className="arch-needs">
+          <div className="arch-section-title">
+            <div>
+              <p>Action list</p>
+              <h2>Next steps</h2>
+            </div>
+            <span className="arch-today__stamp"><span>{attention.length}</span></span>
+          </div>
+
+          {attention.length ? (
+            <div className="arch-needs__list">
+              {attention.map((item) => (
+                <Link key={item.id} to={item.to} className="arch-needs__row">
+                  <span className="arch-needs__mark"><Sparkles className="h-3.5 w-3.5" strokeWidth={2.4} /></span>
+                  <span className="arch-needs__copy">
+                    <strong>{item.title}</strong>
+                    <small>{item.meta}</small>
+                  </span>
+                  <em>{item.action}</em>
+                  <ChevronRight className="h-4 w-4" strokeWidth={2.4} />
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="arch-clear">
+              <Sparkles className="h-4 w-4" strokeWidth={2.4} />
+              <span>You’re all caught up.</span>
+            </div>
+          )}
+        </section>
+
+        <section className="arch-metrics">
+          <div className="arch-section-title">
+            <div>
+              <p>Activity</p>
+              <h2>Overview</h2>
+            </div>
+          </div>
+          <div className="arch-metrics__grid">
+            <div className="arch-metric">
+              <span>Requests</span>
+              <strong>{metrics.requests}</strong>
+            </div>
+            <div className="arch-metric arch-metric--lime">
+              <span>Held</span>
+              <strong>{money(totals.heldTotal)}</strong>
+            </div>
+            <div className="arch-metric">
+              <span>Views</span>
+              <strong>{metrics.views}</strong>
+            </div>
+          </div>
+          <Link to="/lensman-dashboard/earnings" className="arch-metric__link">
+            Review earnings <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.5} />
+          </Link>
+        </section>
+      </motion.footer>
+    </motion.div>
   );
 }

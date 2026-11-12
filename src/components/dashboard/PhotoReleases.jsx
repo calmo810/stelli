@@ -20,7 +20,7 @@ function statusText(r, role) {
 }
 
 /** The creator picks which photos from the shoot would be shown. */
-function PhotoPicker({ photos, setPhotos }) {
+function PhotoPicker({ photos, setPhotos, light }) {
   const input = useRef(null);
   const [busy, setBusy] = useState(false);
   const add = async (files) => {
@@ -37,6 +37,9 @@ function PhotoPicker({ photos, setPhotos }) {
       setBusy(false);
     }
   };
+  const addTile = light
+    ? 'border-[#0a1226]/20 text-[#667085] hover:border-[#0a1226]/40 hover:text-[#0a1226]'
+    : 'border-white/25 text-white/55 hover:border-white/50 hover:text-white';
   return (
     <div className="mt-3 flex flex-wrap gap-2">
       {photos.map((src) => (
@@ -57,7 +60,7 @@ function PhotoPicker({ photos, setPhotos }) {
           type="button"
           onClick={() => input.current?.click()}
           disabled={busy}
-          className="grid h-[72px] w-[58px] place-items-center rounded-lg border border-dashed border-white/25 text-white/55 transition-colors hover:border-white/50 hover:text-white"
+          className={`grid h-[72px] w-[58px] place-items-center rounded-lg border border-dashed transition-colors ${addTile}`}
           aria-label="Add photos from this shoot"
         >
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
@@ -68,7 +71,7 @@ function PhotoPicker({ photos, setPhotos }) {
   );
 }
 
-function ReleaseCard({ release: r, role }) {
+function ReleaseCard({ release: r, role, light }) {
   const queryClient = useQueryClient();
   const [photos, setPhotos] = useState(r.photos || []);
   const [saving, setSaving] = useState(null);
@@ -79,6 +82,15 @@ function ReleaseCard({ release: r, role }) {
   const other = role === 'client' ? r.lensman_name || 'your creator' : (r.client_name || 'your client').split(' ')[0];
   // A client can't say yes to photos that haven't been chosen.
   const waitingOnPhotos = role === 'client' && !(r.photos || []).length;
+
+  const shell = light ? 'rounded-[20px] bg-white px-4 py-3.5' : 'glass rounded-[20px] px-4 py-3.5';
+  const heading = light ? 'text-ink' : 'text-white';
+  const meta = light ? 'wk-grey' : 'text-white/55';
+  const body = light ? 'wk-grey' : 'text-white/70';
+  const fine = light ? 'wk-mute' : 'text-white/40';
+  const quiet = light ? 'border border-[#0a1226]/15 text-ink/70 hover:bg-[#0a1226]/[0.04]' : 'border border-white/20 text-white/75 hover:bg-white/[0.06]';
+  const plain = light ? 'wk-mute hover:text-ink' : 'text-white/55 hover:text-white';
+  const yes = light ? 'wk-ink' : 'text-neon-lime';
 
   const answer = async (decision) => {
     setSaving(decision);
@@ -99,22 +111,22 @@ function ReleaseCard({ release: r, role }) {
   };
 
   return (
-    <div className="glass rounded-[20px] px-4 py-3.5">
-      <b className="block text-[15px] font-semibold capitalize text-white">
+    <div className={shell}>
+      <b className={`block text-[15px] font-bold capitalize ${heading}`}>
         {pending ? `Share your ${shootName(r)} on Stelli?` : `${shootName(r)} · photo release`}
       </b>
-      <small className="mt-0.5 block text-[13px] text-white/55">
+      <small className={`mt-0.5 block text-[13px] ${meta}`}>
         {[shortDate(r.event_date), role === 'client' ? r.lensman_name : r.client_name].filter(Boolean).join(' · ')}
       </small>
 
       {pending ? (
         <>
-          <p className="mt-2.5 text-[13.5px] leading-relaxed text-white/70">
+          <p className={`mt-2.5 text-[13.5px] leading-relaxed ${body}`}>
             {role === 'client'
               ? `Can this shoot appear under Past Stelli shoots on ${other}'s page? These photos and your review would show publicly, with your first name only. If ${other} changes the photos, you are asked again.`
               : `Can this shoot appear under Past Stelli shoots on your page? Pick up to ${MAX_PHOTOS} photos to show. ${other} is asked too.`}
           </p>
-          {role === 'lensman' && <PhotoPicker photos={photos} setPhotos={setPhotos} />}
+          {role === 'lensman' && <PhotoPicker photos={photos} setPhotos={setPhotos} light={light} />}
           {/* The client says yes to these exact photos, so they are shown. */}
           {role === 'client' && (r.photos || []).length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
@@ -126,11 +138,11 @@ function ReleaseCard({ release: r, role }) {
             </div>
           )}
           {waitingOnPhotos && (
-            <p className="mt-2.5 text-[13px] text-white/60">
+            <p className={`mt-2.5 text-[13px] ${body}`}>
               {other} hasn’t picked the photos yet. You can answer once you can see them.
             </p>
           )}
-          <p className="mt-2.5 text-[12px] text-white/40">Nothing shows unless you both say yes. Either of you can take it down later.</p>
+          <p className={`mt-2.5 text-[12px] ${fine}`}>Nothing shows unless you both say yes. Either of you can take it down later.</p>
           <div className="mt-3 flex gap-2">
             <button
               type="button"
@@ -144,7 +156,7 @@ function ReleaseCard({ release: r, role }) {
               type="button"
               disabled={!!saving}
               onClick={() => answer('declined')}
-              className="flex-1 rounded-full border border-white/20 py-2.5 text-[13.5px] font-semibold text-white/75 transition-colors hover:bg-white/[0.06] disabled:opacity-40"
+              className={`flex-1 rounded-full py-2.5 text-[13.5px] font-semibold transition-colors disabled:opacity-40 ${quiet}`}
             >
               {saving === 'declined' ? 'Saving…' : 'Keep private'}
             </button>
@@ -152,9 +164,9 @@ function ReleaseCard({ release: r, role }) {
         </>
       ) : (
         <div className="mt-2 flex items-center justify-between gap-3">
-          <p className="text-[13px] text-white/60">{status}</p>
+          <p className={`text-[13px] ${body}`}>{status}</p>
           {mine === 'approved' ? (
-            <button type="button" disabled={!!saving} onClick={() => answer('declined')} className="shrink-0 text-[12.5px] font-semibold text-white/55 hover:text-white">
+            <button type="button" disabled={!!saving} onClick={() => answer('declined')} className={`shrink-0 text-[12.5px] font-semibold ${plain}`}>
               {saving ? 'Saving…' : 'Take down'}
             </button>
           ) : (
@@ -162,7 +174,7 @@ function ReleaseCard({ release: r, role }) {
               type="button"
               disabled={!!saving || (role === 'lensman' && !photos.length)}
               onClick={() => answer('approved')}
-              className="shrink-0 text-[12.5px] font-semibold text-neon-lime disabled:opacity-40"
+              className={`shrink-0 text-[12.5px] font-semibold disabled:opacity-40 ${yes}`}
             >
               {saving ? 'Saving…' : 'Share instead'}
             </button>
@@ -179,11 +191,17 @@ function ReleaseCard({ release: r, role }) {
  * whether the shoot may appear on the creator's public page. Each side answers
  * from their own portal. Renders nothing when there are none.
  */
-export default function PhotoReleases({ role, user }) {
+export default function PhotoReleases({ role, user, light = false }) {
   const { data: releases = [] } = useQuery({
     queryKey: ['photo-releases', role, user?.id],
     enabled: !!user?.id,
-    queryFn: () => base44.entities.PhotoRelease.list('-created_date').catch(() => []),
+    queryFn: () =>
+      base44.entities.PhotoRelease.filter(
+        role === 'client' ? { client_id: user.id } : { creator_id: user.id },
+        '-created_date'
+      ).catch(() => []),
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
   });
 
   const mineList = releases.filter((r) =>
@@ -197,11 +215,13 @@ export default function PhotoReleases({ role, user }) {
   const sorted = [...mineList].sort((a, b) => (a[key] === 'pending' ? -1 : 0) - (b[key] === 'pending' ? -1 : 0));
 
   return (
-    <section className="mt-8">
-      <h3 className="mb-2.5 pl-1.5 text-[13px] font-semibold text-white/50">Photo releases</h3>
+    <section>
+      <h3 className={`mb-2.5 pl-1.5 text-[13px] font-semibold ${light ? 'wk-grey' : 'text-white/50'}`}>
+        Photo releases
+      </h3>
       <div className="space-y-2">
         {sorted.map((r) => (
-          <ReleaseCard key={r.id} release={r} role={role} />
+          <ReleaseCard key={r.id} release={r} role={role} light={light} />
         ))}
       </div>
     </section>

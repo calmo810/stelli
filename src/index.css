@@ -108,18 +108,11 @@
     @apply border-border;
   }
   html {
-    scroll-behavior: smooth;
+    scroll-behavior: auto;
     color-scheme: dark;
     -webkit-text-size-adjust: 100%;
     /* The WebView wrapper must not rubber-band the page itself. */
     overscroll-behavior-y: none;
-  }
-  /* Smooth-scroll engine owns the scroll; native smoothing would fight it. */
-  html.lenis-on {
-    scroll-behavior: auto;
-  }
-  html.lenis-on body {
-    height: auto;
   }
 
   body {

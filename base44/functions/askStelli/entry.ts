@@ -16,6 +16,15 @@ const MAX_QUESTION = 400;
 const MAX_HISTORY = 10;
 const PER_SESSION_PER_HOUR = 30;
 const ALL_SESSIONS_PER_HOUR = 600;
+/** Each address may ask this many an hour, however it rotates its session id. */
+const PER_CALLER_PER_HOUR = 40;
+const callerHits = new Map();
+
+/** The address this question came from, or '' when the request carries none. */
+function callerAddress(req: Request) {
+  const forwarded = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim();
+  return forwarded || req.headers.get('cf-connecting-ip') || '';
+}
 
 const clean = (s: unknown, max: number) =>
   String(s ?? '')
@@ -59,6 +68,24 @@ export default async function (req: Request) {
         links: [],
       });
     }
+    // A new session id per request would otherwise reset the limit above, so
+    // the address is counted too.
+    const address = callerAddress(req);
+    if (address) {
+      const now = Date.now();
+      const earlier = callerHits.get(address);
+      const hits = earlier && now - earlier.since < 3600_000 ? earlier : { count: 0, since: now };
+      if (hits.count >= PER_CALLER_PER_HOUR) {
+        return Response.json({
+          bubbles: ["You've asked a lot this hour. For anything else, getstelli@gmail.com gets a real person."],
+          links: [],
+        });
+      }
+      hits.count += 1;
+      if (callerHits.size > 5000) callerHits.clear();
+      callerHits.set(address, hits);
+    }
+
     const recentAll = await db.FaqQuestion.list('-created_date', ALL_SESSIONS_PER_HOUR).catch(() => []);
     if (recentAll.length >= ALL_SESSIONS_PER_HOUR && new Date(recentAll[recentAll.length - 1].created_date).getTime() > hourAgo) {
       return Response.json({ bubbles: null });

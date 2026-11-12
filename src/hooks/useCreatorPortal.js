@@ -96,6 +96,10 @@ export default function useCreatorPortal() {
     .reduce((sum, q) => sum + Number(q.amount || 0), 0);
 
   const quotesFor = (bookingId) => quotes.filter((q) => q.booking_id === bookingId);
+  const waitingManualTotal = manualPayouts
+    .filter((payout) => payout.status === 'waiting')
+    .reduce((sum, payout) => sum + Number(payout.amount || 0), 0);
+  const waitingTotal = Number(base.waitingTotal || 0) + waitingManualTotal;
 
   return {
     ...base,
@@ -103,6 +107,7 @@ export default function useCreatorPortal() {
     quotesLoading,
     quotesFor,
     manualPayouts,
+    waitingTotal,
     newRequests,
     quotedBookings,
     confirmed,

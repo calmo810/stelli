@@ -2,7 +2,10 @@ import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from
 
 const EASE = 'cubic-bezier(.6,0,.2,1)';
 
-/** Segmented filter with a lime pill that slides under the active choice. */
+/**
+ * The browse page's whole header in one row: the title and count on the left,
+ * the segmented filter (lime pill sliding under the active choice) on the right.
+ */
 export default function BrowseFilters({ filters, value, onChange, count = 0 }) {
   const rowRef = useRef(null);
   const buttons = useRef({});
@@ -42,7 +45,19 @@ export default function BrowseFilters({ filters, value, onChange, count = 0 }) {
   }, [count]);
 
   return (
-    <div className="flex w-full flex-wrap items-center justify-between gap-4">
+    <div className="flex w-full flex-wrap items-end justify-between gap-x-6 gap-y-4">
+      <div>
+        <h1
+          className="font-semibold leading-[1.05] tracking-[-0.025em] text-white"
+          style={{ fontSize: 'clamp(26px, 3vw, 38px)' }}
+        >
+          Creators at Elon
+        </h1>
+        <p className="mt-1.5 text-[14px] text-white/45 tabular-nums" aria-live="polite">
+          <b className="font-semibold text-white">{shown}</b> available to book
+        </p>
+      </div>
+
       <div
         ref={rowRef}
         role="group"
@@ -74,10 +89,6 @@ export default function BrowseFilters({ filters, value, onChange, count = 0 }) {
           </button>
         ))}
       </div>
-
-      <p className="text-[14px] text-white/45 tabular-nums" aria-live="polite">
-        <b className="font-semibold text-white">{shown}</b> creator{shown === 1 ? '' : 's'} available
-      </p>
     </div>
   );
 }

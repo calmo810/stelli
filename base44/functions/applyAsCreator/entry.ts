@@ -116,9 +116,11 @@ export default async function (req) {
       review_note: '',
     });
 
+    // Only the signed-in account is ever emailed: the address typed here is a
+    // contact detail for vetting, never a recipient.
     await sendEmail(
       base44,
-      email,
+      user.email,
       'Your profile is under review.',
       "We look at every creator ourselves and we'll be in touch soon. Keep building your profile in the meantime. It goes live the moment you're approved."
     );

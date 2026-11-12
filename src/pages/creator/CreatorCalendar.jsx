@@ -1,37 +1,46 @@
 import React, { useMemo, useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
-import {
-  addMonths,
-  eachDayOfInterval,
-  endOfMonth,
-  endOfWeek,
-  format,
-  isSameDay,
-  isSameMonth,
-  startOfMonth,
-  startOfWeek,
-} from 'date-fns';
-import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { Link, useOutletContext } from 'react-router-dom';
+import { addDays, format } from 'date-fns';
+import { CalendarDays, ChevronLeft, ChevronRight, Download, Loader2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import Pill from '@/components/shared/Pill';
 import { todayKey } from '@/hooks/useCreatorPortal';
+import { downloadCreatorCalendar } from '@/lib/creatorCalendarExport';
 
-const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const WINDOW_DAYS = 7;
+const INK = '#0a1226';
+const LIME = '#c4f82a';
 
 function keyOf(date) {
   return format(date, 'yyyy-MM-dd');
 }
 
-/** Confirmed shoots, pending requests and the days the creator is off. */
+/** "14:30" reads as 2:30 PM; anything else is left as the client wrote it. */
+function timeLabel(value) {
+  if (!value) return 'Time TBD';
+  const match = /^(\d{1,2}):(\d{2})/.exec(value);
+  if (!match) return value;
+  const hours = Number(match[1]);
+  const suffix = hours >= 12 ? 'PM' : 'AM';
+  const hour = hours % 12 === 0 ? 12 : hours % 12;
+  return hour + ':' + match[2] + ' ' + suffix;
+}
+
+/** A focused seven-day view: easy to scan, with calm week-to-week navigation. */
 export default function CreatorCalendar() {
   const { confirmed, newRequests, myProfile, refetchProfile } = useOutletContext();
-  const [cursor, setCursor] = useState(() => startOfMonth(new Date()));
   const [selected, setSelected] = useState(() => new Date());
+  const [visibleStart, setVisibleStart] = useState(() => new Date());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   const blackouts = Array.isArray(myProfile?.blackout_dates) ? myProfile.blackout_dates : [];
   const today = todayKey();
+
+  const strip = useMemo(() => {
+    const start = new Date(visibleStart);
+    start.setHours(0, 0, 0, 0);
+    return Array.from({ length: WINDOW_DAYS }, (_, i) => addDays(start, i));
+  }, [visibleStart]);
 
   const byDate = useMemo(() => {
     const map = {};
@@ -40,20 +49,24 @@ export default function CreatorCalendar() {
       map[booking.event_date] = map[booking.event_date] || [];
       map[booking.event_date].push({ ...booking, kind });
     };
-    confirmed.forEach((b) => add(b, 'shoot'));
-    newRequests.forEach((b) => add(b, 'request'));
+    confirmed.forEach((booking) => add(booking, 'shoot'));
+    newRequests.forEach((booking) => add(booking, 'request'));
     return map;
   }, [confirmed, newRequests]);
 
-  const days = eachDayOfInterval({
-    start: startOfWeek(startOfMonth(cursor)),
-    end: endOfWeek(endOfMonth(cursor)),
-  });
-
   const selectedKey = keyOf(selected);
-  const selectedShoots = byDate[selectedKey] || [];
+  const dayItems = [...(byDate[selectedKey] || [])].sort((a, b) =>
+    String(a.event_time || '99:99').localeCompare(String(b.event_time || '99:99'))
+  );
   const offOnSelected = blackouts.includes(selectedKey);
   const canToggle = selectedKey >= today;
+  const canExport = confirmed.some((booking) => booking.event_date >= today);
+
+  const moveWeek = (direction) => {
+    const nextStart = addDays(visibleStart, direction * WINDOW_DAYS);
+    setVisibleStart(nextStart);
+    setSelected(nextStart);
+  };
 
   const toggleAvailability = async () => {
     setSaving(true);
@@ -77,153 +90,165 @@ export default function CreatorCalendar() {
   };
 
   return (
-    <div>
-      <h1 className="font-display text-[30px] font-medium leading-tight text-white">
-        Calendar &amp; availability
-      </h1>
-      <p className="mt-1.5 text-[14px] leading-snug text-white/50">
-        Tap a day to say you are off. Clients see you as unavailable on those dates.
-      </p>
+    <div className="arch-tab arch-tab--calendar">
+      <div className="calendar-head">
+        <div className="arch-tab__heading">
+          <h1 className="wk-h1">Schedule</h1>
+          <p className="wk-lede">Your next seven days, with each shoot and request in one clear view.</p>
+        </div>
 
-      <div className="glass mt-5 rounded-[26px] px-4 py-4">
-        <div className="flex items-center justify-between">
-          <p className="font-display text-[19px] text-white">{format(cursor, 'MMMM yyyy')}</p>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setCursor(addMonths(cursor, -1))}
-              aria-label="Previous month"
-              className="grid h-8 w-8 place-items-center rounded-full text-white/50 hover:bg-white/10 hover:text-white"
-            >
-              <ChevronLeft className="h-4 w-4" />
+        <section className="calendar-export" aria-label="Calendar export">
+          <span className="calendar-export__icon">
+            <CalendarDays className="h-4 w-4" strokeWidth={2.2} />
+          </span>
+          <div className="calendar-export__copy">
+            <p className="calendar-export__eyebrow">Calendar export</p>
+            <p className="calendar-export__title">Confirmed shoots</p>
+            <p className="calendar-export__detail">Apple Calendar · Google Calendar</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => downloadCreatorCalendar(confirmed)}
+            disabled={!canExport}
+            className="calendar-export__button"
+          >
+            <Download className="h-3.5 w-3.5" strokeWidth={2.5} />
+            Export .ics
+          </button>
+        </section>
+      </div>
+
+      <section className="calendar-rail" aria-label="Week selector">
+        <div className="calendar-rail__top">
+          <div>
+            <p className="calendar-rail__eyebrow">Week view</p>
+            <p className="calendar-rail__range">
+              {format(strip[0], 'MMM d') + ' — ' + format(strip[strip.length - 1], 'MMM d')}
+            </p>
+          </div>
+          <div className="calendar-nav">
+            <button type="button" onClick={() => moveWeek(-1)} aria-label="Previous week">
+              <ChevronLeft className="h-4 w-4" strokeWidth={2.4} />
             </button>
-            <button
-              type="button"
-              onClick={() => setCursor(addMonths(cursor, 1))}
-              aria-label="Next month"
-              className="grid h-8 w-8 place-items-center rounded-full text-white/50 hover:bg-white/10 hover:text-white"
-            >
-              <ChevronRight className="h-4 w-4" />
+            <button type="button" onClick={() => moveWeek(1)} aria-label="Next week">
+              <ChevronRight className="h-4 w-4" strokeWidth={2.4} />
             </button>
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-7 gap-1 text-center">
-          {WEEKDAYS.map((day, i) => (
-            <span key={`${day}-${i}`} className="pb-1 text-[10px] font-semibold uppercase text-white/30">
-              {day}
-            </span>
-          ))}
-
-          {days.map((day) => {
+        <div className="wk-strip calendar-week-strip">
+          {strip.map((day) => {
             const key = keyOf(day);
-            const inMonth = isSameMonth(day, cursor);
-            const shoots = byDate[key] || [];
-            const hasShoot = shoots.some((s) => s.kind === 'shoot');
-            const hasRequest = shoots.some((s) => s.kind === 'request');
+            const items = byDate[key] || [];
+            const hasShoot = items.some((item) => item.kind === 'shoot');
+            const hasRequest = items.some((item) => item.kind === 'request');
+            const isOn = key === selectedKey;
             const off = blackouts.includes(key);
-            const isSelected = isSameDay(day, selected);
-            const isToday = key === today;
 
             return (
               <button
                 key={key}
                 type="button"
                 onClick={() => setSelected(day)}
-                className="relative flex h-11 flex-col items-center justify-center rounded-xl text-[13px] transition-colors"
-                style={{
-                  background: isSelected ? 'rgba(255,255,255,0.14)' : 'transparent',
-                  border: isToday ? '1px solid hsl(var(--neon-lime))' : '1px solid transparent',
-                  color: !inMonth ? 'rgba(255,255,255,0.2)' : off ? 'rgba(255,255,255,0.3)' : '#fff',
-                  textDecoration: off && inMonth ? 'line-through' : 'none',
-                }}
+                aria-pressed={isOn}
+                aria-label={format(day, 'EEEE, MMMM d')}
+                className={['wk-day', isOn && 'is-on', key === today && 'is-today', off && 'is-off'].filter(Boolean).join(' ')}
               >
-                {format(day, 'd')}
-                <span className="mt-1 flex h-1 items-center gap-0.5">
-                  {hasShoot && (
-                    <span
-                      className="h-1 w-1 rounded-full"
-                      style={{ background: 'hsl(var(--neon-lime))' }}
-                    />
-                  )}
-                  {hasRequest && (
-                    <span
-                      className="h-1 w-1 rounded-full"
-                      style={{ background: 'hsl(var(--neon-cyan))' }}
-                    />
-                  )}
+                <span className="wk-day-w">{key === today ? 'Today' : format(day, 'EEE')}</span>
+                <span className="wk-day-n">{format(day, 'd')}</span>
+                <span className="wk-day-dots">
+                  {hasShoot && <i style={{ background: isOn ? 'rgba(255,255,255,.9)' : INK }} />}
+                  {hasRequest && <i style={{ background: LIME }} />}
                 </span>
               </button>
             );
           })}
         </div>
+      </section>
 
-        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-white/10 pt-3 text-[11px] text-white/40">
-          <span className="inline-flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full" style={{ background: 'hsl(var(--neon-lime))' }} />
-            Confirmed shoot
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full" style={{ background: 'hsl(var(--neon-cyan))' }} />
-            Pending request
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="text-[12px] line-through">15</span> You are off
-          </span>
+      <section className="calendar-day">
+        <div className="calendar-day__top">
+          <div>
+            <p className="calendar-day__eyebrow">
+              {selectedKey === today ? 'Today' : format(selected, 'EEEE')}
+            </p>
+            <h2>{format(selected, 'MMMM d')}</h2>
+            <p className="calendar-day__status">
+              {dayItems.length
+                ? dayItems.length + (dayItems.length === 1 ? ' item scheduled' : ' items scheduled')
+                : offOnSelected
+                  ? 'Unavailable'
+                  : 'Open day'}
+            </p>
+          </div>
+
+          {canToggle ? (
+            <button
+              type="button"
+              onClick={toggleAvailability}
+              disabled={saving}
+              className="calendar-availability"
+            >
+              {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+              {offOnSelected ? 'Mark available' : 'Mark unavailable'}
+            </button>
+          ) : (
+            <span className="calendar-day__past">Past date</span>
+          )}
         </div>
-      </div>
 
-      <div className="glass mt-3 rounded-[26px] px-5 py-4">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-white/35">
-          {format(selected, 'EEEE, MMM d')}
-        </p>
-
-        {selectedShoots.length ? (
-          <ul className="mt-2 space-y-2">
-            {selectedShoots.map((shoot) => (
-              <li key={shoot.id} className="flex items-baseline gap-2 text-[14px]">
-                <span
-                  className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full"
-                  style={{
-                    background:
-                      shoot.kind === 'shoot' ? 'hsl(var(--neon-lime))' : 'hsl(var(--neon-cyan))',
-                  }}
-                />
-                <span className="min-w-0 flex-1">
-                  <b className="font-semibold text-white">{shoot.client_name || 'Client'}</b>
-                  <small className="ml-2 capitalize text-white/45">
-                    {[shoot.event_time, shoot.event_type].filter(Boolean).join(' · ')}
-                  </small>
+        <div className="calendar-day__content">
+          {dayItems.length ? (
+            dayItems.map((item) => {
+              const shoot = item.kind === 'shoot';
+              const meta = [item.event_type, item.location].filter(Boolean).join(' · ');
+              return (
+                <Link
+                  key={item.id}
+                  to={shoot ? '/messages/' + item.id : '/lensman-dashboard/requests/' + item.id}
+                  className={['wk-appt', shoot ? 'is-shoot' : 'is-request'].join(' ')}
+                >
+                  <span className="wk-appt-time">
+                    <b>{timeLabel(item.event_time)}</b>
+                    <small>{item.duration || (shoot ? 'Booked' : 'To answer')}</small>
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-start justify-between gap-2">
+                      <b className="truncate text-[15px] font-extrabold tracking-tight text-ink">
+                        {item.client_name || 'Client'}
+                      </b>
+                      <span className={['wk-chip shrink-0', shoot ? 'wk-chip--lime' : 'wk-chip--cyan'].join(' ')}>
+                        {shoot ? 'Confirmed' : 'Request'}
+                      </span>
+                    </span>
+                    {meta && <small className="mt-1 block truncate text-[12.5px] wk-grey">{meta}</small>}
+                    <span className="mt-2 flex items-center gap-1 text-[12.5px] font-bold text-ink">
+                      {shoot ? 'Open thread' : 'Send a quote'}
+                      <span aria-hidden>→</span>
+                    </span>
+                  </span>
+                </Link>
+              );
+            })
+          ) : (
+            <div className="calendar-empty">
+              <span className="calendar-empty__icon">
+                <CalendarDays className="h-4 w-4" strokeWidth={2} />
+              </span>
+              <div>
+                <p>{offOnSelected ? 'You are unavailable' : 'Open day'}</p>
+                <span>
+                  {offOnSelected
+                    ? 'No new bookings can land here.'
+                    : 'Accepted shoots and new requests will appear here.'}
                 </span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="mt-2 text-[14px] text-white/45">No shoots on this day.</p>
-        )}
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
 
-        {canToggle ? (
-          <Pill
-            as="button"
-            type="button"
-            tone={offOnSelected ? 'glass' : 'lime'}
-            onClick={toggleAvailability}
-            disabled={saving}
-            className="mt-4 w-full py-3.5"
-          >
-            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-            {offOnSelected ? "I'm available this day" : "I'm off this day"}
-          </Pill>
-        ) : (
-          <p className="mt-3 text-[12px] text-white/35">Past dates cannot be changed.</p>
-        )}
-
-        {error && (
-          <p className="mt-3 text-[13px]" style={{ color: 'hsl(var(--neon-magenta))' }}>
-            {error}
-          </p>
-        )}
-      </div>
+      {error && <p className="calendar-error">{error}</p>}
     </div>
   );
 }

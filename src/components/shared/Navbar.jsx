@@ -1,33 +1,52 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { Menu } from 'lucide-react';
 import MenuOverlay from './MenuOverlay';
 import StelliWordmark from './StelliWordmark';
 
-export default function Navbar() {
+// inFlow: the bar scrolls away with the page instead of hovering over it. App
+// screens (the creator workspace) use this so nothing is ever covered by it.
+export default function Navbar({ inFlow = false }) {
   const [open, setOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [pastHero, setPastHero] = useState(false);
+  const headerRef = useRef(null);
   const location = useLocation();
 
+  // Over the home hero the bar stays clear; it turns solid once the photo is
+  // gone and only the solid page sits behind it.
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12);
+    if (location.pathname !== '/') {
+      setPastHero(false);
+      return undefined;
+    }
+    const onScroll = () => {
+      const hero = document.querySelector('[data-hero]');
+      if (!hero) return;
+      const barH = headerRef.current?.offsetHeight || 64;
+      setPastHero(hero.getBoundingClientRect().bottom <= barH);
+    };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, [location.pathname]);
 
   useEffect(() => {
     setOpen(false);
   }, [location.pathname]);
 
   const isHome = location.pathname === '/';
-  const solid = scrolled || !isHome;
+  const solid = !isHome || pastHero;
 
   return (
     <>
       <header
-        className="fixed top-0 inset-x-0 z-50 transition-colors duration-500"
+        ref={headerRef}
+        className={`${inFlow ? 'relative' : 'fixed top-0'} inset-x-0 z-50 transition-colors duration-500`}
         style={{
           paddingTop: 'var(--safe-top)',
           background: solid ? 'hsl(var(--ink) / 0.88)' : 'transparent',

@@ -7,11 +7,9 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
-import SmoothScroll from './components/shared/SmoothScroll';
 import Layout from './components/shared/Layout';
 import Home from './pages/Home';
 const BookingFlow = lazy(() => import('./pages/BookingFlow'));
-const HowItWorks = lazy(() => import('./pages/HowItWorks'));
 const ForCreators = lazy(() => import('./pages/ForCreators'));
 const ProfileWizard = lazy(() => import('./pages/ProfileWizard'));
 const ClientDashboard = lazy(() => import('./pages/ClientDashboard'));
@@ -97,7 +95,6 @@ const AuthenticatedApp = () => {
         <Route path="/portal" element={<Portal />} />
         <Route path="/book/:lensmanId" element={<BookingFlow />} />
         <Route path="/request-sent/:bookingId" element={<RequestSent />} />
-        <Route path="/how-it-works" element={<HowItWorks />} />
         <Route path="/for-creators" element={<ForCreators />} />
         {/* Each portal is one page. Old sub-page links fold back into it. */}
         <Route path="/client-dashboard" element={<ClientDashboard />} />
@@ -137,7 +134,6 @@ function App() {
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router>
-          <SmoothScroll />
           <ScrollToTop />
           <AuthenticatedApp />
         </Router>

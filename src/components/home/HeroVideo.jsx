@@ -84,22 +84,21 @@ function usePrefersReducedMotion() {
 export default function HeroVideo() {
   const reduced = usePrefersReducedMotion();
   const [typer, setTyper] = useState(EMPTY_TYPER);
+  const heroRef = useRef(null);
   const parallaxRef = useRef(null);
-  const copyRef = useRef(null);
 
-  // Scroll parallax: the photo sinks slower than the page and the copy lifts
-  // and fades, so the hero hands off to the next section instead of cutting.
+  // The photo drifts down slightly as the page scrolls; the copy stays put.
   useEffect(() => {
     if (reduced) return undefined;
+    const hero = heroRef.current;
+    if (!hero) return undefined;
+
     let frame = 0;
     const update = () => {
       frame = 0;
-      const y = Math.min(window.scrollY, window.innerHeight);
-      const p = y / window.innerHeight;
-      if (parallaxRef.current) parallaxRef.current.style.transform = `translate3d(0, ${y * 0.32}px, 0)`;
-      if (copyRef.current) {
-        copyRef.current.style.transform = `translate3d(0, ${y * -0.12}px, 0)`;
-        copyRef.current.style.opacity = String(Math.max(0, 1 - p * 1.4));
+      const heroH = hero.offsetHeight;
+      if (parallaxRef.current) {
+        parallaxRef.current.style.transform = `translate3d(0, ${Math.min(window.scrollY, heroH) * 0.32}px, 0)`;
       }
     };
     const onScroll = () => {
@@ -107,8 +106,10 @@ export default function HeroVideo() {
     };
     update();
     window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
     return () => {
       window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
       cancelAnimationFrame(frame);
     };
   }, [reduced]);
@@ -144,7 +145,12 @@ export default function HeroVideo() {
   const longest = PHRASES.reduce((a, phrase) => (phrase.length > a.length ? phrase : a), '');
 
   return (
-    <section className="relative w-full overflow-hidden bg-ink" style={{ height: '100svh', minHeight: 600 }}>
+    <section
+      ref={heroRef}
+      data-hero
+      className="relative w-full overflow-hidden bg-ink"
+      style={{ height: '100svh', minHeight: 600 }}
+    >
       <style>{`@keyframes stelliCaretBlink { 50% { opacity: 0 } }`}</style>
 
       <div ref={parallaxRef} className="absolute inset-0 will-change-transform">
@@ -173,7 +179,7 @@ export default function HeroVideo() {
         }}
       />
 
-      <div ref={copyRef} className="absolute inset-0 flex items-end justify-center text-center px-5 md:px-10 pb-16 sm:pb-[88px] will-change-transform">
+      <div className="absolute inset-0 flex items-end justify-center text-center px-5 md:px-10 pb-16 sm:pb-[88px]">
         <div className="w-full max-w-[900px]">
           <h1
             className="font-display"
