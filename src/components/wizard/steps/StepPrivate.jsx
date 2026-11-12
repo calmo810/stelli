@@ -66,6 +66,16 @@ export default function StepPrivate({ w }) {
           </div>
         </div>
       </div>
+
+      {w.applying && (
+        <p className="hint" style={{ marginTop: 20 }}>
+          By sending your application you agree to Stelli's{' '}
+          <a href="/terms" target="_blank" rel="noreferrer" className="link-btn">
+            Terms and Privacy Policy
+          </a>
+          .
+        </p>
+      )}
     </>
   );
 }
