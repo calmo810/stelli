@@ -23,7 +23,7 @@ export default function CreatorRequests() {
   const list = tab === 'next' ? next : past;
 
   return (
-    <div>
+    <div className="arch-tab arch-tab--work">
       <h1 className="wk-h1">Requests</h1>
       <p className="wk-lede">Open one to read the brief, message the client, and send your quote.</p>
 
