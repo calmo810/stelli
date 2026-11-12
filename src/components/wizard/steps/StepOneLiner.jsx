@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { STARTERS, TAG_IDEAS } from '@/lib/wizardData';
+import { TAG_IDEAS } from '@/lib/wizardData';
 
 export default function StepOneLiner({ w }) {
   const [draftTag, setDraftTag] = useState('');
@@ -89,14 +89,6 @@ export default function StepOneLiner({ w }) {
         </div>
       </div>
 
-      <span className="lbl subhead">Need a nudge? Tap one to start from it</span>
-      <div className="steal">
-        {STARTERS.map((starter) => (
-          <button key={starter.key} type="button" className="steal-btn" onClick={() => w.patch({ oneLiner: starter.oneLiner })}>
-            “{starter.oneLiner}”
-          </button>
-        ))}
-      </div>
     </>
   );
 }
