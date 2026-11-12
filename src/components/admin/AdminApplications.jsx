@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   ImageIcon,
   Instagram,
+  PencilLine,
   Mail,
   MapPin,
   Phone,
@@ -60,6 +61,7 @@ export default function AdminApplications({
 }) {
   const [search, setSearch] = useState('');
   const [decisionIntent, setDecisionIntent] = useState(null);
+  const [note, setNote] = useState('');
   const contactByLensman = useMemo(
     () => new Map(contacts.map((contact) => [contact.lensman_id, contact])),
     [contacts]
@@ -83,12 +85,17 @@ export default function AdminApplications({
   }, [applications, contactByLensman, search]);
 
   const requestDecision = (application, status) => {
+    setNote('');
     setDecisionIntent({ applicationId: application.id, status });
   };
 
   const confirmDecision = (application) => {
     if (!decisionIntent) return;
-    onDecision(application, decisionIntent.status);
+    const asking = decisionIntent.status === 'needs_changes';
+    if (asking && !note.trim()) return;
+    onDecision(application, decisionIntent.status, asking ? note.trim() : undefined);
+    setDecisionIntent(null);
+    setNote('');
   };
 
   if (isLoading) {
@@ -114,7 +121,7 @@ export default function AdminApplications({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <span className="inline-flex h-[46px] items-center justify-center gap-2 rounded-2xl border border-neon-cyan/20 bg-neon-cyan/[0.08] px-4 text-[12px] font-semibold text-neon-cyan">
               <span className="admin-status-dot" aria-hidden="true" />
-              {filtered.length} to review
+              {filtered.filter((application) => application.status !== 'needs_changes').length} to review
             </span>
             <label className="relative block w-full sm:w-[270px]">
               <span className="sr-only">Search applications</span>
@@ -177,7 +184,9 @@ export default function AdminApplications({
           {filtered.map((application) => {
             const contact = contactByLensman.get(application.id);
             const name = application.display_name || 'Stelli creator';
-            const portfolio = (application.portfolio_images || []).filter(Boolean).slice(0, 3);
+            const portfolio = (application.portfolio_images || []).filter(Boolean).slice(0, 12);
+            const waitingOnThem = application.status === 'needs_changes';
+            const isAsking = decisionIntent?.status === 'needs_changes';
             const specialties = (application.specialties || []).filter(Boolean);
             const neighborhoods = (application.neighborhoods || []).filter(Boolean);
             const isConfirming = decisionIntent?.applicationId === application.id;
@@ -205,7 +214,11 @@ export default function AdminApplications({
 
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="label-mono rounded-full border border-neon-cyan/20 bg-neon-cyan/[0.08] px-2.5 py-1 text-[8px] text-neon-cyan">Pending review</span>
+                          {waitingOnThem ? (
+                            <span className="label-mono rounded-full border border-white/15 bg-white/[0.05] px-2.5 py-1 text-[8px] text-white/60">Waiting on creator</span>
+                          ) : (
+                            <span className="label-mono rounded-full border border-neon-cyan/20 bg-neon-cyan/[0.08] px-2.5 py-1 text-[8px] text-neon-cyan">Pending review</span>
+                          )}
                           <span className="label-mono text-[8px] text-white/35">Submitted {formattedDate(application.created_date)}</span>
                         </div>
                         <h3 className="mt-3 font-heading text-2xl font-semibold tracking-tight text-white">{name}</h3>
@@ -221,6 +234,13 @@ export default function AdminApplications({
                       </div>
                     </div>
 
+                    {waitingOnThem && contact?.changes_requested && (
+                      <div className="mt-6 rounded-2xl border border-white/[0.07] bg-black/10 p-4">
+                        <p className="label-mono text-[8px] text-white/35">You asked them to change</p>
+                        <p className="mt-2 whitespace-pre-line font-body text-[13px] leading-relaxed text-white/68">{contact.changes_requested}</p>
+                      </div>
+                    )}
+
                     {application.bio && (
                       <div className="mt-6 rounded-2xl border border-white/[0.07] bg-black/10 p-4">
                         <p className="label-mono text-[8px] text-white/35">About their work</p>
@@ -230,7 +250,44 @@ export default function AdminApplications({
                   </div>
 
                   <aside className="rounded-[20px] border border-white/[0.10] bg-black/15 p-4">
-                    {isConfirming ? (
+                    {isConfirming && isAsking ? (
+                      <div className="flex h-full flex-col">
+                        <span className="grid h-9 w-9 place-items-center rounded-xl bg-neon-cyan/15 text-neon-cyan">
+                          <PencilLine className="h-4 w-4" aria-hidden="true" />
+                        </span>
+                        <h4 className="mt-4 text-[14px] font-semibold text-white">What should they change?</h4>
+                        <p className="mt-2 text-[12px] leading-relaxed text-white/45">
+                          They get this note by email with a link to fix it and send it back.
+                        </p>
+                        <textarea
+                          value={note}
+                          onChange={(event) => setNote(event.target.value)}
+                          maxLength={600}
+                          rows={4}
+                          autoFocus
+                          placeholder="e.g. Swap the profile photo for one where we can see your face."
+                          className={FIELD + ' mt-4 resize-none'}
+                        />
+                        <div className="mt-4 grid gap-2">
+                          <Button
+                            type="button"
+                            onClick={() => confirmDecision(application)}
+                            disabled={isSaving || !note.trim()}
+                            className="h-10 rounded-xl bg-neon-cyan text-[10px] font-semibold uppercase tracking-[0.13em] text-ink hover:bg-neon-cyan/90"
+                          >
+                            Send note
+                          </Button>
+                          <button
+                            type="button"
+                            onClick={() => setDecisionIntent(null)}
+                            disabled={isSaving}
+                            className="h-9 rounded-xl text-[11px] font-medium text-white/50 transition hover:bg-white/5 hover:text-white"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : isConfirming ? (
                       <div className="flex h-full flex-col">
                         <span className={"grid h-9 w-9 place-items-center rounded-xl " + (isApproving ? 'bg-neon-lime/15 text-neon-lime' : 'bg-neon-magenta/15 text-neon-magenta')}>
                           {isApproving ? <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> : <XCircle className="h-4 w-4" aria-hidden="true" />}
@@ -270,8 +327,12 @@ export default function AdminApplications({
                           <ShieldCheck className="h-4 w-4" aria-hidden="true" />
                         </span>
                         <p className="mt-4 label-mono text-[8px] text-white/38">Decision</p>
-                        <h4 className="mt-2 text-[14px] font-semibold text-white">Ready to review</h4>
-                        <p className="mt-2 text-[12px] leading-relaxed text-white/45">Approve to publish their profile, or decline to keep it private.</p>
+                        <h4 className="mt-2 text-[14px] font-semibold text-white">{isThisSaving ? 'Saving…' : waitingOnThem ? 'Waiting on them' : 'Ready to review'}</h4>
+                        <p className="mt-2 text-[12px] leading-relaxed text-white/45">
+                          {waitingOnThem
+                            ? 'It comes back to the queue when they send it. You can still decide now.'
+                            : 'Approve to publish, ask for a change if it is close, or decline to keep it private.'}
+                        </p>
                         <div className="mt-auto grid gap-2 pt-5">
                           <Button
                             type="button"
@@ -281,6 +342,17 @@ export default function AdminApplications({
                           >
                             <Check className="h-3.5 w-3.5" /> Approve & publish
                           </Button>
+                          {!waitingOnThem && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => requestDecision(application, 'needs_changes')}
+                              disabled={isSaving}
+                              className="h-10 rounded-xl border-white/12 bg-transparent text-[10px] font-semibold uppercase tracking-[0.13em] text-white/62 hover:border-neon-cyan/50 hover:bg-neon-cyan/10 hover:text-white"
+                            >
+                              <PencilLine className="h-3.5 w-3.5" /> Ask for changes
+                            </Button>
+                          )}
                           <Button
                             type="button"
                             variant="outline"
@@ -309,10 +381,10 @@ export default function AdminApplications({
                   <div className="border-t border-white/[0.08] px-5 py-5 sm:px-6">
                     <div className="flex flex-wrap items-end justify-between gap-3">
                       <div>
-                        <p className="label-mono text-[8px] text-white/35">Portfolio samples</p>
+                        <p className="label-mono text-[8px] text-white/35">Portfolio</p>
                         <p className="mt-1 text-[12px] text-white/45">A quick read on their visual point of view.</p>
                       </div>
-                      <span className="inline-flex items-center gap-2 text-[11px] text-white/35"><ImageIcon className="h-3.5 w-3.5" aria-hidden="true" /> {portfolio.length} sample{portfolio.length === 1 ? '' : 's'}</span>
+                      <span className="inline-flex items-center gap-2 text-[11px] text-white/35"><ImageIcon className="h-3.5 w-3.5" aria-hidden="true" /> {portfolio.length} photo{portfolio.length === 1 ? '' : 's'}</span>
                     </div>
                     <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
                       {portfolio.map((src, index) => (
@@ -324,7 +396,7 @@ export default function AdminApplications({
                             decoding="async"
                             className="aspect-[4/3] w-full object-cover transition duration-500 group-hover:scale-[1.03]"
                           />
-                          <figcaption className="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 label-mono text-[8px] text-white/75">0{index + 1}</figcaption>
+                          <figcaption className="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1 label-mono text-[8px] text-white/75">{String(index + 1).padStart(2, '0')}</figcaption>
                         </figure>
                       ))}
                     </div>

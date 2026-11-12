@@ -53,6 +53,16 @@
         }
       }
     },
+    "changes_requested": {
+      "type": "string",
+      "maxLength": 600,
+      "description": "What a founder asked the creator to fix before approval. The creator can read it; it is cleared when they send the profile back or a decision is made."
+    },
+    "changes_requested_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the change was asked for"
+    },
     "status_notified": {
       "type": "string",
       "description": "The status this creator was last emailed about, so each decision sends one email only",

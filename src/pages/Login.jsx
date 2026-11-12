@@ -82,7 +82,8 @@ export default function Login() {
       footer={
         <>
           Don't have an account?{" "}
-          <Link to="/register" className="text-primary font-medium hover:underline">
+          {/* Keeps where they were headed (and the creator role) across the switch. */}
+          <Link to={`/register${window.location.search}`} className="text-primary font-medium hover:underline">
             Create one
           </Link>
         </>

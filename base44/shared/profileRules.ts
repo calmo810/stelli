@@ -29,6 +29,14 @@ export const ALL_STYLE_TAGS = STYLE_TAGS;
 export const LIMITS = { one_liner: 90, prompt_answer: 200, dont_shoot: 140, bio: 400 };
 /** Same ceiling the wizard enforces, so a save never trims a portfolio. */
 export const MAX_PORTFOLIO_IMAGES = 12;
+/**
+ * iPhone HEIC files upload fine and then show as a broken image in most
+ * browsers. The wizard converts or refuses them; this keeps one from being
+ * saved to a profile by any other road.
+ */
+const UNSHOWABLE_IMAGE = /\.(heic|heif)(\?|#|$)/i;
+const showableImageUrl = (url) =>
+  typeof url === 'string' && /^https:\/\//i.test(url.trim()) && !UNSHOWABLE_IMAGE.test(url.trim());
 export const ACCENTS = ['lime', 'cyan', 'magenta'];
 export const GALLERY_STYLES = ['ordered_grid', 'hero_grid', 'contact_sheet'];
 export const PROFILE_THEMES = ['night_flash', 'clean_portfolio'];
@@ -264,12 +272,16 @@ export function buildProfilePatch(body: Record<string, any> = {}) {
   // on the profile that is submitted for review.
   if (typeof body.profile_image === 'string') {
     const value = body.profile_image.trim();
-    if (value && /^https:\/\//i.test(value)) patch.profile_image = value;
+    if (value && UNSHOWABLE_IMAGE.test(value)) {
+      errors.profile_image = "That photo is a HEIC file, which most browsers can't show. Save it as a JPG and add it again.";
+    } else if (showableImageUrl(value)) {
+      patch.profile_image = value;
+    }
   }
 
   if (Array.isArray(body.portfolio_images)) {
     patch.portfolio_images = body.portfolio_images
-      .filter((url) => typeof url === 'string' && /^https:\/\//i.test(url.trim()))
+      .filter(showableImageUrl)
       .map((url) => url.trim())
       .slice(0, MAX_PORTFOLIO_IMAGES);
   }

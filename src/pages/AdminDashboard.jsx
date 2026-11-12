@@ -67,8 +67,9 @@ export default function AdminDashboard() {
   // Approve / reject goes through the server, which checks the admin role,
   // emails the creator once and writes the decision to the activity log.
   const reviewApplication = useMutation({
-    mutationFn: async ({ lensmanId, status }) => {
-      const response = await base44.functions.invoke('reviewCreatorApplication', { lensmanId, decision: status });
+    /** @param {{ lensmanId: string, status: string, note?: string }} decision */
+    mutationFn: async ({ lensmanId, status, note }) => {
+      const response = await base44.functions.invoke('reviewCreatorApplication', { lensmanId, decision: status, note });
       if (response.data?.error) throw new Error(response.data.error);
       return response.data;
     },
@@ -83,6 +84,8 @@ export default function AdminDashboard() {
   const heldFunds = useMemo(() => founderQueue(bookings, Date.now(), strays), [bookings, strays]);
   const approved = lensmen.filter(l => l.status === 'approved');
   const pendingApplications = lensmen.filter((lensman) => lensman.status === 'pending');
+  // Asked for changes: off the founders' plate until the creator sends it back.
+  const waitingOnCreator = lensmen.filter((lensman) => lensman.status === 'needs_changes');
   const filteredCreators = useMemo(() => {
     const term = creatorSearch.trim().toLowerCase();
     return approved.filter((lensman) =>
@@ -256,14 +259,14 @@ export default function AdminDashboard() {
 
           <TabsContent value="applications">
             <AdminApplications
-              applications={pendingApplications}
+              applications={[...pendingApplications, ...waitingOnCreator]}
               contacts={creatorContacts}
               isLoading={loadingLensmen || loadingContacts}
               isError={lensmenError || contactsError}
               isSaving={reviewApplication.isPending}
               savingId={reviewApplication.variables?.lensmanId}
               saveError={reviewApplication.isError}
-              onDecision={(application, status) => reviewApplication.mutate({ lensmanId: application.id, status })}
+              onDecision={(application, status, note) => reviewApplication.mutate({ lensmanId: application.id, status, note })}
             />
           </TabsContent>
 

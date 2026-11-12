@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Loader2, X } from 'lucide-react';
+import { applyPendingSignupChoices } from '@/lib/signupChoices';
 
 const NEXT_STEP_PROMPT_KEY = 'stelli_next_step_prompt';
 
@@ -31,19 +32,10 @@ export default function Portal() {
         return;
       }
 
-      try {
-        // What a Google signup chose before leaving for Google is applied now.
-        const pendingRole = localStorage.getItem('stelli_pending_account_type');
-        const pendingAdult = localStorage.getItem('stelli_pending_age_confirmed') === 'true';
-        const changes = {};
-        if (!user.account_type && ['client', 'creator'].includes(pendingRole)) changes.account_type = pendingRole;
-        if (pendingAdult && !user.age_confirmed) changes.age_confirmed = true;
-        if (Object.keys(changes).length) user = await base44.auth.updateMe(changes);
-        localStorage.removeItem('stelli_pending_account_type');
-        localStorage.removeItem('stelli_pending_age_confirmed');
-      } catch {
-        // Not fatal: onboarding asks again below if the type is still missing.
-      }
+      // What a Google signup chose before leaving for Google is applied now.
+      // Not fatal if it fails: onboarding asks again below if the type is
+      // still missing.
+      user = await applyPendingSignupChoices(user);
       if (!active) return;
 
       if (!user?.account_type) {
