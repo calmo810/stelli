@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -11,7 +11,6 @@ import { APPROVED_CREATORS_QUERY_KEY, BROWSE_FILTERS, matchesFilter } from '@/li
 export default function Creators() {
   const [filter, setFilter] = useState('all');
   const [openCreator, setOpenCreator] = useState(null);
-  const browseRef = useRef(null);
 
   const { data: creators = [], isLoading, isError, refetch } = useQuery({
     queryKey: APPROVED_CREATORS_QUERY_KEY,
@@ -24,15 +23,12 @@ export default function Creators() {
     [creators, filter]
   );
 
-  const scrollToBrowse = () =>
-    browseRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
   return (
     <div className="min-h-screen overflow-x-hidden bg-ink text-white">
-      <div className="relative z-[1] mx-auto max-w-[1240px] px-5 pt-24 pb-24 md:px-10 md:pt-32 md:pb-32">
-        <BrowseHero creators={creators} onFind={scrollToBrowse} />
+      <div className="relative z-[1] mx-auto max-w-[1240px] px-5 pt-24 pb-24 md:px-10 md:pt-28 md:pb-32">
+        <BrowseHero />
 
-        <div ref={browseRef} className="mb-7 mt-16 scroll-mt-6 md:mt-20">
+        <div className="mb-6 mt-6">
           <BrowseFilters
             filters={BROWSE_FILTERS}
             value={filter}
