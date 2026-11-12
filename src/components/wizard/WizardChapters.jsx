@@ -1,17 +1,18 @@
 import React from 'react';
-import { CHAPTERS, STEPS } from '@/lib/wizardData';
 
-/** The six chapters, each a row of dots that doubles as a way back. */
-export default function WizardChapters({ step, maxStep, onJump }) {
-  const current = STEPS[step].ch;
+/** The chapters of this flow, each a row of dots that doubles as a way back. */
+export default function WizardChapters({ steps, step, maxStep, onJump }) {
+  const chapters = [...new Set(steps.map((item) => item.chapter))];
+  const current = steps[step].chapter;
   return (
     <nav className="chapters" aria-label="Progress">
-      {CHAPTERS.map((chapter, ci) => (
-        <div key={chapter} className={`chap ${ci === current ? 'cur' : ''}`}>
+      {chapters.map((chapter) => (
+        <div key={chapter} className={`chap ${chapter === current ? 'cur' : ''}`}>
           <span className="chap-label">{chapter}</span>
           <div className="chap-dots">
-            {STEPS.map((s, i) => ({ s, i }))
-              .filter(({ s }) => s.ch === ci)
+            {steps
+              .map((s, i) => ({ s, i }))
+              .filter(({ s }) => s.chapter === chapter)
               .map(({ s, i }) => {
                 const can = i <= maxStep && i !== step;
                 return (
