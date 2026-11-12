@@ -57,11 +57,14 @@ export default function CreatorEarnings() {
 
   return (
     <div className="arch-tab arch-tab--work">
-      <h1 className="wk-h1">Money</h1>
-      <p className="wk-lede">Every charge is held by Stelli until you deliver, then it is yours.</p>
-
-      <div className="mt-4">
-        <WorkTabs requests={newRequests.length} />
+      <div className="arch-tab__topline">
+        <div className="arch-tab__heading">
+          <h1 className="wk-h1">Money</h1>
+          <p className="wk-lede">See what is held, clearing, and paid out.</p>
+        </div>
+        <nav className="arch-tab__nav" aria-label="Work sections">
+          <WorkTabs requests={newRequests.length} />
+        </nav>
       </div>
 
       <div className="wk-card wk-card--pad mt-2.5">
@@ -94,8 +97,9 @@ export default function CreatorEarnings() {
         </div>
       )}
 
-      <div className="mt-5">
+      <div className="arch-tab__toolbar mt-5">
         <NextPast value={tab} onChange={setTab} nextCount={held.length} pastCount={paid.length} />
+        <p className="arch-tab__count">{tab === 'next' ? `${held.length} held` : `${paid.length} paid`}</p>
       </div>
 
       <div className="mt-3">
