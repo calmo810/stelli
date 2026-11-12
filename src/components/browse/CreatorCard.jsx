@@ -32,6 +32,10 @@ export default function CreatorCard({ creator, index = 0, onOpen }) {
   const name = displayNameOf(creator);
   const tagline = taglineOf(creator);
   const spots = (creator?.neighborhoods || []).filter(Boolean).slice(0, 3);
+  const face = creator?.profile_image;
+  const initial = (String(name || '?').trim()[0] || '?').toUpperCase();
+  /* Skip the badge when the card is already showing their portrait. */
+  const showFace = !(face && images.length === 1 && images[0] === face);
 
   useEffect(() => {
     const node = cardRef.current;
@@ -173,6 +177,25 @@ export default function CreatorCard({ creator, index = 0, onOpen }) {
             </span>
           ))}
         </div>
+
+        {/* Their face in the corner, so the person behind the work is on the card. */}
+        {showFace && (
+          <div
+            className="absolute left-4 top-[26px] z-[3] h-[54px] w-[54px] overflow-hidden rounded-full bg-surface-2"
+            style={{
+              transform: 'translateZ(40px)',
+              boxShadow: `0 0 0 2.5px hsl(var(--ink)), 0 0 0 4px ${accent}, 0 14px 26px -10px rgba(0,0,0,.85)`,
+            }}
+          >
+            {face ? (
+              <img src={face} alt="" loading="lazy" className="h-full w-full object-cover" />
+            ) : (
+              <div className="grid h-full w-full place-items-center font-display text-[22px] text-white/70">
+                {initial}
+              </div>
+            )}
+          </div>
+        )}
 
         {creator?.is_sample && (
           <div className="absolute right-4 top-[26px] z-[3] label-mono text-[10px] text-white/55">
