@@ -508,3 +508,131 @@
     display: none;
   }
 }
+
+/* ---------- the four-week strip and the day's appointments ---------- */
+.wk-strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 2px 8px;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.wk-strip::-webkit-scrollbar {
+  display: none;
+}
+
+.wk-day {
+  flex: 0 0 auto;
+  width: 58px;
+  padding: 9px 0 8px;
+  border: 0;
+  border-radius: 16px;
+  scroll-snap-align: center;
+  background: var(--wk-card);
+  text-align: center;
+  box-shadow: 0 16px 34px -26px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.wk-day:active {
+  transform: scale(0.96);
+}
+
+.wk-day-w {
+  display: block;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(10, 18, 38, 0.42);
+}
+
+.wk-day-n {
+  display: block;
+  margin-top: 3px;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--wk-ink);
+}
+
+.wk-day-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  height: 5px;
+  margin-top: 6px;
+}
+
+.wk-day-dots i {
+  display: block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+}
+
+.wk-day.is-today {
+  box-shadow: inset 0 0 0 1.5px var(--wk-ink);
+}
+
+.wk-day.is-off .wk-day-n {
+  color: rgba(10, 18, 38, 0.3);
+  text-decoration: line-through;
+}
+
+.wk-day.is-on {
+  background: var(--wk-ink);
+  box-shadow: 0 18px 34px -22px rgba(0, 0, 0, 0.9);
+}
+
+.wk-day.is-on .wk-day-w {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.wk-day.is-on .wk-day-n {
+  color: #fff;
+  text-decoration: none;
+}
+
+.wk-appt {
+  display: flex;
+  gap: 14px;
+  padding: 15px 16px;
+  border-radius: var(--wk-r);
+  background: var(--wk-card);
+  box-shadow: 0 20px 44px -30px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  transition: transform 0.18s ease;
+}
+
+.wk-appt:active {
+  transform: scale(0.99);
+}
+
+.wk-appt-time {
+  flex: 0 0 62px;
+  border-right: 1px solid var(--wk-line);
+  padding-right: 12px;
+}
+
+.wk-appt-time b {
+  display: block;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  color: var(--wk-ink);
+}
+
+.wk-appt-time small {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+  color: var(--wk-grey);
+}

@@ -1,38 +1,44 @@
 import React, { useMemo, useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
-import {
-  addMonths,
-  eachDayOfInterval,
-  endOfMonth,
-  endOfWeek,
-  format,
-  isSameDay,
-  isSameMonth,
-  startOfMonth,
-  startOfWeek,
-} from 'date-fns';
-import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { Link, useOutletContext } from 'react-router-dom';
+import { addDays, format } from 'date-fns';
+import { CalendarDays, Loader2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { todayKey } from '@/hooks/useCreatorPortal';
+import WorkspaceEmpty from '@/components/creator/workspace/WorkspaceEmpty';
 
-const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-const SHOOT_DOT = '#8fa52c';
-const REQUEST_DOT = '#3f98a8';
+const WINDOW_DAYS = 28;
+const INK = '#0a1226';
+const LIME = '#c4f82a';
 
 function keyOf(date) {
   return format(date, 'yyyy-MM-dd');
 }
 
-/** Confirmed shoots, pending requests and the days the creator is off. */
+/** "14:30" reads as 2:30 PM; anything else is left as the client wrote it. */
+function timeLabel(value) {
+  if (!value) return 'Time TBD';
+  const match = /^(\d{1,2}):(\d{2})/.exec(value);
+  if (!match) return value;
+  const hours = Number(match[1]);
+  const suffix = hours >= 12 ? 'PM' : 'AM';
+  const hour = hours % 12 === 0 ? 12 : hours % 12;
+  return `${hour}:${match[2]} ${suffix}`;
+}
+
+/** The next four weeks as a strip, then the chosen day as appointment cards. */
 export default function CreatorCalendar() {
   const { confirmed, newRequests, myProfile, refetchProfile } = useOutletContext();
-  const [cursor, setCursor] = useState(() => startOfMonth(new Date()));
   const [selected, setSelected] = useState(() => new Date());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   const blackouts = Array.isArray(myProfile?.blackout_dates) ? myProfile.blackout_dates : [];
   const today = todayKey();
+
+  const strip = useMemo(() => {
+    const start = new Date();
+    return Array.from({ length: WINDOW_DAYS }, (_, i) => addDays(start, i));
+  }, []);
 
   const byDate = useMemo(() => {
     const map = {};
@@ -46,13 +52,10 @@ export default function CreatorCalendar() {
     return map;
   }, [confirmed, newRequests]);
 
-  const days = eachDayOfInterval({
-    start: startOfWeek(startOfMonth(cursor)),
-    end: endOfWeek(endOfMonth(cursor)),
-  });
-
   const selectedKey = keyOf(selected);
-  const selectedShoots = byDate[selectedKey] || [];
+  const dayItems = [...(byDate[selectedKey] || [])].sort((a, b) =>
+    String(a.event_time || '99:99').localeCompare(String(b.event_time || '99:99'))
+  );
   const offOnSelected = blackouts.includes(selectedKey);
   const canToggle = selectedKey >= today;
 
@@ -79,128 +82,106 @@ export default function CreatorCalendar() {
 
   return (
     <div>
-      <h1 className="wk-h1">Availability</h1>
-      <p className="wk-lede">Tap a day to say you are off. Clients see you as unavailable on those dates.</p>
+      <h1 className="wk-h1">Schedule</h1>
+      <p className="wk-lede">Four weeks ahead. Tap a day to see it, or to tell clients you are off.</p>
 
-      <div className="wk-card mt-5 px-4 py-4">
-        <div className="flex items-center justify-between">
-          <p className="text-[18px] font-extrabold tracking-tight text-ink">{format(cursor, 'MMMM yyyy')}</p>
-          <div className="flex items-center gap-1">
+      <div className="wk-strip mt-5">
+        {strip.map((day) => {
+          const key = keyOf(day);
+          const items = byDate[key] || [];
+          const hasShoot = items.some((item) => item.kind === 'shoot');
+          const hasRequest = items.some((item) => item.kind === 'request');
+          const isOn = key === selectedKey;
+          const off = blackouts.includes(key);
+
+          return (
             <button
+              key={key}
               type="button"
-              onClick={() => setCursor(addMonths(cursor, -1))}
-              aria-label="Previous month"
-              className="grid h-8 w-8 place-items-center rounded-full wk-mute hover:bg-[#f2f4f8]"
+              onClick={() => setSelected(day)}
+              aria-pressed={isOn}
+              aria-label={format(day, 'EEEE, MMMM d')}
+              className={`wk-day ${isOn ? 'is-on' : ''} ${key === today ? 'is-today' : ''} ${off ? 'is-off' : ''}`}
             >
-              <ChevronLeft className="h-4 w-4" />
+              <span className="wk-day-w">{key === today ? 'Today' : format(day, 'EEE')}</span>
+              <span className="wk-day-n">{format(day, 'd')}</span>
+              <span className="wk-day-dots">
+                {hasShoot && (
+                  <i style={{ background: isOn ? 'rgba(255,255,255,.9)' : INK }} />
+                )}
+                {hasRequest && <i style={{ background: LIME }} />}
+              </span>
             </button>
-            <button
-              type="button"
-              onClick={() => setCursor(addMonths(cursor, 1))}
-              aria-label="Next month"
-              className="grid h-8 w-8 place-items-center rounded-full wk-mute hover:bg-[#f2f4f8]"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
+          );
+        })}
+      </div>
 
-        <div className="mt-4 grid grid-cols-7 gap-1 text-center">
-          {WEEKDAYS.map((day, i) => (
-            <span key={`${day}-${i}`} className="pb-1 text-[10px] font-bold uppercase wk-mute">
-              {day}
-            </span>
-          ))}
+      <div className="mt-5 flex items-baseline justify-between gap-3">
+        <h2 className="text-[17px] font-extrabold tracking-tight text-white">
+          {selectedKey === today ? 'Today' : format(selected, 'EEEE')}, {format(selected, 'MMM d')}
+        </h2>
+        <span className="text-[12px] font-semibold text-white/45">
+          {dayItems.length ? `${dayItems.length} on the books` : offOnSelected ? "You're off" : 'Nothing booked'}
+        </span>
+      </div>
 
-          {days.map((day) => {
-            const key = keyOf(day);
-            const inMonth = isSameMonth(day, cursor);
-            const shoots = byDate[key] || [];
-            const hasShoot = shoots.some((s) => s.kind === 'shoot');
-            const hasRequest = shoots.some((s) => s.kind === 'request');
-            const off = blackouts.includes(key);
-            const isSelected = isSameDay(day, selected);
-            const isToday = key === today;
-
+      <div className="mt-3 space-y-2.5">
+        {dayItems.length ? (
+          dayItems.map((item) => {
+            const shoot = item.kind === 'shoot';
+            const meta = [item.event_type, item.location].filter(Boolean).join(' · ');
             return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => setSelected(day)}
-                aria-pressed={isSelected}
-                className="relative flex h-11 flex-col items-center justify-center rounded-xl text-[13px] font-semibold transition-colors"
-                style={{
-                  background: isSelected ? '#0a1226' : 'transparent',
-                  boxShadow: isToday && !isSelected ? `inset 0 0 0 1.5px ${SHOOT_DOT}` : 'none',
-                  color: !inMonth ? 'rgba(10,18,38,0.2)' : isSelected ? '#fff' : off ? 'rgba(10,18,38,0.3)' : '#0a1226',
-                  textDecoration: off && inMonth ? 'line-through' : 'none',
-                }}
+              <Link
+                key={item.id}
+                to={shoot ? `/messages/${item.id}` : `/lensman-dashboard/requests/${item.id}`}
+                className="wk-appt"
               >
-                {format(day, 'd')}
-                <span className="mt-1 flex h-1 items-center gap-0.5">
-                  {hasShoot && <span className="h-1 w-1 rounded-full" style={{ background: SHOOT_DOT }} />}
-                  {hasRequest && <span className="h-1 w-1 rounded-full" style={{ background: REQUEST_DOT }} />}
+                <span className="wk-appt-time">
+                  <b>{timeLabel(item.event_time)}</b>
+                  <small>{item.duration || (shoot ? 'Booked' : 'To answer')}</small>
                 </span>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-[rgba(10,18,38,0.08)] pt-3 text-[11px] wk-mute">
-          <span className="inline-flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full" style={{ background: SHOOT_DOT }} />
-            Confirmed shoot
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full" style={{ background: REQUEST_DOT }} />
-            Pending request
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <span className="text-[12px] line-through">15</span> You are off
-          </span>
-        </div>
-      </div>
-
-      <div className="wk-card mt-2.5 px-5 py-4">
-        <p className="wk-label">{format(selected, 'EEEE, MMM d')}</p>
-
-        {selectedShoots.length ? (
-          <ul className="mt-2 space-y-2">
-            {selectedShoots.map((shoot) => (
-              <li key={shoot.id} className="flex items-baseline gap-2 text-[14px]">
-                <span
-                  className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full"
-                  style={{ background: shoot.kind === 'shoot' ? SHOOT_DOT : REQUEST_DOT }}
-                />
                 <span className="min-w-0 flex-1">
-                  <b className="font-bold text-ink">{shoot.client_name || 'Client'}</b>
-                  <small className="ml-2 capitalize wk-grey">
-                    {[shoot.event_time, shoot.event_type].filter(Boolean).join(' · ')}
-                  </small>
+                  <span className="flex items-start justify-between gap-2">
+                    <b className="truncate text-[15px] font-extrabold tracking-tight text-ink">
+                      {item.client_name || 'Client'}
+                    </b>
+                    <span className={`wk-chip shrink-0 ${shoot ? 'wk-chip--lime' : 'wk-chip--cyan'}`}>
+                      {shoot ? 'CONFIRMED' : 'REQUEST'}
+                    </span>
+                  </span>
+                  {meta && <small className="mt-1 block truncate text-[12.5px] wk-grey">{meta}</small>}
+                  <span className="mt-2 flex items-center gap-1 text-[12.5px] font-bold text-ink">
+                    {shoot ? 'Open thread' : 'Send a quote'}
+                    <span aria-hidden>→</span>
+                  </span>
                 </span>
-              </li>
-            ))}
-          </ul>
+              </Link>
+            );
+          })
         ) : (
-          <p className="mt-2 text-[14px] wk-grey">No shoots on this day.</p>
+          <WorkspaceEmpty
+            icon={CalendarDays}
+            title="Nothing on this day"
+            body={offOnSelected ? "You're marked off, so nothing will land here." : 'Accepted quotes land here as shoots.'}
+          />
         )}
-
-        {canToggle ? (
-          <button
-            type="button"
-            onClick={toggleAvailability}
-            disabled={saving}
-            className={`wk-btn mt-4 w-full ${offOnSelected ? 'wk-btn--ghost' : 'wk-btn--ink'}`}
-          >
-            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-            {offOnSelected ? "I'm available this day" : "I'm off this day"}
-          </button>
-        ) : (
-          <p className="mt-3 text-[12px] wk-mute">Past dates cannot be changed.</p>
-        )}
-
-        {error && <p className="mt-3 text-[13px] text-[#b03a72]">{error}</p>}
       </div>
+
+      {canToggle ? (
+        <button
+          type="button"
+          onClick={toggleAvailability}
+          disabled={saving}
+          className={`wk-btn mt-3 w-full ${offOnSelected ? 'wk-btn--ghost' : 'wk-btn--ink'}`}
+        >
+          {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+          {offOnSelected ? "I'm available this day" : "I'm off this day"}
+        </button>
+      ) : (
+        <p className="mt-3 text-[12px] text-white/40">Past dates cannot be changed.</p>
+      )}
+
+      {error && <p className="mt-3 text-[13px] text-[#ff9ac2]">{error}</p>}
     </div>
   );
 }
