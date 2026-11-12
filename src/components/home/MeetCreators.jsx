@@ -144,15 +144,15 @@ export default function MeetCreators() {
                     style={{ borderRadius: CARD_RADIUS, boxShadow: 'inset 0 0 0 1px rgba(255,255,255,.12)' }}
                   />
                 </div>
-                <div className="absolute inset-x-[20px] bottom-[20px] z-10 flex items-center gap-3">
+                <div className="absolute inset-x-[20px] bottom-[20px] z-10 flex items-center gap-3.5">
                   {creator.profile_image && (
                     <img
                       src={creator.profile_image}
                       alt=""
                       loading="lazy"
                       draggable={false}
-                      className="h-10 w-10 shrink-0 rounded-full object-cover"
-                      style={{ boxShadow: '0 0 0 1px rgba(255,255,255,.42)' }}
+                      className="shrink-0 rounded-full object-cover"
+                      style={{ height: 52, width: 52, boxShadow: '0 0 0 1px rgba(255,255,255,.45)' }}
                     />
                   )}
                   <div className="min-w-0">
