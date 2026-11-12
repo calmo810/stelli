@@ -70,7 +70,7 @@ export default function WhatsNewCard({ items = [], facts = [] }) {
           type="button"
           role="switch"
           aria-checked={aiOn}
-          aria-label="Summarise with AI"
+          aria-label="Summarize with AI"
           onClick={toggle}
           className={`wk-switch ${aiOn ? 'is-on' : ''}`}
         >
