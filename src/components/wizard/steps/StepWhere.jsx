@@ -32,7 +32,7 @@ export default function StepWhere({ w }) {
             picked
           </>
         ) : (
-          'Pick at least one'
+          "None picked. We'll list you as anywhere on campus."
         )}
       </div>
     </>
