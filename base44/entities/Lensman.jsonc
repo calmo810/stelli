@@ -255,11 +255,12 @@
       "type": "string",
       "enum": [
         "pending",
+        "needs_changes",
         "approved",
         "rejected"
       ],
       "default": "pending",
-      "description": "Vetting status. Approved profiles are public; pending and rejected are hidden."
+      "description": "Vetting status. Approved profiles are public; pending, needs_changes (a founder asked the creator to fix something) and rejected are hidden."
     },
     "age_confirmed": {
       "type": "boolean",
