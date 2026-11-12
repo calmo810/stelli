@@ -55,7 +55,7 @@ export default function CreatorPublicProfile() {
   ];
 
   return (
-    <div>
+    <div className="arch-tab arch-tab--profile">
       <h1 className="wk-h1">Profile</h1>
       <p className="wk-lede">
         Your storefront. Clients see it at getstelli.com/creators/{myProfile.slug || 'you'}.
@@ -105,7 +105,7 @@ export default function CreatorPublicProfile() {
         ))}
       </div>
 
-      <PhotoReleases role="lensman" user={user} light />
+      <PhotoReleases role="lensman" user={user} />
     </div>
   );
 }
