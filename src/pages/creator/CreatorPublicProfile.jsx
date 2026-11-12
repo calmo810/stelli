@@ -3,18 +3,16 @@ import { Link, useOutletContext } from 'react-router-dom';
 import { ChevronRight, ExternalLink } from 'lucide-react';
 import CopyLinkPill from '@/components/dashboard/CopyLinkPill';
 import PhotoReleases from '@/components/dashboard/PhotoReleases';
+import ProfilePerformance from '@/components/creator/ProfilePerformance';
 
 function Row({ to, label, value }) {
   return (
-    <Link
-      to={to}
-      className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-white/[0.05]"
-    >
+    <Link to={to} className="wk-row">
       <span className="min-w-0 flex-1">
-        <b className="block text-[15px] font-medium text-white">{label}</b>
-        <small className="mt-0.5 block truncate text-[12.5px] text-white/45">{value}</small>
+        <b className="block text-[14.5px] font-bold text-ink">{label}</b>
+        <small className="mt-0.5 block truncate text-[12.5px] wk-grey">{value}</small>
       </span>
-      <ChevronRight className="h-4 w-4 shrink-0 text-white/30" strokeWidth={2.4} />
+      <ChevronRight className="h-4 w-4 shrink-0 wk-mute" strokeWidth={2.4} />
     </Link>
   );
 }
@@ -58,12 +56,12 @@ export default function CreatorPublicProfile() {
 
   return (
     <div>
-      <h1 className="font-display text-[30px] font-medium leading-tight text-white">Public profile</h1>
-      <p className="mt-1.5 text-[14px] leading-snug text-white/50">
-        This page is your storefront. Clients see it at getstelli.com/creators/{myProfile.slug || 'you'}.
+      <h1 className="wk-h1">Profile</h1>
+      <p className="wk-lede">
+        Your storefront. Clients see it at getstelli.com/creators/{myProfile.slug || 'you'}.
       </p>
 
-      <div className="glass mt-5 overflow-hidden rounded-[26px]">
+      <div className="wk-card mt-5 overflow-hidden">
         {cover && (
           <div className="h-[132px] w-full overflow-hidden">
             <img src={cover} alt="" className="h-full w-full object-cover" />
@@ -72,20 +70,14 @@ export default function CreatorPublicProfile() {
         <div className="px-5 py-4">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="truncate font-display text-[22px] leading-tight text-white">
+              <p className="truncate text-[21px] font-extrabold leading-tight tracking-tight text-ink">
                 {myProfile.display_name}
               </p>
-              <p className="mt-1 text-[12.5px] text-white/45">
+              <p className="mt-1 text-[12.5px] wk-grey">
                 {metrics.views} views · {myProfile.review_count || 0} reviews
               </p>
             </div>
-            <span
-              className="shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold tracking-wide"
-              style={{
-                background: live ? 'hsl(var(--neon-lime) / 0.16)' : 'hsl(var(--neon-cyan) / 0.14)',
-                color: live ? 'hsl(var(--neon-lime))' : 'hsl(var(--neon-cyan))',
-              }}
-            >
+            <span className={`wk-chip shrink-0 ${live ? 'wk-chip--lime' : 'wk-chip--cyan'}`}>
               {myProfile.under_review ? 'UNDER REVIEW' : live ? 'LIVE' : 'IN REVIEW'}
             </span>
           </div>
@@ -95,7 +87,7 @@ export default function CreatorPublicProfile() {
             <Link
               to={`/creators/${myProfile.slug || myProfile.id}`}
               target="_blank"
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3.5 py-2 text-[13px] font-medium text-white/70 hover:text-white"
+              className="wk-btn wk-btn--ghost"
             >
               View page <ExternalLink className="h-3.5 w-3.5" />
             </Link>
@@ -103,15 +95,17 @@ export default function CreatorPublicProfile() {
         </div>
       </div>
 
-      <div className="glass mt-3 overflow-hidden rounded-[24px]">
-        {rows.map((row, i) => (
-          <div key={row.label} className={i ? 'border-t border-white/[0.08]' : ''}>
-            <Row {...row} />
-          </div>
+      <div className="mt-2.5">
+        <ProfilePerformance profile={myProfile} />
+      </div>
+
+      <div className="wk-list mt-2.5">
+        {rows.map((row) => (
+          <Row key={row.label} {...row} />
         ))}
       </div>
 
-      <PhotoReleases role="lensman" user={user} />
+      <PhotoReleases role="lensman" user={user} light />
     </div>
   );
 }

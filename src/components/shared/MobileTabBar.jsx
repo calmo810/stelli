@@ -40,6 +40,9 @@ export default function MobileTabBar() {
     if (active) lastVisit[active] = location.pathname;
   }, [active, location.pathname]);
 
+  // The creator workspace runs its own four tabs, so this bar stays away.
+  if (location.pathname.startsWith('/lensman-dashboard')) return null;
+
   const select = (tab) => {
     // Tapping the tab you are already on takes you back to its start.
     if (tab.key === active && location.pathname !== tab.root) {

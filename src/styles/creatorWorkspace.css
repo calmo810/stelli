@@ -1,0 +1,510 @@
+/*
+ * The creator workspace: bright paper cards on the Stelli ink canvas.
+ * Everything is prefixed wk- and scoped under .wk, so it never touches the
+ * site's dark glass surfaces or the public creator profile.
+ */
+
+.wk {
+  --wk-ink: #0a1226;
+  --wk-card: #ffffff;
+  --wk-soft: #f2f4f8;
+  --wk-line: rgba(10, 18, 38, 0.08);
+  --wk-grey: #667085;
+  --wk-mute: #98a1ae;
+  --wk-lime: #eafbc6;
+  --wk-lime-ink: #4a5a11;
+  --wk-cyan: #ddf3f8;
+  --wk-cyan-ink: #1b5a66;
+  --wk-blush: #fbe6f0;
+  --wk-blush-ink: #8d2a53;
+  --wk-amber: #fdf0d8;
+  --wk-amber-ink: #7c5410;
+  --wk-r: 26px;
+  min-height: 100vh;
+}
+
+/* ---------- type on the ink canvas ---------- */
+.wk-kicker {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.wk-h1 {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1.02;
+  color: #fff;
+}
+
+@media (min-width: 768px) {
+  .wk-h1 {
+    font-size: 42px;
+  }
+}
+
+.wk-lede {
+  margin-top: 7px;
+  max-width: 44ch;
+  font-size: 14px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* ---------- paper ---------- */
+.wk-card {
+  border-radius: var(--wk-r);
+  background: var(--wk-card);
+  color: var(--wk-ink);
+  box-shadow: 0 20px 44px -30px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.wk-card--pad {
+  padding: 20px;
+}
+
+@media (min-width: 768px) {
+  .wk-card--pad {
+    padding: 26px;
+  }
+}
+
+.wk-card--soft {
+  background: var(--wk-soft);
+  box-shadow: none;
+}
+
+.wk-card--lime {
+  background: var(--wk-lime);
+  box-shadow: none;
+}
+
+.wk-card--amber {
+  background: var(--wk-amber);
+  box-shadow: none;
+}
+
+.wk-card--blush {
+  background: var(--wk-blush);
+  box-shadow: none;
+}
+
+/* ---------- type inside a card ---------- */
+.wk-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--wk-mute);
+}
+
+.wk-title {
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  color: var(--wk-ink);
+}
+
+.wk-big {
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+  color: var(--wk-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.wk-body {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--wk-grey);
+}
+
+.wk-small {
+  font-size: 12.5px;
+  line-height: 1.35;
+  color: var(--wk-mute);
+}
+
+.wk-summary {
+  font-size: 15.5px;
+  font-weight: 600;
+  letter-spacing: -0.012em;
+  line-height: 1.4;
+  color: var(--wk-ink);
+}
+
+/* ---------- tiles, chips ---------- */
+.wk-tile {
+  border-radius: 18px;
+  background: var(--wk-soft);
+  padding: 12px 13px;
+}
+
+.wk-tile--lime {
+  background: var(--wk-lime);
+}
+
+.wk-tile--cyan {
+  background: var(--wk-cyan);
+}
+
+.wk-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  background: var(--wk-soft);
+  color: var(--wk-grey);
+}
+
+.wk-chip--lime {
+  background: var(--wk-lime);
+  color: var(--wk-lime-ink);
+}
+
+.wk-chip--cyan {
+  background: var(--wk-cyan);
+  color: var(--wk-cyan-ink);
+}
+
+.wk-chip--blush {
+  background: var(--wk-blush);
+  color: var(--wk-blush-ink);
+}
+
+.wk-chip--amber {
+  background: var(--wk-amber);
+  color: var(--wk-amber-ink);
+}
+
+/* ---------- lists and rows ---------- */
+.wk-list {
+  overflow: hidden;
+  border-radius: var(--wk-r);
+  background: var(--wk-card);
+  box-shadow: 0 20px 44px -30px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.wk-row {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  text-align: left;
+  color: var(--wk-ink);
+  transition: background 0.18s ease;
+}
+
+.wk-row + .wk-row {
+  border-top: 1px solid var(--wk-line);
+}
+
+.wk-row:hover {
+  background: var(--wk-soft);
+}
+
+/* ---------- buttons ---------- */
+.wk-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: 999px;
+  padding: 12px 20px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  transition: transform 0.18s ease, background 0.18s ease, opacity 0.18s ease;
+}
+
+.wk-btn:active {
+  transform: scale(0.97);
+}
+
+.wk-btn:disabled {
+  opacity: 0.45;
+}
+
+.wk-btn--ink {
+  background: var(--wk-ink);
+  color: #fff;
+}
+
+.wk-btn--lime {
+  background: hsl(var(--neon-lime));
+  color: var(--wk-ink);
+}
+
+.wk-btn--ghost {
+  background: rgba(10, 18, 38, 0.06);
+  color: var(--wk-ink);
+}
+
+.wk-btn--line {
+  background: transparent;
+  color: var(--wk-ink);
+  box-shadow: inset 0 0 0 1px rgba(10, 18, 38, 0.14);
+}
+
+.wk-topbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 8px 13px;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.wk-topbtn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ---------- next / past ---------- */
+.wk-seg {
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.wk-seg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.55);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.wk-seg-btn.is-on {
+  background: #fff;
+  color: var(--wk-ink);
+}
+
+.wk-seg-n {
+  font-size: 11px;
+  font-weight: 800;
+  opacity: 0.5;
+}
+
+/* ---------- avatar ---------- */
+.wk-avatar {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.wk-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ---------- the switch on the what's-new card ---------- */
+.wk-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--wk-lime-ink);
+}
+
+.wk-switch-track {
+  position: relative;
+  width: 34px;
+  height: 20px;
+  border-radius: 999px;
+  background: rgba(10, 18, 38, 0.18);
+  transition: background 0.2s ease;
+}
+
+.wk-switch.is-on .wk-switch-track {
+  background: var(--wk-ink);
+}
+
+.wk-switch-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s ease;
+}
+
+.wk-switch.is-on .wk-switch-thumb {
+  transform: translateX(14px);
+}
+
+/* ---------- desktop rail ---------- */
+.wk-rail {
+  position: sticky;
+  top: calc(88px + var(--safe-top));
+  align-self: flex-start;
+  display: none;
+  width: 212px;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.wk-rail-btn {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border-radius: 14px;
+  padding: 11px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  transition: background 0.18s ease, color 0.18s ease;
+}
+
+.wk-rail-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.wk-rail-btn.is-on {
+  background: #fff;
+  color: var(--wk-ink);
+  font-weight: 800;
+}
+
+.wk-rail-n {
+  margin-left: auto;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: hsl(var(--neon-lime));
+  color: var(--wk-ink);
+  font-size: 10px;
+  font-weight: 800;
+  display: grid;
+  place-items: center;
+}
+
+.wk-rail-sep {
+  height: 1px;
+  margin: 12px 10px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ---------- phone tab bar ---------- */
+.wk-tabbar {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(10px + var(--safe-bottom));
+  z-index: 46;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  padding: 6px;
+  border-radius: 999px;
+  background: rgba(11, 19, 39, 0.86);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5);
+  backdrop-filter: blur(22px) saturate(1.5);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 26px 54px -24px rgba(0, 0, 0, 0.95);
+}
+
+.wk-tab {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 0 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.5);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+/* Literal colours: this bar is portalled to the page body, outside .wk. */
+.wk-tab.is-on {
+  background: #fff;
+  color: #0a1226;
+}
+
+.wk-tab-badge {
+  position: absolute;
+  top: 3px;
+  left: 50%;
+  transform: translateX(6px);
+  display: grid;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  place-items: center;
+  border-radius: 999px;
+  background: hsl(var(--neon-lime));
+  color: #0a1226;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+/* colour helpers for text and fills inside a bright card */
+.wk-ink {
+  color: var(--wk-ink);
+}
+
+.wk-grey {
+  color: var(--wk-grey);
+}
+
+.wk-mute {
+  color: var(--wk-mute);
+}
+
+.wk-fill {
+  background: var(--wk-soft);
+}
+
+@media (min-width: 1024px) {
+  .wk-rail {
+    display: flex;
+  }
+  .wk-tabbar {
+    display: none;
+  }
+}

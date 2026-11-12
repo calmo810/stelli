@@ -13,10 +13,11 @@ import {
 } from 'date-fns';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import Pill from '@/components/shared/Pill';
 import { todayKey } from '@/hooks/useCreatorPortal';
 
 const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const SHOOT_DOT = '#8fa52c';
+const REQUEST_DOT = '#3f98a8';
 
 function keyOf(date) {
   return format(date, 'yyyy-MM-dd');
@@ -78,22 +79,18 @@ export default function CreatorCalendar() {
 
   return (
     <div>
-      <h1 className="font-display text-[30px] font-medium leading-tight text-white">
-        Calendar &amp; availability
-      </h1>
-      <p className="mt-1.5 text-[14px] leading-snug text-white/50">
-        Tap a day to say you are off. Clients see you as unavailable on those dates.
-      </p>
+      <h1 className="wk-h1">Availability</h1>
+      <p className="wk-lede">Tap a day to say you are off. Clients see you as unavailable on those dates.</p>
 
-      <div className="glass mt-5 rounded-[26px] px-4 py-4">
+      <div className="wk-card mt-5 px-4 py-4">
         <div className="flex items-center justify-between">
-          <p className="font-display text-[19px] text-white">{format(cursor, 'MMMM yyyy')}</p>
+          <p className="text-[18px] font-extrabold tracking-tight text-ink">{format(cursor, 'MMMM yyyy')}</p>
           <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={() => setCursor(addMonths(cursor, -1))}
               aria-label="Previous month"
-              className="grid h-8 w-8 place-items-center rounded-full text-white/50 hover:bg-white/10 hover:text-white"
+              className="grid h-8 w-8 place-items-center rounded-full wk-mute hover:bg-[#f2f4f8]"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -101,7 +98,7 @@ export default function CreatorCalendar() {
               type="button"
               onClick={() => setCursor(addMonths(cursor, 1))}
               aria-label="Next month"
-              className="grid h-8 w-8 place-items-center rounded-full text-white/50 hover:bg-white/10 hover:text-white"
+              className="grid h-8 w-8 place-items-center rounded-full wk-mute hover:bg-[#f2f4f8]"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -110,7 +107,7 @@ export default function CreatorCalendar() {
 
         <div className="mt-4 grid grid-cols-7 gap-1 text-center">
           {WEEKDAYS.map((day, i) => (
-            <span key={`${day}-${i}`} className="pb-1 text-[10px] font-semibold uppercase text-white/30">
+            <span key={`${day}-${i}`} className="pb-1 text-[10px] font-bold uppercase wk-mute">
               {day}
             </span>
           ))}
@@ -130,41 +127,32 @@ export default function CreatorCalendar() {
                 key={key}
                 type="button"
                 onClick={() => setSelected(day)}
-                className="relative flex h-11 flex-col items-center justify-center rounded-xl text-[13px] transition-colors"
+                aria-pressed={isSelected}
+                className="relative flex h-11 flex-col items-center justify-center rounded-xl text-[13px] font-semibold transition-colors"
                 style={{
-                  background: isSelected ? 'rgba(255,255,255,0.14)' : 'transparent',
-                  border: isToday ? '1px solid hsl(var(--neon-lime))' : '1px solid transparent',
-                  color: !inMonth ? 'rgba(255,255,255,0.2)' : off ? 'rgba(255,255,255,0.3)' : '#fff',
+                  background: isSelected ? '#0a1226' : 'transparent',
+                  boxShadow: isToday && !isSelected ? `inset 0 0 0 1.5px ${SHOOT_DOT}` : 'none',
+                  color: !inMonth ? 'rgba(10,18,38,0.2)' : isSelected ? '#fff' : off ? 'rgba(10,18,38,0.3)' : '#0a1226',
                   textDecoration: off && inMonth ? 'line-through' : 'none',
                 }}
               >
                 {format(day, 'd')}
                 <span className="mt-1 flex h-1 items-center gap-0.5">
-                  {hasShoot && (
-                    <span
-                      className="h-1 w-1 rounded-full"
-                      style={{ background: 'hsl(var(--neon-lime))' }}
-                    />
-                  )}
-                  {hasRequest && (
-                    <span
-                      className="h-1 w-1 rounded-full"
-                      style={{ background: 'hsl(var(--neon-cyan))' }}
-                    />
-                  )}
+                  {hasShoot && <span className="h-1 w-1 rounded-full" style={{ background: SHOOT_DOT }} />}
+                  {hasRequest && <span className="h-1 w-1 rounded-full" style={{ background: REQUEST_DOT }} />}
                 </span>
               </button>
             );
           })}
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-white/10 pt-3 text-[11px] text-white/40">
+        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t border-[rgba(10,18,38,0.08)] pt-3 text-[11px] wk-mute">
           <span className="inline-flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full" style={{ background: 'hsl(var(--neon-lime))' }} />
+            <span className="h-1.5 w-1.5 rounded-full" style={{ background: SHOOT_DOT }} />
             Confirmed shoot
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="h-1.5 w-1.5 rounded-full" style={{ background: 'hsl(var(--neon-cyan))' }} />
+            <span className="h-1.5 w-1.5 rounded-full" style={{ background: REQUEST_DOT }} />
             Pending request
           </span>
           <span className="inline-flex items-center gap-1.5">
@@ -173,10 +161,8 @@ export default function CreatorCalendar() {
         </div>
       </div>
 
-      <div className="glass mt-3 rounded-[26px] px-5 py-4">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.06em] text-white/35">
-          {format(selected, 'EEEE, MMM d')}
-        </p>
+      <div className="wk-card mt-2.5 px-5 py-4">
+        <p className="wk-label">{format(selected, 'EEEE, MMM d')}</p>
 
         {selectedShoots.length ? (
           <ul className="mt-2 space-y-2">
@@ -184,14 +170,11 @@ export default function CreatorCalendar() {
               <li key={shoot.id} className="flex items-baseline gap-2 text-[14px]">
                 <span
                   className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full"
-                  style={{
-                    background:
-                      shoot.kind === 'shoot' ? 'hsl(var(--neon-lime))' : 'hsl(var(--neon-cyan))',
-                  }}
+                  style={{ background: shoot.kind === 'shoot' ? SHOOT_DOT : REQUEST_DOT }}
                 />
                 <span className="min-w-0 flex-1">
-                  <b className="font-semibold text-white">{shoot.client_name || 'Client'}</b>
-                  <small className="ml-2 capitalize text-white/45">
+                  <b className="font-bold text-ink">{shoot.client_name || 'Client'}</b>
+                  <small className="ml-2 capitalize wk-grey">
                     {[shoot.event_time, shoot.event_type].filter(Boolean).join(' · ')}
                   </small>
                 </span>
@@ -199,30 +182,24 @@ export default function CreatorCalendar() {
             ))}
           </ul>
         ) : (
-          <p className="mt-2 text-[14px] text-white/45">No shoots on this day.</p>
+          <p className="mt-2 text-[14px] wk-grey">No shoots on this day.</p>
         )}
 
         {canToggle ? (
-          <Pill
-            as="button"
+          <button
             type="button"
-            tone={offOnSelected ? 'glass' : 'lime'}
             onClick={toggleAvailability}
             disabled={saving}
-            className="mt-4 w-full py-3.5"
+            className={`wk-btn mt-4 w-full ${offOnSelected ? 'wk-btn--ghost' : 'wk-btn--ink'}`}
           >
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
             {offOnSelected ? "I'm available this day" : "I'm off this day"}
-          </Pill>
+          </button>
         ) : (
-          <p className="mt-3 text-[12px] text-white/35">Past dates cannot be changed.</p>
+          <p className="mt-3 text-[12px] wk-mute">Past dates cannot be changed.</p>
         )}
 
-        {error && (
-          <p className="mt-3 text-[13px]" style={{ color: 'hsl(var(--neon-magenta))' }}>
-            {error}
-          </p>
-        )}
+        {error && <p className="mt-3 text-[13px] text-[#b03a72]">{error}</p>}
       </div>
     </div>
   );
