@@ -18,8 +18,8 @@ function Row({ to, label, value }) {
 }
 
 /** The rest of the storefront, in one glanceable list. */
-export default function ProfileDetails({ profile }) {
-  const specialties = (profile.specialties || []).join(' · ');
+export default function ProfileDetails({ profile, contact = null }) {
+  const area = (profile.neighborhoods || []).join(', ');
   const blackouts = profile.blackout_dates || [];
 
   return (
@@ -27,14 +27,24 @@ export default function ProfileDetails({ profile }) {
       <p className="wk-label px-4 pb-1 pt-4">Details</p>
       <div className="divide-y divide-black/10">
         <Row
-          to="/edit-profile"
-          label="Specialties"
-          value={specialties || 'Not added yet'}
+          to="/lensman-dashboard/profile/you"
+          label="Photo & name"
+          value={profile.display_name || 'Not set'}
         />
         <Row
-          to="/edit-profile"
+          to="/lensman-dashboard/profile/work"
+          label="Where you shoot"
+          value={area || 'Anywhere on campus'}
+        />
+        <Row
+          to="/lensman-dashboard/profile/look"
           label="Your look"
-          value={[profile.profile_theme, profile.wall_layout].filter(Boolean).join(' · ') || 'Studio default'}
+          value={[profile.wall_layout, profile.print_frame, profile.accent_color].filter(Boolean).join(' · ') || 'Studio default'}
+        />
+        <Row
+          to="/lensman-dashboard/profile/contact"
+          label="Private contact"
+          value={contact?.email || 'Only Stelli sees this'}
         />
         <Row
           to="/lensman-dashboard/calendar"
