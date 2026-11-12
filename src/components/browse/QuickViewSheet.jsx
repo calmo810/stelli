@@ -64,12 +64,14 @@ export default function QuickViewSheet({ creator, onClose }) {
         onClick={onClose}
       />
 
+      {/* A column, not one scrolling stack: the text scrolls on its own and the
+          booking bar sits below it, so it can never cover the name or the bio. */}
       <aside
         ref={sheetRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="quickview-title"
-        className={`fixed inset-x-0 bottom-0 z-[61] max-h-[88vh] overflow-y-auto overscroll-contain rounded-t-[28px] border border-white/10 bg-surface transition-transform duration-[600ms] ease-[cubic-bezier(.6,0,.2,1)] sm:inset-x-auto sm:bottom-4 sm:right-4 sm:top-4 sm:max-h-none sm:w-[min(520px,calc(100%-32px))] sm:rounded-[28px] ${
+        className={`fixed inset-x-0 bottom-0 z-[61] flex max-h-[88vh] flex-col overflow-hidden rounded-t-[28px] border border-white/10 bg-surface transition-transform duration-[600ms] ease-[cubic-bezier(.6,0,.2,1)] sm:inset-x-auto sm:bottom-4 sm:right-4 sm:top-4 sm:max-h-none sm:w-[min(520px,calc(100%-32px))] sm:rounded-[28px] ${
           open ? 'translate-y-0' : 'translate-y-full sm:translate-x-[calc(100%+40px)] sm:translate-y-0'
         }`}
         style={{ '--acc': accent }}
@@ -79,73 +81,72 @@ export default function QuickViewSheet({ creator, onClose }) {
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="sticky top-3.5 z-[2] float-right mr-3.5 mt-3.5 grid h-[38px] w-[38px] place-items-center rounded-full border border-white/10 bg-ink/60 text-white backdrop-blur-[10px] transition-transform duration-300 hover:rotate-90"
+          className="absolute right-3.5 top-3.5 z-[2] grid h-[38px] w-[38px] place-items-center rounded-full border border-white/10 bg-ink/60 text-white backdrop-blur-[10px] transition-transform duration-300 hover:rotate-90"
         >
           <X className="h-4 w-4" />
         </button>
 
-        <div className="no-scrollbar clear-both flex snap-x snap-mandatory scroll-px-[22px] gap-2.5 overflow-x-auto px-[22px] pb-1 pt-[18px]">
-          {images.map((url, i) => (
-            <div
-              key={`${url}-${i}`}
-              className="aspect-[4/5] flex-[0_0_78%] snap-center rounded-[18px] bg-surface-2 bg-cover bg-center"
-              style={{ backgroundImage: cssUrl(url) }}
-            />
-          ))}
-        </div>
-
-        <div className="px-[26px] pb-[30px] pt-[22px]">
-          <h2 id="quickview-title" className="text-[36px] font-bold tracking-[-0.035em] text-white">
-            {name}
-          </h2>
-          <p className="mt-1 text-[15px] text-white/45">
-            {[tagline, spots.join(', ')].filter(Boolean).join(' · ')}
-          </p>
-
-          <div className="my-[22px] grid grid-cols-2 gap-2.5">
-            <div className="rounded-2xl bg-surface-2 p-3.5">
-              <b className="block text-[18px] font-semibold text-white">{ratingLabel(creator)}</b>
-              <span className="text-[12px] text-white/45">
-                {reviews ? `${reviews} review${reviews === 1 ? '' : 's'}` : 'On Stelli'}
-              </span>
-            </div>
-            <div className="rounded-2xl bg-surface-2 p-3.5">
-              <b className="block text-[18px] font-semibold text-white">
-                {years ? `${years} yrs` : '—'}
-              </b>
-              <span className="text-[12px] text-white/45">Shooting</span>
-            </div>
+        <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <div className="no-scrollbar flex snap-x snap-mandatory scroll-px-[22px] gap-2.5 overflow-x-auto px-[22px] pb-1 pt-[18px]">
+            {images.map((url, i) => (
+              <div
+                key={`${url}-${i}`}
+                className="aspect-[4/5] flex-[0_0_78%] snap-center rounded-[18px] bg-surface-2 bg-cover bg-center"
+                style={{ backgroundImage: cssUrl(url) }}
+              />
+            ))}
           </div>
 
-          {creator?.bio && <p className="text-[15px] leading-[1.6] text-white/80">{creator.bio}</p>}
+          <div className="px-[26px] pb-[22px] pt-[22px]">
+            <h2 id="quickview-title" className="text-[36px] font-bold tracking-[-0.035em] text-white">
+              {name}
+            </h2>
+            <p className="mt-1 text-[15px] text-white/45">
+              {[tagline, spots.join(', ')].filter(Boolean).join(' · ')}
+            </p>
 
-          {creator?.prompt_answer && (
-            <div className="mt-[22px] rounded-2xl border border-dashed border-white/15 p-[18px]">
-              <p className="label-mono text-[11px] text-white/45">{creator.prompt_question}</p>
-              <p className="mt-1.5 font-display italic text-[24px] leading-tight text-white">
-                {creator.prompt_answer}
-              </p>
-            </div>
-          )}
-
-          {specialties.length > 0 && (
-            <div className="mt-[22px] flex flex-wrap gap-1.5">
-              {specialties.map((specialty) => (
-                <span
-                  key={specialty}
-                  className="whitespace-nowrap rounded-full bg-surface-2 px-2.5 py-1.5 text-[12px]"
-                >
-                  {specialty}
+            <div className="my-[22px] grid grid-cols-2 gap-2.5">
+              <div className="rounded-2xl bg-surface-2 p-3.5">
+                <b className="block text-[18px] font-semibold text-white">{ratingLabel(creator)}</b>
+                <span className="text-[12px] text-white/45">
+                  {reviews ? `${reviews} review${reviews === 1 ? '' : 's'}` : 'On Stelli'}
                 </span>
-              ))}
+              </div>
+              <div className="rounded-2xl bg-surface-2 p-3.5">
+                <b className="block text-[18px] font-semibold text-white">
+                  {years ? `${years} yrs` : '—'}
+                </b>
+                <span className="text-[12px] text-white/45">Shooting</span>
+              </div>
             </div>
-          )}
+
+            {creator?.bio && <p className="text-[15px] leading-[1.6] text-white/80">{creator.bio}</p>}
+
+            {creator?.prompt_answer && (
+              <div className="mt-[22px] rounded-2xl border border-dashed border-white/15 p-[18px]">
+                <p className="label-mono text-[11px] text-white/45">{creator.prompt_question}</p>
+                <p className="mt-1.5 font-display italic text-[24px] leading-tight text-white">
+                  {creator.prompt_answer}
+                </p>
+              </div>
+            )}
+
+            {specialties.length > 0 && (
+              <div className="mt-[22px] flex flex-wrap gap-1.5">
+                {specialties.map((specialty) => (
+                  <span
+                    key={specialty}
+                    className="whitespace-nowrap rounded-full bg-surface-2 px-2.5 py-1.5 text-[12px]"
+                  >
+                    {specialty}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        <div
-          className="sticky bottom-0 mt-2 px-[26px] pb-[22px] pt-6"
-          style={{ background: 'linear-gradient(180deg, transparent, hsl(var(--surface)) 40%)' }}
-        >
+        <div className="shrink-0 border-t border-white/10 bg-surface px-[26px] pb-[calc(20px+var(--safe-bottom))] pt-5">
           <Link
             to={`/book/${creator.id}`}
             className="block w-full rounded-2xl py-[18px] text-center text-[16px] font-semibold text-ink transition-transform duration-[250ms] hover:-translate-y-0.5"
