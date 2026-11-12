@@ -3,7 +3,6 @@ import { Link, useOutletContext } from 'react-router-dom';
 import { addDays, format } from 'date-fns';
 import { ArrowUpRight, CalendarDays, ChevronRight, Sparkles } from 'lucide-react';
 import PendingBanner from '@/components/dashboard/PendingBanner';
-import CopyLinkPill from '@/components/dashboard/CopyLinkPill';
 import TodayShootCard from '@/components/creator/workspace/TodayShootCard';
 import WhatsNewCard from '@/components/creator/workspace/WhatsNewCard';
 import whatsNew from '@/lib/creatorDigest';
@@ -16,9 +15,8 @@ function timeLabel(value) {
   const match = /^(\d{1,2}):(\d{2})/.exec(value);
   if (!match) return value;
   const hours = Number(match[1]);
-  const suffix = hours >= 12 ? 'PM' : 'AM';
   const hour = hours % 12 || 12;
-  return hour + ':' + match[2] + ' ' + suffix;
+  return hour + ':' + match[2] + (hours >= 12 ? ' PM' : ' AM');
 }
 
 export default function CreatorOverview() {
@@ -38,6 +36,7 @@ export default function CreatorOverview() {
   const [scheduleView, setScheduleView] = useState('upcoming');
   const [selectedDate, setSelectedDate] = useState(() => dateKey(new Date()));
   const firstName = (user?.full_name || '').split(' ')[0] || 'there';
+  const today = dateKey(new Date());
   const { items, facts } = whatsNew(data);
 
   const days = useMemo(() => {
@@ -45,15 +44,16 @@ export default function CreatorOverview() {
     return Array.from({ length: 7 }, (_, index) => addDays(start, index));
   }, []);
 
-  const sourceItems = scheduleView === 'upcoming' ? upcomingShoots : finished;
-  const selectedItems = sourceItems.filter((item) => item.event_date === selectedDate);
-  const scheduleItems = selectedItems.length
-    ? selectedItems
-    : selectedDate === dateKey(new Date())
-      ? sourceItems.slice(0, 2)
-      : [];
+  const scheduledForDay = upcomingShoots.filter((item) => item.event_date === selectedDate);
+  const scheduleItems = scheduleView === 'completed'
+    ? finished.slice(0, 3)
+    : scheduledForDay.length
+      ? scheduledForDay
+      : selectedDate === today
+        ? upcomingShoots.slice(0, 3)
+        : [];
 
-  const attention = steps.slice(0, 2).map((step) => {
+  const attention = steps.slice(0, 3).map((step) => {
     const booking = bookings.find((item) => item.id === step.bookingId);
     return {
       id: step.id,
@@ -64,25 +64,24 @@ export default function CreatorOverview() {
     };
   });
 
-  const nextShoot = upcomingShoots[0];
-  const activeCount = sourceItems.length;
-  const dateTitle = selectedDate === dateKey(new Date())
-    ? 'Today'
-    : format(new Date(selectedDate + 'T12:00:00'), 'EEEE');
+  const summary = metrics.requests
+    ? metrics.requests + ' request' + (metrics.requests === 1 ? '' : 's') + ' need your attention.'
+    : upcomingShoots[0]
+      ? 'Your next shoot is lined up.'
+      : 'Your studio is open and ready.';
 
   return (
-    <div className="today-screen">
-      <header className="today-header">
+    <div className="arch-today">
+      <header className="arch-today__head">
         <div>
-          <p className="today-eyebrow">Creator studio</p>
+          <p className="arch-today__kicker">Creator studio · {format(new Date(), 'EEE, MMM d')}</p>
           <h1>Today</h1>
-          <p className="today-date">{format(new Date(), 'EEEE, MMMM d')}</p>
         </div>
-        <Link to="/lensman-dashboard/profile" className="today-avatar" aria-label="Open your profile">
+        <Link to="/lensman-dashboard/profile" className="arch-today__stamp" aria-label="Open your profile">
           {myProfile?.profile_image ? (
             <img src={myProfile.profile_image} alt="" />
           ) : (
-            (myProfile?.display_name || firstName).trim()[0].toUpperCase()
+            <span>{(myProfile?.display_name || firstName).trim()[0].toUpperCase()}</span>
           )}
         </Link>
       </header>
@@ -99,147 +98,166 @@ export default function CreatorOverview() {
         </PendingBanner>
       ) : null}
 
-      <section className="today-greeting">
-        <span className="today-greeting__camera" aria-hidden="true">📸</span>
-        <span className="today-greeting__spark today-greeting__spark--one" aria-hidden="true">✦</span>
-        <span className="today-greeting__spark today-greeting__spark--two" aria-hidden="true">✧</span>
-        <span className="today-greeting__light" aria-hidden="true">✺</span>
-        <p>Hi, {firstName}.</p>
-        <strong>
-          {metrics.requests
-            ? metrics.requests + ' request' + (metrics.requests === 1 ? '' : 's') + ' need your attention.'
-            : nextShoot
-              ? 'Your next shoot is lined up.'
-              : 'Your day is clear and ready.'}
-        </strong>
+      <section className="arch-brief">
+        <div className="arch-brief__copy">
+          <p>Hi, {firstName}.</p>
+          <h2>{summary}</h2>
+          <small>Everything important is in this one view.</small>
+        </div>
+        <div className="arch-lens" aria-hidden="true">
+          <span className="arch-lens__aperture" />
+          <span className="arch-lens__star arch-lens__star--one">✦</span>
+          <span className="arch-lens__star arch-lens__star--two">✧</span>
+          <span className="arch-lens__camera">📸</span>
+        </div>
       </section>
 
-      <TodayShootCard shoot={nextShoot} profile={myProfile} />
-
-      <section className="today-schedule">
-        <div className="today-section-heading">
-          <div>
-            <p className="today-eyebrow">Your plan</p>
-            <h2>{dateTitle}</h2>
+      <div className="arch-today__grid">
+        <section className="arch-schedule">
+          <div className="arch-section-title">
+            <div>
+              <p>Your plan</p>
+              <h2>{scheduleView === 'completed' ? 'Recently finished' : selectedDate === today ? 'Today' : format(new Date(selectedDate + 'T12:00:00'), 'EEEE')}</h2>
+            </div>
+            <Link to="/lensman-dashboard/calendar">
+              Calendar <CalendarDays className="h-3.5 w-3.5" strokeWidth={2.3} />
+            </Link>
           </div>
-          <Link to="/lensman-dashboard/calendar" className="today-icon-link" aria-label="Open full calendar">
-            <CalendarDays className="h-[18px] w-[18px]" strokeWidth={2.2} />
-          </Link>
-        </div>
 
-        <div className="today-date-strip" role="tablist" aria-label="Choose a day">
-          {days.map((day) => {
-            const key = dateKey(day);
-            const count = upcomingShoots.filter((item) => item.event_date === key).length;
-            const isOn = key === selectedDate;
-            return (
-              <button
-                key={key}
-                type="button"
-                role="tab"
-                aria-selected={isOn}
-                onClick={() => setSelectedDate(key)}
-                className={isOn ? 'is-on' : ''}
-              >
-                <span>{key === dateKey(new Date()) ? 'Today' : format(day, 'EEE')}</span>
-                <b>{format(day, 'd')}</b>
-                <i className={count ? 'has-item' : ''} />
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="today-view-tabs" role="tablist" aria-label="Upcoming or completed shoots">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={scheduleView === 'upcoming'}
-            onClick={() => setScheduleView('upcoming')}
-            className={scheduleView === 'upcoming' ? 'is-on' : ''}
-          >
-            Upcoming <span>{upcomingShoots.length}</span>
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={scheduleView === 'completed'}
-            onClick={() => setScheduleView('completed')}
-            className={scheduleView === 'completed' ? 'is-on' : ''}
-          >
-            Completed <span>{finished.length}</span>
-          </button>
-        </div>
-
-        <div className="today-agenda">
-          {scheduleItems.length ? (
-            scheduleItems.map((item) => (
-              <Link
-                key={item.id}
-                to={scheduleView === 'upcoming' ? '/messages/' + item.id : '/lensman-dashboard/bookings'}
-                className="today-agenda-card"
-              >
-                <span className="today-agenda-time">{timeLabel(item.event_time)}</span>
-                <span className="today-agenda-copy">
-                  <strong>{item.client_name || 'Client shoot'}</strong>
-                  <small>{[item.event_type, item.location].filter(Boolean).join(' · ') || 'Shoot details'}</small>
-                </span>
-                <span className="today-agenda-action">
-                  <ArrowUpRight className="h-4 w-4" strokeWidth={2.5} />
-                </span>
-              </Link>
-            ))
-          ) : (
-            <div className="today-empty">
-              <CalendarDays className="h-5 w-5" strokeWidth={2.1} />
-              <p>{activeCount ? 'Nothing is scheduled for this day.' : 'No shoots are on the books yet.'}</p>
-              <Link to="/lensman-dashboard/calendar">Open calendar</Link>
+          {scheduleView === 'upcoming' && (
+            <div className="arch-week" role="tablist" aria-label="Choose a day">
+              {days.map((day) => {
+                const key = dateKey(day);
+                const hasBooking = upcomingShoots.some((item) => item.event_date === key);
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    role="tab"
+                    aria-selected={key === selectedDate}
+                    onClick={() => setSelectedDate(key)}
+                    className={key === selectedDate ? 'is-on' : ''}
+                  >
+                    <span>{key === today ? 'Now' : format(day, 'EEE')}</span>
+                    <b>{format(day, 'd')}</b>
+                    <i className={hasBooking ? 'has-booking' : ''} />
+                  </button>
+                );
+              })}
             </div>
           )}
-        </div>
-      </section>
 
-      <WhatsNewCard items={items} facts={facts} />
+          <div className="arch-switcher" role="tablist" aria-label="Upcoming or completed shoots">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={scheduleView === 'upcoming'}
+              onClick={() => setScheduleView('upcoming')}
+              className={scheduleView === 'upcoming' ? 'is-on' : ''}
+            >
+              Upcoming <span>{upcomingShoots.length}</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={scheduleView === 'completed'}
+              onClick={() => setScheduleView('completed')}
+              className={scheduleView === 'completed' ? 'is-on' : ''}
+            >
+              Completed <span>{finished.length}</span>
+            </button>
+          </div>
 
-      <section className="today-needs">
-        <div className="today-section-heading">
-          <div>
-            <p className="today-eyebrow">Stay on top of it</p>
-            <h2>Needs you</h2>
+          <div className="arch-agenda">
+            {scheduleItems.length ? (
+              scheduleItems.map((item) => (
+                <Link
+                  key={item.id}
+                  to={scheduleView === 'upcoming' ? '/messages/' + item.id : '/lensman-dashboard/bookings'}
+                  className="arch-agenda__item"
+                >
+                  <span className="arch-agenda__time">{timeLabel(item.event_time)}</span>
+                  <span className="arch-agenda__copy">
+                    <strong>{item.client_name || 'Client shoot'}</strong>
+                    <small>{[item.event_type, item.location].filter(Boolean).join(' · ') || 'Shoot details'}</small>
+                  </span>
+                  <span className="arch-agenda__arrow"><ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.5} /></span>
+                </Link>
+              ))
+            ) : (
+              <div className="arch-agenda__empty">
+                <CalendarDays className="h-4 w-4" strokeWidth={2.2} />
+                <span>{scheduleView === 'completed' ? 'No completed shoots yet.' : 'Nothing is scheduled for this day.'}</span>
+                <Link to="/lensman-dashboard/calendar">See calendar</Link>
+              </div>
+            )}
           </div>
-          <span className="today-count">{attention.length}</span>
-        </div>
-        {attention.length ? (
-          <div className="today-needs-list">
-            {attention.map((item) => (
-              <Link key={item.id} to={item.to} className="today-needs-row">
-                <span className="today-needs-mark"><Sparkles className="h-3.5 w-3.5" strokeWidth={2.4} /></span>
-                <span>
-                  <strong>{item.title}</strong>
-                  <small>{item.meta}</small>
-                </span>
-                <em>{item.action}</em>
-                <ChevronRight className="h-4 w-4" strokeWidth={2.4} />
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <div className="today-all-clear">
-            <strong>All caught up.</strong>
-            <span>Share your page when you&apos;re ready for your next shoot.</span>
-            <CopyLinkPill creator={myProfile} />
-          </div>
-        )}
-      </section>
+        </section>
 
-      <section className="today-money">
-        <div>
-          <span>Held for you</span>
-          <strong>{money(totals.heldTotal)}</strong>
-        </div>
-        <Link to="/lensman-dashboard/earnings">
-          Earnings <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.4} />
-        </Link>
-      </section>
+        <aside className="arch-side">
+          <TodayShootCard shoot={upcomingShoots[0]} profile={myProfile} />
+          <WhatsNewCard items={items} facts={facts} />
+        </aside>
+      </div>
+
+      <div className="arch-bottom">
+        <section className="arch-needs">
+          <div className="arch-section-title">
+            <div>
+              <p>Move work forward</p>
+              <h2>Needs you</h2>
+            </div>
+            <span className="arch-today__stamp"><span>{attention.length}</span></span>
+          </div>
+
+          {attention.length ? (
+            <div className="arch-needs__list">
+              {attention.map((item) => (
+                <Link key={item.id} to={item.to} className="arch-needs__row">
+                  <span className="arch-needs__mark"><Sparkles className="h-3.5 w-3.5" strokeWidth={2.4} /></span>
+                  <span className="arch-needs__copy">
+                    <strong>{item.title}</strong>
+                    <small>{item.meta}</small>
+                  </span>
+                  <em>{item.action}</em>
+                  <ChevronRight className="h-4 w-4" strokeWidth={2.4} />
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="arch-clear">
+              <Sparkles className="h-4 w-4" strokeWidth={2.4} />
+              <span>All caught up. Your studio is ready for the next brief.</span>
+            </div>
+          )}
+        </section>
+
+        <section className="arch-metrics">
+          <div className="arch-section-title">
+            <div>
+              <p>Studio signal</p>
+              <h2>At a glance</h2>
+            </div>
+          </div>
+          <div className="arch-metrics__grid">
+            <div className="arch-metric">
+              <span>Requests</span>
+              <strong>{metrics.requests}</strong>
+            </div>
+            <div className="arch-metric arch-metric--lime">
+              <span>Held</span>
+              <strong>{money(totals.heldTotal)}</strong>
+            </div>
+            <div className="arch-metric">
+              <span>Views</span>
+              <strong>{metrics.views}</strong>
+            </div>
+          </div>
+          <Link to="/lensman-dashboard/earnings" className="arch-metric__link">
+            Review earnings <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.5} />
+          </Link>
+        </section>
+      </div>
     </div>
   );
 }
