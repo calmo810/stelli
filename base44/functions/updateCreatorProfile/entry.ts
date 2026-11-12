@@ -1,5 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { buildProfilePatch } from '../../shared/profileRules.ts';
+import { applicationProblem, MIN_PORTFOLIO_IMAGES } from '../../shared/creatorApplication.ts';
+import { emailAdmins } from '../../shared/notify.ts';
 
 function slugify(value = '') {
   return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
@@ -13,6 +15,11 @@ const PRIVATE_TEXT_FIELDS = ['full_name', 'email', 'phone', 'instagram'];
  * Public fields go to Lensman; the Private section goes to CreatorContact.
  * The headline, tagline and booking button are written by the app from the
  * display name and specialties — never typed by the creator.
+ *
+ * A creator can never set their own status, with one exception the server
+ * controls: when a founder has asked for changes, saving with `resubmit` sends
+ * the profile back to the review queue (needs_changes → pending). It never
+ * approves anything.
  */
 export default async function (req) {
   try {
@@ -33,6 +40,18 @@ export default async function (req) {
     const mine = await base44.asServiceRole.entities.Lensman.filter({ user_id: user.id });
     const lensman = mine[0];
     if (!lensman) return Response.json({ error: 'You do not have a creator profile yet.' }, { status: 404 });
+
+    // A save that touches the photos or the shoot types can't take the page
+    // below what an application needs: a live profile is never left empty.
+    if (Array.isArray(body.portfolio_images) && patch.portfolio_images.length < MIN_PORTFOLIO_IMAGES) {
+      return Response.json(
+        { error: `Keep at least ${MIN_PORTFOLIO_IMAGES} shots on your page.`, field: 'portfolio_images' },
+        { status: 400 }
+      );
+    }
+    if (Array.isArray(body.specialties) && !patch.specialties?.length) {
+      return Response.json({ error: 'Pick at least one thing you shoot.', field: 'specialties' }, { status: 400 });
+    }
 
     const contacts = await base44.asServiceRole.entities.CreatorContact.filter({
       lensman_id: lensman.id,
@@ -90,7 +109,7 @@ export default async function (req) {
       }
     }
 
-    const updated = await base44.asServiceRole.entities.Lensman.update(lensman.id, patch);
+    let updated = await base44.asServiceRole.entities.Lensman.update(lensman.id, patch);
 
     const privatePatch: Record<string, any> = {};
     for (const field of PRIVATE_TEXT_FIELDS) {
@@ -102,11 +121,12 @@ export default async function (req) {
     if (privatePatch.full_name === '') {
       return Response.json({ error: 'Your name is required.', field: 'full_name' }, { status: 400 });
     }
+    let savedContact = contact;
     if (Object.keys(privatePatch).length) {
       if (contact) {
-        await base44.asServiceRole.entities.CreatorContact.update(contact.id, privatePatch);
+        savedContact = await base44.asServiceRole.entities.CreatorContact.update(contact.id, privatePatch);
       } else {
-        await base44.asServiceRole.entities.CreatorContact.create({
+        savedContact = await base44.asServiceRole.entities.CreatorContact.create({
           lensman_id: lensman.id,
           user_id: lensman.user_id || user.id,
           full_name: privatePatch.full_name || '',
@@ -117,7 +137,37 @@ export default async function (req) {
       }
     }
 
-    return Response.json({ lensman: updated });
+    // Sending it back after a founder asked for changes. The edits above are
+    // saved either way; it only returns to the queue if it is reviewable.
+    let resubmitted = false;
+    if (body.resubmit === true && lensman.status === 'needs_changes') {
+      const problem = applicationProblem({
+        fullName: savedContact?.full_name || contact?.full_name,
+        email: savedContact?.email || contact?.email,
+        displayName,
+        profile: updated,
+      });
+      if (problem) return Response.json({ ...problem, saved: true }, { status: 400 });
+
+      const Lensman = base44.asServiceRole.entities.Lensman;
+      await Lensman.updateMany({ id: lensman.id, status: 'needs_changes' }, { $set: { status: 'pending' } });
+      const fresh = await Lensman.get(lensman.id).catch(() => null);
+      if (fresh?.status === 'pending') {
+        resubmitted = true;
+        updated = fresh;
+        const record = savedContact || contact;
+        if (record?.id) {
+          await base44.asServiceRole.entities.CreatorContact.update(record.id, { changes_requested: '' });
+        }
+        await emailAdmins(
+          base44,
+          `Creator sent their page back: ${displayName}`,
+          `${displayName} made changes after your note and is back in the queue.\n\nReview it in Stelli: https://getstelli.base44.app/admin → Applications.`
+        );
+      }
+    }
+
+    return Response.json({ lensman: updated, resubmitted });
   } catch (error) {
     console.error('updateCreatorProfile error:', error.message);
     return Response.json({ error: 'Your profile did not save. Try again.' }, { status: 500 });
