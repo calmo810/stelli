@@ -28,9 +28,11 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground tabbar-gap">
-      <Navbar />
+      {/* The workspace is an app screen: its bar rides in the flow, so page
+          content never slides underneath it. */}
+      <Navbar inFlow={isWorkspace} />
       {/* The way back rides in the page's own flow, never pinned to the screen. */}
-      <main className={`flex-1 ${isHome ? '' : 'nav-offset'}`}>
+      <main className={`flex-1 ${isHome || isWorkspace ? '' : 'nav-offset'}`}>
         {!isHome && !isRootTab && !isCreatorProfile && !isMessages && !isWorkspace && (
           <div className="mx-auto max-w-[1500px] px-5 pt-6 md:px-10">
             <BackButton />
