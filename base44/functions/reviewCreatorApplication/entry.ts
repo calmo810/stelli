@@ -20,7 +20,7 @@ const MAX_NOTE = 600;
  *  - approved: the profile goes live;
  *  - rejected: it stays private;
  *  - needs_changes: almost there. The founder writes what to fix, the creator
- *    is emailed that note with a link to their page, and when they send it
+ *    is emailed that note with a link to their portal, and when they send it
  *    back (updateCreatorProfile) it returns to the queue as pending.
  *
  * The approve / reject email goes out once: it is sent here, and the Creator
@@ -99,7 +99,7 @@ export default async function (req) {
           base44,
           email,
           'One thing before your Stelli page goes live.',
-          `We looked at your application and it's close. Before we can approve it:\n\n${note}\n\nUpdate your page and send it back to us here:\n${SITE_ORIGIN}/edit-profile`
+          `We looked at your application and it's close. Before we can approve it:\n\n${note}\n\nChange it from your Stelli portal, then send your page back to us:\n${SITE_ORIGIN}/lensman-dashboard/profile`
         );
         emailed = true;
       }
