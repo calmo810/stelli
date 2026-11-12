@@ -81,7 +81,7 @@ export default function CreatorCalendar() {
   };
 
   return (
-    <div>
+    <div className="arch-tab arch-tab--calendar">
       <h1 className="wk-h1">Schedule</h1>
       <p className="wk-lede">Four weeks ahead. Tap a day to see it, or to tell clients you are off.</p>
 
