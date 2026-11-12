@@ -1,87 +1,73 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { format } from 'date-fns';
+import { ArrowUpRight, CalendarDays } from 'lucide-react';
 import CopyLinkPill from '@/components/dashboard/CopyLinkPill';
 import money from '@/lib/money';
-import { statusChip } from '@/lib/threadStatus';
 
-/** How far away the shoot is, in the fewest words that still say it. */
 function whenLabel(eventDate) {
-  if (!eventDate) return 'Date to be decided';
+  if (!eventDate) return 'When a client books';
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const target = new Date(`${eventDate}T00:00:00`);
+  const target = new Date(eventDate + 'T00:00:00');
   const days = Math.round((target.getTime() - today.getTime()) / 86400000);
   if (days === 0) return 'Today';
   if (days === 1) return 'Tomorrow';
-  if (days > 1) return `In ${days} days`;
-  return 'Date passed';
+  if (days > 1) return 'In ' + days + ' days';
+  return 'Recently passed';
 }
 
-/** The one shoot that matters next, sized to be the first thing seen. */
+function timeLabel(value) {
+  if (!value) return 'Time to be confirmed';
+  const match = /^(\d{1,2}):(\d{2})/.exec(value);
+  if (!match) return value;
+  const hourValue = Number(match[1]);
+  const hour = hourValue % 12 || 12;
+  return hour + ':' + match[2] + (hourValue >= 12 ? ' PM' : ' AM');
+}
+
 export default function TodayShootCard({ shoot, profile }) {
   if (!shoot) {
     return (
-      <div className="wk-card wk-card--pad">
-        <p className="wk-label">Next shoot</p>
-        <p className="wk-title mt-2">Nothing booked yet.</p>
-        <p className="wk-body mt-1">Share your page to land your first date.</p>
-        <div className="mt-4">
-          <CopyLinkPill creator={profile} />
+      <section className="today-feature today-feature--empty">
+        <div className="today-feature__eyebrow">
+          <span><CalendarDays className="h-3.5 w-3.5" strokeWidth={2.5} /> Next shoot</span>
+          <b>Open</b>
         </div>
-      </div>
+        <h2>Your next booking will live here.</h2>
+        <p>Keep your page ready and share it when you want new work.</p>
+        <CopyLinkPill creator={profile} />
+      </section>
     );
   }
 
-  const date = shoot.event_date ? new Date(`${shoot.event_date}T12:00:00`) : null;
   const type = shoot.event_type ? shoot.event_type.replace(/_/g, ' ') : 'Shoot';
-  const where = [shoot.event_time, shoot.location].filter(Boolean).join(' · ');
+  const detail = [timeLabel(shoot.event_time), shoot.location].filter(Boolean).join(' · ');
 
   return (
-    <div className="wk-card wk-card--pad">
-      <div className="flex items-start justify-between gap-3">
-        <p className="wk-label">Next shoot</p>
-        <span className="wk-chip wk-chip--lime">{whenLabel(shoot.event_date)}</span>
+    <section className="today-feature">
+      <div className="today-feature__eyebrow">
+        <span><CalendarDays className="h-3.5 w-3.5" strokeWidth={2.5} /> Next shoot</span>
+        <b>{whenLabel(shoot.event_date)}</b>
       </div>
 
-      <div className="mt-4 flex items-center gap-4">
-        <div className="wk-tile wk-tile--lime grid h-[78px] w-[66px] shrink-0 place-items-center">
-          <span className="wk-label !text-[9px]">{date ? format(date, 'MMM') : 'TBD'}</span>
-          <span className="text-[28px] font-extrabold leading-none tracking-tight text-ink">
-            {date ? format(date, 'd') : '—'}
-          </span>
+      <div className="today-feature__body">
+        <div className="today-feature__date">
+          <span>{shoot.event_date ? new Date(shoot.event_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short' }) : 'TBD'}</span>
+          <strong>{shoot.event_date ? new Date(shoot.event_date + 'T12:00:00').getDate() : '—'}</strong>
         </div>
-        <div className="min-w-0">
-          <p className="wk-title truncate">{shoot.client_name || 'Client'}</p>
-          <p className="wk-body mt-1 capitalize">{type}</p>
-          {where && <p className="wk-small mt-0.5 truncate capitalize">{where}</p>}
-        </div>
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-2">
-        <div className="wk-tile">
-          <p className="wk-label">Your payout</p>
-          <p className="mt-1 text-[15px] font-extrabold tracking-tight text-ink">
-            {money(shoot.creator_payout)}
-          </p>
-          <p className="wk-small">Held until delivery</p>
-        </div>
-        <div className="wk-tile">
-          <p className="wk-label">Status</p>
-          <p className="mt-1.5">
-            <span className="wk-chip wk-chip--cyan">{statusChip(shoot)}</span>
-          </p>
+        <div>
+          <h2>{shoot.client_name || 'Client shoot'}</h2>
+          <p>{type}</p>
+          <small>{detail}</small>
         </div>
       </div>
 
-      <div className="mt-4 flex gap-2">
-        <Link to={`/messages/${shoot.id}`} className="wk-btn wk-btn--ink flex-1">
-          Open the thread
-        </Link>
-        <Link to="/lensman-dashboard/bookings" className="wk-btn wk-btn--ghost">
-          All shoots
+      <div className="today-feature__footer">
+        <span><small>Your payout</small><strong>{money(shoot.creator_payout)}</strong></span>
+        <Link to={'/messages/' + shoot.id} aria-label="Open this shoot">
+          <ArrowUpRight className="h-5 w-5" strokeWidth={2.6} />
         </Link>
       </div>
-    </div>
+    </section>
   );
 }
