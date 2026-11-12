@@ -171,8 +171,20 @@ export default function CreatorOverview() {
         <PendingBanner tone="magenta">
           Your profile is on hold while the Stelli team reviews it. Your current bookings carry on.
         </PendingBanner>
+      ) : myProfile.status === 'needs_changes' ? (
+        <PendingBanner tone="lime">
+          We asked for one change before your page goes live.{' '}
+          <Link to="/lensman-dashboard/profile" className="font-bold text-ink underline underline-offset-4">
+            See our note
+          </Link>
+        </PendingBanner>
       ) : myProfile.status === 'pending' ? (
-        <PendingBanner />
+        <PendingBanner>
+          Your application is with us. Your page goes live once we approve it.{' '}
+          <Link to="/lensman-dashboard/profile" className="font-bold text-ink underline underline-offset-4">
+            Finish your page while you wait
+          </Link>
+        </PendingBanner>
       ) : myProfile.status === 'rejected' ? (
         <PendingBanner tone="magenta">
           Your application wasn&apos;t approved, so your profile isn&apos;t public. Email getstelli@gmail.com with any questions.
