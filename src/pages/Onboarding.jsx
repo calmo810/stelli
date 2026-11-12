@@ -2,13 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { Check, Loader2 } from 'lucide-react';
+import { AuthCanvas } from '@/components/AuthLayout';
+import Pill from '@/components/shared/Pill';
+import StelliCheck from '@/components/shared/StelliCheck';
+import { fieldClass, labelClass } from '@/lib/glassField';
 
+// The same two doors as the home page: lime for clients, cyan for creators.
 const ROLES = [
-  { id: 'client', title: 'I want to book', body: 'Find a creator, request a shoot, get a private quote.', accent: 'hsl(var(--neon-lime))' },
-  { id: 'creator', title: 'I shoot', body: 'Get a public profile, quote your work, get paid on delivery.', accent: 'hsl(var(--neon-cyan))' },
+  { id: 'client', title: 'I want to book', body: 'Find a creator, request a shoot, get a private quote.', accent: 'var(--neon-lime)' },
+  { id: 'creator', title: 'I shoot', body: 'Get a public profile, quote your work, get paid on delivery.', accent: 'var(--neon-cyan)' },
 ];
-
-const inputClass = 'w-full bg-surface-2 border border-white/12 px-4 py-3 font-body text-[13px] text-white placeholder:text-white/25 outline-none focus:border-neon-lime transition-colors';
 const ONBOARDING_DRAFT_KEY = 'stelli_onboarding_draft';
 
 function getOnboardingDraft() {
@@ -83,96 +86,107 @@ export default function Onboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-ink">
-      <div className="max-w-3xl mx-auto px-5 md:px-10 pt-32 pb-24">
-        <p className="label-mono text-[9px] text-white/35 mb-5">One last thing</p>
-        <h1 className="font-heading font-semibold text-white leading-[0.95] mb-5" style={{ fontSize: 'clamp(38px, 6vw, 76px)' }}>
+    <AuthCanvas width="max-w-[720px]" back={false}>
+      <div className="text-center">
+        <h1
+          className="font-display font-medium text-white"
+          style={{ fontSize: 'clamp(36px, 5.5vw, 56px)', letterSpacing: '-0.025em', lineHeight: 1.02 }}
+        >
           Which side are you on?
         </h1>
-        <p className="font-body text-[14px] leading-relaxed text-white/45 max-w-lg mb-12">
+        <p className="mx-auto mt-3 max-w-[460px] text-[15px] leading-relaxed text-white/55">
           Clients and creators see completely different portals. Pick once — it decides everything after this.
         </p>
-
-        <form onSubmit={handleSubmit} className="space-y-10">
-          <div className="grid sm:grid-cols-2 gap-4">
-            {ROLES.map((r) => {
-              const active = role === r.id;
-              return (
-                <button
-                  key={r.id}
-                  type="button"
-                  onClick={() => setRole(r.id)}
-                  className="text-left p-6 border transition-colors duration-300"
-                  style={{
-                    borderRadius: 4,
-                    borderColor: active ? r.accent : 'rgba(255,255,255,0.12)',
-                    background: 'hsl(var(--surface))',
-                  }}
-                >
-                  <p className="label-mono text-[9px] mb-4" style={{ color: active ? r.accent : 'rgba(255,255,255,0.3)' }}>
-                    {r.id === 'client' ? 'Client' : 'Creator'}
-                  </p>
-                  <p className="font-heading text-[24px] font-semibold text-white mb-2">{r.title}</p>
-                  <p className="font-body text-[12px] leading-relaxed text-white/45">{r.body}</p>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="space-y-5">
-            <div>
-              <label className="label-mono text-[9px] text-white/40 block mb-2">Full name</label>
-              <input className={inputClass} style={{ borderRadius: 4 }} value={form.full_name}
-                onChange={(e) => update('full_name', e.target.value)} placeholder="Your name" />
-            </div>
-
-            {role === 'creator' && (
-              <>
-                <div>
-                  <label className="label-mono text-[9px] text-white/40 block mb-2">Specialty</label>
-                  <input className={inputClass} style={{ borderRadius: 4 }} value={form.specialty}
-                    onChange={(e) => update('specialty', e.target.value)} placeholder="Portraits, events, music videos…" />
-                </div>
-                <div>
-                  <label className="label-mono text-[9px] text-white/40 block mb-2">Instagram handle</label>
-                  <input className={inputClass} style={{ borderRadius: 4 }} value={form.instagram}
-                    onChange={(e) => update('instagram', e.target.value)} placeholder="@yourhandle" />
-                </div>
-                <div>
-                  <label className="label-mono text-[9px] text-white/40 block mb-2">Short bio</label>
-                  <textarea className={inputClass} style={{ borderRadius: 4 }} rows={3} value={form.bio}
-                    onChange={(e) => update('bio', e.target.value)} placeholder="Why you shoot." />
-                </div>
-              </>
-            )}
-          </div>
-
-          <button type="button" onClick={() => setAgeConfirmed(!ageConfirmed)} className="flex items-start gap-3 text-left">
-            <span className="w-4 h-4 border flex items-center justify-center shrink-0 mt-0.5 transition-colors"
-              style={{ borderRadius: 3, borderColor: ageConfirmed ? 'hsl(var(--neon-lime))' : 'rgba(255,255,255,0.2)', background: ageConfirmed ? 'hsl(var(--neon-lime))' : 'transparent' }}>
-              {ageConfirmed && <Check className="w-3 h-3" strokeWidth={3} style={{ color: 'hsl(var(--ink))' }} />}
-            </span>
-            <span className="font-body text-[12px] leading-relaxed text-white/50">I confirm I am 18 or older.</span>
-          </button>
-
-          {error && <p className="font-body text-[12px]" style={{ color: 'hsl(var(--neon-magenta))' }}>{error}</p>}
-
-          <button
-            type="submit"
-            disabled={!canSubmit || saving}
-            className="inline-flex items-center gap-2 label-mono text-[11px] font-semibold px-8 py-4 transition-transform duration-300"
-            style={{
-              borderRadius: 4,
-              background: canSubmit && !saving ? 'hsl(var(--neon-lime))' : 'rgba(255,255,255,0.08)',
-              color: canSubmit && !saving ? 'hsl(var(--ink))' : 'rgba(255,255,255,0.3)',
-              cursor: canSubmit && !saving ? 'pointer' : 'not-allowed',
-            }}
-          >
-            {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-            Continue
-          </button>
-        </form>
       </div>
-    </div>
+
+      <form onSubmit={handleSubmit} className="mt-8">
+        <div className="grid grid-cols-2 gap-2 md:gap-3.5">
+          {ROLES.map((r) => {
+            const active = role === r.id;
+            return (
+              <button
+                key={r.id}
+                type="button"
+                onClick={() => setRole(r.id)}
+                aria-pressed={active}
+                className="depth relative flex min-h-[190px] flex-col items-center justify-center overflow-hidden rounded-[18px] px-3 py-6 text-center transition-transform duration-500 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-1 md:min-h-[230px] md:rounded-3xl md:px-6"
+                style={{
+                  background: [
+                    `radial-gradient(80% 60% at 50% 100%, hsl(${r.accent} / ${active ? 0.4 : 0.14}), transparent 70%)`,
+                    'linear-gradient(180deg, hsl(var(--surface-2)), hsl(var(--surface)) 60%)',
+                  ].join(', '),
+                  outline: active ? `2px solid hsl(${r.accent})` : '2px solid transparent',
+                  outlineOffset: -2,
+                }}
+              >
+                <span
+                  aria-hidden
+                  className="absolute right-3 top-3 grid h-6 w-6 place-items-center rounded-full transition-opacity"
+                  style={{ background: `hsl(${r.accent})`, opacity: active ? 1 : 0 }}
+                >
+                  <Check className="h-3.5 w-3.5 text-ink" strokeWidth={3} />
+                </span>
+                <span
+                  className="font-display font-medium text-white"
+                  style={{ fontSize: 'clamp(24px, 3.4vw, 38px)', letterSpacing: '-0.03em', lineHeight: 1.05 }}
+                >
+                  {r.title}
+                </span>
+                <span className="mt-2.5 max-w-[260px] text-[13px] leading-snug text-white/75 md:text-[15px]">{r.body}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="glass mt-6 space-y-4 rounded-3xl p-4 sm:p-5">
+          <label className="block">
+            <span className={labelClass}>Full name</span>
+            <input className={fieldClass} autoComplete="name" value={form.full_name}
+              onChange={(e) => update('full_name', e.target.value)} placeholder="Your name" />
+          </label>
+
+          {role === 'creator' && (
+            <>
+              <label className="block">
+                <span className={labelClass}>Specialty</span>
+                <input className={fieldClass} value={form.specialty}
+                  onChange={(e) => update('specialty', e.target.value)} placeholder="Portraits, events, music videos…" />
+              </label>
+              <label className="block">
+                <span className={labelClass}>Instagram handle</span>
+                <input className={fieldClass} value={form.instagram}
+                  onChange={(e) => update('instagram', e.target.value)} placeholder="@yourhandle" />
+              </label>
+              <label className="block">
+                <span className={labelClass}>Short bio</span>
+                <textarea className={`${fieldClass} resize-none`} rows={3} value={form.bio}
+                  onChange={(e) => update('bio', e.target.value)} placeholder="Why you shoot." />
+              </label>
+            </>
+          )}
+
+          <StelliCheck checked={ageConfirmed} onChange={setAgeConfirmed} className="pt-1">
+            I confirm I am 18 or older.
+          </StelliCheck>
+        </div>
+
+        {error && (
+          <p role="alert" className="mt-4 text-[14px] leading-snug" style={{ color: 'hsl(var(--neon-magenta))' }}>
+            {error}
+          </p>
+        )}
+
+        <Pill
+          as="button"
+          type="submit"
+          tone={role === 'creator' ? 'cyan' : 'lime'}
+          disabled={!canSubmit || saving}
+          className="mt-6 h-[52px] w-full"
+        >
+          {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+          Continue
+        </Pill>
+      </form>
+    </AuthCanvas>
   );
 }
