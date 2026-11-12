@@ -33,6 +33,8 @@ export default async function (req) {
             email: contact.email || '',
             phone: contact.phone || '',
             instagram: contact.instagram || '',
+            // What a founder asked them to fix, if anything is open.
+            changes_requested: contact.changes_requested || '',
           }
         : null,
     });
