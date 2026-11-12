@@ -7,6 +7,7 @@ import '@/styles/creatorWorkspace.css';
 import '@/styles/creatorArchitecture.css';
 import '@/styles/creatorDesktop.css';
 import '@/styles/creatorContinuity.css';
+import { preloadCreatorPane } from '@/lib/preloadCreatorWorkspace';
 
 export const TABS = [
   { to: '/lensman-dashboard', key: 'today', label: 'Today', icon: Sun },
@@ -44,6 +45,9 @@ export default function WorkspaceShell({ profile, user, counts = {}, children })
   const index = TABS.findIndex((tab) => tab.key === activeKey);
   const name = profile?.display_name || user?.full_name || 'Your profile';
   const avatar = profile?.profile_image;
+  const warmPane = (key) => {
+    void preloadCreatorPane(key);
+  };
 
   const startTouch = (event) => {
     const point = event.touches[0];
@@ -89,6 +93,9 @@ export default function WorkspaceShell({ profile, user, counts = {}, children })
                 <Link
                   key={to}
                   to={to}
+                  onMouseEnter={() => warmPane(key)}
+                  onFocus={() => warmPane(key)}
+                  onTouchStart={() => warmPane(key)}
                   className={`wk-rail-btn ${key === activeKey ? 'is-on' : ''}`}
                 >
                   <Icon className="h-[17px] w-[17px] shrink-0" strokeWidth={2} />
@@ -125,7 +132,13 @@ export default function WorkspaceShell({ profile, user, counts = {}, children })
           {TABS.map(({ to, key, label, icon: Icon }) => {
             const count = badgeFor(key);
             return (
-              <Link key={to} to={to} className={`wk-tab ${key === activeKey ? 'is-on' : ''}`}>
+              <Link
+                key={to}
+                to={to}
+                onTouchStart={() => warmPane(key)}
+                onFocus={() => warmPane(key)}
+                className={`wk-tab ${key === activeKey ? 'is-on' : ''}`}
+              >
                 <Icon className="h-[17px] w-[17px]" strokeWidth={2.1} />
                 <span>{label}</span>
                 {count > 0 && <span className="wk-tab-badge">{count}</span>}
