@@ -37,9 +37,6 @@ export default function TodayShootCard({ shoot, profile }) {
           <p>Share your page when you want new work.</p>
           <span><CopyLinkPill creator={profile} tone="glass" className="arch-open__link" /></span>
         </div>
-        <div className="arch-open__art" aria-hidden="true">
-          <span className="arch-open__camera">📸</span>
-        </div>
       </section>
     );
   }
