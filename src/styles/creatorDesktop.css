@@ -1,14 +1,22 @@
 /*
- * Studio World — desktop composition for the creator portal.
- * One environmental surface holds the day, schedule, signal and studio pulse.
- * It intentionally replaces the conventional stack-of-cards dashboard.
+ * Stelli control surface
+ * Reference-led desktop structure: a pale, calm control surface, one navy workbench,
+ * compact pill controls, and a single selected-detail pane.
  */
 
 .arch-workspace {
+  --stelli-ink: #0a1730;
+  --stelli-deep: #101d35;
+  --stelli-slate: #e6edf7;
+  --stelli-paper: #f6f9fd;
+  --stelli-line: rgba(19, 42, 77, .11);
+  --stelli-muted: #6f7e96;
+  --stelli-cyan: #79cce6;
+  --stelli-lime: #d1f447;
+  min-height: 100vh;
   background:
-    radial-gradient(1000px 560px at 82% -8%, rgba(50, 85, 186, .22), transparent 62%),
-    radial-gradient(680px 420px at 10% 104%, rgba(41, 182, 224, .07), transparent 70%),
-    #080f22;
+    radial-gradient(850px 550px at 86% -10%, rgba(91, 137, 220, .18), transparent 62%),
+    #081226;
 }
 
 .arch-workspace__frame {
@@ -18,12 +26,12 @@
 }
 
 .arch-workspace .wk-rail {
-  width: 170px;
+  width: 174px;
   padding-top: 18px;
 }
 
 .arch-workspace .wk-rail > div:first-child {
-  padding: 0 6px 22px;
+  padding: 0 7px 22px;
 }
 
 .arch-workspace .wk-rail-btn {
@@ -32,94 +40,90 @@
   border-radius: 15px;
 }
 
-/* The whole page is the surface, instead of four adjacent dashboard cards. */
+/* The intentional desktop object: one surface, not a card collage. */
 .arch-world {
   position: relative;
-  isolation: isolate;
-  max-width: none;
-  min-height: 626px;
+  display: flex;
+  min-height: 610px;
+  flex-direction: column;
+  gap: 14px;
   overflow: hidden;
-  padding: 26px;
-  border: 1px solid rgba(214, 229, 255, .10);
-  border-radius: 42px;
+  padding: 25px;
+  border: 1px solid rgba(255,255,255,.26);
+  border-radius: 34px;
   background:
-    radial-gradient(620px 340px at 87% 4%, rgba(57, 88, 194, .29), transparent 70%),
-    radial-gradient(440px 330px at 10% 72%, rgba(41, 165, 220, .09), transparent 74%),
-    linear-gradient(142deg, #121f43 0%, #0c1733 48%, #080f22 100%);
+    radial-gradient(440px 250px at 92% 0%, rgba(137, 190, 232, .33), transparent 73%),
+    linear-gradient(135deg, #f6f9fd 0%, #e5edf8 52%, #dce8f4 100%);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.10),
-    0 38px 76px -56px rgba(0,0,0,.94);
-  color: #fff;
+    0 30px 70px -50px rgba(0,0,0,.92),
+    inset 0 1px 0 rgba(255,255,255,.86);
+  color: var(--stelli-ink);
 }
 
 .arch-world__environment {
   position: absolute;
-  z-index: -1;
   inset: 0;
+  z-index: 0;
   overflow: hidden;
   pointer-events: none;
 }
 
 .arch-world__horizon {
   position: absolute;
-  right: -14%;
-  bottom: -175px;
-  left: -18%;
-  height: 325px;
-  border-top: 1px solid rgba(128, 227, 255, .12);
-  border-radius: 50% 50% 0 0;
-  background:
-    radial-gradient(ellipse at 55% 4%, rgba(81, 138, 226, .22), transparent 52%),
-    linear-gradient(180deg, rgba(34, 76, 137, .16), rgba(6, 14, 33, .04));
-  box-shadow:
-    0 -36px 110px rgba(64, 139, 224, .04),
-    inset 0 18px 52px rgba(126, 225, 255, .025);
-  transform: rotate(-3deg);
+  right: -12%;
+  bottom: -260px;
+  left: 42%;
+  height: 420px;
+  border: 1px solid rgba(82,135,185,.13);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 52% 25%, rgba(121,204,230,.17), transparent 66%);
+  box-shadow: 0 0 0 42px rgba(255,255,255,.12), 0 0 0 92px rgba(121,204,230,.045);
 }
 
 .arch-world__beam {
   position: absolute;
-  width: 420px;
-  height: 88px;
-  opacity: .50;
-  filter: blur(18px);
-  transform: rotate(-28deg);
+  width: 380px;
+  height: 68px;
+  border-radius: 999px;
+  filter: blur(20px);
+  opacity: .58;
 }
 
 .arch-world__beam--cyan {
-  top: 172px;
-  right: -118px;
-  background: linear-gradient(90deg, transparent, rgba(83, 217, 239, .14), transparent);
+  top: 76px;
+  right: 4%;
+  background: linear-gradient(90deg, transparent, rgba(121,204,230,.28), transparent);
+  transform: rotate(-22deg);
 }
 
 .arch-world__beam--violet {
-  bottom: 80px;
-  left: -160px;
-  background: linear-gradient(90deg, transparent, rgba(151, 91, 221, .105), transparent);
-  transform: rotate(18deg);
+  bottom: 112px;
+  left: -14%;
+  background: linear-gradient(90deg, transparent, rgba(111,141,222,.14), transparent);
+  transform: rotate(20deg);
 }
 
 .arch-world__star {
   position: absolute;
-  color: rgba(255,255,255,.60);
+  color: rgba(30,65,112,.36);
   line-height: 1;
 }
 
 .arch-world__star--one {
-  top: 188px;
-  right: 27%;
-  color: rgba(200,243,106,.78);
-  font-size: 16px;
+  top: 113px;
+  right: 22%;
+  color: rgba(72,133,183,.65);
+  font-size: 15px;
 }
 
 .arch-world__star--two {
-  right: 7.5%;
-  bottom: 154px;
-  font-size: 13px;
+  right: 7%;
+  bottom: 144px;
+  font-size: 12px;
 }
 
-/* The header is an editorial title strip, not a first dashboard card. */
 .arch-world__top,
+.arch-world__notice,
 .arch-world__stage,
 .arch-world__dock {
   position: relative;
@@ -127,14 +131,32 @@
 }
 
 .arch-world__top {
+  order: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto 132px;
+  grid-template-columns: minmax(0, 1fr) auto 112px;
   align-items: start;
-  min-height: 126px;
-  padding: 3px 5px 20px;
-  border-bottom: 1px solid rgba(255,255,255,.10);
+  min-height: 120px;
+  padding: 2px 3px 17px;
+  border-bottom: 1px solid var(--stelli-line);
 }
 
+.arch-world__notice {
+  order: 2;
+}
+
+.arch-world__notice:empty {
+  display: none;
+}
+
+.arch-world__dock {
+  order: 3;
+}
+
+.arch-world__stage {
+  order: 4;
+}
+
+/* Editorial top line—light and quiet, no giant hero card. */
 .arch-masthead__copy {
   min-width: 0;
   max-width: 650px;
@@ -142,37 +164,37 @@
 
 .arch-today__kicker {
   margin: 0;
-  color: rgba(224,235,255,.50);
+  color: #75849a;
   font-size: 10px;
   font-weight: 800;
-  letter-spacing: .18em;
+  letter-spacing: .17em;
   text-transform: uppercase;
 }
 
 .arch-masthead__copy h1 {
-  margin: 9px 0 0;
-  color: #fff;
-  font-size: clamp(56px, 5.6vw, 78px);
+  margin: 8px 0 0;
+  color: var(--stelli-ink);
+  font-size: clamp(52px, 5.1vw, 74px);
   font-weight: 820;
   letter-spacing: -.082em;
-  line-height: .78;
+  line-height: .8;
 }
 
 .arch-masthead__copy strong {
   display: block;
-  max-width: 510px;
+  max-width: 540px;
   margin-top: 16px;
-  color: #fff;
-  font-size: clamp(17px, 1.7vw, 23px);
+  color: #172847;
+  font-size: clamp(16px, 1.5vw, 21px);
   font-weight: 760;
-  letter-spacing: -.045em;
-  line-height: 1.05;
+  letter-spacing: -.04em;
+  line-height: 1.08;
 }
 
 .arch-masthead__copy small {
   display: block;
   margin-top: 6px;
-  color: rgba(224,235,255,.50);
+  color: var(--stelli-muted);
   font-size: 11px;
   font-weight: 600;
 }
@@ -181,17 +203,17 @@
   display: grid;
   justify-items: end;
   gap: 10px;
-  padding-top: 6px;
+  padding-top: 5px;
 }
 
 .arch-masthead__state {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #c8f36a;
+  color: #4c6312;
   font-size: 10px;
   font-weight: 800;
-  letter-spacing: .11em;
+  letter-spacing: .10em;
   text-transform: uppercase;
 }
 
@@ -199,8 +221,8 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #c8f36a;
-  box-shadow: 0 0 0 5px rgba(200,243,106,.11);
+  background: #99c827;
+  box-shadow: 0 0 0 5px rgba(153,200,39,.15);
 }
 
 .arch-masthead__calendar {
@@ -208,115 +230,165 @@
   align-items: center;
   gap: 6px;
   padding: 8px 11px;
-  border: 1px solid rgba(255,255,255,.14);
+  border: 1px solid rgba(17,40,73,.13);
   border-radius: 999px;
-  background: rgba(10,20,45,.25);
-  color: rgba(255,255,255,.80);
+  background: rgba(255,255,255,.52);
+  color: #253750;
   font-size: 10px;
   font-weight: 800;
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
+  box-shadow: 0 6px 15px -13px rgba(21,45,82,.55);
 }
 
 .arch-masthead__calendar:hover {
-  border-color: rgba(200,243,106,.42);
-  color: #fff;
+  border-color: rgba(42,79,133,.35);
+  background: #fff;
 }
 
 .arch-masthead__lens {
   position: relative;
-  width: 114px;
-  height: 108px;
-  margin-top: -4px;
+  width: 102px;
+  height: 101px;
+  margin-top: -2px;
   justify-self: end;
 }
 
 .arch-masthead__ring {
   position: absolute;
-  border: 1px solid rgba(255,255,255,.18);
+  border: 1px solid rgba(31,69,116,.22);
   border-radius: 50%;
 }
 
 .arch-masthead__ring--outer {
-  top: -14px;
-  right: -18px;
-  width: 126px;
-  height: 126px;
-  box-shadow:
-    inset 0 0 0 16px rgba(255,255,255,.025),
-    0 0 0 28px rgba(95,180,255,.025);
+  top: -7px;
+  right: -9px;
+  width: 109px;
+  height: 109px;
+  box-shadow: inset 0 0 0 15px rgba(255,255,255,.26);
 }
 
 .arch-masthead__ring--inner {
-  top: 13px;
-  right: 6px;
-  width: 74px;
-  height: 74px;
-  border-color: rgba(200,243,106,.27);
-  box-shadow: 0 0 28px rgba(200,243,106,.07);
+  top: 17px;
+  right: 12px;
+  width: 64px;
+  height: 64px;
+  border-color: rgba(111,177,76,.48);
+  box-shadow: 0 0 20px rgba(153,200,39,.11);
 }
 
 .arch-masthead__camera {
   position: absolute;
-  right: 3px;
-  bottom: -10px;
-  font-size: 55px;
-  filter: drop-shadow(0 13px 10px rgba(0,0,0,.38));
+  z-index: 2;
+  right: 7px;
+  bottom: -5px;
+  font-size: 46px;
+  filter: drop-shadow(0 10px 8px rgba(12,31,61,.22));
   transform: rotate(-8deg);
 }
 
 .arch-masthead__star {
   position: absolute;
+  z-index: 2;
   line-height: 1;
 }
 
 .arch-masthead__star--one {
-  top: 7px;
-  left: 7px;
-  color: #c8f36a;
-  font-size: 17px;
+  top: 6px;
+  left: 2px;
+  color: #8dbd24;
+  font-size: 16px;
 }
 
 .arch-masthead__star--two {
-  top: 45px;
-  right: -4px;
-  color: rgba(255,255,255,.82);
-  font-size: 12px;
+  top: 39px;
+  right: -3px;
+  color: rgba(30,65,112,.52);
+  font-size: 11px;
 }
 
-/* The primary planning plane overlaps the smaller live-signal orbit. */
+/* One clean assembly motion: pieces arrive once, then the interface stays still. */
+.arch-assembly {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  display: block;
+  transform-origin: 56% 54%;
+}
+
+.arch-assembly__orbit,
+.arch-assembly__dot {
+  position: absolute;
+  display: block;
+}
+
+.arch-assembly__orbit {
+  border: 1px solid rgba(49,109,171,.22);
+  border-radius: 50%;
+}
+
+.arch-assembly__orbit--one {
+  top: 4px;
+  right: -1px;
+  width: 92px;
+  height: 92px;
+}
+
+.arch-assembly__orbit--two {
+  top: 24px;
+  right: 24px;
+  width: 48px;
+  height: 48px;
+  border-color: rgba(153,200,39,.38);
+}
+
+.arch-assembly__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(255,255,255,.48);
+}
+
+.arch-assembly__dot--lime {
+  top: 17px;
+  left: 9px;
+  background: #a6d832;
+}
+
+.arch-assembly__dot--cyan {
+  right: 6px;
+  bottom: 17px;
+  background: #55c4e5;
+}
+
+/* The dark workbench holds the schedule; it is the one strong dark object. */
 .arch-world__stage {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 334px;
-  align-items: start;
-  gap: 0;
-  margin-top: 23px;
+  grid-template-columns: minmax(0, 1fr) 332px;
+  align-items: stretch;
+  min-height: 322px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 28px;
+  background:
+    radial-gradient(420px 250px at 88% 0%, rgba(43,77,132,.27), transparent 74%),
+    #111e37;
+  box-shadow: 0 18px 37px -29px rgba(10,23,48,.82);
 }
 
 .arch-runway {
   position: relative;
-  min-height: 326px;
-  overflow: hidden;
-  padding: 23px 56px 22px 24px;
-  border: 1px solid rgba(205,225,255,.075);
-  border-right: 0;
-  border-radius: 31px 0 0 31px;
-  background:
-    radial-gradient(380px 170px at 6% 0%, rgba(75, 128, 224, .18), transparent 72%),
-    linear-gradient(135deg, rgba(21,40,82,.64), rgba(11,24,55,.38));
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.065);
-  -webkit-backdrop-filter: blur(18px) saturate(1.12);
-  backdrop-filter: blur(18px) saturate(1.12);
+  min-width: 0;
+  padding: 22px 24px;
+  color: #fff;
 }
 
 .arch-runway::after {
   content: '';
   position: absolute;
-  top: 18px;
+  top: 24px;
   right: 0;
-  bottom: 18px;
+  bottom: 24px;
   width: 1px;
-  background: linear-gradient(transparent, rgba(83,217,239,.48), transparent);
+  background: linear-gradient(transparent, rgba(255,255,255,.12), transparent);
 }
 
 .arch-section-title {
@@ -328,7 +400,7 @@
 
 .arch-section-title p {
   margin: 0;
-  color: rgba(224,235,255,.50);
+  color: rgba(232,241,255,.47);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: .15em;
@@ -348,7 +420,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  color: #c8f36a;
+  color: var(--stelli-lime);
   font-size: 11px;
   font-weight: 800;
 }
@@ -356,7 +428,7 @@
 .arch-week {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 7px;
+  gap: 6px;
   margin-top: 17px;
 }
 
@@ -366,14 +438,14 @@
   place-items: center;
   padding: 6px 2px 5px;
   border: 0;
-  border-radius: 18px;
+  border-radius: 16px;
   background: transparent;
-  color: rgba(224,235,255,.48);
+  color: rgba(232,241,255,.46);
   transition: transform .18s ease, background .18s ease, color .18s ease, box-shadow .18s ease;
 }
 
 .arch-week button:hover {
-  background: rgba(255,255,255,.05);
+  background: rgba(255,255,255,.07);
   color: #fff;
 }
 
@@ -403,36 +475,34 @@
 }
 
 .arch-week button i.has-booking {
-  background: #53d9ef;
+  background: var(--stelli-cyan);
 }
 
 .arch-week button.is-on {
-  background: linear-gradient(155deg, rgba(200,243,106,.28), rgba(83,217,239,.10));
-  color: #fff;
-  box-shadow:
-    inset 0 0 0 1px rgba(200,243,106,.42),
-    0 13px 28px -22px rgba(200,243,106,.85);
+  background: linear-gradient(150deg, #d8f857, #bfe639);
+  color: #142238;
+  box-shadow: 0 14px 25px -20px rgba(209,244,71,.92);
 }
 
 .arch-week button.is-on i.has-booking {
-  background: #c8f36a;
+  background: #142238;
 }
 
 .arch-switcher {
   display: inline-flex;
   width: auto;
   gap: 3px;
-  margin-top: 12px;
+  margin-top: 11px;
   padding: 3px;
   border-radius: 999px;
-  background: rgba(4,12,30,.32);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.045);
+  background: rgba(2,10,25,.38);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.055);
 }
 
 .arch-switcher button {
   padding: 8px 11px;
   border-radius: 999px;
-  color: rgba(224,235,255,.50);
+  color: rgba(232,241,255,.55);
   font-size: 10.5px;
   font-weight: 800;
   text-align: center;
@@ -444,9 +514,8 @@
 }
 
 .arch-switcher button.is-on {
-  background: rgba(255,255,255,.12);
+  background: rgba(255,255,255,.13);
   color: #fff;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.09);
 }
 
 .arch-agenda {
@@ -478,8 +547,8 @@
 
 .arch-agenda__time {
   padding-right: 9px;
-  border-right: 1px solid rgba(83,217,239,.27);
-  color: #c8f36a;
+  border-right: 1px solid rgba(121,204,230,.32);
+  color: var(--stelli-lime);
   font-size: 11px;
   font-weight: 800;
   line-height: 1.1;
@@ -505,7 +574,7 @@
 
 .arch-agenda__copy small {
   margin-top: 3px;
-  color: rgba(224,235,255,.50);
+  color: rgba(232,241,255,.50);
   font-size: 10.5px;
   font-weight: 600;
 }
@@ -515,9 +584,9 @@
   width: 29px;
   height: 29px;
   place-items: center;
-  border: 1px solid rgba(200,243,106,.28);
+  border: 1px solid rgba(209,244,71,.32);
   border-radius: 50%;
-  color: #c8f36a;
+  color: var(--stelli-lime);
 }
 
 .arch-agenda__empty {
@@ -525,49 +594,46 @@
   align-items: center;
   gap: 9px;
   padding: 18px 2px 3px;
-  color: rgba(224,235,255,.48);
+  color: rgba(232,241,255,.52);
   font-size: 12px;
   font-weight: 600;
 }
 
 .arch-agenda__empty a {
   margin-left: auto;
-  color: #c8f36a;
+  color: var(--stelli-lime);
   font-size: 11px;
   font-weight: 800;
 }
 
-/* A smaller translucent pod overlaps the runway instead of forming a second column card. */
+/* This is a selected-detail pane—not another generic dark card. */
 .arch-orbit {
   position: relative;
-  z-index: 2;
-  min-height: 275px;
+  min-width: 0;
   overflow: hidden;
-  margin-top: 24px;
-  margin-left: -40px;
+  margin: 14px 14px 14px 0;
   padding: 16px 17px;
-  border: 1px solid rgba(214,229,255,.11);
-  border-radius: 27px;
+  border: 1px solid rgba(255,255,255,.55);
+  border-radius: 22px;
   background:
-    radial-gradient(185px 150px at 102% 0%, rgba(134,87,200,.20), transparent 76%),
-    linear-gradient(145deg, rgba(24,43,84,.76), rgba(8,16,37,.83));
+    radial-gradient(150px 105px at 100% 0%, rgba(255,255,255,.42), transparent 78%),
+    linear-gradient(145deg, #b6d8ed, #92bbdb);
   box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.095),
-    0 25px 44px -34px rgba(0,0,0,.92);
-  -webkit-backdrop-filter: blur(20px) saturate(1.16);
-  backdrop-filter: blur(20px) saturate(1.16);
+    inset 0 1px 0 rgba(255,255,255,.65),
+    0 14px 30px -24px rgba(5,17,36,.75);
+  color: var(--stelli-ink);
 }
 
 .arch-orbit::before {
   content: '';
   position: absolute;
-  top: -52px;
-  right: -47px;
-  width: 174px;
-  height: 174px;
-  border: 1px solid rgba(200,243,106,.14);
+  right: -30px;
+  bottom: -43px;
+  width: 154px;
+  height: 154px;
+  border: 1px solid rgba(25,66,108,.15);
   border-radius: 50%;
-  box-shadow: 0 0 0 24px rgba(83,217,239,.018);
+  box-shadow: 0 0 0 20px rgba(255,255,255,.10);
   pointer-events: none;
 }
 
@@ -578,12 +644,12 @@
   align-items: center;
   justify-content: space-between;
   padding-bottom: 10px;
-  border-bottom: 1px solid rgba(255,255,255,.09);
+  border-bottom: 1px solid rgba(20,55,92,.15);
 }
 
 .arch-orbit__head p {
   margin: 0;
-  color: rgba(224,235,255,.48);
+  color: rgba(22,50,85,.64);
   font-size: 9px;
   font-weight: 800;
   letter-spacing: .15em;
@@ -591,14 +657,13 @@
 }
 
 .arch-orbit__head span {
-  color: #c8f36a;
+  color: #486417;
   font-size: 9px;
   font-weight: 800;
   letter-spacing: .10em;
   text-transform: uppercase;
 }
 
-/* Both actual booking and empty-open states live inside one orbit. */
 .arch-orbit .arch-booking,
 .arch-orbit .arch-open {
   position: relative;
@@ -610,6 +675,7 @@
   border-radius: 0;
   background: transparent;
   box-shadow: none;
+  color: var(--stelli-ink);
 }
 
 .arch-orbit .arch-booking::after,
@@ -635,54 +701,55 @@
 
 .arch-orbit .arch-booking__top,
 .arch-orbit .arch-open__top {
-  color: rgba(224,235,255,.55);
+  color: rgba(22,50,85,.62);
 }
 
 .arch-orbit .arch-booking__top b,
 .arch-orbit .arch-open__top b {
-  background: rgba(200,243,106,.16);
-  color: #c8f36a;
+  background: rgba(209,244,71,.48);
+  color: #405712;
 }
 
 .arch-orbit .arch-booking__main h2,
 .arch-orbit .arch-open h2 {
-  color: #fff;
+  color: var(--stelli-ink);
 }
 
 .arch-orbit .arch-booking__main p,
 .arch-orbit .arch-open p {
-  color: rgba(224,235,255,.58);
+  color: rgba(22,50,85,.68);
 }
 
 .arch-orbit .arch-booking__main small,
 .arch-orbit .arch-booking__payout small {
-  color: rgba(224,235,255,.44);
+  color: rgba(22,50,85,.56);
 }
 
 .arch-orbit .arch-booking__payout strong,
 .arch-orbit .arch-booking__bottom a {
-  color: #c8f36a;
+  color: #355a70;
 }
 
 .arch-orbit .arch-booking__date {
-  border-color: rgba(255,255,255,.13);
-  background: rgba(0,0,0,.18);
+  border-color: rgba(20,55,92,.16);
+  background: rgba(255,255,255,.34);
+  color: var(--stelli-ink);
 }
 
 .arch-orbit .arch-open__link {
-  border-color: rgba(200,243,106,.32);
-  background: rgba(200,243,106,.12) !important;
-  color: #fff !important;
+  border-color: rgba(29,69,104,.26);
+  background: rgba(255,255,255,.48) !important;
+  color: #1a3551 !important;
 }
 
-/* The optional AI digest stays simple and fully legible within its orbit. */
+/* The optional AI note is a quiet part of the selected pane. */
 .arch-orbit > .wk-card {
   position: relative;
   z-index: 1;
   margin-top: 0;
   padding: 13px 0 0;
   border: 0;
-  border-top: 1px solid rgba(255,255,255,.09);
+  border-top: 1px solid rgba(20,55,92,.15);
   border-radius: 0;
   background: transparent !important;
   box-shadow: none;
@@ -691,53 +758,54 @@
 .arch-orbit > .wk-card .wk-label,
 .arch-orbit > .wk-card .wk-summary,
 .arch-orbit > .wk-card .wk-ink {
-  color: #fff;
+  color: var(--stelli-ink);
 }
 
 .arch-orbit > .wk-card .wk-mute,
 .arch-orbit > .wk-card .wk-switch {
-  color: #c8f36a;
+  color: #3d5b10;
 }
 
 .arch-orbit > .wk-card .wk-switch-track {
-  background: rgba(255,255,255,.18);
+  background: rgba(19,54,91,.20);
 }
 
 .arch-orbit > .wk-card .wk-switch.is-on .wk-switch-track {
-  background: #c8f36a;
+  background: #8fbd2b;
 }
 
 .arch-orbit > .wk-card .wk-switch-thumb {
-  background: #080f22;
+  background: #fff;
 }
 
 .arch-orbit > .wk-card .wk-fill {
-  background: rgba(255,255,255,.17);
+  background: rgba(255,255,255,.42);
 }
 
 .arch-orbit > .wk-card .divide-[rgba(10,18,38,0.12)] > :not([hidden]) ~ :not([hidden]) {
-  border-color: rgba(255,255,255,.10);
+  border-color: rgba(20,55,92,.15);
 }
 
-/* One quiet information dock: status to the left, numbers to the right. */
+/* The dock is one compact status strip, placed above the workbench on desktop. */
 .arch-world__dock {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(380px, .84fr);
+  grid-template-columns: minmax(0, 1fr) minmax(380px, .82fr);
   align-items: stretch;
   overflow: hidden;
-  margin-top: 16px;
-  border: 1px solid rgba(214,229,255,.085);
-  border-radius: 24px;
-  background: rgba(10,20,46,.38);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.055);
-  -webkit-backdrop-filter: blur(16px) saturate(1.06);
-  backdrop-filter: blur(16px) saturate(1.06);
+  border: 1px solid rgba(31,65,108,.10);
+  border-radius: 22px;
+  background: rgba(255,255,255,.53);
+  box-shadow:
+    0 15px 28px -24px rgba(24,57,96,.38),
+    inset 0 1px 0 rgba(255,255,255,.82);
+  -webkit-backdrop-filter: blur(18px) saturate(1.08);
+  backdrop-filter: blur(18px) saturate(1.08);
 }
 
 .arch-needs,
 .arch-metrics {
   min-width: 0;
-  padding: 17px 20px;
+  padding: 15px 18px;
   border: 0;
   border-radius: 0;
   background: transparent;
@@ -745,37 +813,59 @@
 }
 
 .arch-metrics {
-  border-left: 1px solid rgba(255,255,255,.09);
+  border-left: 1px solid rgba(31,65,108,.10);
+}
+
+.arch-world__dock .arch-section-title p {
+  color: #6f7e96;
+}
+
+.arch-world__dock .arch-section-title h2 {
+  color: var(--stelli-ink);
+  font-size: 20px;
+}
+
+.arch-today__stamp {
+  width: 34px;
+  height: 34px;
+  border-color: rgba(31,65,108,.14);
+  background: rgba(255,255,255,.56);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
+}
+
+.arch-today__stamp > span {
+  color: var(--stelli-ink);
+  font-size: 12px;
 }
 
 .arch-needs__list {
   display: grid;
   gap: 0;
-  margin-top: 11px;
+  margin-top: 9px;
 }
 
 .arch-needs__row {
   display: grid;
-  grid-template-columns: 27px minmax(0, 1fr) auto 16px;
+  grid-template-columns: 26px minmax(0, 1fr) auto 16px;
   align-items: center;
   gap: 9px;
-  min-height: 45px;
-  padding: 6px 0;
-  color: #fff;
+  min-height: 41px;
+  padding: 5px 0;
+  color: var(--stelli-ink);
 }
 
 .arch-needs__row + .arch-needs__row {
-  border-top: 1px solid rgba(255,255,255,.08);
+  border-top: 1px solid rgba(31,65,108,.09);
 }
 
 .arch-needs__mark {
   display: grid;
-  width: 26px;
-  height: 26px;
+  width: 25px;
+  height: 25px;
   place-items: center;
-  border-radius: 9px;
-  background: rgba(200,243,106,.15);
-  color: #c8f36a;
+  border-radius: 8px;
+  background: rgba(209,244,71,.47);
+  color: #45630d;
 }
 
 .arch-needs__copy {
@@ -791,55 +881,55 @@
 }
 
 .arch-needs__copy strong {
-  color: #fff;
+  color: var(--stelli-ink);
   font-size: 12px;
   letter-spacing: -.02em;
 }
 
 .arch-needs__copy small {
   margin-top: 2px;
-  color: rgba(224,235,255,.46);
+  color: var(--stelli-muted);
   font-size: 10.5px;
   font-weight: 600;
 }
 
 .arch-needs__row em {
-  color: #c8f36a;
+  color: #577316;
   font-size: 10px;
   font-style: normal;
   font-weight: 800;
 }
 
 .arch-needs__row > svg {
-  color: rgba(224,235,255,.45);
+  color: var(--stelli-muted);
 }
 
 .arch-clear {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 12px;
-  color: rgba(224,235,255,.60);
+  margin-top: 10px;
+  color: #52627a;
   font-size: 12px;
   font-weight: 600;
 }
 
 .arch-clear svg {
-  color: #c8f36a;
+  color: #729914;
 }
 
 .arch-metrics__grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0;
-  margin-top: 13px;
+  margin-top: 10px;
 }
 
 .arch-metric {
   min-width: 0;
   padding: 0 13px;
   border: 0;
-  border-left: 1px solid rgba(255,255,255,.09);
+  border-left: 1px solid rgba(31,65,108,.10);
   border-radius: 0;
   background: transparent;
 }
@@ -858,7 +948,7 @@
 }
 
 .arch-metric span {
-  color: rgba(224,235,255,.46);
+  color: #78869b;
   font-size: 8.5px;
   font-weight: 800;
   letter-spacing: .1em;
@@ -866,42 +956,38 @@
 }
 
 .arch-metric strong {
-  margin-top: 6px;
-  color: #fff;
+  margin-top: 5px;
+  color: var(--stelli-ink);
   font-size: 17px;
   letter-spacing: -.045em;
 }
 
 .arch-metric--lime strong {
-  color: #c8f36a;
+  color: #557510;
 }
 
 .arch-metric__link {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin-top: 13px;
-  color: #c8f36a;
+  margin-top: 10px;
+  color: #456f8c;
   font-size: 11px;
   font-weight: 800;
 }
 
-/* Scale down only when the information needs the room; mobile remains a single column. */
+/* Tablet and mobile retain the swipe-friendly, single-column control flow. */
 @media (max-width: 1180px) {
   .arch-world {
-    padding: 22px;
+    padding: 21px;
   }
 
   .arch-world__stage {
-    grid-template-columns: minmax(0, 1fr) 304px;
-  }
-
-  .arch-orbit {
-    margin-left: -28px;
+    grid-template-columns: minmax(0, 1fr) 300px;
   }
 
   .arch-world__dock {
-    grid-template-columns: minmax(0, 1fr) minmax(345px, .82fr);
+    grid-template-columns: minmax(0, 1fr) minmax(336px, .82fr);
   }
 }
 
@@ -913,7 +999,7 @@
   .arch-world {
     min-height: 0;
     padding: 20px;
-    border-radius: 32px;
+    border-radius: 30px;
   }
 
   .arch-world__stage,
@@ -922,14 +1008,7 @@
   }
 
   .arch-world__stage {
-    gap: 13px;
-  }
-
-  .arch-runway {
     min-height: 0;
-    padding: 20px;
-    border-right: 1px solid rgba(205,225,255,.075);
-    border-radius: 27px;
   }
 
   .arch-runway::after {
@@ -937,34 +1016,34 @@
   }
 
   .arch-orbit {
-    min-height: 0;
-    margin: 0;
+    margin: 0 14px 14px;
   }
 
   .arch-metrics {
-    border-top: 1px solid rgba(255,255,255,.09);
+    border-top: 1px solid rgba(31,65,108,.10);
     border-left: 0;
   }
 }
 
 @media (max-width: 700px) {
   .arch-world {
+    gap: 12px;
     padding: 16px;
-    border-radius: 28px;
+    border-radius: 27px;
   }
 
   .arch-world__top {
     grid-template-columns: minmax(0, 1fr) auto;
-    min-height: 166px;
-    padding: 2px 1px 16px;
+    min-height: 161px;
+    padding: 1px 0 15px;
   }
 
   .arch-masthead__copy h1 {
-    font-size: 54px;
+    font-size: 53px;
   }
 
   .arch-masthead__copy strong {
-    max-width: 245px;
+    max-width: 248px;
     margin-top: 12px;
     font-size: 16px;
   }
@@ -983,49 +1062,41 @@
 
   .arch-masthead__lens {
     position: absolute;
-    right: 3px;
-    bottom: -11px;
-    width: 96px;
+    right: 2px;
+    bottom: -7px;
+    width: 91px;
     height: 88px;
-    opacity: .92;
   }
 
   .arch-masthead__ring--outer {
-    top: -14px;
-    right: -16px;
-    width: 108px;
-    height: 108px;
+    width: 100px;
+    height: 100px;
   }
 
   .arch-masthead__ring--inner {
-    top: 10px;
-    right: 2px;
-    width: 64px;
-    height: 64px;
+    top: 17px;
+    right: 11px;
+    width: 59px;
+    height: 59px;
   }
 
   .arch-masthead__camera {
-    right: -2px;
-    bottom: -11px;
-    font-size: 46px;
+    right: 5px;
+    bottom: -5px;
+    font-size: 42px;
   }
 
-  .arch-masthead__star--one {
-    top: 4px;
-    left: -1px;
+  .arch-world__dock {
+    border-radius: 19px;
   }
 
-  .arch-world__stage {
-    margin-top: 16px;
+  .arch-needs,
+  .arch-metrics {
+    padding: 15px;
   }
 
   .arch-runway {
     padding: 18px 15px;
-    border-radius: 23px;
-  }
-
-  .arch-section-title h2 {
-    font-size: 23px;
   }
 
   .arch-week {
@@ -1035,7 +1106,7 @@
 
   .arch-week button {
     min-height: 57px;
-    border-radius: 15px;
+    border-radius: 14px;
   }
 
   .arch-week button b {
@@ -1046,14 +1117,9 @@
     grid-template-columns: 60px minmax(0, 1fr) 29px;
   }
 
-  .arch-world__dock {
-    margin-top: 13px;
-    border-radius: 21px;
-  }
-
-  .arch-needs,
-  .arch-metrics {
-    padding: 16px;
+  .arch-orbit {
+    margin: 0 10px 10px;
+    border-radius: 19px;
   }
 
   .arch-metric {
