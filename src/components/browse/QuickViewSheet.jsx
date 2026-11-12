@@ -1,18 +1,44 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
-import { X } from 'lucide-react';
+import { MapPin, Star, X } from 'lucide-react';
 import { accentOf, cssUrl, galleryImages, ratingLabel, taglineOf } from '@/lib/creatorBrowse';
 import { displayNameOf } from '@/lib/profilePresets';
 
-/** The quick look: a creator's work, their story and one way to book them. */
+/** One big frame and two small ones: a clean collage instead of a long carousel. */
+function collageFrames(images) {
+  if (images.length === 1) return [{ url: images[0], className: 'col-span-3 row-span-2' }];
+  if (images.length === 2) {
+    return [
+      { url: images[0], className: 'col-span-2 row-span-2' },
+      { url: images[1], className: 'col-span-1 row-span-2' },
+    ];
+  }
+  return [
+    { url: images[0], className: 'col-span-2 row-span-2' },
+    { url: images[1], className: 'col-span-1 row-span-1' },
+    { url: images[2], className: 'col-span-1 row-span-1' },
+  ];
+}
+
+/** A small numbered fact, so the numbers read at a glance. */
+function Fact({ label, value }) {
+  return (
+    <div className="min-w-0">
+      <b className="block text-[16px] font-semibold leading-tight text-white">{value}</b>
+      <span className="text-[11px] leading-tight text-white/40">{label}</span>
+    </div>
+  );
+}
+
+/** The quick look: their work as one collage, who they are, and one way to book. */
 export default function QuickViewSheet({ creator, onClose }) {
   const [open, setOpen] = useState(false);
   const sheetRef = useRef(null);
   const closeRef = useRef(null);
 
   const accent = accentOf(creator);
-  const images = galleryImages(creator);
+  const frames = collageFrames(galleryImages(creator));
   const name = displayNameOf(creator);
   const tagline = taglineOf(creator);
   const spots = (creator?.neighborhoods || []).filter(Boolean);
@@ -64,14 +90,14 @@ export default function QuickViewSheet({ creator, onClose }) {
         onClick={onClose}
       />
 
-      {/* A column, not one scrolling stack: the text scrolls on its own and the
-          booking bar sits below it, so it can never cover the name or the bio. */}
+      {/* A column, not one scrolling stack: the words scroll on their own and the
+          booking bar sits below them, so it can never cover the name. */}
       <aside
         ref={sheetRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="quickview-title"
-        className={`fixed inset-x-0 bottom-0 z-[61] flex max-h-[88vh] flex-col overflow-hidden rounded-t-[28px] border border-white/10 bg-surface transition-transform duration-[600ms] ease-[cubic-bezier(.6,0,.2,1)] sm:inset-x-auto sm:bottom-4 sm:right-4 sm:top-4 sm:max-h-none sm:w-[min(520px,calc(100%-32px))] sm:rounded-[28px] ${
+        className={`fixed inset-x-0 bottom-0 z-[61] flex max-h-[90vh] flex-col overflow-hidden rounded-t-[26px] border border-white/10 bg-surface transition-transform duration-[600ms] ease-[cubic-bezier(.6,0,.2,1)] sm:inset-x-auto sm:bottom-4 sm:right-4 sm:top-4 sm:max-h-none sm:w-[min(560px,calc(100%-32px))] sm:rounded-[26px] ${
           open ? 'translate-y-0' : 'translate-y-full sm:translate-x-[calc(100%+40px)] sm:translate-y-0'
         }`}
         style={{ '--acc': accent }}
@@ -81,62 +107,78 @@ export default function QuickViewSheet({ creator, onClose }) {
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute right-3.5 top-3.5 z-[2] grid h-[38px] w-[38px] place-items-center rounded-full border border-white/10 bg-ink/60 text-white backdrop-blur-[10px] transition-transform duration-300 hover:rotate-90"
+          className="absolute right-3 top-3 z-[2] grid h-9 w-9 place-items-center rounded-full border border-white/20 bg-ink/70 text-white backdrop-blur-[10px] transition-transform duration-300 hover:rotate-90"
         >
-          <X className="h-4 w-4" />
+          <X className="h-[15px] w-[15px]" />
         </button>
 
         <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain">
-          <div className="no-scrollbar flex snap-x snap-mandatory scroll-px-[22px] gap-2.5 overflow-x-auto px-[22px] pb-1 pt-[18px]">
-            {images.map((url, i) => (
-              <div
-                key={`${url}-${i}`}
-                className="aspect-[4/5] flex-[0_0_78%] snap-center rounded-[18px] bg-surface-2 bg-cover bg-center"
-                style={{ backgroundImage: cssUrl(url) }}
-              />
-            ))}
-          </div>
-
-          <div className="px-[26px] pb-[22px] pt-[22px]">
-            <h2 id="quickview-title" className="text-[36px] font-bold tracking-[-0.035em] text-white">
-              {name}
-            </h2>
-            <p className="mt-1 text-[15px] text-white/45">
-              {[tagline, spots.join(', ')].filter(Boolean).join(' · ')}
-            </p>
-
-            <div className="my-[22px] grid grid-cols-2 gap-2.5">
-              <div className="rounded-2xl bg-surface-2 p-3.5">
-                <b className="block text-[18px] font-semibold text-white">{ratingLabel(creator)}</b>
-                <span className="text-[12px] text-white/45">
-                  {reviews ? `${reviews} review${reviews === 1 ? '' : 's'}` : 'On Stelli'}
-                </span>
+          {/* The collage. */}
+          <div className="px-4 pt-4">
+            <div className="relative">
+              <div className="grid h-[212px] grid-cols-3 grid-rows-2 gap-1.5 overflow-hidden rounded-[18px] sm:h-[236px]">
+                {frames.map((frame, i) => (
+                  <div
+                    key={`${frame.url}-${i}`}
+                    className={`${frame.className} rounded-[10px] bg-surface-2 bg-cover bg-center transition-transform duration-700 hover:scale-[1.02]`}
+                    style={{ backgroundImage: cssUrl(frame.url) }}
+                  />
+                ))}
               </div>
-              <div className="rounded-2xl bg-surface-2 p-3.5">
-                <b className="block text-[18px] font-semibold text-white">
-                  {years ? `${years} yrs` : '—'}
-                </b>
-                <span className="text-[12px] text-white/45">Shooting</span>
+
+              <div
+                className="absolute -bottom-3 left-4 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-bold text-ink shadow-[0_10px_24px_-10px_rgba(0,0,0,.9)]"
+                style={{ background: accent }}
+              >
+                <Star className="h-3 w-3" fill="currentColor" strokeWidth={0} />
+                {reviews ? `${ratingLabel(creator).replace('★ ', '')} · ${reviews} review${reviews === 1 ? '' : 's'}` : 'New to Stelli'}
               </div>
             </div>
+          </div>
 
-            {creator?.bio && <p className="text-[15px] leading-[1.6] text-white/80">{creator.bio}</p>}
+          <div className="px-[22px] pb-5 pt-7">
+            <p className="label-mono text-[10px] text-white/40">
+              {creator?.market === 'ELON' || !creator?.market ? 'Elon' : creator.market} · Photographer
+            </p>
+            <h2
+              id="quickview-title"
+              className="mt-1 text-[30px] font-bold leading-[1.05] tracking-[-0.035em] text-white sm:text-[32px]"
+            >
+              {name}
+            </h2>
+            <p className="mt-1.5 text-[14px] leading-snug text-white/50">{tagline}</p>
+
+            <div className="mt-4 flex items-center gap-6 border-y border-white/10 py-3">
+              <Fact label={reviews ? 'Rating' : 'Status'} value={ratingLabel(creator)} />
+              <Fact label="Shoots" value={Number(creator?.completed_shoots) > 0 ? creator.completed_shoots : '—'} />
+              <Fact label="Shooting" value={years ? `${years} yrs` : '—'} />
+              {spots.length > 0 && (
+                <div className="ml-auto flex min-w-0 items-center gap-1 text-[11px] text-white/45">
+                  <MapPin className="h-3 w-3 shrink-0" />
+                  <span className="truncate">{spots[0]}</span>
+                </div>
+              )}
+            </div>
+
+            {creator?.bio && (
+              <p className="mt-4 text-[14px] leading-[1.6] text-white/75">{creator.bio}</p>
+            )}
 
             {creator?.prompt_answer && (
-              <div className="mt-[22px] rounded-2xl border border-dashed border-white/15 p-[18px]">
-                <p className="label-mono text-[11px] text-white/45">{creator.prompt_question}</p>
-                <p className="mt-1.5 font-display italic text-[24px] leading-tight text-white">
+              <div className="mt-3.5 rounded-2xl border border-dashed border-white/15 px-4 py-3">
+                <p className="label-mono text-[10px] text-white/40">{creator.prompt_question}</p>
+                <p className="mt-1 font-display italic text-[19px] leading-snug text-white">
                   {creator.prompt_answer}
                 </p>
               </div>
             )}
 
             {specialties.length > 0 && (
-              <div className="mt-[22px] flex flex-wrap gap-1.5">
-                {specialties.map((specialty) => (
+              <div className="mt-3.5 flex flex-wrap gap-1.5">
+                {specialties.slice(0, 6).map((specialty) => (
                   <span
                     key={specialty}
-                    className="whitespace-nowrap rounded-full bg-surface-2 px-2.5 py-1.5 text-[12px]"
+                    className="whitespace-nowrap rounded-full bg-surface-2 px-2.5 py-1 text-[11.5px] text-white/70"
                   >
                     {specialty}
                   </span>
@@ -146,23 +188,20 @@ export default function QuickViewSheet({ creator, onClose }) {
           </div>
         </div>
 
-        <div className="shrink-0 border-t border-white/10 bg-surface px-[26px] pb-[calc(20px+var(--safe-bottom))] pt-5">
+        <div className="shrink-0 border-t border-white/10 bg-surface px-[22px] pb-[calc(18px+var(--safe-bottom))] pt-4">
           <Link
             to={`/book/${creator.id}`}
-            className="block w-full rounded-2xl py-[18px] text-center text-[16px] font-semibold text-ink transition-transform duration-[250ms] hover:-translate-y-0.5"
+            className="block w-full rounded-2xl py-[16px] text-center text-[15px] font-semibold text-ink transition-transform duration-[250ms] hover:-translate-y-0.5"
             style={{ background: accent }}
           >
             {creator.booking_cta || 'Request a date'}
           </Link>
-          <Link
-            to={profilePath}
-            className="mt-3 block text-center text-[13px] text-white/45 transition-colors hover:text-white"
-          >
-            See the full profile
-          </Link>
-          <p className="mt-2.5 text-center text-[12px] text-white/45">
-            Payments and messaging stay protected on Stelli.
-          </p>
+          <div className="mt-2 flex items-center justify-between gap-3">
+            <Link to={profilePath} className="text-[12.5px] text-white/50 transition-colors hover:text-white">
+              See the full profile
+            </Link>
+            <p className="text-right text-[11px] text-white/35">Protected on Stelli</p>
+          </div>
         </div>
       </aside>
     </>,
