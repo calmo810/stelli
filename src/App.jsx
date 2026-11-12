@@ -7,7 +7,6 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
-import SmoothScroll from './components/shared/SmoothScroll';
 import Layout from './components/shared/Layout';
 import Home from './pages/Home';
 const BookingFlow = lazy(() => import('./pages/BookingFlow'));
@@ -137,7 +136,6 @@ function App() {
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router>
-          <SmoothScroll />
           <ScrollToTop />
           <AuthenticatedApp />
         </Router>
