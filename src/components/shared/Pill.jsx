@@ -7,6 +7,7 @@ const TONES = {
 };
 
 /** A small pill button in the design system's shape. Kept for the places that pass their own tag. */
+/** @param {Record<string, any>} props */
 export default function Pill({ as: Tag = 'span', tone = 'cyan', className = '', ...rest }) {
   return <Tag className={`st-btn st-btn--sm shrink-0 ${TONES[tone] || TONES.cyan} ${className}`} {...rest} />;
 }

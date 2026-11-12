@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 
 // The admin page's card look (see AdminDashboard.jsx).
 const SURFACE = {
-  background: 'linear-gradient(145deg, hsl(var(--surface-2) / .86), hsl(var(--surface) / .94))',
+  background: 'var(--st-card)',
   borderRadius: 22,
   boxShadow: 'inset 0 1px 0 var(--line), 0 18px 42px -30px rgba(0,0,0,.78)',
 };
@@ -43,7 +43,7 @@ export default function AdminActivity() {
 
   if (isError) {
     return (
-      <p role="alert" className="border border-neon-magenta/30 p-4 text-[13px] text-fg-2">
+      <p role="alert" className="border border-[var(--chip-magenta-fg)] p-4 text-[13px] text-fg-2">
         The activity log could not be loaded. Refresh the page and try again.
       </p>
     );
@@ -69,7 +69,7 @@ export default function AdminActivity() {
               <span>{entry.actor_email || 'system'}</span>
               <span>{String(entry.action || '').replace(/_/g, ' ')}</span>
               {Number(entry.amount) > 0 && <span>${Number(entry.amount).toFixed(2)}</span>}
-              <span style={{ color: `hsl(var(--neon-${tone}))` }}>{entry.outcome || 'ok'}</span>
+              <span style={{ color: `var(--chip-${tone}-fg)` }}>{entry.outcome || 'ok'}</span>
             </p>
           </li>
         );

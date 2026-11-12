@@ -7,13 +7,13 @@ import { Copy, ExternalLink, Loader2 } from 'lucide-react';
 import ConfirmAction, { newActionId } from '@/components/shared/ConfirmAction';
 
 const SURFACE = {
-  background: 'linear-gradient(145deg, hsl(var(--surface-2) / .86), hsl(var(--surface) / .94))',
+  background: 'var(--st-card)',
   borderRadius: 22,
   boxShadow: 'inset 0 1px 0 var(--line), 0 18px 42px -30px rgba(0,0,0,.78)',
 };
 const CARD = 'admin-surface';
 const FIELD =
-  'w-full rounded-xl border border-line bg-black/15 px-3.5 py-3 text-[14px] text-fg placeholder:text-fg-3 transition focus:border-[var(--st-ring)] focus:outline-none focus:ring-2 focus:ring-neon-lime/15';
+  'w-full rounded-xl border border-line bg-[var(--field)] px-3.5 py-3 text-[14px] text-fg placeholder:text-fg-3 transition focus:border-[var(--st-ring)] focus:outline-none focus:ring-2 focus:ring-neon-lime/15';
 const LABEL = 'st-kicker mb-2 block text-[9px] text-fg-3';
 const LIME_BUTTON = { background: 'var(--st-primary)', color: 'var(--st-on-primary)', borderRadius: 14 };
 
@@ -32,8 +32,8 @@ function StatusPill({ status }) {
     <span
       className="st-kicker font-semibold px-2.5 py-1.5 shrink-0"
       style={{
-        background: `hsl(var(--neon-${tone}) / 0.12)`,
-        color: `hsl(var(--neon-${tone}))`,
+        background: `var(--chip-${tone}-bg)`,
+        color: `var(--chip-${tone}-fg)`,
         borderRadius: 999,
       }}
     >

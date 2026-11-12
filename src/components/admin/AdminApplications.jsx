@@ -16,7 +16,7 @@ import {
   XCircle,
 } from 'lucide-react';
 
-const FIELD = 'w-full rounded-2xl border border-line bg-black/15 px-4 py-3 text-[13px] text-fg placeholder:text-fg-3 transition focus:border-line-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan/15';
+const FIELD = 'w-full rounded-2xl border border-line bg-[var(--field)] px-4 py-3 text-[13px] text-fg placeholder:text-fg-3 transition focus:border-line-2 focus:outline-none focus:ring-2 focus:ring-neon-cyan/15';
 
 function formattedDate(value) {
   if (!value) return 'Date unavailable';
@@ -36,7 +36,7 @@ function DetailRow({ icon: Icon, label, value, href = undefined }) {
   );
 
   return (
-    <div className="flex min-w-0 gap-3 rounded-2xl border border-line bg-black/10 px-3.5 py-3">
+    <div className="flex min-w-0 gap-3 rounded-2xl border border-line bg-[var(--field)] px-3.5 py-3">
       <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-fill text-fg-3">
         <Icon className="h-3.5 w-3.5" aria-hidden="true" />
       </span>
@@ -112,7 +112,7 @@ export default function AdminApplications({
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <span className="inline-flex h-[46px] items-center justify-center gap-2 rounded-2xl border border-line-2 bg-neon-cyan/[0.08] px-4 text-[12px] font-semibold text-accent2">
+            <span className="inline-flex h-[46px] items-center justify-center gap-2 rounded-2xl border border-line-2 bg-[var(--chip-cyan-bg)] px-4 text-[12px] font-semibold text-accent2">
               <span className="admin-status-dot" aria-hidden="true" />
               {filtered.length} to review
             </span>
@@ -148,12 +148,12 @@ export default function AdminApplications({
       </section>
 
       {isError && (
-        <div role="alert" className="rounded-2xl border border-neon-magenta/30 bg-neon-magenta/5 p-4 text-[13px] text-fg-2">
+        <div role="alert" className="rounded-2xl border border-[var(--chip-magenta-fg)] bg-[var(--chip-magenta-bg)] p-4 text-[13px] text-fg-2">
           Creator applications or contact details could not be loaded. Refresh the page and try again.
         </div>
       )}
       {saveError && (
-        <div role="alert" className="rounded-2xl border border-neon-magenta/30 bg-neon-magenta/5 p-4 text-[13px] text-fg-2">
+        <div role="alert" className="rounded-2xl border border-[var(--chip-magenta-fg)] bg-[var(--chip-magenta-bg)] p-4 text-[13px] text-fg-2">
           The application status could not be updated. Please try again.
         </div>
       )}
@@ -205,7 +205,7 @@ export default function AdminApplications({
 
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="st-kicker rounded-full border border-line-2 bg-neon-cyan/[0.08] px-2.5 py-1 text-[8px] text-accent2">Pending review</span>
+                          <span className="st-kicker rounded-full border border-line-2 bg-[var(--chip-cyan-bg)] px-2.5 py-1 text-[8px] text-accent2">Pending review</span>
                           <span className="st-kicker text-fg-3">Submitted {formattedDate(application.created_date)}</span>
                         </div>
                         <h3 className="mt-3 text-2xl font-semibold tracking-tight text-fg">{name}</h3>
@@ -222,17 +222,17 @@ export default function AdminApplications({
                     </div>
 
                     {application.bio && (
-                      <div className="mt-6 rounded-2xl border border-line bg-black/10 p-4">
+                      <div className="mt-6 rounded-2xl border border-line bg-[var(--field)] p-4">
                         <p className="st-kicker text-fg-3">About their work</p>
                         <p className="mt-2 whitespace-pre-line text-[13px] leading-relaxed text-fg-2">{application.bio}</p>
                       </div>
                     )}
                   </div>
 
-                  <aside className="rounded-[20px] border border-line bg-black/15 p-4">
+                  <aside className="rounded-[20px] border border-line bg-[var(--field)] p-4">
                     {isConfirming ? (
                       <div className="flex h-full flex-col">
-                        <span className={"grid h-9 w-9 place-items-center rounded-xl " + (isApproving ? 'bg-fill-2 text-accent2' : 'bg-neon-magenta/15 text-danger')}>
+                        <span className={"grid h-9 w-9 place-items-center rounded-xl " + (isApproving ? 'bg-fill-2 text-accent2' : 'bg-[var(--chip-magenta-bg)] text-danger')}>
                           {isApproving ? <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> : <XCircle className="h-4 w-4" aria-hidden="true" />}
                         </span>
                         <h4 className="mt-4 text-[14px] font-semibold text-fg">
@@ -249,8 +249,8 @@ export default function AdminApplications({
                             onClick={() => confirmDecision(application)}
                             disabled={isSaving}
                             className={isApproving
-                              ? 'h-10 rounded-xl bg-neon-lime text-[10px] font-semibold uppercase tracking-[0.13em] text-ink hover:bg-neon-lime/90'
-                              : 'h-10 rounded-xl bg-neon-magenta text-[10px] font-semibold uppercase tracking-[0.13em] text-ink hover:bg-neon-magenta/90'}
+                              ? 'h-10 rounded-xl bg-neon-lime text-[10px] font-semibold uppercase tracking-[0.13em] text-ink hover:bg-[var(--chip-lime-bg)]'
+                              : 'h-10 rounded-xl bg-neon-magenta text-[10px] font-semibold uppercase tracking-[0.13em] text-ink hover:bg-[var(--chip-magenta-bg)]'}
                           >
                             {isThisSaving ? 'Saving…' : isApproving ? 'Confirm approval' : 'Confirm rejection'}
                           </Button>
@@ -277,7 +277,7 @@ export default function AdminApplications({
                             type="button"
                             onClick={() => requestDecision(application, 'approved')}
                             disabled={isSaving}
-                            className="h-10 rounded-xl bg-neon-lime text-[10px] font-semibold uppercase tracking-[0.13em] text-ink hover:bg-neon-lime/90"
+                            className="h-10 rounded-xl bg-neon-lime text-[10px] font-semibold uppercase tracking-[0.13em] text-ink hover:bg-[var(--chip-lime-bg)]"
                           >
                             <Check className="h-3.5 w-3.5" /> Approve & publish
                           </Button>
@@ -286,7 +286,7 @@ export default function AdminApplications({
                             variant="outline"
                             onClick={() => requestDecision(application, 'rejected')}
                             disabled={isSaving}
-                            className="h-10 rounded-xl border-line bg-transparent text-[10px] font-semibold uppercase tracking-[0.13em] text-fg-2 hover:border-neon-magenta/50 hover:bg-neon-magenta/10 hover:text-fg"
+                            className="h-10 rounded-xl border-line bg-transparent text-[10px] font-semibold uppercase tracking-[0.13em] text-fg-2 hover:border-[var(--chip-magenta-fg)] hover:bg-[var(--chip-magenta-bg)] hover:text-fg"
                           >
                             <X className="h-3.5 w-3.5" /> Decline
                           </Button>
@@ -316,7 +316,7 @@ export default function AdminApplications({
                     </div>
                     <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
                       {portfolio.map((src, index) => (
-                        <figure key={src} className="group relative overflow-hidden rounded-2xl border border-line bg-black/20">
+                        <figure key={src} className="group relative overflow-hidden rounded-2xl border border-line bg-[var(--field)]">
                           <img
                             src={src}
                             alt={'Portfolio sample ' + (index + 1) + ' from ' + name}

@@ -1,21 +1,17 @@
 import React from 'react';
+import { Page, Sheet } from '@/components/system';
 
-const WIDTHS = {
-  wide: 'max-w-[1240px]',
-  narrow: 'max-w-[1040px]',
-  reading: 'max-w-[760px]',
-};
+const WIDTHS = { wide: 'default', narrow: 'narrow', reading: 'reading' };
 
 /**
- * Every page sits in the same shell: ink canvas, one measure, room to breathe.
- * width="reading" for legal and long-form copy, "narrow" for forms.
+ * A long-form page: one sheet of paper on the ink stage.
+ * width="reading" for legal and long copy, "narrow" for forms.
  */
+/** @param {Record<string, any>} props */
 export default function PageShell({ width = 'wide', children, className = '' }) {
   return (
-    <div className="min-h-screen bg-ink text-fg">
-      <div className={`mx-auto px-5 md:px-10 pt-24 md:pt-32 pb-24 md:pb-32 ${WIDTHS[width]} ${className}`}>
-        {children}
-      </div>
-    </div>
+    <Page width={WIDTHS[width] || 'default'}>
+      <Sheet className={className}>{children}</Sheet>
+    </Page>
   );
 }

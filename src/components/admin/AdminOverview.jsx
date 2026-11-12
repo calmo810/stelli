@@ -17,7 +17,7 @@ function eventDate(value) {
 }
 
 function QueueCard({ icon: Icon, label, value, detail, tone, tab, onOpen }) {
-  const color = `hsl(var(--neon-${tone}))`;
+  const color = `var(--chip-${tone}-fg)`;
 
   return (
     <button
@@ -32,7 +32,7 @@ function QueueCard({ icon: Icon, label, value, detail, tone, tab, onOpen }) {
         </div>
         <span
           className="grid h-11 w-11 place-items-center rounded-2xl"
-          style={{ background: `hsl(var(--neon-${tone}) / 0.12)`, color }}
+          style={{ background: `var(--chip-${tone}-bg)`, color }}
         >
           <Icon className="h-5 w-5" aria-hidden="true" />
         </span>
@@ -55,7 +55,7 @@ function BookingStatus({ status }) {
   return (
     <span
       className="st-kicker inline-flex rounded-full px-3 py-1.5 text-[8px] font-semibold"
-      style={{ background: `hsl(var(--neon-${tone}) / 0.12)`, color: `hsl(var(--neon-${tone}))` }}
+      style={{ background: `var(--chip-${tone}-bg)`, color: `var(--chip-${tone}-fg)` }}
     >
       {normalized}
     </span>

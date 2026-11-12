@@ -10,6 +10,7 @@ import { Btn, Dialog, Note } from '@/components/system';
  * sends the same action ID for the life of this dialog, so a double click, or
  * a retry on a slow connection, does the thing once.
  */
+/** @param {Record<string, any>} props */
 export default function ConfirmAction({ open, title, message, confirmLabel = 'Confirm', busy, error, onConfirm, onCancel, children = null }) {
   return (
     <Dialog open={open} onClose={onCancel} busy={busy} kicker="Please confirm" title={title}>

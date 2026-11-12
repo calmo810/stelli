@@ -5,6 +5,7 @@ import { format } from 'date-fns';
  * One chat bubble. Your own messages sit on the right (lime for clients, cyan for creators).
  * Messages sent in a row share one time stamp, shown under the last of them.
  */
+/** @param {Record<string, any>} props */
 export default function MessageBubble({ message, isOwn, isLastInGroup = true }) {
   const pending = !!message.pending;
 

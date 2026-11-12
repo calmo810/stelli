@@ -9,7 +9,8 @@ import { Sheet } from '@/components/system';
  * ink, the form on a sheet of paper. `bare` drops the header for a screen that
  * brings its own (the two-factor steps).
  */
-export default function AuthLayout({ icon: Icon, title, subtitle, footer, bare = false, children }) {
+/** @param {Record<string, any>} props */
+export default function AuthLayout({ icon: Icon = null, title = '', subtitle = '', footer = null, bare = false, children }) {
   return (
     <div className="st-page st-ink">
       <div

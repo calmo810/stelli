@@ -37,14 +37,14 @@ export default function LegalPage({ title, type, content, lastUpdated }) {
         action={
           <button
             onClick={handleDownloadPdf}
-            className="shrink-0 rounded-full border border-line px-6 py-3 st-kicker text-fg-2 hover:text-fg transition-colors"
+            className="st-btn st-btn--outline st-btn--sm shrink-0"
           >
             Download PDF
           </button>
         }
       />
 
-      <article className="mt-14 md:mt-16 border-t border-line pt-10 space-y-5">
+      <article className="mt-8 border-t border-line pt-8 space-y-4">
         {blocks.map((block, index) => {
           if (block.rows) {
             const [header, ...body] = block.rows;
@@ -69,7 +69,7 @@ export default function LegalPage({ title, type, content, lastUpdated }) {
                         {row.map((cell, column) => (
                           <td
                             key={column}
-                            className="border-b border-line py-3 pr-4 align-top leading-relaxed text-fg-3"
+                            className="border-b border-line py-3 pr-4 align-top leading-relaxed text-fg-2"
                           >
                             {cell}
                           </td>
@@ -93,7 +93,7 @@ export default function LegalPage({ title, type, content, lastUpdated }) {
               {block.text}
             </h2>
           ) : (
-            <p key={index} className="text-[14px] md:text-[15px] leading-[1.9] text-fg-3">
+            <p key={index} className="text-[15px] leading-[1.8] text-fg-2">
               {block.text}
             </p>
           );

@@ -17,18 +17,18 @@ import CreatorHoldButton from '@/components/admin/CreatorHoldButton';
 import { founderQueue } from '@/lib/founderQueue';
 
 const SURFACE = {
-  background: 'linear-gradient(145deg, hsl(var(--surface-2) / .86), hsl(var(--surface) / .94))',
+  background: 'var(--st-card)',
   borderRadius: 22,
   boxShadow: 'inset 0 1px 0 var(--line), 0 18px 42px -30px rgba(0,0,0,.78)',
 };
 const CARD = 'admin-surface';
 
 function Pill({ children, tone = 'cyan' }) {
-  const color = `hsl(var(--neon-${tone}))`;
+  const color = `var(--chip-${tone}-fg)`;
   return (
     <span
       className="st-kicker inline-flex rounded-full px-2.5 py-1.5 text-[8px] font-semibold"
-      style={{ background: `hsl(var(--neon-${tone}) / 0.12)`, color }}
+      style={{ background: `var(--chip-${tone}-bg)`, color }}
     >
       {children}
     </span>
@@ -125,12 +125,12 @@ export default function AdminDashboard() {
 
   return (
     <div className="admin-shell min-h-screen">
-      <div className="mx-auto max-w-[1400px] px-5 py-7 md:px-10 md:py-10">
+      <div className="st-wrap st-wrap--wide pb-16 pt-3"><div className="st-sheet st-paper">
         <motion.section
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-          className="admin-hero p-6 sm:p-8 lg:p-10"
+          className="admin-hero st-card--ink p-6 sm:p-8 lg:p-10"
         >
           <div className="relative z-10 flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
@@ -150,7 +150,7 @@ export default function AdminDashboard() {
             <button
               type="button"
               onClick={() => setActiveTab('applications')}
-              className="group relative z-10 flex min-w-[245px] items-center justify-between rounded-[20px] border border-line-2 bg-neon-cyan/[0.09] p-4 text-left transition hover:border-line-2 hover:bg-neon-cyan/[0.13]"
+              className="group relative z-10 flex min-w-[245px] items-center justify-between rounded-[20px] border border-line-2 bg-[var(--chip-cyan-bg)] p-4 text-left transition hover:border-line-2 hover:bg-[var(--chip-cyan-bg)]"
             >
               <span>
                 <span className="st-kicker text-accent2">Next up</span>
@@ -217,16 +217,16 @@ export default function AdminDashboard() {
               <LayoutDashboard className="h-3.5 w-3.5" /> Overview
             </TabsTrigger>
             <TabsTrigger value="applications" className="admin-tab shrink-0 gap-2 px-4 st-kicker">
-              <ClipboardCheck className="h-3.5 w-3.5" /> Applications <span className="rounded-full bg-black/10 px-1.5 py-0.5">{pendingApplications.length}</span>
+              <ClipboardCheck className="h-3.5 w-3.5" /> Applications <span className="rounded-full bg-[var(--field)] px-1.5 py-0.5">{pendingApplications.length}</span>
             </TabsTrigger>
             <TabsTrigger value="lensmen" className="admin-tab shrink-0 gap-2 px-4 st-kicker">
-              <Users className="h-3.5 w-3.5" /> Creators <span className="rounded-full bg-black/10 px-1.5 py-0.5">{approved.length}</span>
+              <Users className="h-3.5 w-3.5" /> Creators <span className="rounded-full bg-[var(--field)] px-1.5 py-0.5">{approved.length}</span>
             </TabsTrigger>
             <TabsTrigger value="bookings" className="admin-tab shrink-0 gap-2 px-4 st-kicker">
-              <Calendar className="h-3.5 w-3.5" /> Bookings <span className="rounded-full bg-black/10 px-1.5 py-0.5">{bookings.length}</span>
+              <Calendar className="h-3.5 w-3.5" /> Bookings <span className="rounded-full bg-[var(--field)] px-1.5 py-0.5">{bookings.length}</span>
             </TabsTrigger>
             <TabsTrigger value="flagged" className="admin-tab shrink-0 gap-2 px-4 st-kicker">
-              <CircleDollarSign className="h-3.5 w-3.5" /> Needs you <span className="rounded-full bg-black/10 px-1.5 py-0.5">{heldFunds.length}</span>
+              <CircleDollarSign className="h-3.5 w-3.5" /> Needs you <span className="rounded-full bg-[var(--field)] px-1.5 py-0.5">{heldFunds.length}</span>
             </TabsTrigger>
             <TabsTrigger value="pay" className="admin-tab shrink-0 gap-2 px-4 st-kicker">
               <DollarSign className="h-3.5 w-3.5" /> Pay creators
@@ -298,13 +298,13 @@ export default function AdminDashboard() {
                   value={creatorSearch}
                   onChange={(event) => setCreatorSearch(event.target.value)}
                   placeholder="Search name, specialty, or area…"
-                  className="w-full rounded-2xl border border-line bg-black/15 px-4 py-3 text-[13px] text-fg placeholder:text-fg-3 transition focus:border-[var(--st-ring)] focus:outline-none focus:ring-2 focus:ring-neon-lime/15"
+                  className="w-full rounded-2xl border border-line bg-[var(--field)] px-4 py-3 text-[13px] text-fg placeholder:text-fg-3 transition focus:border-[var(--st-ring)] focus:outline-none focus:ring-2 focus:ring-neon-lime/15"
                 />
               </label>
             </section>
 
             {lensmenError ? (
-              <p role="alert" className="rounded-2xl border border-neon-magenta/30 bg-neon-magenta/5 p-4 text-[13px] text-fg-2">Creator profiles could not be loaded. Refresh the page and try again.</p>
+              <p role="alert" className="rounded-2xl border border-[var(--chip-magenta-fg)] bg-[var(--chip-magenta-bg)] p-4 text-[13px] text-fg-2">Creator profiles could not be loaded. Refresh the page and try again.</p>
             ) : loadingLensmen ? (
               <div className="grid gap-3 md:grid-cols-2">
                 {Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-32 rounded-[22px] bg-fill" />)}
@@ -330,7 +330,7 @@ export default function AdminDashboard() {
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="truncate text-[19px] font-semibold leading-tight text-fg">{creator.display_name || 'Stelli creator'}</h3>
                         {creator.under_review ? (
-                          <span className="st-kicker rounded-full bg-neon-magenta/12 px-2 py-1 text-[7px] text-danger">On hold</span>
+                          <span className="st-kicker rounded-full bg-[var(--chip-magenta-bg)] px-2 py-1 text-[7px] text-danger">On hold</span>
                         ) : (
                           <span className="st-kicker rounded-full bg-fill-2 px-2 py-1 text-[7px] text-accent2">Live</span>
                         )}
@@ -371,7 +371,7 @@ export default function AdminDashboard() {
                   value={bookingSearch}
                   onChange={(event) => setBookingSearch(event.target.value)}
                   placeholder="Search client, creator, event, or date…"
-                  className="w-full rounded-2xl border border-line bg-black/15 px-4 py-3 text-[13px] text-fg placeholder:text-fg-3 transition focus:border-[var(--st-ring)] focus:outline-none focus:ring-2 focus:ring-neon-lime/15"
+                  className="w-full rounded-2xl border border-line bg-[var(--field)] px-4 py-3 text-[13px] text-fg placeholder:text-fg-3 transition focus:border-[var(--st-ring)] focus:outline-none focus:ring-2 focus:ring-neon-lime/15"
                 />
               </label>
               <label className="block sm:w-[220px]">
@@ -379,7 +379,7 @@ export default function AdminDashboard() {
                 <select
                   value={bookingStatus}
                   onChange={(event) => setBookingStatus(event.target.value)}
-                  className="w-full rounded-2xl border border-line bg-[hsl(var(--surface))] px-4 py-3 text-[13px] text-fg transition focus:border-[var(--st-ring)] focus:outline-none focus:ring-2 focus:ring-neon-lime/15"
+                  className="w-full rounded-2xl border border-line bg-[var(--field)] px-4 py-3 text-[13px] text-fg transition focus:border-[var(--st-ring)] focus:outline-none focus:ring-2 focus:ring-neon-lime/15"
                 >
                   <option value="all">All statuses</option>
                   {bookingStatuses.map((status) => <option key={status} value={status}>{status.replace(/_/g, ' ')}</option>)}
@@ -387,7 +387,7 @@ export default function AdminDashboard() {
               </label>
             </div>
             {bookingsError ? (
-              <p role="alert" className="border border-neon-magenta/30 p-4 text-[13px] text-fg-2">Bookings could not be loaded. Refresh the page and try again.</p>
+              <p role="alert" className="border border-[var(--chip-magenta-fg)] p-4 text-[13px] text-fg-2">Bookings could not be loaded. Refresh the page and try again.</p>
             ) : loadingBookings ? (
               Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-20" />)
             ) : filteredBookings.length > 0 ? (
@@ -418,7 +418,7 @@ export default function AdminDashboard() {
             <FounderQueueList bookings={bookings} strays={strays} />
           </TabsContent>
         </Tabs>
-      </div>
+      </div></div>
     </div>
   );
 }

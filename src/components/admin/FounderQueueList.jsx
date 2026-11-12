@@ -6,7 +6,7 @@ import ConfirmAction, { newActionId } from '@/components/shared/ConfirmAction';
 
 // The admin page's card look (see AdminDashboard.jsx).
 const SURFACE = {
-  background: 'linear-gradient(145deg, hsl(var(--surface-2) / .86), hsl(var(--surface) / .94))',
+  background: 'var(--st-card)',
   borderRadius: 22,
   boxShadow: 'inset 0 1px 0 var(--line), 0 18px 42px -30px rgba(0,0,0,.78)',
 };
@@ -140,7 +140,7 @@ export default function FounderQueueList({ bookings, strays = null }) {
               <p
                 role="status"
                 className="mt-4 text-[13px]"
-                style={{ color: note.ok ? 'hsl(var(--neon-lime))' : 'hsl(var(--neon-magenta))' }}
+                style={{ color: note.ok ? 'var(--st-accent)' : 'var(--danger)' }}
               >
                 {note.message}
               </p>

@@ -39,9 +39,9 @@ export default function AdminFaqQuestions() {
           <p className="mt-2 text-[13px] text-fg-3">See what clients ask, and spot gaps in the concierge’s answers.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <span className="rounded-full border border-line bg-black/15 px-3 py-2 text-[11px] text-fg-3">{rows.length} questions</span>
-          <span className="rounded-full border border-line bg-black/15 px-3 py-2 text-[11px] text-fg-3">{visitors} visitors</span>
-          {missed > 0 && <span className="rounded-full border border-neon-magenta/25 bg-neon-magenta/10 px-3 py-2 text-[11px] text-danger">{missed} need attention</span>}
+          <span className="rounded-full border border-line bg-[var(--field)] px-3 py-2 text-[11px] text-fg-3">{rows.length} questions</span>
+          <span className="rounded-full border border-line bg-[var(--field)] px-3 py-2 text-[11px] text-fg-3">{visitors} visitors</span>
+          {missed > 0 && <span className="rounded-full border border-[var(--chip-magenta-fg)] bg-[var(--chip-magenta-bg)] px-3 py-2 text-[11px] text-danger">{missed} need attention</span>}
         </div>
       </section>
 
@@ -89,7 +89,7 @@ export default function AdminFaqQuestions() {
                 <span>{when(row.created_date)}</span>
                 <span>Visitor {String(row.session_id || '').slice(0, 6)}</span>
                 <span>{row.signed_in ? 'Signed in' : 'Guest'}</span>
-                {row.source === 'fallback' && <span className="rounded-full bg-neon-magenta/10 px-2 py-1 text-danger">Needs FAQ answer</span>}
+                {row.source === 'fallback' && <span className="rounded-full bg-[var(--chip-magenta-bg)] px-2 py-1 text-danger">Needs FAQ answer</span>}
               </div>
               <p className="mt-4 text-[18px] font-semibold text-fg">“{row.question}”</p>
               {row.answer && <p className="mt-3 max-w-4xl whitespace-pre-line text-[13px] leading-relaxed text-fg-2">{row.answer}</p>}

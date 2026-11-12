@@ -562,27 +562,22 @@
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* Admin workspace: a calm, tactile command center that still feels unmistakably Stelli. */
+/* Admin workspace: the same paper-on-ink system, with one dark hero card. */
 .admin-shell {
   position: relative;
   isolation: isolate;
-  background:
-    radial-gradient(900px 460px at 8% -10%, hsl(var(--neon-cyan) / .10), transparent 62%),
-    radial-gradient(780px 420px at 100% 10%, hsl(var(--neon-magenta) / .09), transparent 58%),
-    hsl(var(--ink));
+  background: hsl(var(--ink));
 }
 
 .admin-hero {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, .13);
-  border-radius: 30px;
+  border-radius: var(--r-lg);
   background:
     radial-gradient(520px 260px at 82% 14%, hsl(var(--neon-cyan) / .20), transparent 62%),
     radial-gradient(460px 300px at 8% 100%, hsl(var(--neon-lime) / .13), transparent 66%),
-    linear-gradient(135deg, hsl(var(--surface-2)), hsl(var(--surface)) 56%, hsl(var(--ink)));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .13), 0 28px 70px -40px rgba(0, 0, 0, .85);
+    linear-gradient(160deg, #16223f 0%, var(--st-ink) 70%);
 }
 
 .admin-hero::after {
@@ -598,32 +593,27 @@
 }
 
 .admin-surface {
-  border: 1px solid rgba(255, 255, 255, .11);
-  border-radius: 22px;
-  background: linear-gradient(145deg, hsl(var(--surface-2) / .86), hsl(var(--surface) / .94));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 18px 42px -30px rgba(0, 0, 0, .78);
+  border-radius: var(--r-md);
+  background: var(--st-card);
+  box-shadow: 0 0 0 1px var(--line), var(--shadow-card);
 }
 
 .admin-surface--interactive {
-  transition: transform .24s ease, border-color .24s ease, box-shadow .24s ease;
+  transition: transform var(--dur-2) var(--ease), box-shadow var(--dur-2) var(--ease);
 }
 
 .admin-surface--interactive:hover {
   transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, .20);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .10), 0 24px 52px -32px rgba(0, 0, 0, .88);
+  box-shadow: 0 0 0 1px var(--line-2), 0 22px 44px -22px rgba(10, 18, 38, .4);
 }
 
 .admin-tabbar {
   display: flex;
-  gap: 6px;
+  gap: 2px;
   overflow-x: auto;
-  padding: 6px;
-  border: 1px solid rgba(255, 255, 255, .10);
-  border-radius: 18px;
-  background: hsl(var(--surface) / .62);
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(18px);
+  padding: 4px;
+  border-radius: var(--r-pill);
+  background: var(--fill);
   scrollbar-width: none;
 }
 
@@ -631,25 +621,23 @@
 
 .admin-tab {
   min-height: 42px;
-  border-radius: 13px;
-  color: rgba(255, 255, 255, .52);
+  border-radius: var(--r-pill);
+  color: var(--fg-2);
 }
 
 .admin-tab[data-state='active'] {
-  color: hsl(var(--ink));
-  background: hsl(var(--neon-lime));
-  box-shadow: 0 8px 22px -12px hsl(var(--neon-lime) / .85);
+  color: var(--st-on-primary);
+  background: var(--st-primary);
 }
 
 .admin-kicker {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid hsl(var(--neon-cyan) / .22);
   border-radius: 999px;
-  background: hsl(var(--neon-cyan) / .08);
-  padding: 6px 10px;
-  color: hsl(var(--neon-cyan));
+  background: var(--chip-cyan-bg);
+  padding: 6px 12px;
+  color: var(--chip-cyan-fg);
 }
 
 .admin-status-dot {
@@ -657,6 +645,4 @@
   height: 7px;
   border-radius: 50%;
   background: currentColor;
-  box-shadow: 0 0 0 4px currentColor;
-  opacity: .85;
 }

@@ -143,7 +143,7 @@ export default function CreatorProfile({
 
         <div className="cp-details" id="book">
           {hasAbout && (
-            <div className="cp-box">
+            <div className="cp-box st-paper">
               {creator.bio && (
                 <>
                   <h3>About {firstName}</h3>
@@ -187,7 +187,7 @@ export default function CreatorProfile({
             </div>
           )}
 
-          <div className="cp-box">
+          <div className="cp-box st-paper">
             <h3>How booking {firstName} works</h3>
             <ol className="cp-steps">
               <li>
@@ -210,7 +210,7 @@ export default function CreatorProfile({
           </div>
 
           {spots.length > 0 && (
-            <div className="cp-box">
+            <div className="cp-box st-paper">
               <h3>Where {firstName} shoots</h3>
               <div className="cp-chips">
                 {spots.map((s) => (

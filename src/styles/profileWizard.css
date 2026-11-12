@@ -558,3 +558,72 @@
 .pw-root .pw-state { min-height: 100vh; display: grid; place-content: center; justify-items: center; gap: 12px; padding: 24px; text-align: center; }
 .pw-root .pw-state h1 { font-family: var(--font-display); font-size: 28px; color: #fff; }
 .pw-root .pw-state p { color: rgba(255, 255, 255, .6); font-size: 14px; max-width: 34ch; margin-bottom: 8px; }
+
+/* =====================================================================
+   PAPER ON INK
+   The wizard follows the design system (src/styles/system.css): the bar, the
+   live preview and the action bar stay on the ink; the step being filled in,
+   the welcome, the review and the "you're in" screen are sheets of paper.
+   Re-pointing the wizard's own tokens inside those sheets re-colours every
+   field, chip and switch at once. On paper the accent is ink, not lime.
+===================================================================== */
+.pw-root{--bg:#0a1226;--panel:#101a33;--raise:#18233f;--ink:#0a1226;--r:16px;--r-sm:14px;--r-lg:26px}
+.pw-root .welcome,
+.pw-root .card,
+.pw-root .pv > div:last-child,
+.pw-root .share,
+.pw-root .alert,
+.pw-root .pick-card,
+.pw-root .pw-state{
+  --bg:#ffffff;
+  --panel:#ffffff;
+  --raise:#f1f4f9;
+  --line:#e2e7ef;
+  --line-2:#c6cedb;
+  --text:#0a1226;
+  --dim:#414b61;
+  --faint:#626d82;
+  --lime:#0a1226;
+  --accent:#0a1226;
+  --ink:#ffffff;
+  --danger:#b3173f;
+  color:var(--text);
+}
+.pw-root .welcome,
+.pw-root .card,
+.pw-root .pv > div:last-child,
+.pw-root .share{
+  background:linear-gradient(180deg,#ffffff 0%,#f3f7fc 55%,#edf3fa 100%);
+  border-radius:26px;
+  padding:24px 18px 26px;
+  box-shadow:0 30px 80px -40px rgba(0,0,0,.85), inset 0 1px 0 rgba(255,255,255,.8);
+}
+@media(min-width:640px){
+  .pw-root .welcome,
+  .pw-root .card,
+  .pw-root .pv > div:last-child,
+  .pw-root .share{border-radius:34px;padding:38px 36px 40px}
+}
+.pw-root .pw-state{background:none}
+.pw-root .pw-state h1,.pw-root .pw-state p{color:#fff}
+.pw-root .pw-state p{color:rgba(255,255,255,.7)}
+.pw-root .stage{padding:20px 12px 150px}
+@media(min-width:640px){.pw-root .stage{padding:32px 24px 160px}}
+
+/* Headlines: the heavy, tight sans; one phrase in the serif italic. */
+.pw-root .step-title,.pw-root .pv-head h1,.pw-root .share h1,.pw-root .welcome h1,.pw-root .starters-head h2{
+  font-family:var(--font-heading);font-weight:800;letter-spacing:-.04em;line-height:1.02;
+}
+.pw-root .welcome h1 em{font-family:var(--font-display);font-style:italic;font-weight:500;letter-spacing:-.02em;color:inherit}
+.pw-root .lbl,.pw-root .kicker{font-weight:700;letter-spacing:.13em}
+
+/* Buttons and fields take the system's shapes. */
+.pw-root .btn,.pw-root .go,.pw-root .back{border-radius:999px;font-weight:700}
+.pw-root .go{background:hsl(var(--neon-lime));color:#0a1226;min-height:48px}
+.pw-root .inp{border-radius:14px}
+.pw-root .big-check{background:hsl(var(--neon-lime));color:#0a1226}
+.pw-root .check.ok .ic{background:hsl(var(--neon-lime));color:#0a1226}
+.pw-root .bar i,.pw-root .meter i.on{background:#0a1226}
+.pw-root .switch.on{background:#0a1226}
+.pw-root .starter{border-radius:22px;overflow:hidden}
+.pw-root .toast{border-radius:999px}

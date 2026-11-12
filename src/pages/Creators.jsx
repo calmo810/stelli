@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { SearchX } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Btn, EmptyState, ErrorState } from '@/components/system';
 import BrowseFilters from '@/components/browse/BrowseFilters';
 import CreatorCard from '@/components/browse/CreatorCard';
 import QuickViewSheet from '@/components/browse/QuickViewSheet';
@@ -23,8 +25,8 @@ export default function Creators() {
   );
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-ink text-fg">
-      <div className="relative z-[1] mx-auto max-w-[1240px] px-5 pt-6 pb-24 md:px-10 md:pt-9 md:pb-32">
+    <div className="st-page st-ink overflow-x-hidden">
+      <div className="st-wrap relative z-[1] pb-20 pt-6 md:pb-28 md:pt-9">
         {/* The layout already clears the fixed nav, so the header starts right under it. */}
         <div className="mb-6">
           <BrowseFilters
@@ -36,16 +38,7 @@ export default function Creators() {
         </div>
 
         {isError ? (
-          <div role="alert" className="py-16 text-center">
-            <p className="text-fg-2">We couldn’t load creators. Please try again.</p>
-            <button
-              type="button"
-              onClick={() => refetch()}
-              className="mt-4 rounded-full border border-line-2 px-5 py-2 text-sm text-fg transition-colors hover:bg-fill-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neon-lime"
-            >
-              Try again
-            </button>
-          </div>
+          <ErrorState title="We couldn’t load creators." onRetry={() => refetch()} />
         ) : isLoading ? (
           <div
             className="grid grid-cols-1 gap-[22px] pb-8 sm:grid-cols-2 lg:grid-cols-3"
@@ -58,7 +51,12 @@ export default function Creators() {
               ))}
           </div>
         ) : results.length === 0 ? (
-          <p className="py-20 text-center text-fg-3">No one here yet. Try another filter.</p>
+          <EmptyState
+            icon={SearchX}
+            title="No one here yet."
+            body="Nobody matches that filter right now."
+            action={<Btn variant="outline" size="sm" onClick={() => setFilter('all')}>Show everyone</Btn>}
+          />
         ) : (
           <div
             className="grid grid-cols-1 gap-[22px] sm:grid-cols-2 lg:grid-cols-3"

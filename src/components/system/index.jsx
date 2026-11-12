@@ -21,6 +21,7 @@ const WIDTHS = {
 };
 
 /** A screen on the ink stage: one measured column with room to breathe. */
+/** @param {Record<string, any>} props */
 export function Page({ width = 'default', className = '', children, ...rest }) {
   return (
     <div className="st-page st-ink" {...rest}>
@@ -30,6 +31,7 @@ export function Page({ width = 'default', className = '', children, ...rest }) {
 }
 
 /** The bright sheet a screen's content sits on. Everything inside reads dark-on-light. */
+/** @param {Record<string, any>} props */
 export function Sheet({ as: Tag = 'div', flush = false, className = '', children, ...rest }) {
   return (
     <Tag className={cn('st-sheet st-paper', flush && 'st-sheet--flush', className)} {...rest}>
@@ -39,6 +41,7 @@ export function Sheet({ as: Tag = 'div', flush = false, className = '', children
 }
 
 /** The top of a screen: a quiet line, the headline, a sentence, and what you can do. */
+/** @param {Record<string, any>} props */
 export function PageHeader({ kicker, title, lede, actions, back, level = 'h1', className = '' }) {
   const Heading = level;
   return (
@@ -77,6 +80,7 @@ const BTN_SIZE = { sm: 'st-btn--sm', md: '', lg: 'st-btn--lg' };
  * The one button. `to` makes it a link, `href` an outside link, otherwise it
  * is a real <button>. `arrow` adds the round arrow: "end", "start" or "up".
  */
+/** @type {React.ForwardRefExoticComponent<Record<string, any> & React.RefAttributes<any>>} */
 export const Btn = React.forwardRef(function Btn(
   { to, href, variant = 'primary', size = 'md', block = false, arrow = '', loading = false, disabled = false, className = '', children, type, ...rest },
   ref
@@ -120,6 +124,7 @@ export const Btn = React.forwardRef(function Btn(
 });
 
 /** A round button that is only an icon. It always carries a spoken label. */
+/** @type {React.ForwardRefExoticComponent<Record<string, any> & React.RefAttributes<any>>} */
 export const IconBtn = React.forwardRef(function IconBtn(
   { label, to, href, variant = 'line', size = 'md', className = '', children, type, ...rest },
   ref
@@ -161,6 +166,7 @@ const CARD_TONE = {
   peach: 'st-card--peach',
 };
 
+/** @param {Record<string, any>} props */
 export function Card({ as: Tag = 'div', tone = 'paper', pad = true, large = false, hover = false, className = '', children, ...rest }) {
   return (
     <Tag className={cn('st-card', CARD_TONE[tone], pad && 'st-card--pad', large && 'st-card--lg', hover && 'st-card--hover', className)} {...rest}>
@@ -181,6 +187,7 @@ const CHIP_TONE = {
   line: 'st-chip--line',
 };
 
+/** @param {Record<string, any>} props */
 export function Chip({ as: Tag = 'span', tone = 'neutral', large = false, className = '', children, ...rest }) {
   return (
     <Tag className={cn('st-chip', CHIP_TONE[tone], large && 'st-chip--lg', className)} {...rest}>
@@ -189,6 +196,7 @@ export function Chip({ as: Tag = 'span', tone = 'neutral', large = false, classN
   );
 }
 
+/** @param {Record<string, any>} props */
 export function Avatar({ src, name = '', size = 'md', ring = false, className = '' }) {
   const sizes = { sm: 'st-avatar--sm', md: '', lg: 'st-avatar--lg', xl: 'st-avatar--xl' };
   return (
@@ -199,6 +207,7 @@ export function Avatar({ src, name = '', size = 'md', ring = false, className = 
 }
 
 /** One big number and what it counts. */
+/** @param {Record<string, any>} props */
 export function Stat({ value, label, icon: Icon, className = '' }) {
   return (
     <div className={cn('st-stat', className)}>
@@ -214,6 +223,7 @@ export function Stat({ value, label, icon: Icon, className = '' }) {
 /* ---------------- lists ---------------- */
 
 /** One row in a `.st-list`. A link when it has `to`, a button with `onClick`, otherwise plain. */
+/** @param {Record<string, any>} props */
 export function Row({ to, href, onClick, leading, title, meta, trailing, chevron = true, className = '', ...rest }) {
   const interactive = Boolean(to || href || onClick);
   const inner = (
@@ -240,6 +250,7 @@ export function Row({ to, href, onClick, leading, title, meta, trailing, chevron
  * A labelled control. Pass the control as the child; it is given the id, and
  * the hint or error is tied to it for screen readers.
  */
+/** @param {Record<string, any>} props */
 export function Field({ label, optional = false, hint, error, counter, className = '', children }) {
   const id = useId();
   const child = React.Children.only(children);
@@ -277,6 +288,7 @@ export function Field({ label, optional = false, hint, error, counter, className
 }
 
 /** A tick box with its sentence. The whole line is the target. */
+/** @param {Record<string, any>} props */
 export function Check({ checked, onChange, children, className = '', ...rest }) {
   return (
     <button
@@ -299,6 +311,7 @@ export function Check({ checked, onChange, children, className = '', ...rest }) 
  * A pill track with one pill inside it. `options` are { value, label, count }.
  * `ink` is the dark track with a lime pill, used for section navigation.
  */
+/** @param {Record<string, any>} props */
 export function Segmented({ value, onChange, options, label, ink = false, block = false, className = '' }) {
   return (
     <div role="tablist" aria-label={label} className={cn('st-seg', ink && 'st-seg--ink', block && 'st-seg--block', className)}>
@@ -317,11 +330,13 @@ export function Segmented({ value, onChange, options, label, ink = false, block 
 
 /* ---------------- states ---------------- */
 
+/** @param {Record<string, any>} props */
 export function Spinner({ label = 'Loading', className = '' }) {
   return <span className={cn('st-spinner', className)} role="status" aria-label={label} />;
 }
 
 /** A centred "still loading" block for a whole panel. */
+/** @param {Record<string, any>} props */
 export function Loading({ label = 'Loading', className = '' }) {
   return (
     <div className={cn('grid min-h-[220px] place-items-center', className)}>
@@ -330,11 +345,13 @@ export function Loading({ label = 'Loading', className = '' }) {
   );
 }
 
+/** @param {Record<string, any>} props */
 export function Skeleton({ className = '', ...rest }) {
   return <div className={cn('st-skeleton', className)} aria-hidden {...rest} />;
 }
 
 /** What an empty list says instead of nothing. */
+/** @param {Record<string, any>} props */
 export function EmptyState({ icon: Icon, title, body, action, className = '' }) {
   return (
     <div className={cn('st-empty', className)}>
@@ -351,6 +368,7 @@ export function EmptyState({ icon: Icon, title, body, action, className = '' }) 
 }
 
 /** Something failed to load: say so, and offer the way to try again. */
+/** @param {Record<string, any>} props */
 export function ErrorState({ title = "This didn't load.", body = 'Check your connection and try again.', onRetry, action, className = '' }) {
   return (
     <div className={cn('st-empty', className)} role="alert">
@@ -375,6 +393,7 @@ export function ErrorState({ title = "This didn't load.", body = 'Check your con
 const NOTE_TONE = { neutral: '', info: 'st-note--info', warn: 'st-note--warn', error: 'st-note--error', success: 'st-note--success' };
 
 /** A short message in a tinted band. An error note is announced to screen readers. */
+/** @param {Record<string, any>} props */
 export function Note({ tone = 'neutral', icon: Icon, className = '', children, ...rest }) {
   return (
     <div className={cn('st-note', NOTE_TONE[tone], className)} role={tone === 'error' ? 'alert' : undefined} {...rest}>
@@ -393,6 +412,7 @@ const FOCUSABLE = 'a[href], button:not([disabled]), textarea:not([disabled]), in
  * larger screen. Focus moves into it, stays in it, and goes back where it was
  * when it closes; Escape and the backdrop close it unless `busy`.
  */
+/** @param {Record<string, any>} props */
 export function Dialog({ open, onClose, title, kicker, busy = false, wide = false, children, className = '' }) {
   const titleId = useId();
   const panel = useRef(null);
