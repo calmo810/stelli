@@ -134,7 +134,7 @@ function Disable({ session, method, onDone, onBack }) {
         <Button variant="outline" className={authSecondary} disabled={busy} onClick={onBack}>Cancel</Button>
         <Button className={authPrimary} disabled={busy || !codeSent || code.length < 6} onClick={() => confirm()}>
           {busy && <Loader2 className="w-4 h-4 animate-spin" />}
-          Turn off
+          Disable
         </Button>
       </div>
     </div>
