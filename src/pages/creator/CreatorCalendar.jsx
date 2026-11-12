@@ -134,7 +134,7 @@ export default function CreatorCalendar() {
               <Link
                 key={item.id}
                 to={shoot ? `/messages/${item.id}` : `/lensman-dashboard/requests/${item.id}`}
-                className="wk-appt"
+                className={`wk-appt ${shoot ? 'is-shoot' : 'is-request'}`}
               >
                 <span className="wk-appt-time">
                   <b>{timeLabel(item.event_time)}</b>

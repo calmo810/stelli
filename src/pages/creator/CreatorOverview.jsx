@@ -1,12 +1,24 @@
 import React from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { format } from 'date-fns';
-import { ChevronRight, MessageCircle, Sparkles, UserRound, Camera } from 'lucide-react';
+import {
+  CalendarDays,
+  Camera,
+  ChevronRight,
+  Eye,
+  Inbox,
+  MessageCircle,
+  Sparkles,
+  UserRound,
+  Wallet,
+} from 'lucide-react';
 import PendingBanner from '@/components/dashboard/PendingBanner';
 import CopyLinkPill from '@/components/dashboard/CopyLinkPill';
 import TodayShootCard from '@/components/creator/workspace/TodayShootCard';
 import WhatsNewCard from '@/components/creator/workspace/WhatsNewCard';
 import UpcomingShoots from '@/components/creator/UpcomingShoots';
+import TodayBriefing from '@/components/creator/workspace/TodayBriefing';
+import StatTiles from '@/components/creator/workspace/StatTiles';
 import whatsNew from '@/lib/creatorDigest';
 import money from '@/lib/money';
 import shortDate from '@/lib/shortDate';
@@ -19,6 +31,7 @@ export default function CreatorOverview() {
     myProfile,
     bookings,
     steps,
+    newRequests,
     upcomingShoots,
     finished,
     metrics,
@@ -29,6 +42,70 @@ export default function CreatorOverview() {
   const firstName = (user?.full_name || '').split(' ')[0] || 'there';
   const nextShoot = upcomingShoots[0];
   const { items, facts } = whatsNew(data);
+
+  // The brief in one breath: the numbers that matter, bolded, joined by dots.
+  const clauses = [];
+  if (metrics.requests) {
+    clauses.push([
+      { text: `${metrics.requests} request${metrics.requests > 1 ? 's' : ''}`, bold: true },
+      { text: ' to answer' },
+    ]);
+  }
+  if (nextShoot) {
+    clauses.push([
+      { text: `a shoot ${shortDate(nextShoot.event_date) || 'soon'}`, bold: true },
+      { text: ` with ${nextShoot.client_name || 'a client'}` },
+    ]);
+  }
+  if (Number(totals.heldTotal) > 0) {
+    clauses.push([{ text: money(totals.heldTotal), bold: true }, { text: ' held until you deliver' }]);
+  }
+  const briefing = clauses.length
+    ? clauses.flatMap((clause, i) => (i ? [{ text: ' · ' }, ...clause] : clause))
+    : [{ text: 'Nothing needs you right now. Share your page and the next booking comes to you.' }];
+
+  const people = [
+    ...new Map(
+      [...newRequests, ...upcomingShoots]
+        .filter((b) => b.client_name)
+        .map((b) => [b.client_name, { name: b.client_name, initial: b.client_name.trim()[0].toUpperCase() }])
+    ).values(),
+  ];
+
+  const tiles = [
+    {
+      key: 'next',
+      label: 'Next shoot',
+      value: nextShoot?.event_date ? format(new Date(`${nextShoot.event_date}T12:00:00`), 'MMM d') : '—',
+      to: '/lensman-dashboard/calendar',
+      tone: 'paper',
+      icon: CalendarDays,
+    },
+    {
+      key: 'requests',
+      label: 'Requests',
+      value: String(metrics.requests),
+      to: '/lensman-dashboard/requests',
+      tone: 'cyan',
+      icon: Inbox,
+    },
+    {
+      key: 'held',
+      label: 'Held',
+      value: money(totals.heldTotal),
+      to: '/lensman-dashboard/earnings',
+      tone: 'lime',
+      icon: Wallet,
+    },
+    {
+      key: 'views',
+      label: 'Views',
+      value: String(metrics.views),
+      to: '/lensman-dashboard/profile',
+      tone: 'blush',
+      icon: Eye,
+    },
+  ];
 
   // The one real next step on each booking that has one (bookingNextStep.js):
   // a request to quote, an agreement to accept, the unedited set once the
@@ -43,6 +120,8 @@ export default function CreatorOverview() {
         meta: [shortDate(booking?.event_date), booking?.location].filter(Boolean).join(' · ') || (isRequest ? 'New request' : ''),
         action: isRequest ? 'Review' : step.action,
         to: isRequest ? `/lensman-dashboard/requests/${step.bookingId}` : step.to,
+        initial: (isRequest && booking?.client_name ? booking.client_name : step.title).trim()[0].toUpperCase(),
+        lime: isRequest,
       };
     }),
     ...(myProfile.payouts_enabled
@@ -57,18 +136,6 @@ export default function CreatorOverview() {
           },
         ]),
   ].slice(0, 3);
-
-  const strip = [
-    {
-      key: 'next',
-      label: 'Next shoot',
-      value: nextShoot?.event_date ? format(new Date(`${nextShoot.event_date}T12:00:00`), 'MMM d') : '—',
-      to: '/lensman-dashboard/bookings',
-    },
-    { key: 'requests', label: 'Requests', value: metrics.requests, to: '/lensman-dashboard/requests' },
-    { key: 'held', label: 'Held', value: money(totals.heldTotal), to: '/lensman-dashboard/earnings' },
-    { key: 'views', label: 'Views', value: metrics.views, to: '/lensman-dashboard/profile' },
-  ];
 
   const links = [
     { label: 'Messages', to: '/messages', icon: MessageCircle },
@@ -93,21 +160,16 @@ export default function CreatorOverview() {
         </PendingBanner>
       ) : null}
 
-      <div className="mt-4">
+      <div className="mt-3">
+        <TodayBriefing segments={briefing} people={people} />
+      </div>
+
+      <div className="mt-5">
         <TodayShootCard shoot={nextShoot} profile={myProfile} />
       </div>
 
-      <div className="wk-card mt-2.5 grid grid-cols-4 divide-x divide-[rgba(10,18,38,0.08)] px-1 py-3">
-        {strip.map((cell) => (
-          <Link key={cell.key} to={cell.to} className="min-w-0 px-2.5 text-center">
-            <span className="block truncate text-[14.5px] font-extrabold tracking-tight text-ink">
-              {cell.value}
-            </span>
-            <span className="mt-1 block truncate text-[9.5px] font-bold uppercase tracking-[0.1em] wk-mute">
-              {cell.label}
-            </span>
-          </Link>
-        ))}
+      <div className="mt-2.5">
+        <StatTiles tiles={tiles} />
       </div>
 
       <div className="mt-2.5">
@@ -119,6 +181,7 @@ export default function CreatorOverview() {
         <div className="wk-list">
           {attention.map((item) => (
             <Link key={item.id} to={item.to} className="wk-row">
+              <span className={`wk-feed-av ${item.lime ? 'wk-feed-av--lime' : ''}`}>{item.initial}</span>
               <span className="min-w-0 flex-1">
                 <b className="block text-[14.5px] font-bold text-ink">{item.title}</b>
                 {item.meta && <span className="mt-0.5 block truncate text-[12.5px] wk-grey">{item.meta}</span>}
