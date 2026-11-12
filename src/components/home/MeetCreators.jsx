@@ -4,13 +4,12 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import SmoothImage from '@/components/shared/SmoothImage';
-import { coverImage, displayNameOf } from '@/lib/profilePresets';
+import CreatorCard from '@/components/browse/CreatorCard';
+import QuickViewSheet from '@/components/browse/QuickViewSheet';
 import { APPROVED_CREATORS_QUERY_KEY } from '@/lib/creatorBrowse';
 
 const CARD_WIDTH = 'clamp(260px, 28vw, 420px)';
 const CARD_RADIUS = 24;
-const CARD_BG = 'hsl(var(--surface))';
 
 const HIGHLIGHT = {
   background: 'hsl(var(--neon-lime))',
@@ -22,12 +21,13 @@ const HIGHLIGHT = {
 };
 
 /**
- * The home page rail: approved creators as Apple-style swipe cards, with a
- * lime "your name could be here" card on the end for creators.
+ * The home page rail. Each card is the same creator card the browse page uses
+ * — cycling gallery, portrait, rating, spots, quick view — laid out to swipe.
  */
 export default function MeetCreators() {
   const trackRef = useRef(null);
   const [edges, setEdges] = useState({ start: true, end: false });
+  const [openCreator, setOpenCreator] = useState(null);
 
   const { data: creators = [], isLoading } = useQuery({
     queryKey: APPROVED_CREATORS_QUERY_KEY,
@@ -99,87 +99,11 @@ export default function MeetCreators() {
           onScroll={sync}
           className="max-w-[1440px] mx-auto px-5 md:px-10 mt-9 flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-px-5 md:scroll-px-10 no-scrollbar scroll-smooth pt-2 pb-16"
         >
-          {shown.map((creator) => {
-            const image = coverImage(creator);
-            return (
-              <Link
-                key={creator.id}
-                data-card
-                to={`/creators/${creator.slug || creator.id}`}
-                onPointerMove={(event) => {
-                  const rect = event.currentTarget.getBoundingClientRect();
-                  event.currentTarget.style.setProperty('--mx', `${event.clientX - rect.left}px`);
-                  event.currentTarget.style.setProperty('--my', `${event.clientY - rect.top}px`);
-                }}
-                className="group depth shrink-0 snap-start relative overflow-hidden aspect-[4/5] transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-1.5"
-                style={{ width: CARD_WIDTH, borderRadius: CARD_RADIUS, background: CARD_BG, isolation: 'isolate' }}
-              >
-                {/* A hard rounded mask: overflow + radius alone lets the zoomed
-                    photo's corners poke out mid-animation in Chrome and Safari. */}
-                <div
-                  className="absolute inset-0 overflow-hidden"
-                  style={{ borderRadius: CARD_RADIUS, clipPath: `inset(0 round ${CARD_RADIUS}px)`, transform: 'translateZ(0)' }}
-                >
-                  {image && (
-                    <div className="absolute inset-0 transition-transform duration-[1400ms] ease-[cubic-bezier(.16,1,.3,1)] group-hover:scale-[1.06]">
-                      <SmoothImage
-                        src={image}
-                        alt={displayNameOf(creator)}
-                        className="absolute inset-0 w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                  <span aria-hidden className="sheen z-[1]" />
-                  <span
-                    aria-hidden
-                    className="absolute inset-0"
-                    style={{
-                      background:
-                        'linear-gradient(to top, hsl(var(--ink) / 0.92) 0%, hsl(var(--ink) / 0.45) 34%, transparent 64%)',
-                    }}
-                  />
-                  <span
-                    aria-hidden
-                    className="absolute inset-0 z-[2] pointer-events-none"
-                    style={{ borderRadius: CARD_RADIUS, boxShadow: 'inset 0 0 0 1px rgba(255,255,255,.12)' }}
-                  />
-                </div>
-                <div className="absolute inset-x-[20px] bottom-[20px] z-10 flex items-center gap-3.5">
-                  {creator.profile_image && (
-                    <img
-                      src={creator.profile_image}
-                      alt=""
-                      loading="lazy"
-                      draggable={false}
-                      className="shrink-0 rounded-full object-cover"
-                      style={{ height: 52, width: 52, boxShadow: '0 0 0 1px rgba(255,255,255,.45)' }}
-                    />
-                  )}
-                  <div className="min-w-0">
-                    <p
-                      className="font-display font-medium text-white leading-[1.02] tracking-[-0.025em] truncate"
-                      style={{ fontSize: 28 }}
-                    >
-                      {displayNameOf(creator)}
-                    </p>
-                    <p className="mt-1.5 flex items-center gap-1.5 font-body text-[12.5px] text-white/55">
-                      {Number(creator.avg_rating) > 0 && Number(creator.review_count) > 0 ? (
-                        <>
-                          <span className="font-semibold" style={{ color: 'hsl(var(--neon-lime))' }}>
-                            ★ {Number(creator.avg_rating).toFixed(1)}
-                          </span>
-                          <span className="text-white/25">·</span>
-                        </>
-                      ) : null}
-                      <span className="truncate">
-                        {(creator.specialties?.[0] || 'Photography')} · Elon
-                      </span>
-                    </p>
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
+          {shown.map((creator, i) => (
+            <div key={creator.id} data-card className="shrink-0 snap-start" style={{ width: CARD_WIDTH }}>
+              <CreatorCard creator={creator} index={i} onOpen={setOpenCreator} />
+            </div>
+          ))}
 
           <Link
             data-card
@@ -228,6 +152,14 @@ export default function MeetCreators() {
           <ChevronRight className="w-[18px] h-[18px]" />
         </button>
       </div>
+
+      {openCreator && (
+        <QuickViewSheet
+          key={openCreator.id}
+          creator={openCreator}
+          onClose={() => setOpenCreator(null)}
+        />
+      )}
     </section>
   );
 }
