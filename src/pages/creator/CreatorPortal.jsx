@@ -6,20 +6,19 @@ import DashboardShell from '@/components/dashboard/DashboardShell';
 import AgeConfirmGate from '@/components/dashboard/AgeConfirmGate';
 import EmptyPanel from '@/components/dashboard/EmptyPanel';
 import PullToRefresh from '@/components/shared/PullToRefresh';
-import PortalNav from '@/components/creator/PortalNav';
 import Pill from '@/components/shared/Pill';
+import WorkspaceShell from '@/components/creator/workspace/WorkspaceShell';
 import useCreatorPortal from '@/hooks/useCreatorPortal';
 
 /**
- * The creator workspace: one shell, six destinations. Everything a creator runs
- * their business with — requests, shoots, availability, money, storefront —
- * lives inside these pages.
+ * The creator workspace: four panes — Today, Requests, Shoots, Money — plus
+ * availability and the storefront behind the header. Everything a creator runs
+ * their business with lives inside these panes.
  */
 export default function CreatorPortal() {
   const data = useCreatorPortal();
   const queryClient = useQueryClient();
   const { user, userLoading, myProfile, profileFetched, refetchProfile, isLoading, newRequests } = data;
-
 
   const refreshAll = () =>
     Promise.all([
@@ -81,12 +80,9 @@ export default function CreatorPortal() {
 
   return (
     <PullToRefresh onRefresh={refreshAll}>
-      <DashboardShell>
-        <PortalNav counts={{ requests: newRequests.length }} />
-        <div className="mt-6">
-          <Outlet context={data} />
-        </div>
-      </DashboardShell>
+      <WorkspaceShell profile={myProfile} user={user} counts={{ requests: newRequests.length }}>
+        <Outlet context={data} />
+      </WorkspaceShell>
     </PullToRefresh>
   );
 }

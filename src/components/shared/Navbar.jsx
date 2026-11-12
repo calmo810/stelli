@@ -5,7 +5,9 @@ import { Menu } from 'lucide-react';
 import MenuOverlay from './MenuOverlay';
 import StelliWordmark from './StelliWordmark';
 
-export default function Navbar() {
+// inFlow: the bar scrolls away with the page instead of hovering over it. App
+// screens (the creator workspace) use this so nothing is ever covered by it.
+export default function Navbar({ inFlow = false }) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
@@ -27,7 +29,7 @@ export default function Navbar() {
   return (
     <>
       <header
-        className="fixed top-0 inset-x-0 z-50 transition-colors duration-500"
+        className={`${inFlow ? 'relative' : 'fixed top-0'} inset-x-0 z-50 transition-colors duration-500`}
         style={{
           paddingTop: 'var(--safe-top)',
           background: solid ? 'hsl(var(--ink) / 0.88)' : 'transparent',

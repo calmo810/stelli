@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
  * An <img> that arrives instead of popping in: decoded off the main thread,
  * then eased from a soft blur to full sharpness. Cached images show at once.
  */
-export default function SmoothImage({ className = '', style, priority = false, onLoad, ...props }) {
+export default function SmoothImage({ className = '', style = undefined, priority = false, onLoad = undefined, ...props }) {
   const ref = useRef(null);
   const [loaded, setLoaded] = useState(false);
 

@@ -124,6 +124,35 @@
       "type": "string",
       "description": "Shoot location/address"
     },
+    "shoot_setting": {
+      "type": "string",
+      "enum": [
+        "outdoor",
+        "indoor",
+        "flexible"
+      ],
+      "default": "flexible",
+      "description": "Whether the shoot takes place outdoors, indoors, or is still being decided"
+    },
+    "weather_alerts_enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether both people opted into outdoor weather updates by email"
+    },
+    "weather_alerts_sent_for": {
+      "type": "string",
+      "description": "A fingerprint of the latest weather alert sent, used to prevent duplicate sends"
+    },
+    "weather_alert_48h_sent_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the optional 48-hour weather outlook was sent"
+    },
+    "weather_alert_3h_sent_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the optional 3-hour weather update was sent"
+    },
     "attendees": {
       "type": "number",
       "description": "Number of attendees"

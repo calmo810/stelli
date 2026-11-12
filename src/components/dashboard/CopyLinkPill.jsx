@@ -3,8 +3,7 @@ import { Check } from 'lucide-react';
 import { shareUrl } from '@/lib/profilePresets';
 import Pill from '@/components/shared/Pill';
 
-/** Copies the creator's public link, then says so. */
-export default function CopyLinkPill({ creator }) {
+export default function CopyLinkPill({ creator, tone = 'cyan', className = '' }) {
   const [copied, setCopied] = useState(false);
 
   const copy = async () => {
@@ -19,7 +18,7 @@ export default function CopyLinkPill({ creator }) {
   };
 
   return (
-    <Pill as="button" type="button" onClick={copy}>
+    <Pill as="button" type="button" onClick={copy} tone={tone} className={className}>
       {copied && <Check className="h-4 w-4" />}
       {copied ? 'Link copied' : 'Copy profile link'}
     </Pill>
