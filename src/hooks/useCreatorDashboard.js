@@ -34,14 +34,6 @@ export default function useCreatorDashboard() {
     },
   });
 
-  // Founder payouts made outside a booking, still waiting to go out.
-  const { data: waitingManual = [] } = useQuery({
-    queryKey: ['waiting-manual-payouts', user?.id],
-    enabled: !!user?.id,
-    queryFn: () =>
-      base44.entities.ManualPayout.filter({ creator_user_id: user.id, status: 'waiting' }).catch(() => []),
-  });
-
   // Stripe is asked where a mid-setup creator stands, once per profile — the
   // dashboard and any open sheet share this one check.
   const { data: payoutState = null } = useQuery({
@@ -89,9 +81,7 @@ export default function useCreatorDashboard() {
     // The one real next step for each booking that has one.
     steps: nextSteps(active, 'lensman'),
     waitingPayouts,
-    waitingTotal:
-      waitingPayouts.reduce((sum, b) => sum + Number(b.creator_payout || 0), 0) +
-      waitingManual.reduce((sum, p) => sum + Number(p.amount || 0), 0),
+    waitingTotal: waitingPayouts.reduce((sum, b) => sum + Number(b.creator_payout || 0), 0),
     payoutState,
     refresh,
   };
