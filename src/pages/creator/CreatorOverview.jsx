@@ -234,7 +234,7 @@ export default function CreatorOverview() {
         <section className="arch-metrics">
           <div className="arch-section-title">
             <div>
-              <p>Studio signal</p>
+              <p>Studio pulse</p>
               <h2>At a glance</h2>
             </div>
           </div>
