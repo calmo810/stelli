@@ -195,7 +195,13 @@ export default function PhotoReleases({ role, user, light = false }) {
   const { data: releases = [] } = useQuery({
     queryKey: ['photo-releases', role, user?.id],
     enabled: !!user?.id,
-    queryFn: () => base44.entities.PhotoRelease.list('-created_date').catch(() => []),
+    queryFn: () =>
+      base44.entities.PhotoRelease.filter(
+        role === 'client' ? { client_id: user.id } : { creator_id: user.id },
+        '-created_date'
+      ).catch(() => []),
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
   });
 
   const mineList = releases.filter((r) =>
