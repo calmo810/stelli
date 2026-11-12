@@ -169,6 +169,9 @@ export default function useWizard() {
 
   const loadedRef = useRef(false);
   const settledRef = useRef(false);
+  // Set the moment an application goes in, so a draft save already on its way
+  // can't write the draft back over "submitted".
+  const sentRef = useRef(false);
   const toastTimer = useRef(null);
 
   const { data: user, isLoading: userLoading } = useQuery({
@@ -269,12 +272,13 @@ export default function useWizard() {
     setSaveState('Saving…');
     const draft = { ...s, _savedAt: new Date().toISOString(), _step: stepKey };
     const local = setTimeout(() => {
+      if (sentRef.current) return;
       writeJson(draftKey(user.id), draft);
       removeKey(LEGACY_DRAFT_KEY);
       setSaveState('Draft saved');
     }, 500);
     const remote = setTimeout(() => {
-      if (!hasContent(s)) return;
+      if (sentRef.current || !hasContent(s)) return;
       base44.auth
         .updateMe({ creator_draft: draft, creator_draft_step: stepKey, creator_draft_at: draft._savedAt })
         .catch(() => {});
@@ -464,6 +468,7 @@ export default function useWizard() {
             /* nothing to do */
           }
         });
+        sentRef.current = true;
         removeKey(draftKey(user.id));
         removeKey(LEGACY_DRAFT_KEY);
         base44.auth
@@ -550,6 +555,7 @@ export default function useWizard() {
     reset: () => {
       if (user) removeKey(draftKey(user.id));
       removeKey(LEGACY_DRAFT_KEY);
+      if (user && applying) base44.auth.updateMe({ creator_draft: {} }).catch(() => {});
       setConfirm(null);
       setS({ ...freshState(), fullName: user?.full_name || '', email: user?.email || '' });
       setView('welcome');
