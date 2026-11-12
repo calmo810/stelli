@@ -2,7 +2,7 @@ import React from 'react';
 import WizardPhone from './WizardPhone';
 import WizardProfilePreview from './WizardProfilePreview';
 
-/** The live preview rail, with how far the profile is from being publishable. */
+/** The live preview rail, with how far the profile is from being sendable. */
 export default function WizardSide({ w }) {
   const left = w.missing.length;
   return (
@@ -24,7 +24,9 @@ export default function WizardSide({ w }) {
       <div className="side-foot">
         <span className="ready-pill">
           <span className="ring" style={{ '--p': w.pct }} />
-          {left === 0 ? 'Ready to publish' : `${left} item${left > 1 ? 's' : ''} left to publish`}
+          {left === 0
+            ? w.applying ? 'Ready to send' : 'Ready to save'
+            : `${left} thing${left > 1 ? 's' : ''} left${w.applying ? ' to apply' : ''}`}
         </span>
       </div>
     </aside>
