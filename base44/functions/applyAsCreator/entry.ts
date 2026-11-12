@@ -159,12 +159,14 @@ export default async function (req) {
     }
 
     // From here the application is in. Emails never fail it (sendEmail and
-    // emailAdmins swallow their own errors).
+    // emailAdmins swallow their own errors). Only the signed-in account is
+    // ever emailed: the address typed here is a contact detail for vetting,
+    // never a recipient.
     await sendEmail(
       base44,
-      details.email,
+      user.email,
       'We got your Stelli application.',
-      `We look at every creator ourselves, and you'll get an email as soon as there's a decision.\n\nWhile you wait, you can finish your page: add a bio, your kit, and choose how your photos hang. It goes live the moment you're approved.\n\n${SITE_ORIGIN}/edit-profile`
+      `We look at every creator ourselves, and you'll get an email as soon as there's a decision.\n\nWhile you wait, you can finish your page: add a bio, your kit, and choose how your photos hang. It goes live the moment you're approved.\n\n${SITE_ORIGIN}/lensman-dashboard/profile`
     );
 
     await emailAdmins(
