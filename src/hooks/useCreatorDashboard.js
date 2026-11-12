@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { isPast, nextSteps } from '@/lib/bookingNextStep';
+import useMyCreatorProfile from '@/hooks/useMyCreatorProfile';
 
 /** Everything the creator's dashboard and its sheets read. */
 export default function useCreatorDashboard() {
@@ -16,14 +17,10 @@ export default function useCreatorDashboard() {
 
   // Payout status, the Stripe account and holds are readable by founders
   // only, so the creator's own full record comes from the server.
-  const { data: myProfile, refetch: refetchProfile, isFetched: profileFetched } = useQuery({
-    queryKey: ['my-lensman-profile', user?.id],
-    enabled: !!user?.id,
-    queryFn: async () => {
-      const response = await base44.functions.invoke('getMyCreatorProfile', {});
-      return response.data?.lensman || null;
-    },
-  });
+  const { data: own, refetch: refetchProfile, isFetched: profileFetched } = useMyCreatorProfile(user?.id);
+  const myProfile = own?.lensman || null;
+  // The private contact record, and any note a founder left on the application.
+  const myContact = own?.contact || null;
 
   const { data: bookings = [], isLoading } = useQuery({
     queryKey: ['lensman-bookings', user?.id, user?.email],
@@ -72,6 +69,7 @@ export default function useCreatorDashboard() {
     user,
     userLoading,
     myProfile,
+    myContact,
     profileFetched,
     refetchProfile,
     bookings,
