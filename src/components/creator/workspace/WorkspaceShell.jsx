@@ -68,7 +68,7 @@ export default function WorkspaceShell({ profile, user, counts = {}, children })
 
   return (
     <div className="wk arch-workspace">
-      <div className="arch-workspace__frame mx-auto flex w-full max-w-[1540px] gap-5 px-4 pb-[calc(104px+var(--safe-bottom))] pt-2 sm:px-6 lg:px-7 lg:pb-14 lg:pt-7">
+      <div className="arch-workspace__frame mx-auto flex w-full max-w-[1540px] gap-5 px-4 pb-[calc(104px+var(--safe-bottom))] pt-2 sm:px-6 lg:px-7 lg:pb-14 lg:pt-10">
         <aside className="wk-rail">
           <div className="flex items-center gap-3 px-2 pb-6">
             <span className="wk-avatar h-11 w-11 text-[15px]">
