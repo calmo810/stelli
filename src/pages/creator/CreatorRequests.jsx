@@ -49,7 +49,7 @@ export default function CreatorRequests() {
             ))}
           </div>
         ) : (
-          <WorkspaceEmpty icon={Inbox} title="Nothing here yet" body={EMPTY[tab]} />
+          <WorkspaceEmpty tone="workbench" icon={Inbox} title="Nothing here yet" body={EMPTY[tab]} />
         )}
       </div>
     </div>
