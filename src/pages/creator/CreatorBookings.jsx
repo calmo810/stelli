@@ -44,6 +44,7 @@ export default function CreatorBookings() {
           />
         ) : (
           <WorkspaceEmpty
+            tone="workbench"
             icon={Camera}
             title={tab === 'next' ? 'No upcoming shoots' : 'Nothing completed yet'}
             body={
