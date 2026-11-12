@@ -37,11 +37,11 @@ export default function CreatorPublicProfile() {
     },
     {
       to: '/edit-profile',
-      label: 'Bio & story',
-      value: myProfile.bio ? myProfile.bio.slice(0, 70) : 'Nothing written yet',
+      label: 'About',
+      value: myProfile.bio ? myProfile.bio.slice(0, 70) : 'Not added yet',
     },
-    { to: '/edit-profile', label: 'Specialties', value: specialties || 'None picked' },
-    { to: '/edit-profile', label: 'Service area', value: area || 'No spots picked' },
+    { to: '/edit-profile', label: 'Specialties', value: specialties || 'Not added yet' },
+    { to: '/edit-profile', label: 'Service area', value: area || 'Not added yet' },
     {
       to: '/edit-profile',
       label: 'Packages',
@@ -50,7 +50,7 @@ export default function CreatorPublicProfile() {
     {
       to: '/lensman-dashboard/calendar',
       label: 'Availability',
-      value: blackouts.length ? `${blackouts.length} days off` : 'Open every day',
+      value: blackouts.length ? `${blackouts.length} days unavailable` : 'Available every day',
     },
   ];
 
@@ -58,7 +58,7 @@ export default function CreatorPublicProfile() {
     <div className="arch-tab arch-tab--profile">
       <h1 className="wk-h1">Profile</h1>
       <p className="wk-lede">
-        Your storefront. Clients see it at getstelli.com/creators/{myProfile.slug || 'you'}.
+        Your public profile. Clients see it at getstelli.com/creators/{myProfile.slug || 'you'}.
       </p>
 
       <div className="wk-card mt-5 overflow-hidden">
@@ -78,7 +78,7 @@ export default function CreatorPublicProfile() {
               </p>
             </div>
             <span className={`wk-chip shrink-0 ${live ? 'wk-chip--lime' : 'wk-chip--cyan'}`}>
-              {myProfile.under_review ? 'UNDER REVIEW' : live ? 'LIVE' : 'IN REVIEW'}
+              {myProfile.under_review ? 'Under review' : live ? 'Live' : 'In review'}
             </span>
           </div>
 
