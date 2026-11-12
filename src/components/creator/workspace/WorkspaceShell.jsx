@@ -6,6 +6,7 @@ import { Briefcase, CalendarDays, Sun, UserRound } from 'lucide-react';
 import '@/styles/creatorWorkspace.css';
 import '@/styles/creatorArchitecture.css';
 import '@/styles/creatorDesktop.css';
+import '@/styles/creatorContinuity.css';
 
 export const TABS = [
   { to: '/lensman-dashboard', key: 'today', label: 'Today', icon: Sun },
