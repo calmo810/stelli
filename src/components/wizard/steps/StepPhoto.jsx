@@ -38,7 +38,7 @@ export default function StepPhoto({ w }) {
         <input
           ref={inputRef}
           type="file"
-          accept="image/*"
+          accept="image/*,.heic,.heif"
           hidden
           onChange={(event) => {
             w.uploadPhoto(event.target.files?.[0]);
