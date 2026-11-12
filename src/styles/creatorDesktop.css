@@ -1126,3 +1126,57 @@
     padding: 0 9px;
   }
 }
+
+/* ---------------------------------------------------------------
+   Today holds still. On desktop the panel is fixed to the screen: the
+   greeting never scrolls away and never passes under the top bar, so
+   it can never be cut off. Only the blocks below it scroll, inside the
+   panel. Every other pane keeps the normal page scroll.
+   --------------------------------------------------------------- */
+.arch-world__scroll {
+  display: contents;
+}
+
+@media (min-width: 1024px) {
+  .arch-workspace--today {
+    height: calc(100dvh - 64px - var(--safe-top));
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .arch-workspace--today .arch-workspace__frame {
+    height: 100%;
+    overflow: hidden;
+    align-items: stretch;
+  }
+
+  .arch-workspace--today .arch-workspace__main,
+  .arch-workspace--today .arch-workspace__body--today {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .arch-workspace--today .arch-workspace__body--today {
+    flex: 1 1 auto;
+  }
+
+  .arch-workspace--today .arch-world {
+    flex: 1 1 auto;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .arch-workspace--today .arch-world__scroll {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 14px;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-right: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(31, 65, 108, .26) transparent;
+  }
+}

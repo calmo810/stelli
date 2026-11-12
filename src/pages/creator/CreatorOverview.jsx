@@ -158,6 +158,7 @@ export default function CreatorOverview() {
         </div>
       </motion.header>
 
+      <div className="arch-world__scroll">
       <div className="arch-world__notice">
       {myProfile.under_review ? (
         <PendingBanner tone="magenta">
@@ -332,6 +333,7 @@ export default function CreatorOverview() {
           </Link>
         </section>
       </motion.footer>
+      </div>
     </motion.div>
   );
 }
