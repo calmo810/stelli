@@ -1,7 +1,12 @@
 /**
- * Everything the creator profile wizard is made of: the fixed choices it
- * offers, its step map, the publish checklist, and the exact payload that
- * gets saved to the creator's profile.
+ * Everything the creator wizard is made of: the fixed choices it offers, its
+ * step map, what an application needs, and the exact payload that gets saved
+ * to the creator's profile.
+ *
+ * The wizard runs in two lengths. Applying is four short screens — a face and
+ * a name, what you shoot, your best work, how to reach you. Everything else
+ * (the words, the look, packages) is optional and opens once the application
+ * is in, when the same wizard becomes the page editor.
  */
 
 export const MARKET = 'ELON';
@@ -14,6 +19,8 @@ export const SPOTS = [
   'Belk Library', 'Schar Center', 'Anywhere on campus', 'Off campus',
 ];
 export const HOT_SPOTS = { 'Fonville Fountain': 'popular', 'Under the Oaks': 'popular' };
+/** What a creator is listed under when they pick no spots. */
+export const DEFAULT_SPOT = 'Anywhere on campus';
 
 export const SHOOTS = [
   'Portraits', 'Graduation', 'Couples', 'Events', 'Nightlife', 'Editorial',
@@ -21,7 +28,7 @@ export const SHOOTS = [
 ];
 export const HOT_SHOOTS = { Graduation: 'big in spring', Headshots: 'career fair' };
 
-export const TAG_IDEAS = ['golden hour', 'direct flash', 'candid', 'film', 'editorial', 'moody', 'bright & airy', 'documentary'];
+export const TAG_IDEAS = ['natural light', 'direct flash', 'unposed', 'film', 'editorial', 'moody', 'bright & airy', 'documentary'];
 
 /** The prompts a creator can answer. The server accepts exactly these. */
 export const PROMPTS = [
@@ -42,41 +49,42 @@ export const PH = [
   'linear-gradient(135deg,#24405f,#0d1826)', 'linear-gradient(135deg,#4a2440,#1c0d1a)',
 ];
 
-export const CHAPTERS = ['You', 'Your Work', 'Pricing', 'Your Style', 'The Look', 'Private'];
-
+/**
+ * Every step, in order. The ones marked `apply` are the application; the rest
+ * are the page, and only show once a profile exists.
+ */
 export const STEPS = [
-  { ch: 0, key: 'photo', title: 'Put a face to the flash.', sub: 'Clients book people. A clear, recent photo of you — not your best landscape.', need: true },
-  { ch: 0, key: 'name', title: 'What should clients call you?', sub: 'First name is fine. Your profile link updates as you type.', required: true },
-  { ch: 0, key: 'line', title: 'One line. Make it count.', sub: 'This sits right under your name. Add up to three style tags too.', optional: true },
-  { ch: 1, key: 'where', title: 'Where do you like to shoot?', sub: "Tap every campus spot you're up for. Clients filter by this.", required: true },
-  { ch: 1, key: 'what', title: 'What do you shoot?', sub: "Pick everything that applies — it's the first thing clients search.", required: true },
-  { ch: 1, key: 'pf', title: 'Show your best work.', sub: `Add at least ${MIN_SHOTS}. The first three lead your page, and the star picks your cover.`, need: true },
-  { ch: 2, key: 'price', title: 'Set your packages.', sub: 'Three tiers so clients can pick what fits. Rough numbers are fine — you can change these anytime.', need: true },
-  { ch: 3, key: 'bio', title: 'How do you shoot?', sub: 'Two or three sentences on your style and what it is like to work with you.', optional: true },
-  { ch: 3, key: 'kit', title: "What's in the bag?", sub: 'Camera, lenses, lighting. Keep it short.', optional: true },
-  { ch: 3, key: 'prompt', title: 'Pick a prompt.', sub: 'A little personality goes a long way. Choose one and finish the sentence.', optional: true },
-  { ch: 3, key: 'dont', title: "What don't you shoot?", sub: 'Saying no saves you and the client a bad match.', optional: true },
-  { ch: 4, key: 'look', title: 'Hang your work.', sub: 'Choose how your photos hang on your public page. Only you set this — clients see it exactly as you leave it.' },
-  { ch: 5, key: 'priv', title: 'Just between us.', sub: 'Only Stelli sees this. Clients get in touch through Stelli bookings.', required: true },
+  { chapter: 'You', key: 'you', apply: true, title: 'Put a face to the name.', sub: 'Clients book people. A clear, recent photo of you, and the name they should call you.' },
+  { chapter: 'Your work', key: 'work', apply: true, title: 'What do you shoot?', sub: "Pick everything that applies. It's the first thing clients search." },
+  { chapter: 'Your work', key: 'pf', apply: true, title: 'Show your best work.', sub: `Add at least ${MIN_SHOTS}. The first three lead your page, and the star picks your cover.` },
+  { chapter: 'Contact', key: 'priv', apply: true, title: 'Just between us.', sub: 'Only Stelli sees this. Clients reach you through Stelli bookings.' },
+  { chapter: 'Your style', key: 'line', optional: true, title: 'One line. Make it count.', sub: 'This sits right under your name. Add up to three style tags too.' },
+  { chapter: 'Your style', key: 'bio', optional: true, title: 'How do you shoot?', sub: 'Two or three sentences on your style and what it is like to work with you.' },
+  { chapter: 'Your style', key: 'kit', optional: true, title: "What's in the bag?", sub: 'Camera, lenses, lighting. Keep it short.' },
+  { chapter: 'Your style', key: 'prompt', optional: true, title: 'Pick a prompt.', sub: 'A little personality goes a long way. Choose one and finish the sentence.' },
+  { chapter: 'Your style', key: 'dont', optional: true, title: "What don't you shoot?", sub: 'Saying no saves you and the client a bad match.' },
+  { chapter: 'The look', key: 'look', optional: true, title: 'Hang your work.', sub: 'Choose how your photos hang on your public page. Only you set this.' },
+  { chapter: 'Packages', key: 'price', optional: true, title: 'Set your packages.', sub: "Rough numbers to quote from. Clients don't see these on your page. You send each one a private quote." },
 ];
 
-export const stepIdx = (key) => STEPS.findIndex((s) => s.key === key);
+/** The steps this person walks: the application, or the whole page. */
+export const stepsFor = (existing) => (existing ? STEPS : STEPS.filter((step) => step.apply));
 
 /** Starter styles: they fill the creator's own fields, which they then rewrite. */
 export const STARTERS = [
   {
     key: 'flash', name: 'Night Flash', color: '#d6f344',
     art: 'radial-gradient(circle at 30% 40%,#d6f34455,transparent 55%),radial-gradient(circle at 80% 70%,#4fd8e033,transparent 50%),#10141f',
-    tags: ['direct flash', 'nightlife', 'candid'], oneLiner: "Flash on, hands up, we'll fix it in the blur.",
+    tags: ['direct flash', 'nightlife', 'unposed'], oneLiner: "Flash on, hands up, we'll fix it in the blur.",
     theme: 'night', accent: 'lime', gallery: 'hero', what: ['Nightlife', 'Events', 'Portraits'],
     layout: 'wall', curve: 'full', frame: 'mat', mat: 'ink', captions: true,
     bio: 'I shoot mostly at night and keep it relaxed. Show up, be yourself, I\'ll handle the rest.',
     promptIdx: 4, promptA: 'you want photos that look like the night actually felt.', dont: 'No weddings or newborns.',
   },
   {
-    key: 'golden', name: 'Golden Hour', color: '#4fd8e0',
+    key: 'daylight', name: 'Daylight', color: '#4fd8e0',
     art: 'radial-gradient(circle at 70% 30%,#f5c26b55,transparent 55%),radial-gradient(circle at 20% 80%,#4fd8e033,transparent 50%),#f6f6f2',
-    tags: ['golden hour', 'candid', 'bright & airy'], oneLiner: 'Golden hour believer. Your mom will cry (good tears).',
+    tags: ['natural light', 'unposed', 'bright & airy'], oneLiner: 'Good light, no stiff poses. Your mom will cry (good tears).',
     theme: 'clean', accent: 'cyan', gallery: 'ordered', what: ['Graduation', 'Couples', 'Portraits'],
     layout: 'wall', curve: 'soft', frame: 'mat', mat: 'paper', captions: true,
     bio: 'Warm, easy sessions built around real moments. I direct just enough that you never feel stiff.',
@@ -130,16 +138,20 @@ export const orderedPortfolio = (s) => {
   return [cover, ...s.portfolio.filter((item) => item !== cover)];
 };
 
+/**
+ * What an application needs, and what a page must keep. `k` is the step each
+ * one lives on. The server checks the same list (shared/creatorApplication.ts).
+ */
 export const REQS = [
-  { t: 'Profile photo', k: 'photo', ok: (s) => Boolean(s.photo) },
-  { t: 'Display name', k: 'name', ok: (s) => Boolean(s.name.trim()) },
-  { t: 'At least 1 spot', k: 'where', ok: (s) => s.where.length > 0 },
-  { t: 'At least 1 shoot type', k: 'what', ok: (s) => s.what.length > 0 },
+  { t: 'A photo of you', k: 'you', ok: (s) => Boolean(s.photo) },
+  { t: 'Display name', k: 'you', ok: (s) => Boolean(s.name.trim()) },
+  { t: 'At least 1 shoot type', k: 'work', ok: (s) => s.what.length > 0 },
   { t: `${MIN_SHOTS}+ portfolio shots`, k: 'pf', ok: (s) => s.portfolio.length >= MIN_SHOTS },
-  { t: '1 priced package', k: 'price', ok: (s) => activeTiers(s).length > 0 },
+  { t: 'Full name', k: 'priv', ok: (s) => Boolean(s.fullName.trim()) },
   { t: 'Contact email', k: 'priv', ok: (s) => validEmail(s.email) },
 ];
 
+/** The optional parts that make a page stronger. */
 export const EXTRAS = [
   { t: 'One-liner', k: 'line', ok: (s) => Boolean(s.oneLiner.trim()) },
   { t: 'Style tags', k: 'line', ok: (s) => s.tags.length > 0 },
@@ -147,20 +159,47 @@ export const EXTRAS = [
   { t: 'Equipment', k: 'kit', ok: (s) => Boolean(s.equip.trim()) },
   { t: 'A prompt', k: 'prompt', ok: (s) => s.promptIdx != null && Boolean(s.promptA.trim()) },
   { t: "What you don't shoot", k: 'dont', ok: (s) => Boolean(s.dont.trim()) },
+  { t: 'Packages', k: 'price', ok: (s) => activeTiers(s).length > 0 },
   { t: 'Instagram', k: 'priv', ok: (s) => Boolean(s.ig.trim()) },
 ];
 
-/**
- * The priced package is asked for once, when someone applies. A page that is
- * already live has to be able to fix its photos and words without one, so it
- * drops out of the list for an existing profile.
- */
-export const applicableReqs = (s, existing) => (existing ? REQS.filter((r) => r.k !== 'price') : REQS);
-export const missingReqs = (s, existing = false) => applicableReqs(s, existing).filter((r) => !r.ok(s));
-export const isReady = (s, existing = false) => missingReqs(s, existing).length === 0;
+export const missingReqs = (s) => REQS.filter((r) => !r.ok(s));
+export const isReady = (s) => missingReqs(s).length === 0;
 export const strength = (s) => {
   const all = [...REQS, ...EXTRAS];
   return Math.round((all.filter((r) => r.ok(s)).length / all.length) * 100);
+};
+
+/** Why this step can't be left yet, or '' when it can. */
+export function stepProblem(key, s) {
+  if (key === 'you') {
+    if (!s.photo) return 'Add a photo of you. Clients book people.';
+    if (!s.name.trim()) return 'Add a name clients can call you.';
+  }
+  if (key === 'work' && !s.what.length) return 'Pick at least one thing you shoot.';
+  if (key === 'pf' && s.portfolio.length < MIN_SHOTS) return `Add at least ${MIN_SHOTS} of your best shots.`;
+  if (key === 'price' && s.tiers.some((tier) => tier.on && tier.price && !tier.name.trim())) {
+    return "Give each package you're offering a name.";
+  }
+  if (key === 'priv') {
+    if (!s.fullName.trim()) return 'Add your full name. Only Stelli sees it.';
+    if (!validEmail(s.email)) return 'Add a valid email so booking requests can reach you.';
+  }
+  return '';
+}
+
+/** Which step a field the server turned down lives on. */
+export const FIELD_STEP = {
+  profile_image: 'you', display_name: 'you', slug: 'you',
+  specialties: 'work', neighborhoods: 'work',
+  portfolio_images: 'pf', cover_image: 'pf',
+  full_name: 'priv', email: 'priv', phone: 'priv', instagram: 'priv',
+  one_liner: 'line', style_tags: 'line',
+  bio: 'bio', equipment: 'kit',
+  prompt_question: 'prompt', prompt_answer: 'prompt',
+  dont_shoot: 'dont',
+  accent_color: 'look', wall_layout: 'look', wall_curve: 'look', print_frame: 'look', print_mat: 'look',
+  pricing_tiers: 'price',
 };
 
 export const shareUrl = (slug) => `${window.location.origin}/creators/${slug || 'you'}`;
@@ -178,7 +217,7 @@ export function buildPayload(s) {
     portfolio_images: ordered.map((item) => item.src).filter(Boolean),
     one_liner: s.oneLiner.trim(),
     style_tags: s.tags,
-    neighborhoods: s.where,
+    neighborhoods: s.where.length ? s.where : [DEFAULT_SPOT],
     specialties: s.what,
     bio: s.bio.trim(),
     equipment: s.equip.trim(),
