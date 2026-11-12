@@ -90,8 +90,10 @@
 .pw-compact .pw-shot { --row: 120px; border-radius: 8px; }
 
 /* ---------- photo viewer ---------- */
-.pw-lb { position: fixed; inset: 0; z-index: 80; background: rgba(5,8,18,.95); display: grid; place-items: center; padding: max(64px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(80px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
-.pw-lb img { max-width: 100%; max-height: 100%; border-radius: 10px; box-shadow: 0 30px 70px -24px rgba(0,0,0,.9); }
+/* Flex, not grid: the container's height is then definite, so max-height really
+   caps a tall portrait photo instead of letting it run off the bottom of the screen. */
+.pw-lb { position: fixed; inset: 0; z-index: 80; background: rgba(5,8,18,.95); display: flex; align-items: center; justify-content: center; padding: max(64px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(80px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+.pw-lb img { max-width: 100%; max-height: 100%; width: auto; height: auto; min-width: 0; min-height: 0; object-fit: contain; border-radius: 10px; box-shadow: 0 30px 70px -24px rgba(0,0,0,.9); }
 .pw-lb button { position: absolute; width: 46px; height: 46px; border-radius: 50%; border: 1px solid rgba(255,255,255,.15); background: rgba(255,255,255,.08); color: #fff; cursor: pointer; display: grid; place-items: center; }
 .pw-lb button:hover { background: rgba(255,255,255,.16); }
 .pw-lb svg { width: 20px; height: 20px; }
