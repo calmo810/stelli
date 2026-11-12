@@ -1,98 +1,69 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
+import { base44, errorMessage } from '@/api/base44Client';
+import useCurrentUser from '@/hooks/useCurrentUser';
+import { loginUrl } from '@/lib/requireSignIn';
+import { STEPS, stepIdx } from '@/lib/wizardData';
 import {
-  PROMPTS, STEPS, MIN_SHOTS, MAX_SHOTS, MARKET,
-  freshState, defaultTiers, applicableReqs, missingReqs, strength, activeTiers,
-  buildPayload, slugify, validEmail, shareUrl, shareLabel,
-} from '@/lib/wizardData';
+  FIELD_STEP, LIMITS, MARKET, MAX_SHOTS, MIN_SHOTS,
+  activeTiers, applicableReqs, contactProblems, formToPayload, formToProfile, freshForm,
+  missingReqs, normalizeForm, profileToForm, profileUrl, profileUrlLabel, strength, validEmail,
+} from '@/lib/creatorProfile';
+import { CONTACT_MESSAGE } from '@/lib/contactGuard';
 import { PRIVACY_VERSION, TERMS_VERSION } from '@/lib/legalDocuments';
 
-const DRAFT_KEY = 'stelli_profile_draft_v2';
+/** An application in progress. One per device, until it is sent. */
+const APPLICATION_DRAFT_KEY = 'stelli_profile_draft_v2';
+/** Unpublished edits to a profile that already exists. One per profile. */
+const editDraftKey = (lensmanId) => `stelli_profile_edit_v1_${lensmanId}`;
 
-function readDraft() {
-  try {
-    return JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
-  } catch {
-    return null;
-  }
-}
-function writeDraft(data) {
-  try {
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
-  } catch {
-    /* a full or blocked store never blocks the wizard */
-  }
-}
-function clearDraft() {
-  try {
-    localStorage.removeItem(DRAFT_KEY);
-  } catch {
-    /* nothing to clear */
-  }
-}
+const store = {
+  read(key) {
+    try {
+      return JSON.parse(localStorage.getItem(key) || 'null');
+    } catch {
+      return null;
+    }
+  },
+  write(key, data) {
+    try {
+      localStorage.setItem(key, JSON.stringify(data));
+    } catch {
+      /* a full or blocked store never blocks the wizard */
+    }
+  },
+  clear(key) {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      /* nothing to clear */
+    }
+  },
+};
 
-/** Turns a saved creator profile back into wizard state. */
-function prefill(lensman, contact, user) {
-  const base = freshState();
-  const portfolio = (lensman.portfolio_images || []).filter(Boolean).map((src) => ({ src }));
-  const coverIdx = portfolio.findIndex((item) => item.src === lensman.cover_image);
-  const saved = Array.isArray(lensman.pricing_tiers) ? lensman.pricing_tiers : [];
-  const tiers = base.tiers.map((tier, i) => {
-    const match = saved.find((entry) => entry?.tier === ['low', 'mid', 'high'][i]) || saved[i];
-    if (!match) return tier;
-    return {
-      on: Number(match.price) > 0,
-      name: match.name || tier.name,
-      price: match.price ? String(match.price) : '',
-      duration: match.duration || tier.duration,
-      includes: match.includes || '',
-    };
-  });
-  const promptIdx = PROMPTS.indexOf(lensman.prompt_question);
-  return {
-    ...base,
-    photo: lensman.profile_image || null,
-    name: lensman.display_name || '',
-    slug: lensman.slug || '',
-    oneLiner: lensman.one_liner || '',
-    tags: lensman.style_tags || [],
-    where: lensman.neighborhoods || [],
-    what: lensman.specialties || [],
-    portfolio,
-    cover: coverIdx < 0 ? 0 : coverIdx,
-    tiers,
-    bio: lensman.bio || '',
-    equip: lensman.equipment || '',
-    years: lensman.years_experience != null ? String(lensman.years_experience) : '',
-    promptIdx: promptIdx < 0 ? null : promptIdx,
-    promptA: lensman.prompt_answer || '',
-    dont: lensman.dont_shoot || '',
-    theme: lensman.profile_theme === 'clean_portfolio' ? 'clean' : 'night',
-    accent: lensman.accent_color || 'lime',
-    gallery: { hero_grid: 'hero', ordered_grid: 'ordered', contact_sheet: 'contact' }[lensman.gallery_style] || 'hero',
-    layout: lensman.wall_layout || 'wall',
-    curve: lensman.wall_curve || 'soft',
-    frame: lensman.print_frame || 'mat',
-    mat: lensman.print_mat || 'mixed',
-    captions: lensman.show_captions !== false,
-    fullName: contact?.full_name || '',
-    email: contact?.email || user?.email || '',
-    phone: contact?.phone || '',
-    ig: contact?.instagram || '',
-  };
+/** What would be saved, as one string: two forms are "the same" when this matches. */
+const fingerprint = (form) => JSON.stringify(formToPayload(form));
+
+/** True when this device holds an application that was started but not sent. */
+export function hasApplicationDraft() {
+  return Boolean(store.read(APPLICATION_DRAFT_KEY));
 }
 
 /**
  * The wizard's whole brain: the profile being built, where the creator is in
  * the flow, uploads, the local draft, and publishing to Stelli.
+ *
+ * The same wizard creates a profile (/apply) and edits one (/edit-profile).
+ * Which one it is doing is decided by whether the account already has a
+ * profile, never by the address: someone with a profile always edits it.
  */
 export default function useWizard() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [s, setS] = useState(freshState);
+  const [s, setS] = useState(freshForm);
   const [view, setView] = useState('welcome');
   const [step, setStep] = useState(0);
   const [maxStep, setMaxStep] = useState(0);
@@ -106,27 +77,24 @@ export default function useWizard() {
   const [publishing, setPublishing] = useState(false);
   const [flash, setFlash] = useState(false);
   const [saveState, setSaveState] = useState('');
+  // What is saved on the server, as a fingerprint, for a profile that exists.
+  const [published, setPublished] = useState('');
 
   const loadedRef = useRef(false);
   const toastTimer = useRef(null);
 
-  const { data: user, isLoading: userLoading } = useQuery({
-    queryKey: ['me'],
-    queryFn: async () => {
-      try {
-        return await base44.auth.me();
-      } catch {
-        return null;
-      }
-    },
-    retry: false,
-  });
+  const { user, isLoading: userLoading } = useCurrentUser();
 
   // The creator's own full profile (packages included) and private contact
   // details, from the server: some of those fields are readable by founders
   // only, so reading the record directly would come back with them missing,
   // and a save would then wipe them.
-  const { data: own, isFetched: ownFetched, isError: ownFailed } = useQuery({
+  const {
+    data: own,
+    isFetched: ownFetched,
+    isError: ownFailed,
+    refetch: refetchOwn,
+  } = useQuery({
     queryKey: ['my-creator-profile-full', user?.id],
     enabled: !!user?.id,
     retry: 1,
@@ -138,42 +106,92 @@ export default function useWizard() {
   });
   const lensman = own?.lensman || null;
   const contact = own?.contact || null;
-  // A failed load must never look like "no profile yet": that would start a
-  // fresh application on top of an existing one.
-  const lensmanFetched = ownFetched && !ownFailed;
-  const contactFetched = lensmanFetched;
+  const existing = Boolean(lensman);
 
   // A creator profile belongs to an account, so building one starts at sign-in.
   useEffect(() => {
-    if (!userLoading && !user) base44.auth.redirectToLogin(window.location.pathname);
+    if (!userLoading && !user) window.location.replace(loginUrl());
   }, [userLoading, user]);
 
+  // Loads the form once: from the saved profile, or from this device's draft.
+  // A failed load must never look like "no profile yet": that would start a
+  // fresh application on top of an existing one, so it shows an error instead.
   useEffect(() => {
-    if (loadedRef.current || userLoading || !user) return;
-    // Both lookups must have come back before we can tell a new creator from
-    // one who is coming back to a profile they already have.
-    if (!lensmanFetched || !contactFetched) return;
-    if (lensman) {
-      setS(prefill(lensman, contact, user));
-      setView('welcome');
-    } else {
-      const draft = readDraft();
-      if (draft) setS({ ...freshState(), ...draft, tiers: Array.isArray(draft.tiers) && draft.tiers.length === 3 ? draft.tiers : defaultTiers() });
-    }
+    if (loadedRef.current || userLoading || !user || !ownFetched || ownFailed) return;
     loadedRef.current = true;
-    setReady(true);
-  }, [user, userLoading, lensman, lensmanFetched, contact, contactFetched]);
 
-  // The draft lives on the device, so a creator can leave and pick it back up.
+    const wanted = stepIdx(searchParams.get('step') || '');
+    if (lensman) {
+      const saved = profileToForm(lensman, contact, user);
+      const base = fingerprint(saved);
+      const draft = store.read(editDraftKey(lensman.id));
+      // Unpublished edits are picked back up only if the profile underneath
+      // them has not changed since (an approval, an edit on another device).
+      const resumed = draft?.base === base && draft?.form ? normalizeForm(draft.form) : null;
+      if (draft && !resumed) store.clear(editDraftKey(lensman.id));
+      setS(resumed || saved);
+      setPublished(base);
+      setMaxStep(STEPS.length - 1);
+      if (wanted >= 0) {
+        setStep(wanted);
+        setView('wizard');
+      } else {
+        setView('preview');
+      }
+      if (resumed) showToast('Picked up your unpublished changes.');
+    } else {
+      const draft = store.read(APPLICATION_DRAFT_KEY);
+      const form = draft ? normalizeForm(draft) : freshForm();
+      if (!form.email) form.email = user.email || '';
+      setS(form);
+      if (wanted >= 0) {
+        setStep(wanted);
+        setMaxStep(wanted);
+        setView('wizard');
+      }
+    }
+    // The step in the address is a one-time way in, not a place to live.
+    if (searchParams.has('step')) {
+      const next = new URLSearchParams(searchParams);
+      next.delete('step');
+      setSearchParams(next, { replace: true });
+    }
+    setReady(true);
+  }, [user, userLoading, lensman, contact, ownFetched, ownFailed]);
+
+  const dirty = existing && ready && fingerprint(s) !== published;
+
+  // The work in progress lives on the device, so a creator can leave and pick
+  // it back up. For a live profile only real, unpublished changes are kept.
   useEffect(() => {
-    if (!ready) return;
+    if (!ready) return undefined;
+    if (existing) {
+      const key = editDraftKey(lensman.id);
+      if (dirty) store.write(key, { base: published, form: s });
+      else store.clear(key);
+      setSaveState(dirty ? 'Unpublished changes' : 'Up to date');
+      return undefined;
+    }
     setSaveState('Saving…');
     const timer = setTimeout(() => {
-      writeDraft(s);
+      store.write(APPLICATION_DRAFT_KEY, s);
       setSaveState('Draft saved');
     }, 500);
     return () => clearTimeout(timer);
-  }, [s, ready]);
+  }, [s, ready, existing, dirty, published, lensman?.id]);
+
+  // Leaving the tab with unpublished changes to a live page asks first.
+  useEffect(() => {
+    if (!dirty) return undefined;
+    const warn = (event) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [dirty]);
+
+  useEffect(() => () => clearTimeout(toastTimer.current), []);
 
   const showToast = useCallback((message) => {
     setToast(message);
@@ -181,7 +199,10 @@ export default function useWizard() {
     toastTimer.current = setTimeout(() => setToast(''), 3200);
   }, []);
 
-  const patch = useCallback((changes) => setS((prev) => ({ ...prev, ...changes })), []);
+  const patch = useCallback((changes) => {
+    setErrMsg('');
+    setS((prev) => ({ ...prev, ...changes }));
+  }, []);
 
   const goStep = useCallback((target, { jump = false } = {}) => {
     const next = Math.max(0, Math.min(target, STEPS.length - 1));
@@ -192,15 +213,20 @@ export default function useWizard() {
     setErrMsg('');
     setSheetOpen(false);
     if (!jump) window.scrollTo({ top: 0, behavior: 'smooth' });
+    else window.scrollTo(0, 0);
   }, [step]);
 
-  const validate = useCallback(() => {
-    const key = STEPS[step].key;
+  /** What is wrong with the step on screen, in the words shown under it. */
+  const validate = useCallback((key = STEPS[step].key) => {
     if (key === 'name' && !s.name.trim()) return 'Add a name clients can call you.';
-    if (key === 'where' && !s.where.length) return 'Pick at least one spot — clients filter by this.';
-    if (key === 'what' && !s.what.length) return 'Pick at least one shoot type — it is the first thing clients search.';
+    if (key === 'name' && !s.slug) return 'Use at least one letter or number in your name, so your link works.';
+    if (key === 'where' && !s.where.length) return 'Pick at least one spot. Clients filter by this.';
+    if (key === 'what' && !s.what.length) return 'Pick at least one shoot type. It is the first thing clients search.';
     if (key === 'price' && s.tiers.some((tier) => tier.on && tier.price && !tier.name.trim())) return "Give each package you're offering a name.";
+    if (key === 'prompt' && s.promptA.trim() && !s.prompt) return 'Pick the prompt your answer goes with.';
+    if (key === 'priv' && !s.fullName.trim()) return 'Add your full name. Only Stelli sees it.';
     if (key === 'priv' && !validEmail(s.email)) return 'Add a valid email so booking requests can reach you.';
+    if (contactProblems(s).includes(key)) return CONTACT_MESSAGE;
     return '';
   }, [step, s]);
 
@@ -221,11 +247,20 @@ export default function useWizard() {
 
   const goBack = useCallback(() => {
     if (step === 0) {
-      setView('welcome');
+      // A profile that exists has no "welcome": its home is the review page.
+      setView(existing ? 'preview' : 'welcome');
+      window.scrollTo(0, 0);
       return;
     }
     goStep(step - 1);
-  }, [step, goStep]);
+  }, [step, goStep, existing]);
+
+  const openReview = useCallback(() => {
+    setView('preview');
+    setSheetOpen(false);
+    setErrMsg('');
+    window.scrollTo(0, 0);
+  }, []);
 
   const applyStarter = useCallback((starter) => {
     if (!starter) return;
@@ -245,12 +280,12 @@ export default function useWizard() {
         captions: starter.captions,
         what: [...new Set([...prev.what, ...starter.what])],
         bio: starter.bio,
-        promptIdx: starter.promptIdx,
+        prompt: starter.prompt,
         promptA: starter.promptA,
         dont: starter.dont,
       }));
       goStep(0);
-      showToast(`Started from ${starter.name} — every word is editable.`);
+      showToast(`Started from ${starter.name}. Every word is editable.`);
     };
     if (s.oneLiner || s.bio || s.tags.length || s.dont) {
       setConfirm({
@@ -282,95 +317,156 @@ export default function useWizard() {
   }, [patch, showToast]);
 
   const uploadPortfolio = useCallback(async (files) => {
+    const list = Array.from(files || []);
     const room = MAX_SHOTS - s.portfolio.length;
     if (room <= 0) {
-      showToast(`Max ${MAX_SHOTS} shots — remove one to add more.`);
+      showToast(`Max ${MAX_SHOTS} shots. Remove one to add more.`);
+      return;
+    }
+    const images = list.filter((file) => file.type.startsWith('image/'));
+    if (!images.length) {
+      showToast('Those files are not images.');
       return;
     }
     setUploading(true);
     const added = [];
-    for (const file of Array.from(files).slice(0, room)) {
-      if (!file.type.startsWith('image/')) continue;
+    let failed = 0;
+    for (const file of images.slice(0, room)) {
       try {
         const { file_url } = await base44.integrations.Core.UploadFile({ file });
         added.push({ src: file_url });
       } catch {
-        showToast('One of those images could not be uploaded.');
+        failed += 1;
       }
     }
-    if (added.length) patch({ portfolio: [...s.portfolio, ...added] });
+    // Added to whatever the portfolio holds NOW: it may have been reordered
+    // or trimmed while these were uploading.
+    if (added.length) setS((prev) => ({ ...prev, portfolio: [...prev.portfolio, ...added].slice(0, MAX_SHOTS) }));
     setUploading(false);
-  }, [s.portfolio, patch, showToast]);
+    if (failed) showToast(failed === 1 ? 'One of those images could not be uploaded.' : `${failed} of those images could not be uploaded.`);
+    else if (images.length > room) showToast(`Added ${room}. Max ${MAX_SHOTS} shots.`);
+  }, [s.portfolio.length, showToast]);
 
   const publish = useCallback(async () => {
-    if (missingReqs(s, Boolean(lensman)).length || publishing) return;
+    if (publishing) return;
+    const missing = missingReqs(s, existing);
+    if (missing.length) {
+      showToast(`Still needed: ${missing[0].t.toLowerCase()}.`);
+      return;
+    }
+    // Every step's own check, so the review page can't publish what a step would refuse.
+    const bad = STEPS.find((meta) => validate(meta.key));
+    if (bad) {
+      goStep(stepIdx(bad.key), { jump: true });
+      setErrMsg(validate(bad.key));
+      return;
+    }
     setPublishing(true);
     setFlash(true);
     setTimeout(() => setFlash(false), 700);
     try {
-      const payload = buildPayload(s);
-      const response = await base44.functions.invoke(lensman ? 'updateCreatorProfile' : 'applyAsCreator', payload);
-      const problem = response?.data?.error;
-      if (problem) throw new Error(problem);
-      if (!lensman) {
-        await Promise.all([
+      const payload = formToPayload(s);
+      const response = await base44.functions.invoke(existing ? 'updateCreatorProfile' : 'applyAsCreator', payload);
+      if (response?.data?.error) throw new Error(response.data.error);
+      const saved = response?.data?.lensman || null;
+      if (!existing) {
+        // The application itself is in. A failed acceptance record is caught
+        // again by the legal banner, so it never undoes the application.
+        await Promise.allSettled([
           base44.functions.invoke('recordAgreementAcceptance', { documentType: 'terms', documentVersion: TERMS_VERSION }),
           base44.functions.invoke('recordAgreementAcceptance', { documentType: 'privacy', documentVersion: PRIVACY_VERSION }),
         ]);
+        store.clear(APPLICATION_DRAFT_KEY);
+      } else {
+        store.clear(editDraftKey(lensman.id));
       }
-      clearDraft();
-      queryClient.invalidateQueries({ queryKey: ['my-lensman-profile'] });
-      queryClient.invalidateQueries({ queryKey: ['my-creator-profile-full'] });
+      // The link can change on save (a taken name gets a suffix): show the real one.
+      const next = saved?.slug && saved.slug !== s.slug ? { ...s, slug: saved.slug } : s;
+      if (next !== s) setS(next);
+      setPublished(fingerprint(next));
+      setMaxStep(STEPS.length - 1);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['my-lensman-profile'] }),
+        queryClient.invalidateQueries({ queryKey: ['my-creator-profile-full'] }),
+        queryClient.invalidateQueries({ queryKey: ['has-creator-profile'] }),
+        queryClient.invalidateQueries({ queryKey: ['creator'] }),
+        queryClient.invalidateQueries({ queryKey: ['creators'] }),
+      ]);
       setView('share');
       window.scrollTo(0, 0);
     } catch (error) {
-      showToast(`Couldn't publish — ${error?.message || 'please try again.'}`);
+      const field = error?.response?.data?.field;
+      const message = errorMessage(error, 'Your profile did not save. Try again.');
+      const target = stepIdx(FIELD_STEP[field] || '');
+      if (target >= 0) {
+        // The server named the field: take the creator straight to it.
+        goStep(target, { jump: true });
+        setErrMsg(message);
+      } else {
+        showToast(`Couldn't publish. ${message}`);
+      }
     } finally {
       setPublishing(false);
     }
-  }, [s, lensman, publishing, queryClient, showToast]);
+  }, [s, existing, lensman, publishing, queryClient, showToast, validate, goStep]);
+
+  /** Throws away unpublished edits and goes back to what is live. */
+  const discardChanges = useCallback(() => {
+    if (!existing) return;
+    store.clear(editDraftKey(lensman.id));
+    setS(profileToForm(lensman, contact, user));
+    setConfirm(null);
+    setErrMsg('');
+    showToast('Changes discarded.');
+  }, [existing, lensman, contact, user, showToast]);
 
   const exit = useCallback(() => {
-    writeDraft(s);
-    navigate(lensman ? '/lensman-dashboard' : '/');
-  }, [s, lensman, navigate]);
+    if (!existing) store.write(APPLICATION_DRAFT_KEY, s);
+    navigate(existing ? '/lensman-dashboard/profile' : '/lensman-dashboard');
+  }, [s, existing, navigate]);
 
   const copy = useCallback(async (text, message) => {
     try {
       await navigator.clipboard.writeText(text);
       showToast(message);
     } catch {
-      showToast('Could not copy — select it by hand.');
+      showToast('Could not copy. Select it by hand.');
     }
   }, [showToast]);
 
-  const live = Boolean(lensman);
-  const reqs = missingReqs(s, live);
-  const reqTotal = applicableReqs(s, live).length;
+  const reset = useCallback(() => {
+    store.clear(APPLICATION_DRAFT_KEY);
+    setConfirm(null);
+    setS({ ...freshForm(), email: user?.email || '' });
+    setView('welcome');
+    setStep(0);
+    setMaxStep(0);
+    setErrMsg('');
+  }, [user]);
+
+  const reqs = missingReqs(s, existing);
+  const reqTotal = applicableReqs(s, existing).length;
   const pct = Math.round(((reqTotal - reqs.length) / reqTotal) * 100);
+  // The form as a profile record, for the preview. Drawn by the same component as the public page.
+  const profile = useMemo(() => formToProfile(s, lensman), [s, lensman]);
 
   return {
     user, lensman, contact, ready,
-    s, patch, view, setView, step, maxStep, dir,
+    loadFailed: !userLoading && !!user && ownFetched && ownFailed,
+    retryLoad: refetchOwn,
+    s, patch, profile, view, setView, step, maxStep, dir,
     errMsg, setErrMsg, toast, showToast, confirm, setConfirm,
     sheetOpen, setSheetOpen, uploading, publishing, flash, saveState,
-    goStep, goNext, goBack, applyStarter, validate,
-    uploadPhoto, uploadPortfolio, publish, exit, copy,
+    goStep, goNext, goBack, openReview, applyStarter, validate,
+    uploadPhoto, uploadPortfolio, publish, exit, copy, reset, discardChanges,
     missing: reqs, pct, strength: strength(s), readyToPublish: reqs.length === 0,
+    existing, dirty,
     approved: lensman?.status === 'approved',
     tiers: activeTiers(s),
-    link: shareUrl(s.slug),
-    linkLabel: shareLabel(s.slug),
-    slugFor: slugify,
-    reset: () => {
-      clearDraft();
-      setConfirm(null);
-      setS(freshState());
-      setView('welcome');
-      setStep(0);
-      setMaxStep(0);
-    },
+    link: profileUrl({ slug: s.slug }),
+    linkLabel: profileUrlLabel({ slug: s.slug }),
     market: MARKET,
     minShots: MIN_SHOTS,
+    limits: LIMITS,
   };
 }

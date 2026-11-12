@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Plus } from 'lucide-react';
-import { MAX_SHOTS, MIN_SHOTS, PH } from '@/lib/wizardData';
+import { MAX_SHOTS, MIN_SHOTS } from '@/lib/creatorProfile';
 
 export default function StepPortfolio({ w }) {
   const { s } = w;
@@ -69,23 +69,23 @@ export default function StepPortfolio({ w }) {
               setOver(null);
             }}
           >
-            <img src={item.src} alt="" />
+            <img src={item.src} alt={`Portfolio shot ${i + 1}${i === s.cover ? ', your cover' : ''}`} />
             <span className="pf-num">{i + 1}</span>
             {i === s.cover && <span className="pf-cover-flag">Cover</span>}
             <div className="pf-ctrl">
               <div className="grp">
-                <button type="button" onClick={() => move(i, i - 1)} disabled={i === 0} aria-label="Move earlier">
+                <button type="button" onClick={() => move(i, i - 1)} disabled={i === 0} aria-label={`Move shot ${i + 1} earlier`}>
                   ‹
                 </button>
-                <button type="button" onClick={() => move(i, i + 1)} disabled={i === s.portfolio.length - 1} aria-label="Move later">
+                <button type="button" onClick={() => move(i, i + 1)} disabled={i === s.portfolio.length - 1} aria-label={`Move shot ${i + 1} later`}>
                   ›
                 </button>
               </div>
               <div className="grp">
-                <button type="button" onClick={() => w.patch({ cover: i })} aria-label="Set as cover">
+                <button type="button" onClick={() => w.patch({ cover: i })} aria-label={`Make shot ${i + 1} the cover`} aria-pressed={i === s.cover}>
                   {i === s.cover ? '★' : '☆'}
                 </button>
-                <button type="button" onClick={() => remove(i)} aria-label="Remove">
+                <button type="button" onClick={() => remove(i)} aria-label={`Remove shot ${i + 1}`}>
                   ×
                 </button>
               </div>
@@ -133,8 +133,7 @@ export default function StepPortfolio({ w }) {
         </span>
       </div>
       <p className="hint">
-        The first photo leads your page. Star another one to make it the cover —{' '}
-        {PH.length ? 'your portfolio shows in the order above.' : ''}
+        The starred photo is your cover and leads your page. The rest follow in the order above.
       </p>
     </>
   );

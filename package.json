@@ -13,7 +13,9 @@
     "typecheck:backend": "deno check --config ci/deno.json base44/functions/*/entry.ts base44/shared/*.ts",
     "test": "node --import ./tests/helpers/register.mjs --test \"tests/*.test.mjs\"",
     "test:stripe": "NODE_USE_ENV_PROXY=1 node --no-warnings --import ./tests/helpers/register.mjs --test --test-concurrency=1 --test-timeout=600000 \"tests/live-stripe/*.test.mjs\"",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dev:mock": "node tests/e2e/dev-mock.mjs",
+    "test:e2e": "node tests/e2e/profile-flow.e2e.mjs"
   },
   "dependencies": {
     "@base44/sdk": "^0.8.60",

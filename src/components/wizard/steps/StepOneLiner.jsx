@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { STARTERS, TAG_IDEAS } from '@/lib/wizardData';
+import { STARTERS } from '@/lib/wizardData';
+import { LIMITS, TAG_IDEAS } from '@/lib/creatorProfile';
 
 export default function StepOneLiner({ w }) {
   const [draftTag, setDraftTag] = useState('');
@@ -8,7 +9,7 @@ export default function StepOneLiner({ w }) {
 
   const addTag = (raw) => {
     const value = String(raw || '').trim().toLowerCase().replace(/,/g, '');
-    if (!value || s.tags.length >= 3 || s.tags.includes(value)) return;
+    if (!value || s.tags.length >= LIMITS.tags || s.tags.includes(value)) return;
     w.patch({ tags: [...s.tags, value] });
   };
 
@@ -19,12 +20,12 @@ export default function StepOneLiner({ w }) {
           <label className="lbl" htmlFor="fLine">
             One-liner
           </label>
-          <span className={`count ${s.oneLiner.length > 80 ? 'near' : ''}`}>{s.oneLiner.length}/90</span>
+          <span className={`count ${s.oneLiner.length > LIMITS.one_liner - 10 ? 'near' : ''}`}>{s.oneLiner.length}/{LIMITS.one_liner}</span>
         </div>
         <input
           id="fLine"
           className="inp"
-          maxLength={90}
+          maxLength={LIMITS.one_liner}
           value={s.oneLiner}
           placeholder="Flash, sweat, 2am."
           autoComplete="off"
@@ -46,7 +47,7 @@ export default function StepOneLiner({ w }) {
           value={draftTag}
           placeholder={s.tags.length >= 3 ? "That's three — remove one to swap" : 'Type a tag and press Enter'}
           autoComplete="off"
-          maxLength={24}
+          maxLength={LIMITS.tag}
           disabled={s.tags.length >= 3}
           onChange={(event) => setDraftTag(event.target.value)}
           onKeyDown={(event) => {

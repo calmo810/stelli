@@ -12,6 +12,7 @@ import { loginWithMfa } from "@/lib/authMfa";
 import { signInWithProvider } from "@/lib/authMfaFlow";
 import MfaFlow from "@/components/MfaFlow";
 import { MfaScreen } from "@/components/MfaParts";
+import { fetchCurrentUser } from "@/hooks/useCurrentUser";
 
 // Honor ?returnTo= (used by the MCP consent flow), else the app's portal.
 const afterAuth = () =>
@@ -25,11 +26,9 @@ export default function Login() {
 
   useEffect(() => {
     let active = true;
-    base44.auth.isAuthenticated()
-      .then((ok) => {
-        if (active && ok) window.location.replace(afterAuth());
-      })
-      .catch(() => {});
+    fetchCurrentUser().then((user) => {
+      if (active && user) window.location.replace(afterAuth());
+    });
     return () => { active = false; };
   }, []);
 

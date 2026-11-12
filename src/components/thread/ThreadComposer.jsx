@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Loader2, Send } from 'lucide-react';
-import { hasContactDetails } from '@/lib/profilePresets';
+import { hasContactDetails } from '@/lib/contactGuard';
 import { CONTACT_BLOCK_MESSAGE, isConfirmed } from '@/lib/threadStatus';
 
 /**

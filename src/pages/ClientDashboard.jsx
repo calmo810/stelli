@@ -12,7 +12,7 @@ import PullToRefresh from '@/components/shared/PullToRefresh';
 import { useQueryClient } from '@tanstack/react-query';
 import useClientDashboard from '@/hooks/useClientDashboard';
 import useThreads from '@/hooks/useThreads';
-import shortDate from '@/lib/shortDate';
+import { shortDate } from '@/lib/format';
 import useRequireSignIn from '@/lib/requireSignIn';
 
 function SectionLabel({ children }) {

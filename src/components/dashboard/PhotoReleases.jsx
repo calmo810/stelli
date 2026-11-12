@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ImagePlus, Loader2, X } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
-import shortDate from '@/lib/shortDate';
+import { shortDate } from '@/lib/format';
 
 const MAX_PHOTOS = 6;
 

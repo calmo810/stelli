@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { timeLabel } from '@/lib/format';
 import { format } from 'date-fns';
 import { Calendar, ChevronDown, MapPin } from 'lucide-react';
 
@@ -33,7 +34,7 @@ export default function RequestSummary({ booking }) {
             <span className="inline-flex items-center gap-1.5">
               <Calendar className="h-3.5 w-3.5 text-white/35" />
               {date}
-              {booking?.event_time ? ` · ${booking.event_time}` : ''}
+              {booking?.event_time ? ` · ${timeLabel(booking.event_time)}` : ''}
             </span>
             {booking?.location && (
               <span className="inline-flex min-w-0 items-center gap-1.5">

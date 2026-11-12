@@ -13,7 +13,7 @@ export default function WizardSheet({ w }) {
             Done
           </button>
         </div>
-        <WizardProfilePreview s={w.s} />
+        <WizardProfilePreview profile={w.profile} />
       </div>
     </>
   );

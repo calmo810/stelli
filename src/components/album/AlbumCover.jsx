@@ -1,13 +1,8 @@
 import React from 'react';
 import { Sparkles } from 'lucide-react';
 import SmoothImage from '@/components/shared/SmoothImage';
+import { longDate } from '@/lib/format';
 
-function longDate(value) {
-  if (!value) return '';
-  const date = new Date(`${String(value).slice(0, 10)}T12:00:00`);
-  if (Number.isNaN(date.getTime())) return '';
-  return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-}
 
 /** The album's front door: one photograph, the shoot's name, and who shot it. */
 export default function AlbumCover({ booking, cover, count }) {

@@ -2,7 +2,7 @@ import React from 'react';
 import { ArrowUpRight, CalendarDays, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import CopyLinkPill from '@/components/dashboard/CopyLinkPill';
-import money from '@/lib/money';
+import { money, timeLabel } from '@/lib/format';
 
 function whenLabel(eventDate) {
   if (!eventDate) return 'Open';
@@ -16,13 +16,6 @@ function whenLabel(eventDate) {
   return 'Completed';
 }
 
-function timeLabel(value) {
-  if (!value) return 'Time TBD';
-  const match = /^(\d{1,2}):(\d{2})/.exec(value);
-  if (!match) return value;
-  const hours = Number(match[1]);
-  return (hours % 12 || 12) + ':' + match[2] + (hours >= 12 ? ' PM' : ' AM');
-}
 
 export default function TodayShootCard({ shoot, profile }) {
   if (!shoot) {
@@ -43,7 +36,7 @@ export default function TodayShootCard({ shoot, profile }) {
 
   const date = shoot.event_date ? new Date(shoot.event_date + 'T12:00:00') : null;
   const type = shoot.event_type ? shoot.event_type.replace(/_/g, ' ') : 'Shoot';
-  const details = [timeLabel(shoot.event_time), shoot.location].filter(Boolean).join(' · ');
+  const details = [timeLabel(shoot.event_time, 'Time TBD'), shoot.location].filter(Boolean).join(' · ');
 
   return (
     <section className="arch-booking">

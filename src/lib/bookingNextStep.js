@@ -12,18 +12,14 @@
  * The status rules mirror base44/shared/bookingRules.ts.
  */
 
+import { money } from './format.js';
+
 const LEGACY_LIMBO = ['pending', 'awaiting_creator_acceptance'];
 const MONEY_TAKEN = ['held', 'released', 'partially_refunded'];
 const CONFIRMED = ['confirmed', 'in_progress', 'awaiting_delivery', 'delivered', 'completed'];
 const SHOOT_ZONE = 'America/New_York';
 
-export function money(amount) {
-  const value = Number(amount || 0);
-  return `$${value.toLocaleString('en-US', {
-    minimumFractionDigits: Number.isInteger(value) ? 0 : 2,
-    maximumFractionDigits: 2,
-  })}`;
-}
+export { money };
 
 const firstName = (name, fallback) => String(name || '').trim().split(/\s+/)[0] || fallback;
 

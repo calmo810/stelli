@@ -12,6 +12,8 @@ import GoogleIcon from "@/components/GoogleIcon";
 import { toast } from "@/components/ui/use-toast";
 import { PRIVACY_VERSION, TERMS_VERSION } from "@/lib/legalDocuments";
 import { safeReturnTo } from "@/lib/authReturnTo";
+import { fetchCurrentUser } from "@/hooks/useCurrentUser";
+import { rememberLegalAcceptance, rememberSignupChoices } from "@/lib/pendingSignup";
 
 // Honor ?returnTo= (used by the MCP consent flow), else the app's portal.
 const afterAuth = () =>
@@ -50,11 +52,9 @@ export default function Register() {
 
   useEffect(() => {
     let active = true;
-    base44.auth.isAuthenticated()
-      .then((ok) => {
-        if (active && ok) window.location.replace(afterAuth());
-      })
-      .catch(() => {});
+    fetchCurrentUser().then((user) => {
+      if (active && user) window.location.replace(afterAuth());
+    });
     return () => { active = false; };
   }, []);
 
@@ -114,7 +114,7 @@ export default function Register() {
           base44.functions.invoke('recordAgreementAcceptance', { documentType: 'privacy', documentVersion: PRIVACY_VERSION }),
         ]);
       } catch {
-        localStorage.setItem('stelli_pending_legal_acceptance', 'true');
+        rememberLegalAcceptance();
       }
       localStorage.removeItem(REGISTER_DRAFT_KEY);
       window.location.href = afterAuth();
@@ -151,11 +151,9 @@ export default function Register() {
       setError("Please accept Stelli's Terms and Conditions to continue.");
       return;
     }
-    localStorage.setItem('stelli_pending_account_type', accountType);
+    // Put on the account once Google sends them back (see lib/pendingSignup).
+    rememberSignupChoices({ accountType, adult: true, legal: true });
     localStorage.setItem('stelli_next_step_prompt', accountType);
-    localStorage.setItem('stelli_pending_legal_acceptance', 'true');
-    // Applied on the account by /portal once Google sends them back.
-    localStorage.setItem('stelli_pending_age_confirmed', 'true');
     base44.auth.loginWithProvider("google", afterAuth());
   };
 

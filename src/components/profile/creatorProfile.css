@@ -9,10 +9,11 @@
 .cp-who { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 24px; align-items: center; padding-top: 22px; }
 .cp-avatar { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; background: hsl(var(--surface)); box-shadow: 0 0 0 3px hsl(var(--ink)), 0 0 0 5px var(--cp-accent); display: grid; place-items: center; font-family: var(--font-display); font-size: 32px; }
 .cp-eyebrow { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--cp-accent); font-weight: 600; }
-.cp h1 { font-family: var(--font-display); font-weight: 500; font-size: clamp(32px, 4.2vw, 50px); line-height: 1.02; letter-spacing: -.02em; margin-top: 4px; text-wrap: balance; }
+.cp-name { font-family: var(--font-display); font-weight: 500; font-size: clamp(32px, 4.2vw, 50px); line-height: 1.02; letter-spacing: -.02em; margin-top: 4px; text-wrap: balance; }
 .cp-facts { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; color: rgba(255,255,255,.68); font-size: 14px; align-items: center; }
 .cp-new { color: hsl(var(--ink)); background: var(--cp-accent); font-weight: 600; font-size: 11.5px; padding: 2px 9px; border-radius: 99px; }
 .cp-rating { display: inline-flex; gap: 6px; align-items: center; }
+.cp-rating b { color: #fff; }
 .cp-rating svg { width: 14px; height: 14px; color: hsl(var(--neon-magenta)); fill: currentColor; }
 .cp-line { color: rgba(255,255,255,.6); font-size: 15px; margin-top: 10px; max-width: 60ch; }
 .cp-actions { display: flex; gap: 10px; align-items: center; }
@@ -67,3 +68,31 @@
   .cp-actions .cp-btn-lime { flex: 1; }
   .cp-draft { text-align: left; }
 }
+
+/* ---------- the creator looking at their own page ---------- */
+.cp-own { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px 14px; padding: 10px 16px; background: hsl(var(--surface-2)); border-bottom: 1px solid rgba(255,255,255,.08); color: rgba(255,255,255,.75); font-size: 13px; text-align: center; }
+.cp-own a { color: hsl(var(--neon-lime)); font-weight: 600; }
+.cp-own a:hover { text-decoration: underline; }
+
+/* ---------- preview: the same page, as a picture of itself ---------- */
+.cp-preview .cp-btn { cursor: default; }
+.cp-preview .cp-btn-lime:hover { transform: none; }
+
+/* The phone-sized preview always takes the phone layout, whatever the window is. */
+.cp-compact .cp-wrap { padding-left: 16px; padding-right: 16px; }
+.cp-compact .cp-who { grid-template-columns: auto minmax(0, 1fr); gap: 12px; padding-top: 42px; }
+.cp-compact .cp-avatar { width: 56px; height: 56px; font-size: 22px; }
+.cp-compact .cp-who > div:nth-child(2) { align-self: center; }
+.cp-compact .cp-cta { grid-column: 1 / -1; }
+.cp-compact .cp-actions .cp-btn-lime { flex: 1; }
+.cp-compact .cp-name { font-size: 26px; }
+.cp-compact .cp-eyebrow { font-size: 9.5px; }
+.cp-compact .cp-facts { font-size: 12px; gap: 4px 10px; }
+.cp-compact .cp-line { font-size: 13px; }
+.cp-compact .cp-btn { height: 42px; font-size: 13.5px; }
+.cp-compact .cp-workbar { padding-top: 22px; }
+.cp-compact h2 { font-size: 19px; }
+.cp-compact .cp-details { padding-top: 22px; padding-bottom: 28px; gap: 10px; }
+.cp-compact .cp-box { padding: 16px; border-radius: 16px; }
+.cp-compact .cp-bio, .cp-compact .cp-steps li { font-size: 13px; }
+.cp-compact .cp-prompt q { font-size: 16px; }

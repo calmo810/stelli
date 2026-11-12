@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { Check } from 'lucide-react';
-import { shareUrl } from '@/lib/profilePresets';
+import { profileUrl } from '@/lib/creatorProfile';
 import Pill from '@/components/shared/Pill';
 
+/** Copies the creator's profile link: the same address shown beside it. */
 export default function CopyLinkPill({ creator, tone = 'cyan', className = '' }) {
   const [copied, setCopied] = useState(false);
 
   const copy = async () => {
-    const url = shareUrl(creator);
+    const url = profileUrl(creator);
     try {
       await navigator.clipboard.writeText(url);
     } catch {
@@ -18,8 +19,8 @@ export default function CopyLinkPill({ creator, tone = 'cyan', className = '' })
   };
 
   return (
-    <Pill as="button" type="button" onClick={copy} tone={tone} className={className}>
-      {copied && <Check className="h-4 w-4" />}
+    <Pill as="button" type="button" onClick={copy} tone={tone} className={className} aria-live="polite">
+      {copied && <Check className="h-4 w-4" aria-hidden />}
       {copied ? 'Link copied' : 'Copy profile link'}
     </Pill>
   );

@@ -2,6 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Loader2, X } from 'lucide-react';
+import { applyPendingSignup } from '@/lib/pendingSignup';
+import { loginUrl } from '@/lib/requireSignIn';
+import { queryClientInstance } from '@/lib/query-client';
+import { CURRENT_USER_KEY, fetchCurrentUser } from '@/hooks/useCurrentUser';
 
 const NEXT_STEP_PROMPT_KEY = 'stelli_next_step_prompt';
 
@@ -17,33 +21,18 @@ export default function Portal() {
   useEffect(() => {
     let active = true;
     (async () => {
-      let user = null;
-      try {
-        user = await base44.auth.me();
-      } catch {
-        user = null;
-      }
+      let user = await fetchCurrentUser();
       if (!active) return;
 
       // Signed out: log in, then come straight back here.
       if (!user) {
-        navigate(`/login?returnTo=${encodeURIComponent('/portal')}`, { replace: true });
+        navigate(loginUrl('/portal'), { replace: true });
         return;
       }
 
-      try {
-        // What a Google signup chose before leaving for Google is applied now.
-        const pendingRole = localStorage.getItem('stelli_pending_account_type');
-        const pendingAdult = localStorage.getItem('stelli_pending_age_confirmed') === 'true';
-        const changes = {};
-        if (!user.account_type && ['client', 'creator'].includes(pendingRole)) changes.account_type = pendingRole;
-        if (pendingAdult && !user.age_confirmed) changes.age_confirmed = true;
-        if (Object.keys(changes).length) user = await base44.auth.updateMe(changes);
-        localStorage.removeItem('stelli_pending_account_type');
-        localStorage.removeItem('stelli_pending_age_confirmed');
-      } catch {
-        // Not fatal: onboarding asks again below if the type is still missing.
-      }
+      // What a Google signup chose before leaving for Google is applied now.
+      user = await applyPendingSignup(user);
+      queryClientInstance.setQueryData(CURRENT_USER_KEY, user);
       if (!active) return;
 
       if (!user?.account_type) {

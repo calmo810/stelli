@@ -1,33 +1,6 @@
 import React from 'react';
+import { ACCENTS, CURVES, FRAMES, LAYOUTS, MATS } from '@/lib/creatorProfile';
 
-const LAYOUTS = [
-  { v: 'wall', l: 'Wall' },
-  { v: 'strip', l: 'Strip' },
-  { v: 'grid', l: 'Grid' },
-];
-const CURVES = [
-  { v: 'flat', l: 'Flat' },
-  { v: 'soft', l: 'Soft' },
-  { v: 'full', l: 'Full' },
-];
-const FRAMES = [
-  { v: 'mat', l: 'Mat' },
-  { v: 'bleed', l: 'Full bleed' },
-];
-const MATS = [
-  { v: 'mixed', l: 'Mixed', sw: 'conic-gradient(#cfe6fb 0 25%, #fbdde4 0 50%, #e2defa 0 75%, #dcf5dc 0)' },
-  { v: 'paper', l: 'Paper', sw: '#f2f1ec' },
-  { v: 'sky', l: 'Sky', sw: '#cfe6fb' },
-  { v: 'blush', l: 'Blush', sw: '#fbdde4' },
-  { v: 'lilac', l: 'Lilac', sw: '#e2defa' },
-  { v: 'mint', l: 'Mint', sw: '#dcf5dc' },
-  { v: 'ink', l: 'Ink', sw: '#1b2238' },
-];
-const ACCENTS = [
-  { v: 'lime', l: 'Lime', sw: '#C4F82A' },
-  { v: 'cyan', l: 'Cyan', sw: '#2AE8F8' },
-  { v: 'magenta', l: 'Magenta', sw: '#F82AC4' },
-];
 const CAPTIONS = [
   { v: true, l: 'On' },
   { v: false, l: 'Off' },

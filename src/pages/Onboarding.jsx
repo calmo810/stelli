@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
 import { Check, Loader2 } from 'lucide-react';
+import { refreshCurrentUser } from '@/hooks/useCurrentUser';
 
 const ROLES = [
   { id: 'client', title: 'I want to book', body: 'Find a creator, request a shoot, get a private quote.', accent: 'hsl(var(--neon-lime))' },
@@ -72,6 +73,7 @@ export default function Onboarding() {
           ? { specialty: form.specialty.trim(), instagram: form.instagram.trim(), bio: form.bio.trim() }
           : {}),
       });
+      await refreshCurrentUser();
       localStorage.removeItem(ONBOARDING_DRAFT_KEY);
       localStorage.setItem('stelli_next_step_prompt', role);
       navigate('/portal', { replace: true });

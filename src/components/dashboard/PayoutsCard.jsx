@@ -1,14 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Loader2 } from 'lucide-react';
+import { money } from '@/lib/format';
 
-function money(amount) {
-  const value = Number(amount || 0);
-  return `$${value.toLocaleString('en-US', {
-    minimumFractionDigits: Number.isInteger(value) ? 0 : 2,
-    maximumFractionDigits: 2,
-  })}`;
-}
 
 /**
  * The creator's payout state in one line. Stelli never stores bank or tax

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { accentOf, cardImages, cssUrl, ratingLabel, taglineOf } from '@/lib/creatorBrowse';
-import { displayNameOf } from '@/lib/profilePresets';
+import { displayNameOf } from '@/lib/creatorProfile';
 
 const CYCLE_MS = 1700;
 const EASE_OUT = 'cubic-bezier(.2,.7,.2,1)';

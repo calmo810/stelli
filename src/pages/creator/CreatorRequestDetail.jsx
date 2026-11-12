@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import QuoteComposer from '@/components/thread/QuoteComposer';
 import WorkspaceEmpty from '@/components/creator/workspace/WorkspaceEmpty';
-import money from '@/lib/money';
+import { money, timeLabel } from '@/lib/format';
 import { statusChip } from '@/lib/threadStatus';
 import { deadlineFor } from '@/hooks/useCreatorPortal';
 import { effectiveStatus, moneyTaken } from '@/lib/bookingNextStep';
@@ -110,7 +110,7 @@ export default function CreatorRequestDetail() {
       <div className="wk-card wk-card--pad mt-5">
         <div className="grid grid-cols-2 gap-x-4 gap-y-5">
           <Fact icon={CalendarDays} label="Date" value={date} wide />
-          <Fact icon={Clock} label="Start time" value={booking.event_time} />
+          <Fact icon={Clock} label="Start time" value={timeLabel(booking.event_time)} />
           <Fact icon={Timer} label="Expected duration" value={booking.duration} />
           <Fact icon={MapPin} label="Location" value={booking.location} wide />
           <Fact icon={Users} label="People" value={booking.attendees ? String(booking.attendees) : ''} />

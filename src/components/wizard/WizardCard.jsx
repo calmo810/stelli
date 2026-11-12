@@ -1,5 +1,6 @@
 import React from 'react';
-import { CHAPTERS, REQS, STEPS } from '@/lib/wizardData';
+import { CHAPTERS, STEPS } from '@/lib/wizardData';
+import { REQS } from '@/lib/creatorProfile';
 
 /** One step: its chapter, its title, its body and any validation message. */
 export default function WizardCard({ w, children }) {

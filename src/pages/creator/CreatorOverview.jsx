@@ -7,7 +7,7 @@ import PendingBanner from '@/components/dashboard/PendingBanner';
 import TodayShootCard from '@/components/creator/workspace/TodayShootCard';
 import WhatsNewCard from '@/components/creator/workspace/WhatsNewCard';
 import whatsNew from '@/lib/creatorDigest';
-import money from '@/lib/money';
+import { money, timeLabel } from '@/lib/format';
 
 const dateKey = (date) => format(date, 'yyyy-MM-dd');
 const ASSEMBLY_EASE = [0.22, 1, 0.36, 1];
@@ -51,14 +51,6 @@ function DashboardAssembly({ reduceMotion }) {
   );
 }
 
-function timeLabel(value) {
-  if (!value) return 'Time TBD';
-  const match = /^(\d{1,2}):(\d{2})/.exec(value);
-  if (!match) return value;
-  const hours = Number(match[1]);
-  const hour = hours % 12 || 12;
-  return hour + ':' + match[2] + (hours >= 12 ? ' PM' : ' AM');
-}
 
 export default function CreatorOverview() {
   /** @type {any} */
@@ -253,7 +245,7 @@ export default function CreatorOverview() {
                   }
                   className="arch-agenda__item"
                 >
-                  <span className="arch-agenda__time">{timeLabel(item.event_time)}</span>
+                  <span className="arch-agenda__time">{timeLabel(item.event_time, 'Time TBD')}</span>
                   <span className="arch-agenda__copy">
                     <strong>{item.client_name || 'Client shoot'}</strong>
                     <small>{[item.event_type, item.location].filter(Boolean).join(' · ') || 'Shoot details'}</small>

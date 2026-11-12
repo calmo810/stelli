@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, BadgeCheck, Link as LinkIcon, ShieldCheck } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { displayNameOf } from '@/lib/profilePresets';
+import { displayNameOf } from '@/lib/creatorProfile';
 import PageShell from '@/components/shared/PageShell';
 import SectionHeader from '@/components/shared/SectionHeader';
 import Surface from '@/components/shared/Surface';

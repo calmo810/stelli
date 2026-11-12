@@ -6,6 +6,7 @@ import { format, isToday, isYesterday } from 'date-fns';
 import { Loader2, Lock } from 'lucide-react';
 import { viewerRole, firstName } from '@/lib/threadStatus';
 import { effectiveStatus } from '@/lib/bookingNextStep';
+import useCurrentUser from '@/hooks/useCurrentUser';
 import ThreadHeader from '@/components/thread/ThreadHeader';
 import RequestSummary from '@/components/thread/RequestSummary';
 import QuoteCard from '@/components/thread/QuoteCard';
@@ -45,11 +46,7 @@ export default function ChatView({ bookingId }) {
   const scroller = useRef(null);
   const firstScroll = useRef(true);
 
-  const { data: user, isLoading: userLoading } = useQuery({
-    queryKey: ['thread-user'],
-    queryFn: () => base44.auth.me(),
-    retry: false,
-  });
+  const { user, isLoading: userLoading } = useCurrentUser();
 
   const { data: booking, isLoading: bookingLoading } = useQuery({
     queryKey: ['booking', bookingId],

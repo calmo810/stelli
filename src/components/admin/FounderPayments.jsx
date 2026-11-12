@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { money } from '@/lib/format';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -19,13 +20,6 @@ const LIME_BUTTON = { background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink
 /** The usual flat fee per shoot while Stelli is getting started. */
 const DEFAULT_PAYOUT = 50;
 
-function money(amount) {
-  const value = Number(amount || 0);
-  return `$${value.toLocaleString('en-US', {
-    minimumFractionDigits: Number.isInteger(value) ? 0 : 2,
-    maximumFractionDigits: 2,
-  })}`;
-}
 
 function when(iso) {
   if (!iso) return '';

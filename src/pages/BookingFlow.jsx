@@ -3,7 +3,9 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
-import { displayNameOf } from '@/lib/profilePresets';
+import { displayNameOf } from '@/lib/creatorProfile';
+import useCurrentUser, { refreshCurrentUser } from '@/hooks/useCurrentUser';
+import { rememberSignupChoices } from '@/lib/pendingSignup';
 import { PRIVACY_VERSION, TERMS_VERSION } from '@/lib/legalDocuments';
 
 const LIME = 'hsl(var(--neon-lime))';
@@ -52,7 +54,7 @@ export default function BookingFlow() {
   const [adult, setAdult] = useState(false);
   const [legalAgreed, setLegalAgreed] = useState(false);
 
-  const { data: creator } = useQuery({
+  const { data: creator, isLoading: creatorLoading } = useQuery({
     queryKey: ['booking-creator', lensmanId],
     queryFn: async () => {
       const list = await base44.entities.Lensman.filter({ id: lensmanId });
@@ -60,17 +62,7 @@ export default function BookingFlow() {
     },
   });
 
-  const { data: user, isLoading: userLoading } = useQuery({
-    queryKey: ['booking-user'],
-    queryFn: async () => {
-      try {
-        return await base44.auth.me();
-      } catch {
-        return null;
-      }
-    },
-    retry: false,
-  });
+  const { user, isLoading: userLoading } = useCurrentUser();
 
   const viewerKey = user?.id || 'guest';
 
@@ -144,6 +136,7 @@ export default function BookingFlow() {
           }
           if (existingAccount) {
             await base44.auth.loginViaEmailPassword(account.email.trim(), account.password);
+            await refreshCurrentUser();
             const booking = await fileRequest();
             localStorage.removeItem(draftKey(lensmanId, viewerKey));
             navigate(`/request-sent/${booking.id}`);
@@ -164,6 +157,7 @@ export default function BookingFlow() {
           const result = await base44.auth.verifyOtp({ email: account.email.trim(), otpCode: otp.trim() });
           base44.auth.setToken(result.access_token);
           await setUpNewAccount();
+          await refreshCurrentUser();
         }
       }
 
@@ -183,10 +177,26 @@ export default function BookingFlow() {
       return;
     }
     localStorage.setItem(draftKey(lensmanId, 'guest'), JSON.stringify({ form }));
-    localStorage.setItem('stelli_pending_age_confirmed', 'true');
-    localStorage.setItem('stelli_pending_legal_acceptance', 'true');
+    // Someone signing up from a booking form is a client: said here, so they
+    // come back to this request instead of being asked which side they are on.
+    rememberSignupChoices({ accountType: 'client', adult: true, legal: true });
     base44.auth.loginWithProvider('google', `/book/${lensmanId}`);
   };
+
+  // A creator who is gone, on hold or not approved yet can't be booked: say so,
+  // rather than leaving an empty frame on screen forever.
+  if (!creator && !creatorLoading) {
+    return (
+      <div className="min-h-screen bg-ink flex items-center justify-center px-6">
+        <div className="text-center">
+          <p className="font-display text-4xl text-white mb-3">This creator isn't taking requests.</p>
+          <Link to="/creators" className="text-[13px] font-semibold text-neon-lime">
+            Browse all creators
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (!creator) {
     return (

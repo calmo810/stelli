@@ -214,7 +214,10 @@ export function buildProfilePatch(body: Record<string, any> = {}) {
     )].slice(0, 366);
   }
 
-  if (body.years_experience !== undefined && body.years_experience !== null && body.years_experience !== '') {
+  if (body.years_experience === null || body.years_experience === '') {
+    // Sent empty on purpose: the creator cleared it, so it stops showing.
+    patch.years_experience = null;
+  } else if (body.years_experience !== undefined) {
     const years = Number(body.years_experience);
     if (Number.isFinite(years)) patch.years_experience = Math.min(80, Math.max(0, Math.round(years)));
   }

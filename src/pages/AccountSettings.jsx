@@ -9,9 +9,10 @@ import DeleteAccountCard from '@/components/account/DeleteAccountCard';
 import TwoFactorCard from '@/components/account/TwoFactorCard';
 import { isGoogleUser } from '@/lib/authProvider';
 import useRequireSignIn from '@/lib/requireSignIn';
+import useCurrentUser from '@/hooks/useCurrentUser';
 
 export default function AccountSettings() {
-  const { data: user, isLoading } = useQuery({ queryKey: ['me'], queryFn: () => base44.auth.me(), retry: false });
+  const { user, isLoading } = useCurrentUser();
   // Signed out: log in, then come straight back here (it used to spin forever).
   const waiting = useRequireSignIn(user, isLoading);
 

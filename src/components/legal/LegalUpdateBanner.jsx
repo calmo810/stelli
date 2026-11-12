@@ -3,6 +3,8 @@ import { useLocation } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { PRIVACY_VERSION, TERMS_VERSION } from '@/lib/legalDocuments';
 import { Checkbox } from '@/components/ui/checkbox';
+import { applyPendingSignup } from '@/lib/pendingSignup';
+import { fetchCurrentUser } from '@/hooks/useCurrentUser';
 
 /** Each document's current version, so updating one doesn't re-prompt the other. */
 const REQUIRED_VERSIONS = { terms: TERMS_VERSION, privacy: PRIVACY_VERSION };
@@ -11,14 +13,21 @@ export default function LegalUpdateBanner() {
   const [needed, setNeeded] = useState([]);
   const [checked, setChecked] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
   const location = useLocation();
 
   useEffect(() => {
     let active = true;
     async function load() {
-      const authenticated = await base44.auth.isAuthenticated();
-      if (!authenticated) return;
-      const acceptances = await base44.entities.AgreementAcceptance.list('-accepted_at');
+      const user = await fetchCurrentUser();
+      if (!user) return;
+      // Terms ticked on a sign-up form just before a trip to Google are
+      // recorded first, so this never asks for what was accepted a minute ago.
+      await applyPendingSignup(user);
+      // If the list can't be read, nobody is locked out of the app by a
+      // banner they may not even need: it is checked again on the next visit.
+      const acceptances = await base44.entities.AgreementAcceptance.list('-accepted_at').catch(() => null);
+      if (!acceptances) return;
       const missing = Object.entries(REQUIRED_VERSIONS)
         .filter(
           ([type, version]) =>
@@ -27,7 +36,7 @@ export default function LegalUpdateBanner() {
         .map(([type]) => type);
       if (active) setNeeded(missing);
     }
-    load();
+    load().catch(() => {});
     return () => {
       active = false;
     };
@@ -35,16 +44,23 @@ export default function LegalUpdateBanner() {
 
   const accept = async () => {
     setSaving(true);
-    await Promise.all(
-      needed.map((documentType) =>
-        base44.functions.invoke('recordAgreementAcceptance', {
-          documentType,
-          documentVersion: REQUIRED_VERSIONS[documentType],
-        })
-      )
-    );
-    setNeeded([]);
-    setSaving(false);
+    setError('');
+    try {
+      await Promise.all(
+        needed.map((documentType) =>
+          base44.functions.invoke('recordAgreementAcceptance', {
+            documentType,
+            documentVersion: REQUIRED_VERSIONS[documentType],
+          })
+        )
+      );
+      setNeeded([]);
+    } catch {
+      // It used to hang on "saving" forever when this failed.
+      setError('That did not save. Check your connection and try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (!needed.length || location.pathname === '/terms') return null;
@@ -65,6 +81,11 @@ export default function LegalUpdateBanner() {
             I agree to Stelli's Terms and Conditions.
           </span>
         </label>
+        {error && (
+          <p role="alert" className="mb-4 font-body text-sm" style={{ color: 'hsl(var(--neon-magenta))' }}>
+            {error}
+          </p>
+        )}
         <button
           onClick={accept}
           disabled={!checked || saving}

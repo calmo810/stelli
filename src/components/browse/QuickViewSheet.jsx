@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { MapPin, X } from 'lucide-react';
 import { accentOf, galleryImages, ratingLabel, taglineOf } from '@/lib/creatorBrowse';
-import { displayNameOf } from '@/lib/profilePresets';
+import { displayNameOf } from '@/lib/creatorProfile';
 import SmoothImage from '@/components/shared/SmoothImage';
 
 /** A small numbered fact, so the numbers read at a glance. */

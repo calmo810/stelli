@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import SegmentedTabs from '@/components/dashboard/SegmentedTabs';
 import { CHIP_TONE, statusChip } from '@/lib/threadStatus';
-import shortDate from '@/lib/shortDate';
+import { shortDate } from '@/lib/format';
 
 function rowLink(booking, role) {
   if (role === 'client' && booking.delivered_at && ['delivered', 'completed'].includes(booking.status)) {

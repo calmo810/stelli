@@ -52,9 +52,10 @@ export default async function (req) {
       return Response.json({ error: 'A display name is required.', field: 'display_name' }, { status: 400 });
     }
 
-    let slug = slugify(body.slug || displayName || fullName);
+    // A name made only of symbols leaves nothing for a link, so it gets a plain one.
+    let slug = slugify(body.slug || displayName || fullName) || 'creator';
     const takenSlug = await base44.asServiceRole.entities.Lensman.filter({ slug });
-    if (takenSlug.length) slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
+    if (takenSlug.length || slug === 'creator') slug = `${slug}-${Math.random().toString(36).slice(2, 6)}`;
 
     const now = new Date().toISOString();
     const market = 'ELON';

@@ -4,6 +4,7 @@ import { MessageCircle } from 'lucide-react';
 import useThreads from '@/hooks/useThreads';
 import ConversationList from '@/components/thread/ConversationList';
 import ChatView from '@/components/thread/ChatView';
+import useRequireSignIn from '@/lib/requireSignIn';
 
 /**
  * Messages. On a computer: your conversations on the left, the open chat on the right.
@@ -11,7 +12,10 @@ import ChatView from '@/components/thread/ChatView';
  */
 export default function Messages() {
   const { bookingId } = useParams();
-  const { threads, unreadCount, isLoading, refetch } = useThreads();
+  const { user, userLoading, threads, unreadCount, isLoading, refetch } = useThreads();
+  // Signed out: log in, then come straight back to this conversation.
+  const waiting = useRequireSignIn(user, userLoading);
+  if (waiting) return <div className="chat-screen" aria-busy="true" />;
 
   return (
     <div className="mx-auto flex chat-screen w-full max-w-[1240px] lg:h-[calc(100dvh-4rem)] lg:px-6 lg:py-5">

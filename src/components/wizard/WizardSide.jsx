@@ -12,13 +12,13 @@ export default function WizardSide({ w }) {
           <span className="pulse" />
           Live preview
         </span>
-        <button type="button" className="link-btn" onClick={() => w.setView('preview')}>
+        <button type="button" className="link-btn" onClick={w.openReview}>
           Full preview
         </button>
       </div>
 
       <WizardPhone>
-        <WizardProfilePreview s={w.s} />
+        <WizardProfilePreview profile={w.profile} />
       </WizardPhone>
 
       <div className="side-foot">

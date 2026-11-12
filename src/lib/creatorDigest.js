@@ -1,5 +1,5 @@
-import money from '@/lib/money';
-import shortDate from '@/lib/shortDate';
+import { money } from '@/lib/format';
+import { shortDate } from '@/lib/format';
 
 /**
  * What changed for a creator since they were last here, as plain lines plus the
