@@ -24,18 +24,22 @@ export default function CreatorRequests() {
 
   return (
     <div className="arch-tab arch-tab--work">
-      <h1 className="wk-h1">Requests</h1>
-      <p className="wk-lede">Open one to read the brief, message the client, and send your quote.</p>
-
-      <div className="mt-4">
-        <WorkTabs requests={next.length} />
+      <div className="arch-tab__topline">
+        <div className="arch-tab__heading">
+          <h1 className="wk-h1">Requests</h1>
+          <p className="wk-lede">Read the brief, message the client, and send your quote.</p>
+        </div>
+        <nav className="arch-tab__nav" aria-label="Work sections">
+          <WorkTabs requests={next.length} />
+        </nav>
       </div>
 
-      <div className="mt-4">
+      <div className="arch-tab__toolbar">
         <NextPast value={tab} onChange={setTab} nextCount={next.length} pastCount={past.length} />
+        <p className="arch-tab__count">{tab === 'next' ? `${next.length} open` : `${past.length} past`}</p>
       </div>
 
-      <div className="mt-3">
+      <div className="arch-tab__content">
         {isLoading ? (
           <div className="wk-card h-[160px] animate-pulse" />
         ) : list.length ? (
