@@ -20,13 +20,13 @@ function timeLabel(value) {
 }
 
 export default function CreatorOverview() {
+  /** @type {any} */
   const data = useOutletContext();
   const {
     user,
     myProfile,
     bookings,
     steps,
-    newRequests,
     upcomingShoots,
     finished,
     metrics,
