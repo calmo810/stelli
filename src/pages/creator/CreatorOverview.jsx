@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { addDays, format } from 'date-fns';
+import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowUpRight, CalendarDays, ChevronRight, Sparkles } from 'lucide-react';
 import PendingBanner from '@/components/dashboard/PendingBanner';
 import TodayShootCard from '@/components/creator/workspace/TodayShootCard';
@@ -9,6 +10,46 @@ import whatsNew from '@/lib/creatorDigest';
 import money from '@/lib/money';
 
 const dateKey = (date) => format(date, 'yyyy-MM-dd');
+const ASSEMBLY_EASE = [0.22, 1, 0.36, 1];
+
+function StudioAssembly({ reduceMotion }) {
+  const transition = reduceMotion ? { duration: 0 } : { duration: .64, ease: ASSEMBLY_EASE };
+
+  return (
+    <motion.span
+      className="arch-assembly"
+      aria-hidden="true"
+      initial={reduceMotion ? false : { opacity: 0, rotate: -18, scale: .72 }}
+      animate={{ opacity: 1, rotate: 0, scale: 1 }}
+      transition={{ ...transition, delay: .12 }}
+    >
+      <motion.i
+        className="arch-assembly__orbit arch-assembly__orbit--one"
+        initial={reduceMotion ? false : { rotate: -70, scale: .76 }}
+        animate={{ rotate: 0, scale: 1 }}
+        transition={{ ...transition, delay: .20 }}
+      />
+      <motion.i
+        className="arch-assembly__orbit arch-assembly__orbit--two"
+        initial={reduceMotion ? false : { rotate: 52, scale: .72 }}
+        animate={{ rotate: 0, scale: 1 }}
+        transition={{ ...transition, delay: .26 }}
+      />
+      <motion.i
+        className="arch-assembly__dot arch-assembly__dot--lime"
+        initial={reduceMotion ? false : { x: -25, y: 18, opacity: 0 }}
+        animate={{ x: 0, y: 0, opacity: 1 }}
+        transition={{ ...transition, delay: .28 }}
+      />
+      <motion.i
+        className="arch-assembly__dot arch-assembly__dot--cyan"
+        initial={reduceMotion ? false : { x: 23, y: -18, opacity: 0 }}
+        animate={{ x: 0, y: 0, opacity: 1 }}
+        transition={{ ...transition, delay: .34 }}
+      />
+    </motion.span>
+  );
+}
 
 function timeLabel(value) {
   if (!value) return 'Time TBD';
@@ -33,6 +74,8 @@ export default function CreatorOverview() {
   } = data;
 
   const [scheduleView, setScheduleView] = useState('upcoming');
+  const reduceMotion = useReducedMotion();
+  const settle = reduceMotion ? { duration: 0 } : { duration: .56, ease: ASSEMBLY_EASE };
   const [selectedDate, setSelectedDate] = useState(() => dateKey(new Date()));
   const today = dateKey(new Date());
   const { items, facts } = whatsNew(data);
@@ -69,7 +112,12 @@ export default function CreatorOverview() {
       : 'Your studio is open and ready.';
 
   return (
-    <div className="arch-world">
+    <motion.div
+      className="arch-world"
+      initial={reduceMotion ? false : { opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={settle}
+    >
       <div className="arch-world__environment" aria-hidden="true">
         <span className="arch-world__horizon" />
         <span className="arch-world__beam arch-world__beam--cyan" />
@@ -78,7 +126,12 @@ export default function CreatorOverview() {
         <span className="arch-world__star arch-world__star--two">✧</span>
       </div>
 
-      <header className="arch-world__top">
+      <motion.header
+        className="arch-world__top"
+        initial={reduceMotion ? false : { opacity: 0, y: 14, scale: .985 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ ...settle, delay: .04 }}
+      >
         <div className="arch-masthead__copy">
           <p className="arch-today__kicker">Creator studio · {format(new Date(), 'EEEE, MMM d')}</p>
           <h1>Today</h1>
@@ -95,14 +148,16 @@ export default function CreatorOverview() {
           </Link>
         </div>
         <div className="arch-masthead__lens" aria-hidden="true">
+          <StudioAssembly reduceMotion={reduceMotion} />
           <span className="arch-masthead__ring arch-masthead__ring--outer" />
           <span className="arch-masthead__ring arch-masthead__ring--inner" />
           <span className="arch-masthead__star arch-masthead__star--one">✦</span>
           <span className="arch-masthead__star arch-masthead__star--two">✧</span>
           <span className="arch-masthead__camera">📸</span>
         </div>
-      </header>
+      </motion.header>
 
+      <div className="arch-world__notice">
       {myProfile.under_review ? (
         <PendingBanner tone="magenta">
           Your profile is on hold while the Stelli team reviews it. Your current bookings carry on.
@@ -114,8 +169,14 @@ export default function CreatorOverview() {
           Your application wasn&apos;t approved, so your profile isn&apos;t public. Email getstelli@gmail.com with any questions.
         </PendingBanner>
       ) : null}
+      </div>
 
-      <main className="arch-world__stage">
+      <motion.main
+        className="arch-world__stage"
+        initial={reduceMotion ? false : { opacity: 0, y: 18, scale: .988 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ ...settle, delay: .13 }}
+      >
         <section className="arch-runway">
           <div className="arch-section-title">
             <div>
@@ -205,9 +266,14 @@ export default function CreatorOverview() {
           <TodayShootCard shoot={upcomingShoots[0]} profile={myProfile} />
           <WhatsNewCard items={items} facts={facts} />
         </aside>
-      </main>
+      </motion.main>
 
-      <footer className="arch-world__dock">
+      <motion.footer
+        className="arch-world__dock"
+        initial={reduceMotion ? false : { opacity: 0, y: 13, scale: .99 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ ...settle, delay: .22 }}
+      >
         <section className="arch-needs">
           <div className="arch-section-title">
             <div>
@@ -264,7 +330,7 @@ export default function CreatorOverview() {
             Review earnings <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.5} />
           </Link>
         </section>
-      </footer>
-    </div>
+      </motion.footer>
+    </motion.div>
   );
 }
