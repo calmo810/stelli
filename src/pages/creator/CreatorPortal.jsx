@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, useEffect, useRef } from 'react';
 import { Link, Outlet } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Camera } from 'lucide-react';
@@ -9,15 +9,48 @@ import PullToRefresh from '@/components/shared/PullToRefresh';
 import Pill from '@/components/shared/Pill';
 import WorkspaceShell from '@/components/creator/workspace/WorkspaceShell';
 import useCreatorPortal from '@/hooks/useCreatorPortal';
+import { preloadCreatorWorkspace } from '@/lib/preloadCreatorWorkspace';
 
 /**
  * The creator workspace: four panes — Today, Requests, Shoots, Money — plus
  * availability and the storefront behind the header. Everything a creator runs
  * their business with lives inside these panes.
  */
+function WorkspaceTabLoading() {
+  return (
+    <div className="arch-tab arch-tab--loading" aria-live="polite" aria-label="Loading workspace tab">
+      <span className="arch-tab__loading-line arch-tab__loading-line--title" />
+      <span className="arch-tab__loading-line arch-tab__loading-line--copy" />
+      <span className="arch-tab__loading-block" />
+    </div>
+  );
+}
+
 export default function CreatorPortal() {
   const data = useCreatorPortal();
   const queryClient = useQueryClient();
+  const todayEnteredRef = useRef(false);
+
+  // The portal stays light on first paint, then warms its small route chunks in
+  // the background so every tab feels immediate after the creator arrives.
+  useEffect(() => {
+    let cancelled = false;
+    const warmWorkspace = () => {
+      if (!cancelled) void preloadCreatorWorkspace();
+    };
+    const idleId = typeof window.requestIdleCallback === 'function'
+      ? window.requestIdleCallback(warmWorkspace, { timeout: 1200 })
+      : null;
+    const timeoutId = idleId === null ? window.setTimeout(warmWorkspace, 180) : null;
+
+    return () => {
+      cancelled = true;
+      if (idleId !== null && typeof window.cancelIdleCallback === 'function') {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timeoutId !== null) window.clearTimeout(timeoutId);
+    };
+  }, []);
   const { user, userLoading, myProfile, profileFetched, refetchProfile, isLoading, newRequests } = data;
 
   const refreshAll = () =>
@@ -81,7 +114,9 @@ export default function CreatorPortal() {
   return (
     <PullToRefresh onRefresh={refreshAll}>
       <WorkspaceShell profile={myProfile} user={user} counts={{ requests: newRequests.length }}>
-        <Outlet context={data} />
+        <Suspense fallback={<WorkspaceTabLoading />}>
+          <Outlet context={{ ...data, todayEnteredRef }} />
+        </Suspense>
       </WorkspaceShell>
     </PullToRefresh>
   );
