@@ -18,7 +18,7 @@ const PROFILE = '/lensman-dashboard/profile';
  */
 export default function CreatorProfileSection() {
   const { section: key } = useParams();
-  const { myProfile, myContact, user, refetchProfile } = useOutletContext();
+  const { myProfile, myContact, user, refetchProfile } = /** @type {any} */ (useOutletContext());
   const navigate = useNavigate();
   const { form, set, uploads } = useProfileForm(formFromProfile(myProfile, myContact, user));
   const [saving, setSaving] = useState(false);

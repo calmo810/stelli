@@ -14,7 +14,7 @@ import ChangesRequested from '@/components/creator/profile/ChangesRequested';
  * comes straight back here.
  */
 export default function CreatorPublicProfile() {
-  const { myProfile, myContact, user, refetchProfile } = useOutletContext();
+  const { myProfile, myContact, user, refetchProfile } = /** @type {any} */ (useOutletContext());
 
   return (
     <div className="arch-tab arch-tab--profile">
