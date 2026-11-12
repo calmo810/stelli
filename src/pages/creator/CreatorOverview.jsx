@@ -12,7 +12,7 @@ import money from '@/lib/money';
 const dateKey = (date) => format(date, 'yyyy-MM-dd');
 const ASSEMBLY_EASE = [0.22, 1, 0.36, 1];
 
-function StudioAssembly({ reduceMotion }) {
+function DashboardAssembly({ reduceMotion }) {
   const transition = reduceMotion ? { duration: 0 } : { duration: .64, ease: ASSEMBLY_EASE };
 
   return (
@@ -78,6 +78,7 @@ export default function CreatorOverview() {
   const settle = reduceMotion ? { duration: 0 } : { duration: .56, ease: ASSEMBLY_EASE };
   const [selectedDate, setSelectedDate] = useState(() => dateKey(new Date()));
   const today = dateKey(new Date());
+  const creatorFirstName = String(myProfile?.display_name || '').trim().split(/\s+/)[0] || 'there';
   const { items, facts } = whatsNew(data);
 
   const days = useMemo(() => {
@@ -109,7 +110,7 @@ export default function CreatorOverview() {
     ? metrics.requests + ' request' + (metrics.requests === 1 ? '' : 's') + ' need your attention.'
     : upcomingShoots[0]
       ? 'Your next shoot is lined up.'
-      : 'Your studio is open and ready.';
+      : 'You’re ready for new work.';
 
   return (
     <motion.div
@@ -133,22 +134,22 @@ export default function CreatorOverview() {
         transition={{ ...settle, delay: .04 }}
       >
         <div className="arch-masthead__copy">
-          <p className="arch-today__kicker">Creator studio · {format(new Date(), 'EEEE, MMM d')}</p>
-          <h1>Today</h1>
+          <p className="arch-today__kicker">Today · {format(new Date(), 'EEEE, MMM d')}</p>
+          <h1>Hi, {creatorFirstName}.</h1>
           <strong>{summary}</strong>
-          <small>Schedule, studio updates, and next actions in one focused view.</small>
+          <small>Your schedule, updates, and next steps.</small>
         </div>
         <div className="arch-masthead__tools">
           <span className="arch-masthead__state">
             <i />
-            {upcomingShoots[0] ? 'Shoot queued' : 'Studio open'}
+            {upcomingShoots[0] ? 'Next up' : 'Available'}
           </span>
           <Link to="/lensman-dashboard/calendar" className="arch-masthead__calendar">
             Calendar <CalendarDays className="h-3.5 w-3.5" strokeWidth={2.4} />
           </Link>
         </div>
         <div className="arch-masthead__lens" aria-hidden="true">
-          <StudioAssembly reduceMotion={reduceMotion} />
+          <DashboardAssembly reduceMotion={reduceMotion} />
           <span className="arch-masthead__ring arch-masthead__ring--outer" />
           <span className="arch-masthead__ring arch-masthead__ring--inner" />
           <span className="arch-masthead__star arch-masthead__star--one">✦</span>
@@ -180,7 +181,7 @@ export default function CreatorOverview() {
         <section className="arch-runway">
           <div className="arch-section-title">
             <div>
-              <p>Your plan</p>
+              <p>Schedule</p>
               <h2>{scheduleView === 'completed' ? 'Recently finished' : selectedDate === today ? 'Today' : format(new Date(selectedDate + 'T12:00:00'), 'EEEE')}</h2>
             </div>
             <Link to="/lensman-dashboard/calendar">
@@ -260,8 +261,8 @@ export default function CreatorOverview() {
 
         <aside className="arch-orbit">
           <div className="arch-orbit__head">
-            <p>Studio signal</p>
-            <span>Live</span>
+            <p>Next up</p>
+            <span>Today</span>
           </div>
           <TodayShootCard shoot={upcomingShoots[0]} profile={myProfile} />
           <WhatsNewCard items={items} facts={facts} />
@@ -277,8 +278,8 @@ export default function CreatorOverview() {
         <section className="arch-needs">
           <div className="arch-section-title">
             <div>
-              <p>Move work forward</p>
-              <h2>Needs you</h2>
+              <p>Action list</p>
+              <h2>Next steps</h2>
             </div>
             <span className="arch-today__stamp"><span>{attention.length}</span></span>
           </div>
@@ -300,7 +301,7 @@ export default function CreatorOverview() {
           ) : (
             <div className="arch-clear">
               <Sparkles className="h-4 w-4" strokeWidth={2.4} />
-              <span>All caught up. Your studio is ready for the next brief.</span>
+              <span>You’re all caught up.</span>
             </div>
           )}
         </section>
@@ -308,8 +309,8 @@ export default function CreatorOverview() {
         <section className="arch-metrics">
           <div className="arch-section-title">
             <div>
-              <p>Studio pulse</p>
-              <h2>At a glance</h2>
+              <p>Activity</p>
+              <h2>Overview</h2>
             </div>
           </div>
           <div className="arch-metrics__grid">
