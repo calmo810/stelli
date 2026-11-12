@@ -136,8 +136,10 @@ export default function QuickViewSheet({ creator, onClose }) {
           {/* Their face, overlapping the work, with the rest of the set to flip through. */}
           <div className="relative z-[1] -mt-9 flex items-end justify-between gap-3 px-[22px]">
             <div
-              className="h-[76px] w-[76px] shrink-0 overflow-hidden rounded-full bg-surface-2 ring-[5px] ring-surface"
-              style={{ boxShadow: `0 0 0 6.5px ${accent}, 0 18px 36px -14px rgba(0,0,0,.9)` }}
+              className="h-[76px] w-[76px] shrink-0 overflow-hidden rounded-full bg-surface-2"
+              style={{
+                boxShadow: `0 0 0 5px hsl(var(--surface)), 0 0 0 6.5px ${accent}, 0 18px 36px -14px rgba(0,0,0,.9)`,
+              }}
             >
               {portrait ? (
                 <img src={portrait} alt={name} className="h-full w-full object-cover" />
