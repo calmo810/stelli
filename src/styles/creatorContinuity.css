@@ -1,0 +1,354 @@
+/*
+ * Creator tab continuity
+ * The secondary tabs use the same pale control surface + navy workbench language
+ * as Today, while retaining their existing controls and behavior.
+ */
+
+.arch-tab {
+  min-height: 590px;
+  padding: 24px;
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 30px;
+  background:
+    radial-gradient(380px 220px at 100% 0%, rgba(137,190,232,.28), transparent 76%),
+    linear-gradient(135deg, #f7faff, #e4edf8);
+  box-shadow:
+    0 26px 58px -46px rgba(0,0,0,.92),
+    inset 0 1px 0 rgba(255,255,255,.86);
+  color: #0a1730;
+}
+
+.arch-tab .wk-h1 {
+  margin: 0;
+  color: #0a1730;
+  font-size: clamp(38px, 4vw, 54px);
+  font-weight: 820;
+  letter-spacing: -.072em;
+  line-height: .86;
+}
+
+.arch-tab .wk-lede {
+  max-width: 540px;
+  margin-top: 10px;
+  color: #6f7e96;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+/* The same compact command/pill system used on the Today workbench. */
+.arch-tab .wk-seg {
+  display: inline-flex;
+  width: auto;
+  gap: 3px;
+  padding: 4px;
+  border: 0;
+  border-radius: 999px;
+  background: #111e37;
+  box-shadow: 0 10px 20px -16px rgba(16,30,55,.72);
+}
+
+.arch-tab .wk-seg--full {
+  display: inline-flex;
+  width: auto;
+}
+
+.arch-tab .wk-seg-btn {
+  min-height: 32px;
+  padding: 7px 12px;
+  border: 0;
+  border-radius: 999px;
+  color: rgba(238,245,255,.60);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.arch-tab .wk-seg-btn:hover {
+  color: #fff;
+}
+
+.arch-tab .wk-seg-btn.is-on {
+  background: #d1f447;
+  color: #13223a;
+  box-shadow: none;
+}
+
+.arch-tab .wk-seg-n {
+  background: rgba(255,255,255,.16);
+  color: inherit;
+}
+
+.arch-tab .wk-seg-btn.is-on .wk-seg-n {
+  background: rgba(19,34,58,.13);
+}
+
+/* Pale information cards sit on the surface; lists become one navy workbench. */
+.arch-tab .wk-card {
+  border: 1px solid rgba(31,65,108,.10);
+  border-radius: 22px;
+  background: rgba(255,255,255,.68);
+  color: #0a1730;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.86), 0 14px 28px -25px rgba(26,59,98,.38);
+}
+
+.arch-tab .wk-card--lime,
+.arch-tab .wk-card--amber,
+.arch-tab .wk-card--blush {
+  background: rgba(255,255,255,.68);
+}
+
+.arch-tab .wk-label,
+.arch-tab .wk-small,
+.arch-tab .wk-body,
+.arch-tab .wk-grey,
+.arch-tab .wk-mute {
+  color: #6f7e96;
+}
+
+.arch-tab .wk-title,
+.arch-tab .wk-big,
+.arch-tab .wk-ink,
+.arch-tab .text-ink {
+  color: #0a1730;
+}
+
+.arch-tab .wk-tile {
+  border: 1px solid rgba(31,65,108,.08);
+  background: rgba(230,237,247,.72);
+}
+
+.arch-tab .wk-tile--lime {
+  background: rgba(209,244,71,.46);
+}
+
+.arch-tab .wk-fill {
+  background: #e0e9f4;
+}
+
+.arch-tab .wk-list {
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 24px;
+  background:
+    radial-gradient(360px 180px at 100% 0%, rgba(52,92,150,.25), transparent 76%),
+    #111e37;
+  box-shadow: 0 18px 35px -29px rgba(14,29,54,.70);
+}
+
+.arch-tab .wk-row {
+  min-height: 64px;
+  border-color: rgba(255,255,255,.09);
+  background: transparent;
+  color: #fff;
+  transition: background .18s ease, padding .18s ease;
+}
+
+.arch-tab .wk-row:hover {
+  background: rgba(255,255,255,.055);
+}
+
+.arch-tab .wk-row .text-ink,
+.arch-tab .wk-row .wk-ink,
+.arch-tab .wk-row b,
+.arch-tab .wk-row .text-white {
+  color: #fff !important;
+}
+
+.arch-tab .wk-row .wk-grey,
+.arch-tab .wk-row .wk-mute {
+  color: rgba(232,241,255,.55);
+}
+
+.arch-tab .wk-chip {
+  border-color: rgba(255,255,255,.16);
+  background: rgba(255,255,255,.12);
+  color: #fff;
+}
+
+.arch-tab .wk-chip--lime {
+  background: rgba(209,244,71,.20);
+  color: #dffb77;
+}
+
+.arch-tab .wk-chip--cyan {
+  background: rgba(121,204,230,.18);
+  color: #b2e9f8;
+}
+
+.arch-tab .wk-btn--ink {
+  background: #111e37;
+  color: #fff;
+}
+
+.arch-tab .wk-btn--ghost {
+  border-color: rgba(25,60,103,.20);
+  background: rgba(255,255,255,.48);
+  color: #1d3553;
+}
+
+.arch-tab .wk-btn--ghost:hover {
+  background: #fff;
+}
+
+/* Calendar keeps the playful, immediately readable date rail from the mobile references. */
+.arch-tab--calendar .wk-strip {
+  gap: 7px;
+  margin-top: 19px;
+  padding: 8px;
+  border: 1px solid rgba(31,65,108,.10);
+  border-radius: 22px;
+  background: rgba(255,255,255,.49);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.72);
+}
+
+.arch-tab--calendar .wk-day {
+  width: 59px;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.arch-tab--calendar .wk-day:hover {
+  background: rgba(16,30,55,.055);
+}
+
+.arch-tab--calendar .wk-day-w,
+.arch-tab--calendar .wk-day-n {
+  color: #516279;
+}
+
+.arch-tab--calendar .wk-day.is-on {
+  border-color: #111e37;
+  background: #111e37;
+  box-shadow: 0 10px 20px -15px rgba(16,30,55,.66);
+}
+
+.arch-tab--calendar .wk-day.is-on .wk-day-w {
+  color: rgba(255,255,255,.58);
+}
+
+.arch-tab--calendar .wk-day.is-on .wk-day-n {
+  color: #fff;
+}
+
+.arch-tab--calendar .wk-appt {
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 20px;
+  background:
+    radial-gradient(250px 130px at 100% 0%, rgba(52,92,150,.25), transparent 75%),
+    #111e37;
+  color: #fff;
+  box-shadow: 0 16px 29px -25px rgba(13,29,54,.78);
+}
+
+.arch-tab--calendar .wk-appt.is-shoot,
+.arch-tab--calendar .wk-appt.is-request {
+  background:
+    radial-gradient(250px 130px at 100% 0%, rgba(52,92,150,.25), transparent 75%),
+    #111e37;
+}
+
+.arch-tab--calendar .wk-appt-time {
+  border-color: rgba(121,204,230,.30);
+}
+
+.arch-tab--calendar .wk-appt-time b,
+.arch-tab--calendar .wk-appt .text-ink,
+.arch-tab--calendar .wk-appt .wk-ink {
+  color: #fff !important;
+}
+
+.arch-tab--calendar .wk-appt-time small,
+.arch-tab--calendar .wk-appt .wk-grey {
+  color: rgba(232,241,255,.56);
+}
+
+.arch-tab--calendar .wk-appt .wk-chip--lime {
+  background: rgba(209,244,71,.20);
+  color: #dffb77;
+}
+
+.arch-tab--calendar .wk-appt .wk-chip--cyan {
+  background: rgba(121,204,230,.18);
+  color: #b2e9f8;
+}
+
+.arch-tab--calendar .text-white {
+  color: #0a1730 !important;
+}
+
+.arch-tab--calendar .text-white\/45 {
+  color: #6f7e96 !important;
+}
+
+/* Profile is the one place the creator's imagery becomes the richer object. */
+.arch-tab--profile .wk-card {
+  overflow: hidden;
+}
+
+.arch-tab--profile .wk-card > div:first-child img {
+  filter: saturate(1.06) contrast(1.02);
+}
+
+.arch-tab .glass {
+  border: 1px solid rgba(255,255,255,.10);
+  background:
+    radial-gradient(320px 160px at 100% 0%, rgba(52,92,150,.25), transparent 75%),
+    #111e37;
+  box-shadow: 0 16px 30px -25px rgba(13,29,54,.76);
+}
+
+.arch-tab section > h3 {
+  color: #52627a !important;
+}
+
+.arch-tab .glass .text-white,
+.arch-tab .glass .text-ink {
+  color: #fff !important;
+}
+
+.arch-tab .glass .text-white\/45,
+.arch-tab .glass .text-white\/55,
+.arch-tab .glass .wk-mute,
+.arch-tab .glass .wk-grey {
+  color: rgba(232,241,255,.55) !important;
+}
+
+@media (max-width: 1023px) {
+  .arch-tab {
+    min-height: 0;
+    max-width: 780px;
+  }
+}
+
+@media (max-width: 700px) {
+  .arch-tab {
+    padding: 18px 16px;
+    border-radius: 25px;
+  }
+
+  .arch-tab .wk-h1 {
+    font-size: 42px;
+  }
+
+  .arch-tab .wk-seg,
+  .arch-tab .wk-seg--full {
+    width: 100%;
+  }
+
+  .arch-tab .wk-seg-btn {
+    flex: 1;
+  }
+
+  .arch-tab--calendar .wk-strip {
+    margin-right: -3px;
+    margin-left: -3px;
+    border-radius: 19px;
+  }
+
+  .arch-tab--calendar .wk-day {
+    width: 56px;
+  }
+}
