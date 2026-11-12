@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ExternalLink, Pencil } from 'lucide-react';
+import { ExternalLink, ImagePlus } from 'lucide-react';
 import CopyLinkPill from '@/components/dashboard/CopyLinkPill';
 
 /** Who the client meets first, as one band: the face, the name, the link, and what you do with them. */
@@ -50,7 +50,7 @@ export default function StorefrontCard({ profile }) {
 
         <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
           <Link to="/lensman-dashboard/profile/portfolio" className="wk-btn wk-btn--ink">
-            Add photos <Pencil className="h-3.5 w-3.5" />
+            Add photos <ImagePlus className="h-3.5 w-3.5" />
           </Link>
           <CopyLinkPill creator={profile} />
           <Link
