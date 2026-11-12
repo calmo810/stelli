@@ -51,7 +51,7 @@ export default async function (req) {
       },
     });
 
-    const summary = String(response?.summary || '')
+    const summary = String((typeof response === 'object' && response && 'summary' in response ? response.summary : '') || '')
       .replace(/\s+/g, ' ')
       .trim()
       .slice(0, 320);
