@@ -106,7 +106,11 @@ export default function WorkspaceShell({ profile, user, counts = {}, children })
           )}
 
           <div
-            className={isToday ? 'arch-workspace__body--today' : 'mt-4'}
+            className={
+              isToday
+                ? 'arch-workspace__body arch-workspace__body--today'
+                : 'arch-workspace__body mt-4'
+            }
             onTouchStart={startTouch}
             onTouchEnd={endTouch}
           >
