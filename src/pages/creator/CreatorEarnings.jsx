@@ -32,7 +32,7 @@ export default function CreatorEarnings() {
     waitingTotal,
     payoutState,
     refetchProfile,
-  } = useOutletContext();
+  } = /** @type {any} */ (useOutletContext());
   const [tab, setTab] = useState('next');
 
   const withMoney = bookings.filter((b) => Number(b.creator_payout) > 0);
