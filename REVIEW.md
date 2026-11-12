@@ -556,7 +556,15 @@ If you pay a creator $50 by hand *for* a booking that came through checkout, the
 
 ## 11. Your Stripe test-mode checklist
 
-Run this before you trust the money path with real clients. It takes about an hour. Nothing here moves real money.
+Run this before you trust the money path with real clients. Nothing here moves real money.
+
+**Already run against real Stripe (12 November).** The money paths themselves passed in Stripe test mode, 13 of 13 (§13, "Real Stripe"): Checkout amounts, refunds, stray payments, a bank dispute, payouts, a refund after payout, and both cancellation tiers. So the parts below that can only be checked on your live setup matter most:
+- your webhook endpoints and signing secrets (Before you start, step 1);
+- the read rules and the data fix (steps 4–5);
+- two-factor sign-in (A);
+- the screens themselves, clicked by a person.
+
+The money sections (B–H) are now a confirmation run. Do them quickly, or skip the ones the real-Stripe run covers if time is short.
 
 ### Before you start
 
@@ -704,7 +712,26 @@ Make three paid bookings: one about 4 days out, one about 60 hours out, one abou
 
 ## 13. Tests, and what is still untested
 
-`npm test` runs 239 tests in under 20 seconds. Every one passes on this branch.
+`npm test` runs 249 tests in under 20 seconds. Every one passes on this branch.
+
+**Real Stripe.** `npm run test:stripe` runs the real backend functions against **real Stripe in test mode**, with no fake Stripe. Stripe's own events (refunds, disputes, `account.updated`) are read back and passed to the real webhook handler. The harness refuses to start unless Stripe confirms test mode, and stops if any response is a live object. It isn't part of CI, because it needs a test key. Run on 12 November, all 13 passed:
+
+| Scenario | Checked against Stripe |
+|---|---|
+| Checkout with an add-on | The real session's lines are $100 shoot, $50 add-on, $21 fee, $171 total. A second click reuses the page. Paying confirms the booking with $171 held, $21 fee and $129 for the creator. |
+| Quote replaced | The old Checkout page is really expired at Stripe. |
+| Cancel more than 72 hours out | Stripe refunded exactly what the preview promised, and Stripe's `charge.refunded` event agrees. |
+| Cancel 48–72 hours out | A real half refund, and the creator's half paid once, however many sweeps run. |
+| Partial refund, then the rest | Two refunds. The same confirmation sent twice refunds once. Never more than was charged. |
+| Two stale Checkout pages paid | Two records, two separate refunds of $342 and $228. |
+| Bank dispute | Release and refund are refused while it's open. Winning it in Stripe lifts the freeze. |
+| Payout | A real transfer of exactly the creator's share ($129 on $150), tied to the client's charge, one per booking. |
+| Refund after payout | The client is refunded $114 and the creator's $86 is pulled back in full. |
+| Payout setup lapsed | The sweep sends nothing, and the money waits. |
+| Stripe refuses a payout | The account hadn't finished onboarding. The reason is recorded, nothing leaves, and the client can still be refunded. |
+| Payout setup finishes | Stripe's real `account.updated` event, and separately the creator's dashboard check, switch payouts on and send what was waiting. |
+
+One step is simulated: the client typing a card into Stripe's hosted Checkout page. A headless browser here can't pay on that page (this environment's network proxy adds the secret key to the page's own requests), so the payment is a real test charge for the session's exact amount, with Checkout's transfer group and metadata. The test creator was created by Stelli's own `startPayoutSetup` and onboarded by hand once, because Stripe's onboarding has a captcha. To run it again: `STELLI_TEST_CREATOR_ACCOUNT=acct_… npm run test:stripe`, with a Stripe test key available to the proxy or in `STRIPE_TEST_SECRET_KEY`.
 
 **CI.** `.github/workflows/ci.yml` runs on every pull request and every push to `main`, with four jobs and no secrets:
 - **Tests:** `npm test`.

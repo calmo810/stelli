@@ -236,3 +236,83 @@ test('Refund after the creator was paid: the client is refunded and the payout p
   const booking = await w.booking();
   assert.equal(booking.reversal_status, 'done');
 });
+
+/** Stripe's newest account.updated event for the creator, as a Connect endpoint would get it. */
+async function latestAccountUpdate(account) {
+  const page = await stripe('GET', 'events', { type: 'account.updated', limit: 20 }, { account });
+  const ready = page.data.find(
+    (event) => event.data.object.capabilities?.transfers === 'active' && event.data.object.payouts_enabled === true
+  );
+  assert.ok(ready, 'Stripe has an account.updated event showing transfers active');
+  return { ...ready, account };
+}
+
+test('Payout setup finishing (Stripe\'s account.updated event) switches payouts on and sends what was waiting', { skip: !CREATOR_ACCOUNT && 'set STELLI_TEST_CREATOR_ACCOUNT' }, async () => {
+  const w = await world({ creatorAccount: CREATOR_ACCOUNT });
+  await w.paid({ amount: 100 });
+  const [lensman] = await w.entities.Lensman.list();
+  await w.entities.Lensman.update(lensman.id, { payouts_enabled: false });
+  await w.deliveredAndDue();
+  await w.call('releasePayouts', {}, FOUNDER);
+  assert.equal((await w.booking()).needs_payout_setup, true, 'the money waits while setup is unfinished');
+
+  const event = await latestAccountUpdate(CREATOR_ACCOUNT);
+  assert.equal((await w.deliver(event)).status, 200);
+  assert.equal((await w.entities.Lensman.get(lensman.id)).payouts_enabled, true);
+  const booking = await w.booking();
+  assert.equal(booking.payment_status, 'released', 'what was waiting went out');
+  const transfer = await stripe('GET', `transfers/${booking.stripe_transfer_id}`);
+  assert.equal(transfer.amount, 8600);
+  assert.equal(transfer.destination, CREATOR_ACCOUNT);
+});
+
+test('The creator\'s dashboard status check reads Stripe and does the same', { skip: !CREATOR_ACCOUNT && 'set STELLI_TEST_CREATOR_ACCOUNT' }, async () => {
+  const w = await world({ creatorAccount: CREATOR_ACCOUNT });
+  await w.paid({ amount: 100 });
+  const [lensman] = await w.entities.Lensman.list();
+  await w.entities.Lensman.update(lensman.id, { payouts_enabled: false });
+  await w.deliveredAndDue();
+  await w.call('releasePayouts', {}, FOUNDER);
+
+  const status = await w.call('startPayoutSetup', { action: 'status' }, CREATOR);
+  assert.equal(status.status, 200);
+  assert.equal(status.data.payoutsEnabled, true);
+  assert.equal(status.data.needsInfo, false);
+  assert.equal(status.data.paidOut, 1);
+  const booking = await w.booking();
+  assert.equal(booking.payment_status, 'released');
+  const transfers = await stripe('GET', 'transfers', { transfer_group: `booking_${w.bookingId}` });
+  assert.equal(transfers.data.length, 1);
+});
+
+/** A New York date and time this many hours from now. */
+function nyIn(hours) {
+  const at = new Date(Date.now() + hours * 3_600_000);
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+      .formatToParts(at)
+      .map((part) => [part.type, part.value])
+  );
+  return { eventDate: `${parts.year}-${parts.month}-${parts.day}`, eventTime: `${parts.hour}:${parts.minute}` };
+}
+
+test('Cancelling 48 to 72 hours out: a real half refund, and the creator is paid their half', { skip: !CREATOR_ACCOUNT && 'set STELLI_TEST_CREATOR_ACCOUNT' }, async () => {
+  const w = await world({ creatorAccount: CREATOR_ACCOUNT, ...nyIn(60) });
+  const { intent } = await w.paid({ amount: 100 });
+  const preview = await w.call('cancelBooking', { bookingId: w.bookingId, preview: true }, CLIENT);
+  assert.equal(preview.data.tier, 'half', preview.data.message);
+
+  const done = await w.call('cancelBooking', { bookingId: w.bookingId, reason: 'Sick' }, CLIENT);
+  assert.equal(done.status, 200);
+  const charge = await w.chargeOf(intent.id);
+  assert.equal(charge.amount_refunded, cents(preview.data.refundAmount), 'Stripe refunded exactly the promised half');
+  assert.ok(charge.amount_refunded > 0 && charge.amount_refunded < charge.amount);
+
+  // The creator's half goes out (now, or with the next sweep), once, and no more.
+  await w.call('releasePayouts', {}, FOUNDER);
+  await w.call('releasePayouts', {}, FOUNDER);
+  const transfers = await stripe('GET', 'transfers', { transfer_group: `booking_${w.bookingId}` });
+  assert.equal(transfers.data.length, 1);
+  assert.equal(transfers.data[0].amount, cents(preview.data.creatorShare));
+  assert.equal(transfers.data[0].destination, CREATOR_ACCOUNT);
+});

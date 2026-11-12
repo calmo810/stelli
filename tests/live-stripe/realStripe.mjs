@@ -54,7 +54,7 @@ globalThis.fetch = async (url, init = {}) => {
 };
 
 /** A plain Stripe call for the harness itself (setting up, checking results). */
-export async function stripe(method, path, params = {}) {
+export async function stripe(method, path, params = {}, { account = '' } = {}) {
   const body = new URLSearchParams();
   const add = (prefix, value) => {
     if (value === undefined || value === null) return;
@@ -66,7 +66,12 @@ export async function stripe(method, path, params = {}) {
   const url = `${API}v1/${path}${method === 'GET' && body.toString() ? `?${body}` : ''}`;
   const response = await fetch(url, {
     method,
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Stripe-Version': '2025-10-29.clover' },
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Stripe-Version': '2025-10-29.clover',
+      // Read as a connected account (its own events, for instance).
+      ...(account ? { 'Stripe-Account': account } : {}),
+    },
     ...(method === 'GET' ? {} : { body }),
   });
   const data = await response.json();
