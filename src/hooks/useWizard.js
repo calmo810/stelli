@@ -450,9 +450,7 @@ export default function useWizard() {
         : await base44.functions.invoke('updateCreatorProfile', { ...payload, resubmit: needsChanges });
       const problem = response?.data?.error;
       if (problem) {
-        const failure = new Error(problem);
-        failure.data = response.data;
-        throw failure;
+        throw Object.assign(new Error(problem), { data: response.data });
       }
 
       if (applying) {
