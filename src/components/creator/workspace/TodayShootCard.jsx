@@ -17,7 +17,7 @@ function whenLabel(eventDate) {
 }
 
 function timeLabel(value) {
-  if (!value) return 'Time to confirm';
+  if (!value) return 'Time TBD';
   const match = /^(\d{1,2}):(\d{2})/.exec(value);
   if (!match) return value;
   const hours = Number(match[1]);
@@ -30,11 +30,11 @@ export default function TodayShootCard({ shoot, profile }) {
       <section className="arch-open">
         <div className="arch-open__copy">
           <div className="arch-open__top">
-            <span><Sparkles className="h-3 w-3" strokeWidth={2.5} /> Open studio</span>
-            <b>Ready</b>
+            <span><Sparkles className="h-3 w-3" strokeWidth={2.5} /> Availability</span>
+            <b>Open</b>
           </div>
-          <h2>Your next booking has room to land.</h2>
-          <p>Share your page when you want new work.</p>
+          <h2>You’re available for new bookings.</h2>
+          <p>Share your profile when you’re ready for new work.</p>
           <span><CopyLinkPill creator={profile} tone="glass" className="arch-open__link" /></span>
         </div>
       </section>
@@ -48,7 +48,7 @@ export default function TodayShootCard({ shoot, profile }) {
   return (
     <section className="arch-booking">
       <div className="arch-booking__top">
-        <span><CalendarDays className="h-3 w-3" strokeWidth={2.5} /> Next shoot</span>
+        <span><CalendarDays className="h-3 w-3" strokeWidth={2.5} /> Next up</span>
         <b>{whenLabel(shoot.event_date)}</b>
       </div>
       <div className="arch-booking__main">
@@ -64,7 +64,7 @@ export default function TodayShootCard({ shoot, profile }) {
       </div>
       <div className="arch-booking__bottom">
         <span className="arch-booking__payout">
-          <small>Your payout</small>
+          <small>Payout</small>
           <strong>{money(shoot.creator_payout)}</strong>
         </span>
         <Link to={'/messages/' + shoot.id} aria-label="Open this shoot">
