@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { addDays, format } from 'date-fns';
 import { motion, useReducedMotion } from 'framer-motion';
@@ -75,7 +75,15 @@ export default function CreatorOverview() {
 
   const [scheduleView, setScheduleView] = useState('upcoming');
   const reduceMotion = useReducedMotion();
-  const settle = reduceMotion ? { duration: 0 } : { duration: .56, ease: ASSEMBLY_EASE };
+  const shouldAnimate = !reduceMotion && !data.todayEnteredRef?.current;
+
+  // The open has its little camera-like assembly once; returning from another
+  // tab should feel immediate, not like waiting for the dashboard again.
+  useEffect(() => {
+    if (data.todayEnteredRef) data.todayEnteredRef.current = true;
+  }, [data.todayEnteredRef]);
+
+  const settle = shouldAnimate ? { duration: .56, ease: ASSEMBLY_EASE } : { duration: 0 };
   const [selectedDate, setSelectedDate] = useState(() => dateKey(new Date()));
   const today = dateKey(new Date());
   const creatorFirstName = String(myProfile?.display_name || '').trim().split(/\s+/)[0] || 'there';
@@ -115,7 +123,7 @@ export default function CreatorOverview() {
   return (
     <motion.div
       className="arch-world"
-      initial={reduceMotion ? false : { opacity: 0 }}
+      initial={shouldAnimate ? { opacity: 0 } : false}
       animate={{ opacity: 1 }}
       transition={settle}
     >
@@ -129,7 +137,7 @@ export default function CreatorOverview() {
 
       <motion.header
         className="arch-world__top"
-        initial={reduceMotion ? false : { opacity: 0, y: 14, scale: .985 }}
+        initial={shouldAnimate ? { opacity: 0, y: 14, scale: .985 } : false}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ ...settle, delay: .04 }}
       >
@@ -149,7 +157,7 @@ export default function CreatorOverview() {
           </Link>
         </div>
         <div className="arch-masthead__lens" aria-hidden="true">
-          <DashboardAssembly reduceMotion={reduceMotion} />
+          <DashboardAssembly reduceMotion={!shouldAnimate} />
           <span className="arch-masthead__ring arch-masthead__ring--outer" />
           <span className="arch-masthead__ring arch-masthead__ring--inner" />
           <span className="arch-masthead__star arch-masthead__star--one">✦</span>
@@ -174,7 +182,7 @@ export default function CreatorOverview() {
 
       <motion.main
         className="arch-world__stage"
-        initial={reduceMotion ? false : { opacity: 0, y: 18, scale: .988 }}
+        initial={shouldAnimate ? { opacity: 0, y: 18, scale: .988 } : false}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ ...settle, delay: .13 }}
       >
@@ -275,7 +283,7 @@ export default function CreatorOverview() {
 
       <motion.footer
         className="arch-world__dock"
-        initial={reduceMotion ? false : { opacity: 0, y: 13, scale: .99 }}
+        initial={shouldAnimate ? { opacity: 0, y: 13, scale: .99 } : false}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ ...settle, delay: .22 }}
       >
