@@ -2,18 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { MapPin, X } from 'lucide-react';
-import { accentOf, cssUrl, galleryImages, ratingLabel, taglineOf } from '@/lib/creatorBrowse';
+import { accentOf, galleryImages, ratingLabel, taglineOf } from '@/lib/creatorBrowse';
 import { displayNameOf } from '@/lib/profilePresets';
-
-/* Where the smaller prints sit around the portrait. Literal classes only. */
-const TILE_SLOTS = [
-  'left-[3%] top-[3%] w-[74px] rotate-[-7deg] sm:w-[88px]',
-  'right-[2%] top-[0%] w-[64px] rotate-[6deg] sm:w-[78px]',
-  'left-[0%] top-[44%] w-[62px] rotate-[5deg] sm:w-[76px]',
-  'right-[0%] top-[41%] w-[70px] rotate-[-6deg] sm:w-[90px]',
-  'bottom-[0%] left-[23%] w-[58px] rotate-[4deg] sm:w-[70px]',
-  'bottom-[2%] right-[21%] w-[62px] rotate-[-4deg] sm:w-[74px]',
-];
+import SmoothImage from '@/components/shared/SmoothImage';
 
 /** A small numbered fact, so the numbers read at a glance. */
 function Fact({ label, value }) {
@@ -25,9 +16,10 @@ function Fact({ label, value }) {
   );
 }
 
-/** The quick look: their face in the middle of their work, then one way to book. */
+/** The quick look: their work at full size, their face beside their name, then one way to book. */
 export default function QuickViewSheet({ creator, onClose }) {
   const [open, setOpen] = useState(false);
+  const [lead, setLead] = useState(0);
   const sheetRef = useRef(null);
   const closeRef = useRef(null);
 
@@ -41,8 +33,11 @@ export default function QuickViewSheet({ creator, onClose }) {
   const years = Number(creator?.years_experience) > 0 ? creator.years_experience : null;
   const reviews = Number(creator?.review_count || 0);
   const profilePath = `/creators/${creator?.slug || creator?.id}`;
-  const portrait = creator?.profile_image || images[0];
-  const tiles = images.slice(0, TILE_SLOTS.length);
+  const portrait = creator?.profile_image;
+  /* The photo in the big slot, then the next two beside it. */
+  const order = images.map((_, i) => (lead + i) % images.length);
+  const sides = order.slice(1, 3);
+  const leadSpan = images.length === 1 ? 'col-span-3 row-span-2' : 'col-span-2 row-span-2';
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => setOpen(true));
@@ -108,40 +103,70 @@ export default function QuickViewSheet({ creator, onClose }) {
         </button>
 
         <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain">
-          {/* The collage: their portrait in the middle, their work pinned around it. */}
-          <div className="relative mx-auto h-[252px] w-full max-w-[460px] px-4 pt-2 sm:h-[280px]">
-            <div
-              aria-hidden
-              className="pointer-events-none absolute left-1/2 top-1/2 h-[280px] w-[280px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-[0.16] blur-[46px]"
-              style={{ background: accent }}
-            />
-
-            {tiles.length > 1 &&
-              tiles.map((url, i) => (
-                <div
-                  key={`${url}-${i}`}
-                  className={`absolute aspect-[3/4] overflow-hidden rounded-[10px] bg-surface-2 bg-cover bg-center ring-1 ring-white/10 shadow-[0_16px_34px_-16px_rgba(0,0,0,.9)] transition-transform duration-500 hover:rotate-0 hover:scale-[1.06] ${TILE_SLOTS[i]}`}
-                  style={{ backgroundImage: cssUrl(url) }}
+          {/* The work, large: one lead photo with the next two beside it. */}
+          <div className="grid aspect-[6/5] grid-cols-3 grid-rows-2 gap-1.5 p-2.5 pb-0">
+            <div className={`relative min-h-0 overflow-hidden rounded-[18px] bg-surface-2 ${leadSpan}`}>
+              <SmoothImage
+                key={images[lead]}
+                src={images[lead]}
+                alt={`Photo ${lead + 1} of ${images.length} by ${name}`}
+                priority
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            </div>
+            {sides.map((i) => (
+              <button
+                key={`${images[i]}-${i}`}
+                type="button"
+                onClick={() => setLead(i)}
+                aria-label={`Show photo ${i + 1} larger`}
+                className={`group relative min-h-0 overflow-hidden rounded-[18px] bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--acc)] ${
+                  sides.length === 1 ? 'row-span-2' : ''
+                }`}
+              >
+                <SmoothImage
+                  src={images[i]}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
                 />
-              ))}
+              </button>
+            ))}
+          </div>
 
+          {/* Their face, overlapping the work, with the rest of the set to flip through. */}
+          <div className="relative z-[1] -mt-9 flex items-end justify-between gap-3 px-[22px]">
             <div
-              className="absolute left-1/2 top-1/2 h-[148px] w-[148px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full bg-surface-2 ring-[6px] ring-surface sm:h-[176px] sm:w-[176px]"
-              style={{ boxShadow: `0 0 0 1.5px ${accent}, 0 26px 60px -22px rgba(0,0,0,.95)` }}
+              className="h-[76px] w-[76px] shrink-0 overflow-hidden rounded-full bg-surface-2 ring-[5px] ring-surface"
+              style={{ boxShadow: `0 0 0 6.5px ${accent}, 0 18px 36px -14px rgba(0,0,0,.9)` }}
             >
               {portrait ? (
-                <img
-                  src={portrait}
-                  alt={name}
-                  className="h-full w-full object-cover"
-                  loading="lazy"
-                />
+                <img src={portrait} alt={name} className="h-full w-full object-cover" />
               ) : (
-                <div className="grid h-full w-full place-items-center font-display text-[54px] text-white/60">
+                <div className="grid h-full w-full place-items-center font-display text-[30px] text-white/60">
                   {initial}
                 </div>
               )}
             </div>
+
+            {images.length > 3 && (
+              <div className="flex min-w-0 gap-1.5 pb-0.5" aria-label="All photos">
+                {images.map((url, i) => (
+                  <button
+                    key={`thumb-${url}-${i}`}
+                    type="button"
+                    onClick={() => setLead(i)}
+                    aria-label={`Show photo ${i + 1}`}
+                    aria-pressed={i === lead}
+                    className={`relative aspect-[4/5] w-9 shrink-0 overflow-hidden rounded-[8px] bg-surface-2 transition-[opacity,transform] duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--acc)] sm:w-10 ${
+                      i === lead ? '-translate-y-1 opacity-100' : 'opacity-50 hover:opacity-90'
+                    }`}
+                    style={i === lead ? { boxShadow: `0 0 0 1.5px ${accent}` } : undefined}
+                  >
+                    <img src={url} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="px-[22px] pb-5 pt-4">
