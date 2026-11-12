@@ -56,7 +56,7 @@ export default function CreatorEarnings() {
   };
 
   return (
-    <div>
+    <div className="arch-tab arch-tab--work">
       <h1 className="wk-h1">Money</h1>
       <p className="wk-lede">Every charge is held by Stelli until you deliver, then it is yours.</p>
 
