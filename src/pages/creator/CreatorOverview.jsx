@@ -72,18 +72,29 @@ export default function CreatorOverview() {
 
   return (
     <div className="arch-today">
-      <header className="arch-today__head">
-        <div>
-          <p className="arch-today__kicker">Creator studio · {format(new Date(), 'EEE, MMM d')}</p>
+      <header className="arch-masthead">
+        <div className="arch-masthead__copy">
+          <p className="arch-today__kicker">Creator studio · {format(new Date(), 'EEEE, MMM d')}</p>
           <h1>Today</h1>
+          <strong>{summary}</strong>
+          <small>Schedule, studio updates, and next actions in one focused view.</small>
         </div>
-        <Link to="/lensman-dashboard/profile" className="arch-today__stamp" aria-label="Open your profile">
-          {myProfile?.profile_image ? (
-            <img src={myProfile.profile_image} alt="" />
-          ) : (
-            <span>{(myProfile?.display_name || firstName).trim()[0].toUpperCase()}</span>
-          )}
-        </Link>
+        <div className="arch-masthead__tools">
+          <span className="arch-masthead__state">
+            <i />
+            {upcomingShoots[0] ? 'Shoot queued' : 'Studio open'}
+          </span>
+          <Link to="/lensman-dashboard/calendar" className="arch-masthead__calendar">
+            Calendar <CalendarDays className="h-3.5 w-3.5" strokeWidth={2.4} />
+          </Link>
+        </div>
+        <div className="arch-masthead__lens" aria-hidden="true">
+          <span className="arch-masthead__ring arch-masthead__ring--outer" />
+          <span className="arch-masthead__ring arch-masthead__ring--inner" />
+          <span className="arch-masthead__star arch-masthead__star--one">✦</span>
+          <span className="arch-masthead__star arch-masthead__star--two">✧</span>
+          <span className="arch-masthead__camera">📸</span>
+        </div>
       </header>
 
       {myProfile.under_review ? (
@@ -97,20 +108,6 @@ export default function CreatorOverview() {
           Your application wasn&apos;t approved, so your profile isn&apos;t public. Email getstelli@gmail.com with any questions.
         </PendingBanner>
       ) : null}
-
-      <section className="arch-brief">
-        <div className="arch-brief__copy">
-          <p>Hi, {firstName}.</p>
-          <h2>{summary}</h2>
-          <small>Everything important is in this one view.</small>
-        </div>
-        <div className="arch-lens" aria-hidden="true">
-          <span className="arch-lens__aperture" />
-          <span className="arch-lens__star arch-lens__star--one">✦</span>
-          <span className="arch-lens__star arch-lens__star--two">✧</span>
-          <span className="arch-lens__camera">📸</span>
-        </div>
-      </section>
 
       <div className="arch-today__grid">
         <section className="arch-schedule">
@@ -194,7 +191,11 @@ export default function CreatorOverview() {
           </div>
         </section>
 
-        <aside className="arch-side">
+        <aside className="arch-console">
+          <div className="arch-console__head">
+            <p>Studio signal</p>
+            <span>Live</span>
+          </div>
           <TodayShootCard shoot={upcomingShoots[0]} profile={myProfile} />
           <WhatsNewCard items={items} facts={facts} />
         </aside>
