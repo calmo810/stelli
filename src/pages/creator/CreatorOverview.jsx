@@ -1,29 +1,26 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
-import { format } from 'date-fns';
-import {
-  CalendarDays,
-  Camera,
-  ChevronRight,
-  Eye,
-  Inbox,
-  MessageCircle,
-  Sparkles,
-  UserRound,
-  Wallet,
-} from 'lucide-react';
+import { addDays, format } from 'date-fns';
+import { ArrowUpRight, CalendarDays, ChevronRight, Sparkles } from 'lucide-react';
 import PendingBanner from '@/components/dashboard/PendingBanner';
 import CopyLinkPill from '@/components/dashboard/CopyLinkPill';
 import TodayShootCard from '@/components/creator/workspace/TodayShootCard';
 import WhatsNewCard from '@/components/creator/workspace/WhatsNewCard';
-import UpcomingShoots from '@/components/creator/UpcomingShoots';
-import TodayBriefing from '@/components/creator/workspace/TodayBriefing';
-import StatTiles from '@/components/creator/workspace/StatTiles';
 import whatsNew from '@/lib/creatorDigest';
 import money from '@/lib/money';
-import shortDate from '@/lib/shortDate';
 
-/** The creator's morning read: the next shoot, the numbers, and what needs them. */
+const dateKey = (date) => format(date, 'yyyy-MM-dd');
+
+function timeLabel(value) {
+  if (!value) return 'Time TBD';
+  const match = /^(\d{1,2}):(\d{2})/.exec(value);
+  if (!match) return value;
+  const hours = Number(match[1]);
+  const suffix = hours >= 12 ? 'PM' : 'AM';
+  const hour = hours % 12 || 12;
+  return hour + ':' + match[2] + ' ' + suffix;
+}
+
 export default function CreatorOverview() {
   const data = useOutletContext();
   const {
@@ -35,118 +32,60 @@ export default function CreatorOverview() {
     upcomingShoots,
     finished,
     metrics,
-    hasClientBookings,
     money: totals,
   } = data;
 
+  const [scheduleView, setScheduleView] = useState('upcoming');
+  const [selectedDate, setSelectedDate] = useState(() => dateKey(new Date()));
   const firstName = (user?.full_name || '').split(' ')[0] || 'there';
-  const nextShoot = upcomingShoots[0];
   const { items, facts } = whatsNew(data);
 
-  // The brief in one breath: the numbers that matter, bolded, joined by dots.
-  const clauses = [];
-  if (metrics.requests) {
-    clauses.push([
-      { text: `${metrics.requests} request${metrics.requests > 1 ? 's' : ''}`, bold: true },
-      { text: ' to answer' },
-    ]);
-  }
-  if (nextShoot) {
-    clauses.push([
-      { text: `a shoot ${shortDate(nextShoot.event_date) || 'soon'}`, bold: true },
-      { text: ` with ${nextShoot.client_name || 'a client'}` },
-    ]);
-  }
-  if (Number(totals.heldTotal) > 0) {
-    clauses.push([{ text: money(totals.heldTotal), bold: true }, { text: ' held until you deliver' }]);
-  }
-  const briefing = clauses.length
-    ? clauses.flatMap((clause, i) => (i ? [{ text: ' · ' }, ...clause] : clause))
-    : [{ text: 'Nothing needs you right now. Share your page and the next booking comes to you.' }];
+  const days = useMemo(() => {
+    const start = new Date();
+    return Array.from({ length: 7 }, (_, index) => addDays(start, index));
+  }, []);
 
-  const people = [
-    ...new Map(
-      [...newRequests, ...upcomingShoots]
-        .filter((b) => b.client_name)
-        .map((b) => [b.client_name, { name: b.client_name, initial: b.client_name.trim()[0].toUpperCase() }])
-    ).values(),
-  ];
+  const sourceItems = scheduleView === 'upcoming' ? upcomingShoots : finished;
+  const selectedItems = sourceItems.filter((item) => item.event_date === selectedDate);
+  const scheduleItems = selectedItems.length
+    ? selectedItems
+    : selectedDate === dateKey(new Date())
+      ? sourceItems.slice(0, 2)
+      : [];
 
-  const tiles = [
-    {
-      key: 'next',
-      label: 'Next shoot',
-      value: nextShoot?.event_date ? format(new Date(`${nextShoot.event_date}T12:00:00`), 'MMM d') : '—',
-      to: '/lensman-dashboard/calendar',
-      tone: 'paper',
-      icon: CalendarDays,
-    },
-    {
-      key: 'requests',
-      label: 'Requests',
-      value: String(metrics.requests),
-      to: '/lensman-dashboard/requests',
-      tone: 'cyan',
-      icon: Inbox,
-    },
-    {
-      key: 'held',
-      label: 'Held',
-      value: money(totals.heldTotal),
-      to: '/lensman-dashboard/earnings',
-      tone: 'lime',
-      icon: Wallet,
-    },
-    {
-      key: 'views',
-      label: 'Views',
-      value: String(metrics.views),
-      to: '/lensman-dashboard/profile',
-      tone: 'blush',
-      icon: Eye,
-    },
-  ];
+  const attention = steps.slice(0, 2).map((step) => {
+    const booking = bookings.find((item) => item.id === step.bookingId);
+    return {
+      id: step.id,
+      title: step.title,
+      meta: booking?.client_name || 'Creator workspace',
+      action: step.key === 'request' ? 'Review' : step.action,
+      to: step.key === 'request' ? '/lensman-dashboard/requests/' + step.bookingId : step.to,
+    };
+  });
 
-  // The one real next step on each booking that has one (bookingNextStep.js):
-  // a request to quote, an agreement to accept, the unedited set once the
-  // shoot has happened, then the final edits. Most pressing first.
-  const attention = [
-    ...steps.map((step) => {
-      const booking = bookings.find((b) => b.id === step.bookingId);
-      const isRequest = step.key === 'request';
-      return {
-        id: step.id,
-        title: step.title,
-        meta: [shortDate(booking?.event_date), booking?.location].filter(Boolean).join(' · ') || (isRequest ? 'New request' : ''),
-        action: isRequest ? 'Review' : step.action,
-        to: isRequest ? `/lensman-dashboard/requests/${step.bookingId}` : step.to,
-        initial: (isRequest && booking?.client_name ? booking.client_name : step.title).trim()[0].toUpperCase(),
-        lime: isRequest,
-      };
-    }),
-    ...(myProfile.payouts_enabled
-      ? []
-      : [
-          {
-            id: 'payouts',
-            title: 'Set up payouts',
-            meta: 'Add your payout details so your earnings can reach you.',
-            action: 'Set up',
-            to: '/lensman-dashboard/earnings',
-          },
-        ]),
-  ].slice(0, 3);
-
-  const links = [
-    { label: 'Messages', to: '/messages', icon: MessageCircle },
-    { label: 'Completed shoots', to: '/lensman-dashboard/bookings', icon: Camera, value: String(finished.length) },
-    ...(hasClientBookings ? [{ label: 'Client portal', to: '/client-dashboard', icon: UserRound }] : []),
-    { label: 'Account settings', to: '/account-settings', icon: UserRound },
-  ];
+  const nextShoot = upcomingShoots[0];
+  const activeCount = sourceItems.length;
+  const dateTitle = selectedDate === dateKey(new Date())
+    ? 'Today'
+    : format(new Date(selectedDate + 'T12:00:00'), 'EEEE');
 
   return (
-    <div>
-      <h1 className="wk-h1">Hey, {firstName}.</h1>
+    <div className="today-screen">
+      <header className="today-header">
+        <div>
+          <p className="today-eyebrow">Creator studio</p>
+          <h1>Today</h1>
+          <p className="today-date">{format(new Date(), 'EEEE, MMMM d')}</p>
+        </div>
+        <Link to="/lensman-dashboard/profile" className="today-avatar" aria-label="Open your profile">
+          {myProfile?.profile_image ? (
+            <img src={myProfile.profile_image} alt="" />
+          ) : (
+            (myProfile?.display_name || firstName).trim()[0].toUpperCase()
+          )}
+        </Link>
+      </header>
 
       {myProfile.under_review ? (
         <PendingBanner tone="magenta">
@@ -156,72 +95,147 @@ export default function CreatorOverview() {
         <PendingBanner />
       ) : myProfile.status === 'rejected' ? (
         <PendingBanner tone="magenta">
-          Your application wasn’t approved, so your profile isn’t public. Email getstelli@gmail.com with any questions.
+          Your application wasn&apos;t approved, so your profile isn&apos;t public. Email getstelli@gmail.com with any questions.
         </PendingBanner>
       ) : null}
 
-      <div className="mt-3">
-        <TodayBriefing segments={briefing} people={people} />
-      </div>
+      <section className="today-greeting">
+        <p>Hi, {firstName}.</p>
+        <strong>
+          {metrics.requests
+            ? metrics.requests + ' request' + (metrics.requests === 1 ? '' : 's') + ' need your attention.'
+            : nextShoot
+              ? 'Your next shoot is lined up.'
+              : 'Your day is clear and ready.'}
+        </strong>
+      </section>
 
-      <div className="mt-5">
-        <TodayShootCard shoot={nextShoot} profile={myProfile} />
-      </div>
+      <TodayShootCard shoot={nextShoot} profile={myProfile} />
 
-      <div className="mt-2.5">
-        <StatTiles tiles={tiles} />
-      </div>
-
-      <div className="mt-2.5">
-        <WhatsNewCard items={items} facts={facts} />
-      </div>
-
-      <h2 className="mb-2.5 mt-7 pl-1.5 text-[13px] font-semibold wk-mute">Needs you now</h2>
-      {attention.length ? (
-        <div className="wk-list">
-          {attention.map((item) => (
-            <Link key={item.id} to={item.to} className="wk-row">
-              <span className={`wk-feed-av ${item.lime ? 'wk-feed-av--lime' : ''}`}>{item.initial}</span>
-              <span className="min-w-0 flex-1">
-                <b className="block text-[14.5px] font-bold text-ink">{item.title}</b>
-                {item.meta && <span className="mt-0.5 block truncate text-[12.5px] wk-grey">{item.meta}</span>}
-              </span>
-              <span className="wk-chip wk-chip--lime">{item.action}</span>
-              <ChevronRight className="h-4 w-4 shrink-0 wk-mute" strokeWidth={2.4} />
-            </Link>
-          ))}
+      <section className="today-schedule">
+        <div className="today-section-heading">
+          <div>
+            <p className="today-eyebrow">Your plan</p>
+            <h2>{dateTitle}</h2>
+          </div>
+          <Link to="/lensman-dashboard/calendar" className="today-icon-link" aria-label="Open full calendar">
+            <CalendarDays className="h-[18px] w-[18px]" strokeWidth={2.2} />
+          </Link>
         </div>
-      ) : (
-        <div className="wk-card wk-card--pad">
-          <p className="wk-label">
-            <Sparkles className="h-3 w-3" strokeWidth={2.4} /> All clear
-          </p>
-          <p className="wk-title mt-2">You&apos;re all caught up.</p>
-          <p className="wk-body mt-1">Share your page to get your next booking.</p>
-          <div className="mt-4">
+
+        <div className="today-date-strip" role="tablist" aria-label="Choose a day">
+          {days.map((day) => {
+            const key = dateKey(day);
+            const count = upcomingShoots.filter((item) => item.event_date === key).length;
+            const isOn = key === selectedDate;
+            return (
+              <button
+                key={key}
+                type="button"
+                role="tab"
+                aria-selected={isOn}
+                onClick={() => setSelectedDate(key)}
+                className={isOn ? 'is-on' : ''}
+              >
+                <span>{key === dateKey(new Date()) ? 'Today' : format(day, 'EEE')}</span>
+                <b>{format(day, 'd')}</b>
+                <i className={count ? 'has-item' : ''} />
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="today-view-tabs" role="tablist" aria-label="Upcoming or completed shoots">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={scheduleView === 'upcoming'}
+            onClick={() => setScheduleView('upcoming')}
+            className={scheduleView === 'upcoming' ? 'is-on' : ''}
+          >
+            Upcoming <span>{upcomingShoots.length}</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={scheduleView === 'completed'}
+            onClick={() => setScheduleView('completed')}
+            className={scheduleView === 'completed' ? 'is-on' : ''}
+          >
+            Completed <span>{finished.length}</span>
+          </button>
+        </div>
+
+        <div className="today-agenda">
+          {scheduleItems.length ? (
+            scheduleItems.map((item) => (
+              <Link
+                key={item.id}
+                to={scheduleView === 'upcoming' ? '/messages/' + item.id : '/lensman-dashboard/bookings'}
+                className="today-agenda-card"
+              >
+                <span className="today-agenda-time">{timeLabel(item.event_time)}</span>
+                <span className="today-agenda-copy">
+                  <strong>{item.client_name || 'Client shoot'}</strong>
+                  <small>{[item.event_type, item.location].filter(Boolean).join(' · ') || 'Shoot details'}</small>
+                </span>
+                <span className="today-agenda-action">
+                  <ArrowUpRight className="h-4 w-4" strokeWidth={2.5} />
+                </span>
+              </Link>
+            ))
+          ) : (
+            <div className="today-empty">
+              <CalendarDays className="h-5 w-5" strokeWidth={2.1} />
+              <p>{activeCount ? 'Nothing is scheduled for this day.' : 'No shoots are on the books yet.'}</p>
+              <Link to="/lensman-dashboard/calendar">Open calendar</Link>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <WhatsNewCard items={items} facts={facts} />
+
+      <section className="today-needs">
+        <div className="today-section-heading">
+          <div>
+            <p className="today-eyebrow">Stay on top of it</p>
+            <h2>Needs you</h2>
+          </div>
+          <span className="today-count">{attention.length}</span>
+        </div>
+        {attention.length ? (
+          <div className="today-needs-list">
+            {attention.map((item) => (
+              <Link key={item.id} to={item.to} className="today-needs-row">
+                <span className="today-needs-mark"><Sparkles className="h-3.5 w-3.5" strokeWidth={2.4} /></span>
+                <span>
+                  <strong>{item.title}</strong>
+                  <small>{item.meta}</small>
+                </span>
+                <em>{item.action}</em>
+                <ChevronRight className="h-4 w-4" strokeWidth={2.4} />
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="today-all-clear">
+            <strong>All caught up.</strong>
+            <span>Share your page when you&apos;re ready for your next shoot.</span>
             <CopyLinkPill creator={myProfile} />
           </div>
+        )}
+      </section>
+
+      <section className="today-money">
+        <div>
+          <span>Held for you</span>
+          <strong>{money(totals.heldTotal)}</strong>
         </div>
-      )}
-
-      <div className="mb-2.5 mt-7 flex items-baseline justify-between gap-3 pl-1.5">
-        <h2 className="text-[13px] font-semibold wk-mute">Coming up</h2>
-        <Link to="/lensman-dashboard/bookings" className="text-[12.5px] font-semibold text-white/45 hover:text-white">
-          All shoots
+        <Link to="/lensman-dashboard/earnings">
+          Earnings <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.4} />
         </Link>
-      </div>
-      <UpcomingShoots shoots={upcomingShoots.slice(0, 2)} emptyText="Confirmed shoots will appear here." />
-
-      <div className="mt-2.5 wk-list">
-        {links.map(({ label, to, icon: Icon, value }) => (
-          <Link key={label} to={to} className="wk-row">
-            <Icon className="h-[17px] w-[17px] shrink-0 wk-mute" strokeWidth={2} />
-            <span className="min-w-0 flex-1 text-[14.5px] font-semibold text-ink">{label}</span>
-            {value && <span className="text-[12.5px] font-bold wk-mute">{value}</span>}
-            <ChevronRight className="h-4 w-4 shrink-0 wk-mute" strokeWidth={2.4} />
-          </Link>
-        ))}
-      </div>
+      </section>
     </div>
   );
 }
