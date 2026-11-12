@@ -1,0 +1,963 @@
+/*
+ * Creator Architecture
+ * A compact, night-studio visual system for Stelli's creator portal.
+ * These classes are intentionally isolated from the public site.
+ */
+.arch-workspace {
+  --arch-ink: #080f22;
+  --arch-ink-2: #0e1832;
+  --arch-panel: #111d3b;
+  --arch-panel-2: #172746;
+  --arch-line: rgba(214, 229, 255, .13);
+  --arch-soft: rgba(224, 235, 255, .58);
+  --arch-muted: rgba(224, 235, 255, .44);
+  --arch-lime: #c8f36a;
+  --arch-cyan: #55d7ef;
+  min-height: 100vh;
+  background:
+    radial-gradient(900px 620px at 76% -8%, rgba(42, 77, 162, .28), transparent 58%),
+    radial-gradient(650px 460px at 5% 92%, rgba(85, 215, 239, .075), transparent 66%),
+    var(--arch-ink);
+}
+
+.arch-workspace__frame {
+  max-width: 1320px;
+  gap: 22px;
+}
+
+.arch-workspace__main {
+  max-width: none;
+}
+
+.arch-workspace__body--today {
+  margin-top: 0;
+}
+
+.arch-workspace .wk-rail {
+  width: 176px;
+  padding-top: 12px;
+}
+
+.arch-workspace .wk-rail-btn {
+  min-height: 42px;
+  margin-bottom: 3px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  color: var(--arch-muted);
+}
+
+.arch-workspace .wk-rail-btn:hover {
+  border-color: rgba(200, 243, 106, .18);
+  background: rgba(200, 243, 106, .06);
+  color: #fff;
+}
+
+.arch-workspace .wk-rail-btn.is-on {
+  border-color: rgba(200, 243, 106, .26);
+  background: linear-gradient(135deg, rgba(200, 243, 106, .18), rgba(85, 215, 239, .08));
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08);
+}
+
+.arch-workspace .wk-rail-btn.is-on svg {
+  color: var(--arch-lime);
+}
+
+.arch-workspace .wk-rail-n {
+  background: var(--arch-lime);
+  color: var(--arch-ink);
+}
+
+/* The mobile control remains a physical, compact bar rather than a wide white pill. */
+.wk-tabbar {
+  border: 1px solid rgba(200, 243, 106, .18);
+  background: rgba(8, 15, 34, .92);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.09), 0 22px 46px -24px #000;
+}
+
+.wk-tab.is-on {
+  background: rgba(200, 243, 106, .94);
+  color: #080f22;
+}
+
+.wk-tab-badge {
+  background: var(--arch-cyan, #55d7ef);
+  color: #080f22;
+}
+
+/* --------------------------------------------------------------------------
+   Today: information is packed into a schedule cockpit, not stacked panels.
+   -------------------------------------------------------------------------- */
+.arch-today {
+  position: relative;
+  max-width: 1120px;
+  padding-bottom: 26px;
+  color: #fff;
+}
+
+.arch-today__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding-top: 2px;
+}
+
+.arch-today__kicker {
+  margin: 0;
+  color: var(--arch-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .17em;
+  text-transform: uppercase;
+}
+
+.arch-today__head h1 {
+  margin: 7px 0 0;
+  font-size: clamp(42px, 7vw, 62px);
+  font-weight: 820;
+  letter-spacing: -.065em;
+  line-height: .88;
+}
+
+.arch-today__stamp {
+  position: relative;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--arch-line);
+  border-radius: 50%;
+  background: rgba(255,255,255,.06);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.10);
+}
+
+.arch-today__stamp img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.arch-today__stamp > span {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.arch-brief {
+  position: relative;
+  display: flex;
+  min-height: 132px;
+  align-items: stretch;
+  justify-content: space-between;
+  overflow: hidden;
+  margin-top: 20px;
+  padding: 20px 18px 18px 21px;
+  border: 1px solid var(--arch-line);
+  border-radius: 24px;
+  background:
+    linear-gradient(118deg, rgba(255,255,255,.10), rgba(255,255,255,.025) 58%),
+    var(--arch-panel);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.09), 0 22px 48px -34px #000;
+}
+
+.arch-brief::before {
+  content: '';
+  position: absolute;
+  inset: auto -42px -92px auto;
+  width: 228px;
+  height: 228px;
+  border: 1px solid rgba(200,243,106,.16);
+  border-radius: 50%;
+  box-shadow: 0 0 0 26px rgba(200,243,106,.028), 0 0 0 58px rgba(85,215,239,.018);
+}
+
+.arch-brief__copy {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  max-width: 520px;
+}
+
+.arch-brief__copy p {
+  margin: 0;
+  color: var(--arch-soft);
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.arch-brief__copy h2 {
+  max-width: 460px;
+  margin: 8px 0 0;
+  font-size: clamp(22px, 3.2vw, 34px);
+  font-weight: 800;
+  letter-spacing: -.052em;
+  line-height: 1.02;
+}
+
+.arch-brief__copy small {
+  display: block;
+  margin-top: 10px;
+  color: var(--arch-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.arch-lens {
+  position: relative;
+  z-index: 1;
+  width: 118px;
+  flex: 0 0 118px;
+  align-self: stretch;
+}
+
+.arch-lens__camera {
+  position: absolute;
+  right: 6px;
+  bottom: 4px;
+  font-size: 54px;
+  filter: drop-shadow(0 12px 11px rgba(0,0,0,.45));
+  transform: rotate(-7deg);
+}
+
+.arch-lens__aperture {
+  position: absolute;
+  right: 5px;
+  top: 0;
+  width: 68px;
+  height: 68px;
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 9px rgba(255,255,255,.035), inset 0 0 0 20px rgba(200,243,106,.05);
+}
+
+.arch-lens__star {
+  position: absolute;
+  color: var(--arch-lime);
+  font-size: 21px;
+  line-height: 1;
+}
+
+.arch-lens__star--one {
+  left: 12px;
+  top: 10px;
+}
+
+.arch-lens__star--two {
+  right: 2px;
+  top: 64px;
+  color: #fff;
+  font-size: 14px;
+  opacity: .78;
+}
+
+.arch-today__grid {
+  display: grid;
+  gap: 13px;
+  margin-top: 13px;
+}
+
+.arch-schedule,
+.arch-side > .wk-card,
+.arch-needs,
+.arch-metrics {
+  border: 1px solid var(--arch-line);
+  background: linear-gradient(145deg, rgba(24,39,70,.94), rgba(13,23,49,.98));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 18px 42px -32px #000;
+}
+
+.arch-schedule {
+  padding: 17px;
+  border-radius: 24px;
+}
+
+.arch-section-title {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.arch-section-title p {
+  margin: 0;
+  color: var(--arch-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+
+.arch-section-title h2 {
+  margin: 5px 0 0;
+  font-size: 23px;
+  font-weight: 800;
+  letter-spacing: -.05em;
+  line-height: .95;
+}
+
+.arch-section-title a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--arch-lime);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.arch-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 5px;
+  margin-top: 16px;
+}
+
+.arch-week button {
+  display: grid;
+  min-height: 58px;
+  place-items: center;
+  padding: 6px 1px 5px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  color: var(--arch-muted);
+  transition: transform .18s ease, background .18s ease, border-color .18s ease, color .18s ease;
+}
+
+.arch-week button:active {
+  transform: scale(.95);
+}
+
+.arch-week button span {
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.arch-week button b {
+  font-size: 18px;
+  letter-spacing: -.05em;
+  line-height: 1;
+}
+
+.arch-week button i {
+  width: 4px;
+  height: 4px;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.arch-week button i.has-booking {
+  background: var(--arch-cyan);
+}
+
+.arch-week button.is-on {
+  border-color: rgba(200,243,106,.35);
+  background: rgba(200,243,106,.14);
+  color: #fff;
+}
+
+.arch-week button.is-on i.has-booking {
+  background: var(--arch-lime);
+}
+
+.arch-switcher {
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  gap: 4px;
+  margin-top: 14px;
+  padding: 4px;
+  border-radius: 15px;
+  background: rgba(0,0,0,.21);
+}
+
+.arch-switcher button {
+  padding: 8px 7px;
+  border-radius: 11px;
+  color: var(--arch-muted);
+  font-size: 11px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.arch-switcher button span {
+  margin-left: 4px;
+  opacity: .55;
+}
+
+.arch-switcher button.is-on {
+  background: rgba(255,255,255,.10);
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.10);
+}
+
+.arch-agenda {
+  display: grid;
+  gap: 7px;
+  margin-top: 9px;
+}
+
+.arch-agenda__item {
+  display: grid;
+  grid-template-columns: 61px minmax(0, 1fr) 30px;
+  align-items: center;
+  gap: 10px;
+  min-height: 65px;
+  padding: 11px;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 17px;
+  background: rgba(3,10,27,.26);
+  color: #fff;
+  transition: background .18s ease, border-color .18s ease, transform .18s ease;
+}
+
+.arch-agenda__item:hover {
+  border-color: rgba(200,243,106,.34);
+  background: rgba(255,255,255,.075);
+}
+
+.arch-agenda__item:active {
+  transform: scale(.99);
+}
+
+.arch-agenda__time {
+  padding-right: 9px;
+  border-right: 1px solid rgba(255,255,255,.10);
+  color: var(--arch-lime);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.arch-agenda__copy {
+  min-width: 0;
+}
+
+.arch-agenda__copy strong,
+.arch-agenda__copy small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arch-agenda__copy strong {
+  font-size: 13px;
+  letter-spacing: -.025em;
+}
+
+.arch-agenda__copy small {
+  margin-top: 3px;
+  color: var(--arch-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.arch-agenda__arrow {
+  display: grid;
+  width: 29px;
+  height: 29px;
+  place-items: center;
+  border: 1px solid rgba(200,243,106,.24);
+  border-radius: 50%;
+  color: var(--arch-lime);
+}
+
+.arch-agenda__empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 15px 2px 2px;
+  color: var(--arch-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.arch-agenda__empty a {
+  margin-left: auto;
+  color: var(--arch-lime);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+/* Both actual booking and no-booking variants are compact dark studio objects. */
+.arch-booking,
+.arch-open {
+  position: relative;
+  overflow: hidden;
+  min-height: 142px;
+  padding: 17px;
+  border: 1px solid var(--arch-line);
+  border-radius: 24px;
+  background:
+    radial-gradient(130px 120px at 98% 0%, rgba(85,215,239,.14), transparent 75%),
+    linear-gradient(145deg, rgba(28,47,82,.98), rgba(13,23,49,.98));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 18px 42px -32px #000;
+}
+
+.arch-booking::after,
+.arch-open::after {
+  content: '';
+  position: absolute;
+  right: -34px;
+  bottom: -53px;
+  width: 155px;
+  height: 155px;
+  border: 1px solid rgba(200,243,106,.20);
+  border-radius: 50%;
+  box-shadow: 0 0 0 18px rgba(200,243,106,.024), 0 0 0 41px rgba(85,215,239,.017);
+}
+
+.arch-booking__top,
+.arch-open__top {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--arch-muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+
+.arch-booking__top span,
+.arch-open__top span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.arch-booking__top b,
+.arch-open__top b {
+  padding: 5px 7px;
+  border-radius: 999px;
+  background: rgba(200,243,106,.17);
+  color: var(--arch-lime);
+  font-size: 8.5px;
+}
+
+.arch-booking__main {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-top: 13px;
+}
+
+.arch-booking__date {
+  display: grid;
+  width: 49px;
+  height: 53px;
+  flex: none;
+  place-content: center;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 15px;
+  background: rgba(0,0,0,.19);
+  text-align: center;
+}
+
+.arch-booking__date span {
+  color: var(--arch-muted);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.arch-booking__date strong {
+  margin-top: 2px;
+  font-size: 22px;
+  line-height: .9;
+}
+
+.arch-booking__main h2,
+.arch-open h2 {
+  max-width: 195px;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -.04em;
+  line-height: 1.02;
+}
+
+.arch-booking__main p,
+.arch-open p {
+  max-width: 250px;
+  margin: 4px 0 0;
+  color: var(--arch-soft);
+  font-size: 11.5px;
+  font-weight: 650;
+  line-height: 1.35;
+  text-transform: capitalize;
+}
+
+.arch-booking__main small {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--arch-muted);
+  font-size: 10px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arch-booking__bottom {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  margin-top: 13px;
+}
+
+.arch-booking__payout small,
+.arch-booking__payout strong {
+  display: block;
+}
+
+.arch-booking__payout small {
+  color: var(--arch-muted);
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.arch-booking__payout strong {
+  margin-top: 3px;
+  color: var(--arch-lime);
+  font-size: 15px;
+  letter-spacing: -.035em;
+}
+
+.arch-booking__bottom a {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid rgba(200,243,106,.30);
+  border-radius: 50%;
+  color: var(--arch-lime);
+}
+
+.arch-open {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  min-height: 126px;
+}
+
+.arch-open__copy {
+  position: relative;
+  z-index: 1;
+}
+
+.arch-open h2 {
+  margin-top: 9px;
+}
+
+.arch-open p {
+  max-width: 235px;
+}
+
+.arch-open__copy > span {
+  display: inline-flex;
+  margin-top: 12px;
+}
+
+.arch-open__copy .arch-open__link {
+  border: 1px solid rgba(200,243,106,.30);
+  background: rgba(200,243,106,.13) !important;
+  color: #fff !important;
+  font-size: 11px;
+}
+
+.arch-open__art {
+  position: relative;
+  z-index: 1;
+  width: 75px;
+  height: 75px;
+  align-self: center;
+}
+
+.arch-open__camera {
+  position: absolute;
+  right: -2px;
+  bottom: 0;
+  font-size: 41px;
+  filter: drop-shadow(0 8px 8px rgba(0,0,0,.38));
+  transform: rotate(9deg);
+}
+
+.arch-open__art::before,
+.arch-open__art::after {
+  content: '✦';
+  position: absolute;
+  color: var(--arch-lime);
+  font-size: 18px;
+}
+
+.arch-open__art::before {
+  top: 1px;
+  left: 4px;
+}
+
+.arch-open__art::after {
+  right: 9px;
+  top: 15px;
+  color: #fff;
+  font-size: 12px;
+}
+
+/* The optional AI digest is visually useful, not another bright card. */
+.arch-side > .wk-card {
+  margin-top: 13px;
+  border-radius: 24px;
+  background: linear-gradient(145deg, rgba(18,31,61,.98), rgba(12,21,45,.98)) !important;
+  color: #fff;
+}
+
+.arch-side > .wk-card .wk-label,
+.arch-side > .wk-card .wk-summary,
+.arch-side > .wk-card .wk-ink {
+  color: #fff;
+}
+
+.arch-side > .wk-card .wk-switch {
+  color: var(--arch-lime);
+}
+
+.arch-side > .wk-card .wk-switch-track {
+  background: rgba(255,255,255,.19);
+}
+
+.arch-side > .wk-card .wk-switch.is-on .wk-switch-track {
+  background: var(--arch-lime);
+}
+
+.arch-side > .wk-card .wk-switch-thumb {
+  background: var(--arch-ink);
+}
+
+.arch-side > .wk-card .divide-[rgba(10,18,38,0.12)] > :not([hidden]) ~ :not([hidden]) {
+  border-color: rgba(255,255,255,.10);
+}
+
+.arch-side > .wk-card .wk-mute {
+  color: var(--arch-lime);
+}
+
+.arch-bottom {
+  display: grid;
+  gap: 13px;
+  margin-top: 13px;
+}
+
+.arch-needs,
+.arch-metrics {
+  padding: 17px;
+  border-radius: 24px;
+}
+
+.arch-needs__list {
+  display: grid;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+.arch-needs__row {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto 16px;
+  align-items: center;
+  gap: 9px;
+  min-height: 54px;
+  padding: 8px 0;
+  color: #fff;
+}
+
+.arch-needs__row + .arch-needs__row {
+  border-top: 1px solid rgba(255,255,255,.09);
+}
+
+.arch-needs__mark {
+  display: grid;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  border-radius: 9px;
+  background: rgba(200,243,106,.16);
+  color: var(--arch-lime);
+}
+
+.arch-needs__copy {
+  min-width: 0;
+}
+
+.arch-needs__copy strong,
+.arch-needs__copy small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arch-needs__copy strong {
+  font-size: 12px;
+  letter-spacing: -.02em;
+}
+
+.arch-needs__copy small {
+  margin-top: 2px;
+  color: var(--arch-muted);
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.arch-needs__row em {
+  color: var(--arch-lime);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.arch-needs__row > svg {
+  color: var(--arch-muted);
+}
+
+.arch-clear {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-top: 14px;
+  color: var(--arch-soft);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.arch-clear svg {
+  color: var(--arch-lime);
+}
+
+.arch-metrics__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.arch-metric {
+  min-width: 0;
+  padding: 12px 9px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 15px;
+  background: rgba(0,0,0,.16);
+}
+
+.arch-metric span,
+.arch-metric strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.arch-metric span {
+  color: var(--arch-muted);
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.arch-metric strong {
+  margin-top: 6px;
+  color: #fff;
+  font-size: 15px;
+  letter-spacing: -.04em;
+}
+
+.arch-metric--lime strong {
+  color: var(--arch-lime);
+}
+
+.arch-metric__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 13px;
+  color: var(--arch-lime);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+@media (min-width: 760px) {
+  .arch-today__grid {
+    grid-template-columns: minmax(0, 1.15fr) minmax(285px, .85fr);
+    align-items: start;
+  }
+
+  .arch-bottom {
+    grid-template-columns: minmax(0, 1.15fr) minmax(285px, .85fr);
+  }
+
+  .arch-brief {
+    min-height: 148px;
+    padding: 23px 24px;
+  }
+
+  .arch-week button {
+    min-height: 64px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .arch-workspace__frame {
+    padding-left: 28px;
+    padding-right: 28px;
+  }
+
+  .arch-today__head h1 {
+    font-size: 64px;
+  }
+
+  .arch-schedule {
+    min-height: 346px;
+  }
+
+  .arch-booking,
+  .arch-open {
+    min-height: 157px;
+  }
+}
+
+@media (max-width: 759px) {
+  .arch-brief {
+    margin-top: 17px;
+  }
+
+  .arch-today__grid {
+    margin-top: 10px;
+  }
+
+  .arch-lens {
+    width: 95px;
+    flex-basis: 95px;
+  }
+
+  .arch-lens__camera {
+    right: -3px;
+    font-size: 47px;
+  }
+
+  .arch-booking,
+  .arch-open {
+    min-height: 128px;
+  }
+}
