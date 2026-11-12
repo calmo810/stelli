@@ -11,7 +11,8 @@ import Layout from './components/shared/Layout';
 import Home from './pages/Home';
 const BookingFlow = lazy(() => import('./pages/BookingFlow'));
 const ForCreators = lazy(() => import('./pages/ForCreators'));
-const ProfileWizard = lazy(() => import('./pages/ProfileWizard'));
+const CreatorApplication = lazy(() => import('./pages/CreatorApplication'));
+const CreatorProfileSection = lazy(() => import('./pages/creator/CreatorProfileSection'));
 const ClientDashboard = lazy(() => import('./pages/ClientDashboard'));
 const CreatorPortal = lazy(() => import('./pages/creator/CreatorPortal'));
 const CreatorOverview = lazy(() => import('./pages/creator/CreatorOverview'));
@@ -83,8 +84,9 @@ const AuthenticatedApp = () => {
       {/* Two-factor: finishes a sign-in that needs a second step, and manages the methods. */}
       <Route path="/mfa" element={<Mfa />} />
       <Route path="/onboarding" element={<Onboarding />} />
-      <Route path="/apply" element={<ProfileWizard />} />
-      <Route path="/edit-profile" element={<ProfileWizard />} />
+      {/* Applying is its own short page. Editing a profile happens inside the portal. */}
+      <Route path="/apply" element={<CreatorApplication />} />
+      <Route path="/edit-profile" element={<Navigate to="/lensman-dashboard/profile" replace />} />
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
         <Route path="/browse" element={<Navigate to="/creators" replace />} />
@@ -109,6 +111,7 @@ const AuthenticatedApp = () => {
           <Route path="calendar" element={<CreatorCalendar />} />
           <Route path="earnings" element={<CreatorEarnings />} />
           <Route path="profile" element={<CreatorPublicProfile />} />
+          <Route path="profile/:section" element={<CreatorProfileSection />} />
           <Route path="*" element={<Navigate to="/lensman-dashboard" replace />} />
         </Route>
         <Route path="/account-settings" element={<AccountSettings />} />
