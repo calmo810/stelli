@@ -18,6 +18,14 @@
   color: #0a1730;
 }
 
+/* Every pane reads as one centred column, the way the Today panel does. */
+.arch-tab > * {
+  width: 100%;
+  max-width: 760px;
+  margin-right: auto;
+  margin-left: auto;
+}
+
 .arch-tab .wk-h1 {
   margin: 0;
   color: #0a1730;
@@ -34,6 +42,11 @@
   font-size: 13px;
   font-weight: 600;
   line-height: 1.45;
+}
+
+/* Inside the centred column the lede starts at the column's own left edge. */
+.arch-tab > .wk-lede {
+  max-width: 100%;
 }
 
 /* The same compact command/pill system used on the Today workbench. */
