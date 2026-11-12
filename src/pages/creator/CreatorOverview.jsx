@@ -122,7 +122,7 @@ export default function CreatorOverview() {
       ) : myProfile.status === 'pending' ? (
         <PendingBanner>
           Your application is with us. Your page goes live once we approve it.{' '}
-          <Link to="/edit-profile" className="font-semibold text-white underline underline-offset-4">
+          <Link to="/edit-profile?step=line" className="font-semibold text-white underline underline-offset-4">
             Finish your page while you wait
           </Link>
         </PendingBanner>
