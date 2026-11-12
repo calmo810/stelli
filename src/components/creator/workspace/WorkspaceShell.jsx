@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { Briefcase, CalendarDays, Sun, UserRound } from 'lucide-react';
 import '@/styles/creatorWorkspace.css';
+import '@/styles/creatorArchitecture.css';
 
 export const TABS = [
   { to: '/lensman-dashboard', key: 'today', label: 'Today', icon: Sun },
@@ -37,6 +38,7 @@ export default function WorkspaceShell({ profile, user, counts = {}, children })
 
   const path = location.pathname.replace(/\/$/, '') || '/lensman-dashboard';
   const activeKey = sectionOf(path);
+  const isToday = path === '/lensman-dashboard';
   const index = TABS.findIndex((tab) => tab.key === activeKey);
   const name = profile?.display_name || user?.full_name || 'Your studio';
   const avatar = profile?.profile_image;
@@ -63,8 +65,8 @@ export default function WorkspaceShell({ profile, user, counts = {}, children })
   const badgeFor = (key) => (key === 'work' ? counts.requests || 0 : 0);
 
   return (
-    <div className="wk">
-      <div className="mx-auto flex w-full max-w-[1180px] gap-9 px-4 pb-[calc(104px+var(--safe-bottom))] pt-2 sm:px-6 lg:px-8 lg:pb-14">
+    <div className="wk arch-workspace">
+      <div className="arch-workspace__frame mx-auto flex w-full max-w-[1320px] gap-5 px-4 pb-[calc(104px+var(--safe-bottom))] pt-2 sm:px-6 lg:px-7 lg:pb-14">
         <aside className="wk-rail">
           <div className="flex items-center gap-3 px-2 pb-6">
             <span className="wk-avatar h-11 w-11 text-[15px]">
@@ -96,15 +98,21 @@ export default function WorkspaceShell({ profile, user, counts = {}, children })
           </nav>
         </aside>
 
-        <div className="min-w-0 flex-1 lg:max-w-[840px]">
-          <div className="flex items-center justify-between gap-3">
-            <p className="wk-kicker">{format(new Date(), 'EEEE, MMM d')}</p>
-            <Link to="/lensman-dashboard/profile" aria-label="Your creator profile" className="wk-avatar">
-              {avatar ? <img src={avatar} alt="" /> : (name[0] || 'S').toUpperCase()}
-            </Link>
-          </div>
+        <div className="arch-workspace__main min-w-0 flex-1 lg:max-w-none">
+          {!isToday && (
+            <div className="flex items-center justify-between gap-3">
+              <p className="wk-kicker">{format(new Date(), 'EEEE, MMM d')}</p>
+              <Link to="/lensman-dashboard/profile" aria-label="Your creator profile" className="wk-avatar">
+                {avatar ? <img src={avatar} alt="" /> : (name[0] || 'S').toUpperCase()}
+              </Link>
+            </div>
+          )}
 
-          <div className="mt-4" onTouchStart={startTouch} onTouchEnd={endTouch}>
+          <div
+            className={isToday ? 'arch-workspace__body--today' : 'mt-4'}
+            onTouchStart={startTouch}
+            onTouchEnd={endTouch}
+          >
             {children}
           </div>
         </div>
