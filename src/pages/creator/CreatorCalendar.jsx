@@ -1,13 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { addDays, format } from 'date-fns';
-import { CalendarDays, Download, Loader2 } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ChevronRight, Download, Loader2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { todayKey } from '@/hooks/useCreatorPortal';
-import WorkspaceEmpty from '@/components/creator/workspace/WorkspaceEmpty';
 import { downloadCreatorCalendar } from '@/lib/creatorCalendarExport';
 
-const WINDOW_DAYS = 28;
+const WINDOW_DAYS = 7;
 const INK = '#0a1226';
 const LIME = '#c4f82a';
 
@@ -23,13 +22,14 @@ function timeLabel(value) {
   const hours = Number(match[1]);
   const suffix = hours >= 12 ? 'PM' : 'AM';
   const hour = hours % 12 === 0 ? 12 : hours % 12;
-  return `${hour}:${match[2]} ${suffix}`;
+  return hour + ':' + match[2] + ' ' + suffix;
 }
 
-/** The next four weeks as a strip, then the chosen day as appointment cards. */
+/** A focused seven-day view: easy to scan, with calm week-to-week navigation. */
 export default function CreatorCalendar() {
   const { confirmed, newRequests, myProfile, refetchProfile } = useOutletContext();
   const [selected, setSelected] = useState(() => new Date());
+  const [visibleStart, setVisibleStart] = useState(() => new Date());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -37,9 +37,10 @@ export default function CreatorCalendar() {
   const today = todayKey();
 
   const strip = useMemo(() => {
-    const start = new Date();
+    const start = new Date(visibleStart);
+    start.setHours(0, 0, 0, 0);
     return Array.from({ length: WINDOW_DAYS }, (_, i) => addDays(start, i));
-  }, []);
+  }, [visibleStart]);
 
   const byDate = useMemo(() => {
     const map = {};
@@ -48,8 +49,8 @@ export default function CreatorCalendar() {
       map[booking.event_date] = map[booking.event_date] || [];
       map[booking.event_date].push({ ...booking, kind });
     };
-    confirmed.forEach((b) => add(b, 'shoot'));
-    newRequests.forEach((b) => add(b, 'request'));
+    confirmed.forEach((booking) => add(booking, 'shoot'));
+    newRequests.forEach((booking) => add(booking, 'request'));
     return map;
   }, [confirmed, newRequests]);
 
@@ -60,6 +61,12 @@ export default function CreatorCalendar() {
   const offOnSelected = blackouts.includes(selectedKey);
   const canToggle = selectedKey >= today;
   const canExport = confirmed.some((booking) => booking.event_date >= today);
+
+  const moveWeek = (direction) => {
+    const nextStart = addDays(visibleStart, direction * WINDOW_DAYS);
+    setVisibleStart(nextStart);
+    setSelected(nextStart);
+  };
 
   const toggleAvailability = async () => {
     setSaving(true);
@@ -84,126 +91,164 @@ export default function CreatorCalendar() {
 
   return (
     <div className="arch-tab arch-tab--calendar">
-      <h1 className="wk-h1">Schedule</h1>
-      <p className="wk-lede">Four weeks at a glance. Pick a day to view it or block it.</p>
-
-      <div className="calendar-export mt-5">
-        <div className="calendar-export__copy">
-          <span className="calendar-export__icon"><CalendarDays className="h-4 w-4" strokeWidth={2.2} /></span>
-          <span>
-            <small>Calendar</small>
-            <strong>Take confirmed shoots with you</strong>
-            <em>Download one file for Apple Calendar or Google Calendar.</em>
-          </span>
+      <div className="calendar-head">
+        <div className="arch-tab__heading">
+          <h1 className="wk-h1">Schedule</h1>
+          <p className="wk-lede">Your next seven days, with each shoot and request in one clear view.</p>
         </div>
-        <button
-          type="button"
-          onClick={() => downloadCreatorCalendar(confirmed)}
-          disabled={!canExport}
-          className="calendar-export__button"
-        >
-          <Download className="h-3.5 w-3.5" strokeWidth={2.5} />
-          Export .ics
-        </button>
+
+        <section className="calendar-export" aria-label="Calendar export">
+          <span className="calendar-export__icon">
+            <CalendarDays className="h-4 w-4" strokeWidth={2.2} />
+          </span>
+          <div className="calendar-export__copy">
+            <p className="calendar-export__eyebrow">Calendar export</p>
+            <p className="calendar-export__title">Confirmed shoots</p>
+            <p className="calendar-export__detail">Apple Calendar · Google Calendar</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => downloadCreatorCalendar(confirmed)}
+            disabled={!canExport}
+            className="calendar-export__button"
+          >
+            <Download className="h-3.5 w-3.5" strokeWidth={2.5} />
+            Export .ics
+          </button>
+        </section>
       </div>
 
-      <div className="wk-strip mt-5">
-        {strip.map((day) => {
-          const key = keyOf(day);
-          const items = byDate[key] || [];
-          const hasShoot = items.some((item) => item.kind === 'shoot');
-          const hasRequest = items.some((item) => item.kind === 'request');
-          const isOn = key === selectedKey;
-          const off = blackouts.includes(key);
-
-          return (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setSelected(day)}
-              aria-pressed={isOn}
-              aria-label={format(day, 'EEEE, MMMM d')}
-              className={`wk-day ${isOn ? 'is-on' : ''} ${key === today ? 'is-today' : ''} ${off ? 'is-off' : ''}`}
-            >
-              <span className="wk-day-w">{key === today ? 'Today' : format(day, 'EEE')}</span>
-              <span className="wk-day-n">{format(day, 'd')}</span>
-              <span className="wk-day-dots">
-                {hasShoot && (
-                  <i style={{ background: isOn ? 'rgba(255,255,255,.9)' : INK }} />
-                )}
-                {hasRequest && <i style={{ background: LIME }} />}
-              </span>
+      <section className="calendar-rail" aria-label="Week selector">
+        <div className="calendar-rail__top">
+          <div>
+            <p className="calendar-rail__eyebrow">Week view</p>
+            <p className="calendar-rail__range">
+              {format(strip[0], 'MMM d') + ' — ' + format(strip[strip.length - 1], 'MMM d')}
+            </p>
+          </div>
+          <div className="calendar-nav">
+            <button type="button" onClick={() => moveWeek(-1)} aria-label="Previous week">
+              <ChevronLeft className="h-4 w-4" strokeWidth={2.4} />
             </button>
-          );
-        })}
-      </div>
+            <button type="button" onClick={() => moveWeek(1)} aria-label="Next week">
+              <ChevronRight className="h-4 w-4" strokeWidth={2.4} />
+            </button>
+          </div>
+        </div>
 
-      <div className="mt-5 flex items-baseline justify-between gap-3">
-        <h2 className="text-[17px] font-extrabold tracking-tight text-white">
-          {selectedKey === today ? 'Today' : format(selected, 'EEEE')}, {format(selected, 'MMM d')}
-        </h2>
-        <span className="text-[12px] font-semibold text-white/45">
-          {dayItems.length ? `${dayItems.length} on the books` : offOnSelected ? "You're unavailable" : 'Nothing scheduled'}
-        </span>
-      </div>
+        <div className="wk-strip calendar-week-strip">
+          {strip.map((day) => {
+            const key = keyOf(day);
+            const items = byDate[key] || [];
+            const hasShoot = items.some((item) => item.kind === 'shoot');
+            const hasRequest = items.some((item) => item.kind === 'request');
+            const isOn = key === selectedKey;
+            const off = blackouts.includes(key);
 
-      <div className="mt-3 space-y-2.5">
-        {dayItems.length ? (
-          dayItems.map((item) => {
-            const shoot = item.kind === 'shoot';
-            const meta = [item.event_type, item.location].filter(Boolean).join(' · ');
             return (
-              <Link
-                key={item.id}
-                to={shoot ? `/messages/${item.id}` : `/lensman-dashboard/requests/${item.id}`}
-                className={`wk-appt ${shoot ? 'is-shoot' : 'is-request'}`}
+              <button
+                key={key}
+                type="button"
+                onClick={() => setSelected(day)}
+                aria-pressed={isOn}
+                aria-label={format(day, 'EEEE, MMMM d')}
+                className={['wk-day', isOn && 'is-on', key === today && 'is-today', off && 'is-off'].filter(Boolean).join(' ')}
               >
-                <span className="wk-appt-time">
-                  <b>{timeLabel(item.event_time)}</b>
-                  <small>{item.duration || (shoot ? 'Booked' : 'To answer')}</small>
+                <span className="wk-day-w">{key === today ? 'Today' : format(day, 'EEE')}</span>
+                <span className="wk-day-n">{format(day, 'd')}</span>
+                <span className="wk-day-dots">
+                  {hasShoot && <i style={{ background: isOn ? 'rgba(255,255,255,.9)' : INK }} />}
+                  {hasRequest && <i style={{ background: LIME }} />}
                 </span>
-                <span className="min-w-0 flex-1">
-                  <span className="flex items-start justify-between gap-2">
-                    <b className="truncate text-[15px] font-extrabold tracking-tight text-ink">
-                      {item.client_name || 'Client'}
-                    </b>
-                    <span className={`wk-chip shrink-0 ${shoot ? 'wk-chip--lime' : 'wk-chip--cyan'}`}>
-                      {shoot ? 'Confirmed' : 'Request'}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="calendar-day">
+        <div className="calendar-day__top">
+          <div>
+            <p className="calendar-day__eyebrow">
+              {selectedKey === today ? 'Today' : format(selected, 'EEEE')}
+            </p>
+            <h2>{format(selected, 'MMMM d')}</h2>
+            <p className="calendar-day__status">
+              {dayItems.length
+                ? dayItems.length + (dayItems.length === 1 ? ' item scheduled' : ' items scheduled')
+                : offOnSelected
+                  ? 'Unavailable'
+                  : 'Open day'}
+            </p>
+          </div>
+
+          {canToggle ? (
+            <button
+              type="button"
+              onClick={toggleAvailability}
+              disabled={saving}
+              className="calendar-availability"
+            >
+              {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+              {offOnSelected ? 'Mark available' : 'Mark unavailable'}
+            </button>
+          ) : (
+            <span className="calendar-day__past">Past date</span>
+          )}
+        </div>
+
+        <div className="calendar-day__content">
+          {dayItems.length ? (
+            dayItems.map((item) => {
+              const shoot = item.kind === 'shoot';
+              const meta = [item.event_type, item.location].filter(Boolean).join(' · ');
+              return (
+                <Link
+                  key={item.id}
+                  to={shoot ? '/messages/' + item.id : '/lensman-dashboard/requests/' + item.id}
+                  className={['wk-appt', shoot ? 'is-shoot' : 'is-request'].join(' ')}
+                >
+                  <span className="wk-appt-time">
+                    <b>{timeLabel(item.event_time)}</b>
+                    <small>{item.duration || (shoot ? 'Booked' : 'To answer')}</small>
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-start justify-between gap-2">
+                      <b className="truncate text-[15px] font-extrabold tracking-tight text-ink">
+                        {item.client_name || 'Client'}
+                      </b>
+                      <span className={['wk-chip shrink-0', shoot ? 'wk-chip--lime' : 'wk-chip--cyan'].join(' ')}>
+                        {shoot ? 'Confirmed' : 'Request'}
+                      </span>
+                    </span>
+                    {meta && <small className="mt-1 block truncate text-[12.5px] wk-grey">{meta}</small>}
+                    <span className="mt-2 flex items-center gap-1 text-[12.5px] font-bold text-ink">
+                      {shoot ? 'Open thread' : 'Send a quote'}
+                      <span aria-hidden>→</span>
                     </span>
                   </span>
-                  {meta && <small className="mt-1 block truncate text-[12.5px] wk-grey">{meta}</small>}
-                  <span className="mt-2 flex items-center gap-1 text-[12.5px] font-bold text-ink">
-                    {shoot ? 'Open thread' : 'Send a quote'}
-                    <span aria-hidden>→</span>
-                  </span>
+                </Link>
+              );
+            })
+          ) : (
+            <div className="calendar-empty">
+              <span className="calendar-empty__icon">
+                <CalendarDays className="h-4 w-4" strokeWidth={2} />
+              </span>
+              <div>
+                <p>{offOnSelected ? 'You are unavailable' : 'Open day'}</p>
+                <span>
+                  {offOnSelected
+                    ? 'No new bookings can land here.'
+                    : 'Accepted shoots and new requests will appear here.'}
                 </span>
-              </Link>
-            );
-          })
-        ) : (
-          <WorkspaceEmpty
-            icon={CalendarDays}
-            title="Nothing on this day"
-            body={offOnSelected ? "You're marked off, so nothing will land here." : 'Accepted quotes land here as shoots.'}
-          />
-        )}
-      </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
 
-      {canToggle ? (
-        <button
-          type="button"
-          onClick={toggleAvailability}
-          disabled={saving}
-          className={`wk-btn mt-3 w-full ${offOnSelected ? 'wk-btn--ghost' : 'wk-btn--ink'}`}
-        >
-          {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-          {offOnSelected ? 'Mark available' : 'Mark unavailable'}
-        </button>
-      ) : (
-        <p className="mt-3 text-[12px] text-white/40">Past dates cannot be changed.</p>
-      )}
-
-      {error && <p className="mt-3 text-[13px] text-[#ff9ac2]">{error}</p>}
+      {error && <p className="calendar-error">{error}</p>}
     </div>
   );
 }
