@@ -4,6 +4,7 @@ import { Inbox } from 'lucide-react';
 import NextPast from '@/components/creator/workspace/NextPast';
 import WorkspaceEmpty from '@/components/creator/workspace/WorkspaceEmpty';
 import RequestRow from '@/components/creator/RequestRow';
+import WorkTabs from '@/components/creator/workspace/WorkTabs';
 
 const EMPTY = {
   next: 'New requests land here. Answer inside 48 hours to keep your response time strong.',
@@ -26,7 +27,11 @@ export default function CreatorRequests() {
       <h1 className="wk-h1">Requests</h1>
       <p className="wk-lede">Open one to read the brief, message the client, and send your quote.</p>
 
-      <div className="mt-5">
+      <div className="mt-4">
+        <WorkTabs requests={next.length} />
+      </div>
+
+      <div className="mt-4">
         <NextPast value={tab} onChange={setTab} nextCount={next.length} pastCount={past.length} />
       </div>
 

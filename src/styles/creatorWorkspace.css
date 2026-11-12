@@ -311,6 +311,17 @@
   opacity: 0.5;
 }
 
+.wk-seg--full {
+  display: flex;
+  width: 100%;
+}
+
+.wk-seg--full .wk-seg-btn {
+  flex: 1 1 0;
+  justify-content: center;
+  padding: 9px 6px;
+}
+
 /* ---------- avatar ---------- */
 .wk-avatar {
   display: grid;

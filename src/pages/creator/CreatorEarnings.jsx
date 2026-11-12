@@ -6,6 +6,7 @@ import { base44 } from '@/api/base44Client';
 import PayoutsCard from '@/components/dashboard/PayoutsCard';
 import NextPast from '@/components/creator/workspace/NextPast';
 import WorkspaceEmpty from '@/components/creator/workspace/WorkspaceEmpty';
+import WorkTabs from '@/components/creator/workspace/WorkTabs';
 import money from '@/lib/money';
 
 const LABELS = {
@@ -22,8 +23,16 @@ const byDateAsc = (a, b) => String(a.event_date || '').localeCompare(String(b.ev
 
 /** What is earned, what is still held, and what has actually landed. */
 export default function CreatorEarnings() {
-  const { myProfile, bookings, manualPayouts, money: totals, waitingTotal, payoutState, refetchProfile } =
-    useOutletContext();
+  const {
+    myProfile,
+    bookings,
+    manualPayouts,
+    newRequests,
+    money: totals,
+    waitingTotal,
+    payoutState,
+    refetchProfile,
+  } = useOutletContext();
   const [tab, setTab] = useState('next');
 
   const withMoney = bookings.filter((b) => Number(b.creator_payout) > 0);
@@ -51,7 +60,11 @@ export default function CreatorEarnings() {
       <h1 className="wk-h1">Money</h1>
       <p className="wk-lede">Every charge is held by Stelli until you deliver, then it is yours.</p>
 
-      <div className="wk-card wk-card--pad mt-5">
+      <div className="mt-4">
+        <WorkTabs requests={newRequests.length} />
+      </div>
+
+      <div className="wk-card wk-card--pad mt-2.5">
         <p className="wk-label">Paid out</p>
         <p className="wk-big mt-2">{money(totals.paidTotal)}</p>
         <p className="wk-small mt-1">In your account</p>
