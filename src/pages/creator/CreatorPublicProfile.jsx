@@ -31,21 +31,28 @@ export default function CreatorPublicProfile() {
   const blackouts = myProfile.blackout_dates || [];
   const live = myProfile.status === 'approved';
 
+  // Each row opens the editor on that one section: change it, save, back here.
   const rows = [
     {
-      to: '/edit-profile',
+      to: '/edit-profile?step=you',
+      label: 'Photo & name',
+      value: myProfile.display_name || 'Not set',
+    },
+    {
+      to: '/edit-profile?step=pf',
       label: 'Portfolio',
       value: photos.length ? `${photos.length} photos` : 'No photos yet',
     },
     {
-      to: '/edit-profile',
+      to: '/edit-profile?step=bio',
       label: 'Bio & story',
       value: myProfile.bio ? myProfile.bio.slice(0, 70) : 'Nothing written yet',
     },
-    { to: '/edit-profile', label: 'Specialties', value: specialties || 'None picked' },
-    { to: '/edit-profile', label: 'Service area', value: area || 'No spots picked' },
+    { to: '/edit-profile?step=work', label: 'Specialties', value: specialties || 'None picked' },
+    { to: '/edit-profile?step=work', label: 'Service area', value: area || 'Anywhere on campus' },
+    { to: '/edit-profile?step=look', label: 'How your photos hang', value: 'Layout, frames and accent' },
     {
-      to: '/edit-profile',
+      to: '/edit-profile?step=price',
       label: 'Packages',
       value: packages.length ? `${packages.length} package${packages.length > 1 ? 's' : ''}` : 'None yet',
     },
