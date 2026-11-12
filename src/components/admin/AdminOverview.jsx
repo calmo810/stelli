@@ -27,8 +27,8 @@ function QueueCard({ icon: Icon, label, value, detail, tone, tab, onOpen }) {
     >
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="label-mono text-[9px] text-white/45">{label}</p>
-          <p className="mt-4 font-heading text-5xl font-semibold leading-none text-white">{value}</p>
+          <p className="st-kicker text-fg-3">{label}</p>
+          <p className="mt-4 text-5xl font-semibold leading-none text-fg">{value}</p>
         </div>
         <span
           className="grid h-11 w-11 place-items-center rounded-2xl"
@@ -39,8 +39,8 @@ function QueueCard({ icon: Icon, label, value, detail, tone, tab, onOpen }) {
       </div>
 
       <div className="flex items-end justify-between gap-4">
-        <p className="max-w-[230px] font-body text-[13px] leading-relaxed text-white/48">{detail}</p>
-        <span className="inline-flex items-center gap-2 text-[12px] font-semibold text-white transition-colors group-hover:text-neon-lime">
+        <p className="max-w-[230px] text-[13px] leading-relaxed text-fg-3">{detail}</p>
+        <span className="inline-flex items-center gap-2 text-[12px] font-semibold text-fg transition-colors group-hover:text-accent2">
           Open <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
         </span>
       </div>
@@ -54,7 +54,7 @@ function BookingStatus({ status }) {
 
   return (
     <span
-      className="label-mono inline-flex rounded-full px-3 py-1.5 text-[8px] font-semibold"
+      className="st-kicker inline-flex rounded-full px-3 py-1.5 text-[8px] font-semibold"
       style={{ background: `hsl(var(--neon-${tone}) / 0.12)`, color: `hsl(var(--neon-${tone}))` }}
     >
       {normalized}
@@ -78,10 +78,10 @@ export default function AdminOverview({
       <section aria-labelledby="admin-queue-title">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="admin-kicker label-mono text-[8px]"><Sparkles className="h-3 w-3" aria-hidden="true" /> Priority desk</p>
-            <h2 id="admin-queue-title" className="mt-4 font-heading text-3xl font-semibold tracking-tight text-white">What needs you now</h2>
+            <p className="admin-kicker st-kicker"><Sparkles className="h-3 w-3" aria-hidden="true" /> Priority desk</p>
+            <h2 id="admin-queue-title" className="mt-4 text-3xl font-semibold tracking-tight text-fg">What needs you now</h2>
           </div>
-          <p className="font-body text-[13px] text-white/42">Start with the queue, then move into the day-to-day.</p>
+          <p className="text-[13px] text-fg-3">Start with the queue, then move into the day-to-day.</p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
@@ -119,13 +119,13 @@ export default function AdminOverview({
         <div className="admin-surface p-5 sm:p-6">
           <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="label-mono text-[9px] text-white/42">Marketplace pulse</p>
-              <h2 className="mt-2 font-heading text-2xl font-semibold tracking-tight text-white">Recent bookings</h2>
+              <p className="st-kicker text-fg-3">Marketplace pulse</p>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-fg">Recent bookings</h2>
             </div>
             <button
               type="button"
               onClick={() => onOpenTab('bookings')}
-              className="inline-flex items-center gap-2 rounded-full border border-white/12 px-4 py-2 text-[12px] font-semibold text-white/75 transition hover:border-white/25 hover:bg-white/5 hover:text-white"
+              className="inline-flex items-center gap-2 rounded-full border border-line px-4 py-2 text-[12px] font-semibold text-fg-2 transition hover:border-line-2 hover:bg-fill-2 hover:text-fg"
             >
               View all <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
@@ -133,21 +133,21 @@ export default function AdminOverview({
 
           {isLoading ? (
             <div className="space-y-3" aria-label="Loading recent bookings">
-              {[0, 1, 2].map((item) => <div key={item} className="h-[76px] animate-pulse rounded-2xl bg-white/5" />)}
+              {[0, 1, 2].map((item) => <div key={item} className="h-[76px] animate-pulse rounded-2xl bg-fill" />)}
             </div>
           ) : recentBookings.length ? (
             <ul className="space-y-2">
               {recentBookings.map((booking) => (
-                <li key={booking.id} className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/[0.07] bg-white/[0.025] px-4 py-4 transition hover:bg-white/[0.045]">
+                <li key={booking.id} className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-line bg-fill px-4 py-4 transition hover:bg-fill-2">
                   <div className="flex min-w-0 items-center gap-3">
-                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-neon-lime/10 text-[13px] font-semibold text-neon-lime">
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-fill-2 text-[13px] font-semibold text-accent2">
                       {(booking.client_name || 'C').slice(0, 1).toUpperCase()}
                     </span>
                     <div className="min-w-0">
-                      <p className="truncate font-body text-[14px] font-semibold text-white">
-                        {booking.client_name || 'Client'} <span className="font-normal text-white/35">with</span> {booking.lensman_name || 'Creator'}
+                      <p className="truncate text-[14px] font-semibold text-fg">
+                        {booking.client_name || 'Client'} <span className="font-normal text-fg-3">with</span> {booking.lensman_name || 'Creator'}
                       </p>
-                      <p className="mt-1 text-[12px] text-white/42">
+                      <p className="mt-1 text-[12px] text-fg-3">
                         {booking.event_type?.replace(/_/g, ' ') || 'Booking'} · {eventDate(booking.event_date)}
                       </p>
                     </div>
@@ -157,25 +157,25 @@ export default function AdminOverview({
               ))}
             </ul>
           ) : (
-            <p className="py-12 text-center font-body text-[13px] text-white/40">No bookings to show yet.</p>
+            <p className="py-12 text-center text-[13px] text-fg-3">No bookings to show yet.</p>
           )}
         </div>
 
         <aside className="admin-surface relative overflow-hidden p-6">
-          <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-neon-lime/10 blur-2xl" aria-hidden="true" />
-          <span className="relative grid h-11 w-11 place-items-center rounded-2xl bg-neon-lime/12 text-neon-lime">
+          <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-fill-2 blur-2xl" aria-hidden="true" />
+          <span className="relative grid h-11 w-11 place-items-center rounded-2xl bg-fill-2 text-accent2">
             <Users className="h-5 w-5" aria-hidden="true" />
           </span>
-          <p className="relative mt-7 label-mono text-[9px] text-white/42">Marketplace health</p>
-          <p className="relative mt-3 font-heading text-5xl font-semibold leading-none text-white">{activeCreators}</p>
-          <p className="relative mt-2 font-heading text-lg font-semibold text-white">active creators</p>
-          <p className="relative mt-3 font-body text-[13px] leading-relaxed text-white/48">
+          <p className="relative mt-7 st-kicker text-fg-3">Marketplace health</p>
+          <p className="relative mt-3 text-5xl font-semibold leading-none text-fg">{activeCreators}</p>
+          <p className="relative mt-2 text-lg font-semibold text-fg">active creators</p>
+          <p className="relative mt-3 text-[13px] leading-relaxed text-fg-3">
             Approved profiles currently visible for clients to book.
           </p>
           <button
             type="button"
             onClick={() => onOpenTab('lensmen')}
-            className="relative mt-7 inline-flex items-center gap-2 text-[12px] font-semibold text-neon-lime transition hover:text-white"
+            className="relative mt-7 inline-flex items-center gap-2 text-[12px] font-semibold text-accent2 transition hover:text-fg"
           >
             Browse creators <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </button>

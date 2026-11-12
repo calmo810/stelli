@@ -13,7 +13,7 @@ export default function AlbumCover({ booking, cover, count }) {
     .join(' · ');
 
   return (
-    <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-surface">
+    <div className="relative overflow-hidden rounded-[28px] border border-line bg-[var(--st-card)]">
       {cover ? (
         <SmoothImage
           src={cover.url}
@@ -40,17 +40,17 @@ export default function AlbumCover({ booking, cover, count }) {
       />
 
       <div className="absolute inset-x-0 bottom-0 p-5 sm:p-8">
-        <p className="label-mono text-[10px] text-white/55">Memory album</p>
-        <h1 className="stelli-display mt-2 max-w-[22ch] text-[30px] leading-[1.05] text-white sm:text-[46px]">
+        <p className="st-kicker text-fg-3">Memory album</p>
+        <h1 className="stelli-display mt-2 max-w-[22ch] text-[30px] leading-[1.05] text-fg sm:text-[46px]">
           <span className="capitalize">{eventName}</span>
         </h1>
-        {meta && <p className="mt-3 text-[13px] text-white/60 sm:text-[14px]">{meta}</p>}
+        {meta && <p className="mt-3 text-[13px] text-fg-2 sm:text-[14px]">{meta}</p>}
       </div>
 
       {count > 0 && (
         <span
           className="absolute right-4 top-4 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold"
-          style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))' }}
+          style={{ background: 'var(--st-primary)', color: 'var(--st-on-primary)' }}
         >
           <Sparkles className="h-3.5 w-3.5" strokeWidth={2.4} />
           {count} photo{count === 1 ? '' : 's'}

@@ -16,7 +16,7 @@ import { shortDate } from '@/lib/format';
 import useRequireSignIn from '@/lib/requireSignIn';
 
 function SectionLabel({ children }) {
-  return <h3 className="mb-2.5 mt-8 pl-1.5 text-[13px] font-semibold text-white/50">{children}</h3>;
+  return <h3 className="mb-2.5 mt-8 pl-1.5 text-[13px] font-semibold text-fg-3">{children}</h3>;
 }
 
 /**
@@ -38,7 +38,7 @@ export default function ClientDashboard() {
       queryClient.invalidateQueries({ queryKey: ['messages-inbox'] }),
     ]);
 
-  if (waiting) return <DashboardShell><div className="glass h-[132px] animate-pulse rounded-3xl" /></DashboardShell>;
+  if (waiting) return <DashboardShell><div className="st-card h-[132px] animate-pulse rounded-3xl" /></DashboardShell>;
 
   const firstName = (user?.full_name || '').split(' ')[0] || 'there';
 
@@ -59,7 +59,7 @@ export default function ClientDashboard() {
     <PullToRefresh onRefresh={refreshAll}>
     <DashboardShell>
       <h1
-        className="font-display font-medium text-white"
+        className="font-display font-medium text-fg"
         style={{ fontSize: 40, letterSpacing: '-0.02em', lineHeight: 1.05 }}
       >
         Hey, {firstName}.

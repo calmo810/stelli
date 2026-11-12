@@ -7,7 +7,7 @@ import ConfirmAction from '@/components/shared/ConfirmAction';
 const SURFACE = {
   background: 'linear-gradient(145deg, hsl(var(--surface-2) / .86), hsl(var(--surface) / .94))',
   borderRadius: 22,
-  boxShadow: 'inset 0 1px 0 rgba(255,255,255,.08), 0 18px 42px -30px rgba(0,0,0,.78)',
+  boxShadow: 'inset 0 1px 0 var(--line), 0 18px 42px -30px rgba(0,0,0,.78)',
 };
 
 const LINES = [
@@ -49,12 +49,12 @@ export default function DataFixCard() {
   const total = report ? LINES.reduce((sum, [key]) => sum + Number(report[key] || 0), 0) : 0;
 
   return (
-    <section className="mb-6 border border-white/10 p-5" style={SURFACE} aria-labelledby="data-fix-title">
-      <p className="label-mono text-[9px] text-white/40">Run once, right after the update goes live</p>
-      <h2 id="data-fix-title" className="mt-2 font-heading text-[20px] font-semibold text-white">
+    <section className="mb-6 border border-line p-5" style={SURFACE} aria-labelledby="data-fix-title">
+      <p className="st-kicker text-fg-3">Run once, right after the update goes live</p>
+      <h2 id="data-fix-title" className="mt-2 text-[20px] font-semibold text-fg">
         One-time data fix
       </h2>
-      <p className="mt-2 max-w-xl font-body text-[13px] leading-relaxed text-white/65">
+      <p className="mt-2 max-w-xl text-[13px] leading-relaxed text-fg-2">
         Bookings, quotes, messages and agreements are now matched to people by account, not email. A few older
         records are missing the account, so their client or creator can't see them until this has run. Check first:
         it changes nothing.
@@ -65,7 +65,7 @@ export default function DataFixCard() {
           type="button"
           onClick={() => run(true)}
           disabled={busy}
-          className="min-h-[44px] border border-white/15 px-4 font-body text-[14px] font-medium text-white/80 hover:bg-white/5 disabled:opacity-40"
+          className="min-h-[44px] border border-line px-4 text-[14px] font-medium text-fg-2 hover:bg-fill-2 disabled:opacity-40"
           style={{ borderRadius: 14 }}
         >
           {busy && !confirming ? 'Checking…' : 'Check'}
@@ -74,20 +74,20 @@ export default function DataFixCard() {
           type="button"
           onClick={() => { setError(''); setConfirming(true); }}
           disabled={busy || !report?.dryRun}
-          className="min-h-[44px] px-4 font-body text-[14px] font-semibold disabled:opacity-40"
-          style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 14 }}
+          className="min-h-[44px] px-4 text-[14px] font-semibold disabled:opacity-40"
+          style={{ background: 'var(--st-primary)', color: 'var(--st-on-primary)', borderRadius: 14 }}
         >
           Run it
         </button>
       </div>
 
       {error && !confirming && (
-        <p role="alert" className="mt-3 font-body text-[13px]" style={{ color: 'hsl(var(--neon-magenta))' }}>{error}</p>
+        <p role="alert" className="mt-3 text-[13px]" style={{ color: 'var(--danger)' }}>{error}</p>
       )}
 
       {report && (
-        <div className="mt-4 font-body text-[13px] leading-relaxed text-white/75" aria-live="polite">
-          <p className="font-medium text-white">
+        <div className="mt-4 text-[13px] leading-relaxed text-fg-2" aria-live="polite">
+          <p className="font-medium text-fg">
             {report.dryRun
               ? total ? `${total} records would be filled in:` : 'Nothing to fill in. Everything already matches.'
               : `Done. ${total} records filled in:`}
@@ -100,9 +100,9 @@ export default function DataFixCard() {
             </ul>
           )}
           {report.unresolved?.length > 0 && (
-            <p className="mt-2 text-white/60">
+            <p className="mt-2 text-fg-2">
               {report.unresolved.length} could not be matched to an account (the person may have deleted it):{' '}
-              <span className="label-mono text-[10px]">
+              <span className="st-kicker">
                 {report.unresolved.map((item) => `${item.entity} ${item.id}`).join(', ')}
               </span>
             </p>

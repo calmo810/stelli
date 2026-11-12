@@ -50,15 +50,15 @@ export default function ForCreators() {
           <div className="mt-10 flex flex-col sm:flex-row gap-3">
             <Link
               to="/apply"
-              className="inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 label-mono text-[11px] font-semibold transition-transform duration-300 hover:-translate-y-0.5"
-              style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))' }}
+              className="inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 st-kicker font-semibold transition-transform duration-300 hover:-translate-y-0.5"
+              style={{ background: 'var(--st-primary)', color: 'var(--st-on-primary)' }}
             >
               Apply to join <ArrowRight className="w-4 h-4" />
             </Link>
             {sample && (
               <Link
                 to={`/creators/${sample.slug || sample.id}`}
-                className="inline-flex items-center justify-center rounded-full border border-white/15 px-8 py-4 label-mono text-[11px] text-white/60 hover:text-white transition-colors"
+                className="inline-flex items-center justify-center rounded-full border border-line px-8 py-4 st-kicker text-fg-2 hover:text-fg transition-colors"
               >
                 View a sample profile
               </Link>
@@ -67,54 +67,54 @@ export default function ForCreators() {
         </div>
 
         <Surface className="p-6">
-          <p className="label-mono text-[9px] text-white/35 mb-5">Bio link preview</p>
-          <div className="aspect-[4/5] overflow-hidden rounded-[12px] bg-surface-2">
+          <p className="st-kicker text-fg-3 mb-5">Bio link preview</p>
+          <div className="aspect-[4/5] overflow-hidden rounded-[12px] bg-fill-2">
             <img
               src={sample?.profile_image || sample?.portfolio_images?.[0] || 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=700&h=900&fit=crop&q=85'}
               alt="Creator profile preview"
               className="w-full h-full object-cover"
             />
           </div>
-          <p className="mt-5 text-[22px] font-semibold leading-none text-white">{sampleName}</p>
-          <p className="mt-2 text-[13px] text-white/45">
+          <p className="mt-5 text-[22px] font-semibold leading-none text-fg">{sampleName}</p>
+          <p className="mt-2 text-[13px] text-fg-3">
             {sample?.profile_tagline || sample?.specialties?.slice(0, 3).join(' · ') || 'direct flash · nightlife · content days'}
           </p>
-          <div className="mt-5 border-t border-white/10 pt-4 flex items-center justify-between">
-            <span className="text-[12px] text-white/35">getstelli.com/creators/{sample?.slug || ''}</span>
-            <span className="label-mono text-[9px] text-neon-lime">Book</span>
+          <div className="mt-5 border-t border-line pt-4 flex items-center justify-between">
+            <span className="text-[12px] text-fg-3">getstelli.com/creators/{sample?.slug || ''}</span>
+            <span className="st-kicker text-accent2">Book</span>
           </div>
         </Surface>
       </div>
 
-      <section className="mt-20 md:mt-24 border-t border-white/10">
+      <section className="mt-20 md:mt-24 border-t border-line">
         {PILLARS.map((pillar) => (
           <div
             key={pillar.title}
-            className="grid grid-cols-1 md:grid-cols-[56px_1fr_1fr] gap-5 md:gap-10 py-9 md:py-11 border-b border-white/10 items-start"
+            className="grid grid-cols-1 md:grid-cols-[56px_1fr_1fr] gap-5 md:gap-10 py-9 md:py-11 border-b border-line items-start"
           >
-            <span className="grid place-items-center w-10 h-10 rounded-full border border-white/10 text-neon-lime">
+            <span className="grid place-items-center w-10 h-10 rounded-full border border-line text-accent2">
               <pillar.icon className="w-4 h-4" strokeWidth={1.6} />
             </span>
-            <h2 className="text-[22px] md:text-[30px] font-semibold leading-tight text-white">{pillar.title}</h2>
-            <p className="text-[14px] md:text-[15px] leading-relaxed text-white/45 max-w-md">{pillar.desc}</p>
+            <h2 className="text-[22px] md:text-[30px] font-semibold leading-tight text-fg">{pillar.title}</h2>
+            <p className="text-[14px] md:text-[15px] leading-relaxed text-fg-3 max-w-md">{pillar.desc}</p>
           </div>
         ))}
       </section>
 
       <section className="mt-20 md:mt-24 text-center">
         <h2
-          className="mx-auto max-w-[720px] font-semibold leading-[1] tracking-[-0.02em] text-white"
+          className="mx-auto max-w-[720px] font-semibold leading-[1] tracking-[-0.02em] text-fg"
           style={{ fontSize: 'clamp(30px, 4.6vw, 56px)' }}
         >
           Stop sending clients to your DMs.
         </h2>
-        <p className="mx-auto mt-5 max-w-md text-[15px] leading-relaxed text-white/45">
+        <p className="mx-auto mt-5 max-w-md text-[15px] leading-relaxed text-fg-3">
           Send them somewhere that makes you look booked, protected, and worth paying.
         </p>
         <Link
           to="/apply"
-          className="mt-9 inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 label-mono text-[11px] font-semibold transition-transform duration-300 hover:-translate-y-0.5"
-          style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))' }}
+          className="mt-9 inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 st-kicker font-semibold transition-transform duration-300 hover:-translate-y-0.5"
+          style={{ background: 'var(--st-primary)', color: 'var(--st-on-primary)' }}
         >
           Apply to join Stelli <ArrowRight className="w-4 h-4" />
         </Link>

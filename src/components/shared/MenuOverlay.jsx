@@ -117,7 +117,7 @@ export default function MenuOverlay({ onClose }) {
                 <button
                   type="button"
                   onClick={() => go(link.to)}
-                  className="group flex w-full items-center gap-3 rounded-2xl py-1.5 text-left font-heading font-extrabold tracking-[-0.04em] text-white/90 transition-colors duration-200 hover:text-neon-lime"
+                  className="group flex w-full items-center gap-3 rounded-2xl py-1.5 text-left font-extrabold tracking-[-0.04em] text-fg transition-colors duration-200 hover:text-accent2"
                   style={{ fontSize: 'clamp(30px, 5.2vw, 60px)', lineHeight: 1.08 }}
                 >
                   {link.label}
@@ -134,7 +134,7 @@ export default function MenuOverlay({ onClose }) {
                 <button
                   type="button"
                   onClick={handleLogout}
-                  className="mt-4 inline-flex min-h-[48px] items-center gap-2.5 rounded-full border border-white/20 px-5 text-[15px] font-semibold text-white/75 transition-colors hover:border-white/50 hover:text-white"
+                  className="mt-4 inline-flex min-h-[48px] items-center gap-2.5 rounded-full border border-line-2 px-5 text-[15px] font-semibold text-fg-2 transition-colors hover:border-line-2 hover:text-fg"
                 >
                   <LogOut className="h-4 w-4" aria-hidden />
                   Log out
@@ -144,7 +144,7 @@ export default function MenuOverlay({ onClose }) {
           </ul>
         </nav>
 
-        <div className="border-t border-white/10 py-5">
+        <div className="border-t border-line py-5">
           <p className="st-kicker" lang="ja">
             一期一会 <span lang="en">· one time, one meeting</span>
           </p>

@@ -1,24 +1,19 @@
 import React from 'react';
+import { Card } from '@/components/system';
 
-/** The address they log in with. Not editable — the platform owns it. */
+/** The address they log in with. Not editable: the platform owns it. */
 export default function LoginEmailBox({ email, googleUser }) {
   return (
-    <section
-      className="border p-6"
-      style={{ background: 'hsl(var(--surface))', borderColor: 'rgba(255,255,255,0.1)', borderRadius: 4 }}
-    >
-      <h2 className="font-heading text-2xl font-semibold text-white mb-5">Login email</h2>
-
+    <Card as="section" tone="sky" aria-labelledby="email-title">
+      <h2 id="email-title" className="st-kicker">Login email</h2>
       {googleUser ? (
-        <p className="font-body text-[14px] text-white/70">
-          You log in with Google. Your login email is your Google account.
-        </p>
+        <p className="st-body mt-2">You log in with Google. Your login email is your Google account.</p>
       ) : (
         <>
-          <p className="font-body text-[15px] text-white">{email}</p>
-          <p className="font-body text-[11px] text-white/50 mt-2">This is the email you log in with.</p>
+          <p className="mt-2 break-all text-[20px] font-extrabold tracking-[-0.03em]">{email}</p>
+          <p className="st-small mt-1">This is the email you log in with.</p>
         </>
       )}
-    </section>
+    </Card>
   );
 }

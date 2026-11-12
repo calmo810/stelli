@@ -26,7 +26,7 @@ export default function StorefrontCard({ profile }) {
           {face ? (
             <img src={face} alt="" className="h-full w-full object-cover" />
           ) : (
-            <span className="text-[26px] font-extrabold text-white/60">{name.charAt(0).toUpperCase()}</span>
+            <span className="text-[26px] font-extrabold text-fg-2">{name.charAt(0).toUpperCase()}</span>
           )}
         </span>
 

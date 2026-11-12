@@ -23,13 +23,13 @@ export default function JustSentBanner({ bookingId, creatorName }) {
   return (
     <button
       onClick={dismiss}
-      className="glass flex w-full items-start gap-3 rounded-[22px] px-[18px] py-4 text-left"
-      style={{ borderColor: 'hsl(var(--neon-lime) / 0.5)' }}
+      className="st-card flex w-full items-start gap-3 rounded-[22px] px-[18px] py-4 text-left"
+      style={{ borderColor: 'var(--line-2)' }}
     >
-      <span className="flex-1 text-[14px] leading-relaxed text-white/75">
+      <span className="flex-1 text-[14px] leading-relaxed text-fg-2">
         Request sent to {first}. Most creators reply within a day — we'll email you when they do.
       </span>
-      <X className="w-4 h-4 shrink-0 text-white/35" />
+      <X className="w-4 h-4 shrink-0 text-fg-3" />
     </button>
   );
 }

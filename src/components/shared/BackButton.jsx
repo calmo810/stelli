@@ -24,7 +24,7 @@ export default function BackButton({ className = '' }) {
     <button
       type="button"
       onClick={handleBack}
-      className={`inline-flex min-h-[40px] items-center gap-2 rounded-full bg-white/[0.07] px-4 text-[13px] font-semibold text-white/80 transition-colors hover:bg-white/[0.13] hover:text-white ${className}`}
+      className={`inline-flex min-h-[40px] items-center gap-2 rounded-full bg-fill px-4 text-[13px] font-semibold text-fg-2 transition-colors hover:bg-fill-2 hover:text-fg ${className}`}
     >
       <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
       Back

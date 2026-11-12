@@ -18,10 +18,10 @@ export default function Messages() {
   if (waiting) return <div className="chat-screen" aria-busy="true" />;
 
   return (
-    <div className="mx-auto flex chat-screen w-full max-w-[1240px] lg:h-[calc(100dvh-4rem)] lg:px-6 lg:py-5">
-      <div className="flex min-h-0 w-full overflow-hidden lg:rounded-[32px] lg:border lg:border-white/[0.08] lg:bg-white/[0.02]">
+    <div className="mx-auto flex chat-screen w-full max-w-[1320px] px-2 pb-2 pt-2 sm:px-4 lg:h-[calc(100dvh-4rem)] lg:px-8 lg:py-5">
+      <div className="st-paper flex min-h-0 w-full overflow-hidden rounded-st-lg bg-white shadow-st-float lg:rounded-st-xl">
         <aside
-          className={`min-h-0 w-full shrink-0 border-white/[0.08] lg:flex lg:w-[380px] lg:border-r ${
+          className={`min-h-0 w-full shrink-0 border-line lg:flex lg:w-[380px] lg:border-r ${
             bookingId ? 'hidden' : 'flex'
           }`}
         >
@@ -42,9 +42,9 @@ export default function Messages() {
               <ChatView key={bookingId} bookingId={bookingId} />
             ) : (
               <div className="flex h-full flex-col items-center justify-center px-6 text-center">
-                <MessageCircle className="mb-4 h-9 w-9 text-white/20" />
-                <p className="text-[17px] font-semibold text-white/70">Pick a conversation</p>
-                <p className="mt-1 text-[14px] text-white/40">Your messages open here.</p>
+                <span className="st-empty__icon" aria-hidden><MessageCircle /></span>
+                <p className="st-empty__title">Pick a conversation</p>
+                <p className="st-empty__body">Your messages open here.</p>
               </div>
             )}
           </div>

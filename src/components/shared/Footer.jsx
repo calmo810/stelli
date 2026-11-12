@@ -31,7 +31,7 @@ const COLUMNS = [
   },
 ];
 
-const LINK = 'inline-flex min-h-[36px] items-center text-[14px] text-white/70 transition-colors hover:text-white';
+const LINK = 'inline-flex min-h-[36px] items-center text-[14px] text-fg-2 transition-colors hover:text-fg';
 
 /** The footer: one ink card with the wordmark, three short columns and the small print. */
 export default function Footer() {
@@ -47,9 +47,9 @@ export default function Footer() {
           <div className="flex flex-col gap-10 lg:flex-row lg:justify-between">
             <div className="max-w-[340px]">
               <StelliWordmark />
-              <p className="mt-5 text-[22px] font-extrabold leading-[1.1] tracking-[-0.035em] text-white">
+              <p className="mt-5 text-[22px] font-extrabold leading-[1.1] tracking-[-0.035em] text-fg">
                 You're the star.
-                <span className="st-serif block text-neon-lime">We just bring the camera.</span>
+                <span className="st-serif block text-accent2">We just bring the camera.</span>
               </p>
               <Btn to="/creators" variant="lime" arrow="end" className="mt-6">
                 Find a creator
@@ -74,8 +74,8 @@ export default function Footer() {
             </nav>
           </div>
 
-          <div className="mt-10 flex flex-col justify-between gap-4 border-t border-white/10 pt-6 sm:flex-row sm:items-center">
-            <p className="text-[12.5px] text-white/55">© {new Date().getFullYear()} Stelli · Elon, NC</p>
+          <div className="mt-10 flex flex-col justify-between gap-4 border-t border-line pt-6 sm:flex-row sm:items-center">
+            <p className="text-[12.5px] text-fg-3">© {new Date().getFullYear()} Stelli · Elon, NC</p>
 
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
               <a href="mailto:getstelli@gmail.com" className={LINK}>
@@ -86,7 +86,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noreferrer"
                 aria-label="Stelli on Instagram (opens in a new tab)"
-                className="grid h-10 w-10 place-items-center rounded-full text-white/70 transition-colors hover:bg-white/10 hover:text-neon-lime"
+                className="grid h-10 w-10 place-items-center rounded-full text-fg-2 transition-colors hover:bg-fill-2 hover:text-accent2"
               >
                 <Instagram className="h-[18px] w-[18px]" aria-hidden />
               </a>

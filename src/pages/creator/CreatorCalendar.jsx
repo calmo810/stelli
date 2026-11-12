@@ -148,7 +148,7 @@ export default function CreatorCalendar() {
                 <span className="wk-day-w">{key === today ? 'Today' : format(day, 'EEE')}</span>
                 <span className="wk-day-n">{format(day, 'd')}</span>
                 <span className="wk-day-dots">
-                  {hasShoot && <i style={{ background: isOn ? 'rgba(255,255,255,.9)' : INK }} />}
+                  {hasShoot && <i style={{ background: isOn ? 'var(--fg-2)' : INK }} />}
                   {hasRequest && <i style={{ background: LIME }} />}
                 </span>
               </button>

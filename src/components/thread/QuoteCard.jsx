@@ -110,15 +110,15 @@ export default function QuoteCard({ quote, booking, role, onChanged }) {
   };
 
   return (
-    <div className="glass rounded-[26px] p-5 sm:p-6">
+    <div className="st-card rounded-[26px] p-5 sm:p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-[11px] font-semibold text-white/40">QUOTE</p>
-          <p className="mt-2 text-[38px] font-semibold leading-none text-white">{dollars(price)}</p>
-          <p className="mt-2 text-[14px] text-white/55">{quote.included_edits || 30} edited photos</p>
+          <p className="text-[11px] font-semibold text-fg-3">QUOTE</p>
+          <p className="mt-2 text-[38px] font-semibold leading-none text-fg">{dollars(price)}</p>
+          <p className="mt-2 text-[14px] text-fg-3">{quote.included_edits || 30} edited photos</p>
         </div>
         {quote.expires_at && quote.status === 'sent' && !dead && (
-          <span className="flex shrink-0 items-center gap-1.5 text-[12px] text-white/40">
+          <span className="flex shrink-0 items-center gap-1.5 text-[12px] text-fg-3">
             <Clock className="h-3.5 w-3.5" />
             {new Date(quote.expires_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
           </span>
@@ -128,7 +128,7 @@ export default function QuoteCard({ quote, booking, role, onChanged }) {
       {/* Still choosing: the add-ons can be ticked. */}
       {role === 'client' && canAct && !accepted && offered.length > 0 && (
         <div className="mt-4">
-          <p className="mb-2 text-[12px] font-medium text-white/50">Add these on?</p>
+          <p className="mb-2 text-[12px] font-medium text-fg-3">Add these on?</p>
           <div className="flex flex-wrap gap-2">
             {offered.map((addOn) => {
               const active = picked.includes(addOn.name);
@@ -140,9 +140,9 @@ export default function QuoteCard({ quote, booking, role, onChanged }) {
                   aria-pressed={active}
                   className="min-h-[44px] rounded-[980px] border px-4 py-2.5 text-[14px] transition-colors"
                   style={{
-                    borderColor: active ? 'hsl(var(--neon-lime))' : 'rgba(255,255,255,0.14)',
-                    background: active ? 'hsl(var(--neon-lime) / 0.12)' : 'transparent',
-                    color: active ? 'hsl(var(--neon-lime))' : 'rgba(255,255,255,0.7)',
+                    borderColor: active ? 'var(--fg)' : 'var(--line-2)',
+                    background: active ? 'var(--fill-2)' : 'transparent',
+                    color: active ? 'var(--fg)' : 'var(--fg-2)',
                   }}
                 >
                   {addOn.name}
@@ -158,7 +158,7 @@ export default function QuoteCard({ quote, booking, role, onChanged }) {
       {accepted && chosen.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-2">
           {chosen.map((addOn) => (
-            <span key={addOn.name} className="rounded-[980px] bg-white/[0.08] px-4 py-2 text-[14px] text-white/75">
+            <span key={addOn.name} className="rounded-[980px] bg-fill px-4 py-2 text-[14px] text-fg-2">
               {addOn.name}
               {addOn.price ? ` · +${dollars(addOn.price)}` : ''}
             </span>
@@ -171,7 +171,7 @@ export default function QuoteCard({ quote, booking, role, onChanged }) {
           {offered.map((addOn, i) => (
             <span
               key={i}
-              className="rounded-[980px] bg-white/[0.08] px-4 py-2 text-[14px] text-white/65"
+              className="rounded-[980px] bg-fill px-4 py-2 text-[14px] text-fg-2"
             >
               {addOn.name}
               {addOn.price ? ` · +${dollars(addOn.price)}` : ''}
@@ -181,7 +181,7 @@ export default function QuoteCard({ quote, booking, role, onChanged }) {
       )}
 
       {quote.message && (
-        <p className="mt-4 rounded-2xl bg-white/[0.05] px-4 py-3 text-[15px] leading-relaxed text-white/70">
+        <p className="mt-4 rounded-2xl bg-fill px-4 py-3 text-[15px] leading-relaxed text-fg-2">
           {quote.message}
         </p>
       )}
@@ -189,7 +189,7 @@ export default function QuoteCard({ quote, booking, role, onChanged }) {
       {role === 'client' && (
         <>
           {paid ? (
-            <p className="mt-4 text-[13px] font-medium" style={{ color: 'hsl(var(--neon-lime))' }}>
+            <p className="mt-4 text-[13px] font-medium" style={{ color: 'var(--st-accent)' }}>
               {payment === 'held'
                 ? 'Paid. Your payment is held safely until your photos arrive.'
                 : payment === 'refunded'
@@ -197,26 +197,26 @@ export default function QuoteCard({ quote, booking, role, onChanged }) {
                   : 'Paid.'}
             </p>
           ) : clearing ? (
-            <p className="mt-4 text-[13px] text-white/60">
+            <p className="mt-4 text-[13px] text-fg-2">
               Your bank payment is clearing. The date locks in once it does.
             </p>
           ) : replaced ? (
-            <p className="mt-4 text-[13px] text-white/40">A newer quote replaced this one.</p>
+            <p className="mt-4 text-[13px] text-fg-3">A newer quote replaced this one.</p>
           ) : dead ? (
-            <p className="mt-4 text-[13px] text-white/40">
+            <p className="mt-4 text-[13px] text-fg-3">
               {quote.status === 'declined' ? 'You declined this quote.' : 'This quote expired.'}
             </p>
           ) : cancelled ? (
-            <p className="mt-4 text-[13px] text-white/40">This booking was cancelled.</p>
+            <p className="mt-4 text-[13px] text-fg-3">This booking was cancelled.</p>
           ) : underReview ? (
-            <p className="mt-4 text-[13px] text-white/60">
+            <p className="mt-4 text-[13px] text-fg-2">
               A payment on this booking is being checked by a founder. Nothing more is needed from you.
             </p>
           ) : (
             <>
-              <div className="mt-4 flex items-center justify-between border-t border-white/[0.08] pt-4 text-[13px] text-white/45">
+              <div className="mt-4 flex items-center justify-between border-t border-line pt-4 text-[13px] text-fg-3">
                 <span>Service fee · {Math.round(SERVICE_FEE_RATE * 100)}%</span>
-                <span className="text-white/70">{dollars(fee)}</span>
+                <span className="text-fg-2">{dollars(fee)}</span>
               </div>
 
               <Pill
@@ -236,23 +236,23 @@ export default function QuoteCard({ quote, booking, role, onChanged }) {
                   type="button"
                   onClick={decline}
                   disabled={busy}
-                  className="mt-2 min-h-[44px] w-full text-[13px] text-white/45 transition-colors hover:text-white disabled:opacity-50"
+                  className="mt-2 min-h-[44px] w-full text-[13px] text-fg-3 transition-colors hover:text-fg disabled:opacity-50"
                 >
                   Not for me — decline this quote
                 </button>
               )}
 
-              <p className="mt-3 text-[12px] leading-relaxed text-white/40">
+              <p className="mt-3 text-[12px] leading-relaxed text-fg-3">
                 {dollars(total)} total. Held safely by Stelli until your photos arrive. Paying accepts the{' '}
                 {accepted && booking?.contract_id ? (
-                  <Link to={`/agreements/${booking.contract_id}`} className="underline underline-offset-2 hover:text-white">
+                  <Link to={`/agreements/${booking.contract_id}`} className="underline underline-offset-2 hover:text-fg">
                     booking agreement
                   </Link>
                 ) : (
                   'booking agreement'
                 )}{' '}
                 and Stelli’s{' '}
-                <Link to="/terms" className="underline underline-offset-2 hover:text-white">
+                <Link to="/terms" className="underline underline-offset-2 hover:text-fg">
                   Terms
                 </Link>
                 .
@@ -263,7 +263,7 @@ export default function QuoteCard({ quote, booking, role, onChanged }) {
       )}
 
       {role === 'lensman' && (
-        <p className="mt-4 text-[13px] text-white/40">
+        <p className="mt-4 text-[13px] text-fg-3">
           {paid
             ? 'Paid. Held by Stelli until you deliver.'
             : clearing
@@ -281,7 +281,7 @@ export default function QuoteCard({ quote, booking, role, onChanged }) {
       )}
 
       {error && (
-        <p className="mt-3 text-[13px]" style={{ color: 'hsl(var(--neon-magenta))' }}>
+        <p className="mt-3 text-[13px]" style={{ color: 'var(--danger)' }}>
           {error}
         </p>
       )}

@@ -23,7 +23,7 @@ export default function Creators() {
   );
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-ink text-white">
+    <div className="min-h-screen overflow-x-hidden bg-ink text-fg">
       <div className="relative z-[1] mx-auto max-w-[1240px] px-5 pt-6 pb-24 md:px-10 md:pt-9 md:pb-32">
         {/* The layout already clears the fixed nav, so the header starts right under it. */}
         <div className="mb-6">
@@ -37,11 +37,11 @@ export default function Creators() {
 
         {isError ? (
           <div role="alert" className="py-16 text-center">
-            <p className="text-white/70">We couldn’t load creators. Please try again.</p>
+            <p className="text-fg-2">We couldn’t load creators. Please try again.</p>
             <button
               type="button"
               onClick={() => refetch()}
-              className="mt-4 rounded-full border border-white/25 px-5 py-2 text-sm text-white transition-colors hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neon-lime"
+              className="mt-4 rounded-full border border-line-2 px-5 py-2 text-sm text-fg transition-colors hover:bg-fill-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-neon-lime"
             >
               Try again
             </button>
@@ -58,7 +58,7 @@ export default function Creators() {
               ))}
           </div>
         ) : results.length === 0 ? (
-          <p className="py-20 text-center text-white/45">No one here yet. Try another filter.</p>
+          <p className="py-20 text-center text-fg-3">No one here yet. Try another filter.</p>
         ) : (
           <div
             className="grid grid-cols-1 gap-[22px] sm:grid-cols-2 lg:grid-cols-3"

@@ -69,7 +69,7 @@ export default function CreatorPortal() {
   if (userLoading || (user && (isLoading || !profileFetched))) {
     return (
       <DashboardShell>
-        <div className="glass h-[260px] animate-pulse rounded-[28px]" />
+        <div className="st-card h-[260px] animate-pulse rounded-[28px]" />
       </DashboardShell>
     );
   }

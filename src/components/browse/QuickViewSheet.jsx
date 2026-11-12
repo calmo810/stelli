@@ -10,8 +10,8 @@ import SmoothImage from '@/components/shared/SmoothImage';
 function Fact({ label, value }) {
   return (
     <div className="min-w-0">
-      <b className="block text-[16px] font-semibold leading-tight text-white">{value}</b>
-      <span className="text-[11px] leading-tight text-white/40">{label}</span>
+      <b className="block text-[16px] font-semibold leading-tight text-fg">{value}</b>
+      <span className="text-[11px] leading-tight text-fg-3">{label}</span>
     </div>
   );
 }
@@ -87,7 +87,7 @@ export default function QuickViewSheet({ creator, onClose }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="quickview-title"
-        className={`fixed inset-x-0 bottom-0 z-[61] flex max-h-[92vh] flex-col overflow-hidden rounded-t-[26px] border border-white/10 bg-surface transition-transform duration-[600ms] ease-[cubic-bezier(.6,0,.2,1)] sm:inset-x-auto sm:bottom-4 sm:right-4 sm:top-4 sm:max-h-none sm:w-[min(560px,calc(100%-32px))] sm:rounded-[26px] ${
+        className={`fixed inset-x-0 bottom-0 z-[61] flex max-h-[92vh] flex-col overflow-hidden rounded-t-[26px] border border-line bg-[var(--st-card)] transition-transform duration-[600ms] ease-[cubic-bezier(.6,0,.2,1)] sm:inset-x-auto sm:bottom-4 sm:right-4 sm:top-4 sm:max-h-none sm:w-[min(560px,calc(100%-32px))] sm:rounded-[26px] ${
           open ? 'translate-y-0' : 'translate-y-full sm:translate-x-[calc(100%+40px)] sm:translate-y-0'
         }`}
         style={{ '--acc': accent }}
@@ -97,7 +97,7 @@ export default function QuickViewSheet({ creator, onClose }) {
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute right-3 top-3 z-[3] grid h-9 w-9 place-items-center rounded-full border border-white/20 bg-ink/70 text-white backdrop-blur-[10px] transition-transform duration-300 hover:rotate-90"
+          className="absolute right-3 top-3 z-[3] grid h-9 w-9 place-items-center rounded-full border border-line-2 bg-ink/70 text-fg backdrop-blur-[10px] transition-transform duration-300 hover:rotate-90"
         >
           <X className="h-[15px] w-[15px]" />
         </button>
@@ -105,7 +105,7 @@ export default function QuickViewSheet({ creator, onClose }) {
         <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain">
           {/* The work, large: one lead photo with the next two beside it. */}
           <div className="grid aspect-[6/5] grid-cols-3 grid-rows-2 gap-1.5 p-2.5 pb-0">
-            <div className={`relative min-h-0 overflow-hidden rounded-[18px] bg-surface-2 ${leadSpan}`}>
+            <div className={`relative min-h-0 overflow-hidden rounded-[18px] bg-fill-2 ${leadSpan}`}>
               <SmoothImage
                 key={images[lead]}
                 src={images[lead]}
@@ -120,7 +120,7 @@ export default function QuickViewSheet({ creator, onClose }) {
                 type="button"
                 onClick={() => setLead(i)}
                 aria-label={`Show photo ${i + 1} larger`}
-                className={`group relative min-h-0 overflow-hidden rounded-[18px] bg-surface-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--acc)] ${
+                className={`group relative min-h-0 overflow-hidden rounded-[18px] bg-fill-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--acc)] ${
                   sides.length === 1 ? 'row-span-2' : ''
                 }`}
               >
@@ -136,7 +136,7 @@ export default function QuickViewSheet({ creator, onClose }) {
           {/* Their face, overlapping the work, with the rest of the set to flip through. */}
           <div className="relative z-[1] -mt-9 flex items-end justify-between gap-3 px-[22px]">
             <div
-              className="h-[76px] w-[76px] shrink-0 overflow-hidden rounded-full bg-surface-2"
+              className="h-[76px] w-[76px] shrink-0 overflow-hidden rounded-full bg-fill-2"
               style={{
                 boxShadow: `0 0 0 5px hsl(var(--surface)), 0 0 0 6.5px ${accent}, 0 18px 36px -14px rgba(0,0,0,.9)`,
               }}
@@ -144,7 +144,7 @@ export default function QuickViewSheet({ creator, onClose }) {
               {portrait ? (
                 <img src={portrait} alt={name} className="h-full w-full object-cover" />
               ) : (
-                <div className="grid h-full w-full place-items-center font-display text-[30px] text-white/60">
+                <div className="grid h-full w-full place-items-center font-display text-[30px] text-fg-2">
                   {initial}
                 </div>
               )}
@@ -159,7 +159,7 @@ export default function QuickViewSheet({ creator, onClose }) {
                     onClick={() => setLead(i)}
                     aria-label={`Show photo ${i + 1}`}
                     aria-pressed={i === lead}
-                    className={`relative aspect-[4/5] w-9 shrink-0 overflow-hidden rounded-[8px] bg-surface-2 transition-[opacity,transform] duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--acc)] sm:w-10 ${
+                    className={`relative aspect-[4/5] w-9 shrink-0 overflow-hidden rounded-[8px] bg-fill-2 transition-[opacity,transform] duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--acc)] sm:w-10 ${
                       i === lead ? '-translate-y-1 opacity-100' : 'opacity-50 hover:opacity-90'
                     }`}
                     style={i === lead ? { boxShadow: `0 0 0 1.5px ${accent}` } : undefined}
@@ -172,23 +172,23 @@ export default function QuickViewSheet({ creator, onClose }) {
           </div>
 
           <div className="px-[22px] pb-5 pt-4">
-            <p className="label-mono text-[10px] text-white/40">
+            <p className="st-kicker text-fg-3">
               {creator?.market === 'ELON' || !creator?.market ? 'Elon' : creator.market} · Photographer
             </p>
             <h2
               id="quickview-title"
-              className="mt-1 text-[30px] font-bold leading-[1.05] tracking-[-0.035em] text-white sm:text-[32px]"
+              className="mt-1 text-[30px] font-bold leading-[1.05] tracking-[-0.035em] text-fg sm:text-[32px]"
             >
               {name}
             </h2>
-            <p className="mt-1.5 text-[14px] leading-snug text-white/50">{tagline}</p>
+            <p className="mt-1.5 text-[14px] leading-snug text-fg-3">{tagline}</p>
 
-            <div className="mt-4 flex items-center gap-6 border-y border-white/10 py-3">
+            <div className="mt-4 flex items-center gap-6 border-y border-line py-3">
               <Fact label={reviews ? 'Rating' : 'Status'} value={ratingLabel(creator)} />
               <Fact label="Shoots" value={Number(creator?.completed_shoots) > 0 ? creator.completed_shoots : '—'} />
               <Fact label="Shooting" value={years ? `${years} yrs` : '—'} />
               {spots.length > 0 && (
-                <div className="ml-auto flex min-w-0 items-center gap-1 text-[11px] text-white/45">
+                <div className="ml-auto flex min-w-0 items-center gap-1 text-[11px] text-fg-3">
                   <MapPin className="h-3 w-3 shrink-0" />
                   <span className="truncate">{spots[0]}</span>
                 </div>
@@ -196,13 +196,13 @@ export default function QuickViewSheet({ creator, onClose }) {
             </div>
 
             {creator?.bio && (
-              <p className="mt-4 text-[14px] leading-[1.6] text-white/75">{creator.bio}</p>
+              <p className="mt-4 text-[14px] leading-[1.6] text-fg-2">{creator.bio}</p>
             )}
 
             {creator?.prompt_answer && (
-              <div className="mt-3.5 rounded-2xl border border-dashed border-white/15 px-4 py-3">
-                <p className="label-mono text-[10px] text-white/40">{creator.prompt_question}</p>
-                <p className="mt-1 font-display italic text-[19px] leading-snug text-white">
+              <div className="mt-3.5 rounded-2xl border border-dashed border-line px-4 py-3">
+                <p className="st-kicker text-fg-3">{creator.prompt_question}</p>
+                <p className="mt-1 font-display italic text-[19px] leading-snug text-fg">
                   {creator.prompt_answer}
                 </p>
               </div>
@@ -213,7 +213,7 @@ export default function QuickViewSheet({ creator, onClose }) {
                 {specialties.slice(0, 6).map((specialty) => (
                   <span
                     key={specialty}
-                    className="whitespace-nowrap rounded-full bg-surface-2 px-2.5 py-1 text-[11.5px] text-white/70"
+                    className="whitespace-nowrap rounded-full bg-fill-2 px-2.5 py-1 text-[11.5px] text-fg-2"
                   >
                     {specialty}
                   </span>
@@ -223,7 +223,7 @@ export default function QuickViewSheet({ creator, onClose }) {
           </div>
         </div>
 
-        <div className="shrink-0 border-t border-white/10 bg-surface px-[22px] pb-[calc(16px+var(--safe-bottom))] pt-4">
+        <div className="shrink-0 border-t border-line bg-[var(--st-card)] px-[22px] pb-[calc(16px+var(--safe-bottom))] pt-4">
           <div className="flex items-center gap-2">
             <Link
               to={`/book/${creator.id}`}
@@ -234,12 +234,12 @@ export default function QuickViewSheet({ creator, onClose }) {
             </Link>
             <Link
               to={profilePath}
-              className="shrink-0 whitespace-nowrap rounded-2xl border border-white/15 px-4 py-[15px] text-center text-[13px] font-semibold text-white/85 transition-colors hover:border-white/35 hover:text-white"
+              className="shrink-0 whitespace-nowrap rounded-2xl border border-line px-4 py-[15px] text-center text-[13px] font-semibold text-fg transition-colors hover:border-line-2 hover:text-fg"
             >
               See full profile
             </Link>
           </div>
-          <p className="mt-2 text-center text-[11px] text-white/35">Payments and messaging stay protected on Stelli.</p>
+          <p className="mt-2 text-center text-[11px] text-fg-3">Payments and messaging stay protected on Stelli.</p>
         </div>
       </aside>
     </>,

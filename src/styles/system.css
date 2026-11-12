@@ -97,9 +97,24 @@
     --st-on-primary: var(--st-ink);
     --danger: #ff8fb4;
     --field: rgba(255, 255, 255, 0.06);
+    /* A bar that floats over scrolling content, and the three status tones. */
+    --bar: hsl(var(--ink) / 0.86);
+    --chip-lime-bg: hsl(var(--neon-lime) / 0.14);
+    --chip-lime-fg: hsl(var(--neon-lime));
+    --chip-cyan-bg: hsl(var(--neon-cyan) / 0.14);
+    --chip-cyan-fg: hsl(var(--neon-cyan));
+    --chip-magenta-bg: hsl(var(--neon-magenta) / 0.16);
+    --chip-magenta-fg: #ff9ad0;
   }
 
   .st-ink {
+    --bar: hsl(var(--ink) / 0.86);
+    --chip-lime-bg: hsl(var(--neon-lime) / 0.14);
+    --chip-lime-fg: hsl(var(--neon-lime));
+    --chip-cyan-bg: hsl(var(--neon-cyan) / 0.14);
+    --chip-cyan-fg: hsl(var(--neon-cyan));
+    --chip-magenta-bg: hsl(var(--neon-magenta) / 0.16);
+    --chip-magenta-fg: #ff9ad0;
     --fg: #ffffff;
     --fg-2: rgba(255, 255, 255, 0.74);
     --fg-3: rgba(255, 255, 255, 0.56);
@@ -119,6 +134,13 @@
   }
 
   .st-paper {
+    --bar: rgba(255, 255, 255, 0.9);
+    --chip-lime-bg: var(--tint-lime);
+    --chip-lime-fg: var(--tint-lime-ink);
+    --chip-cyan-bg: var(--tint-sky);
+    --chip-cyan-fg: var(--tint-sky-ink);
+    --chip-magenta-bg: var(--tint-blush);
+    --chip-magenta-fg: var(--tint-blush-ink);
     --fg: var(--st-ink);
     --fg-2: #414b61;
     --fg-3: #626d82;
@@ -535,7 +557,7 @@
   /* ============================ forms ============================ */
 
   .st-field { display: block; min-width: 0; }
-  .st-field + .st-field { margin-top: 16px; }
+  .st-field:not(:first-child) { margin-top: 16px; }
   .st-label {
     display: flex;
     align-items: baseline;

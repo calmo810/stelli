@@ -77,11 +77,11 @@ export default function IchigoPopup() {
         onBlur={(event) => {
           if (!wrapRef.current?.contains(event.relatedTarget)) setOpen(false);
         }}
-        className="flex items-center gap-2 text-[12px] text-white/35 transition-colors hover:text-white/70"
+        className="flex items-center gap-2 text-[12px] text-fg-3 transition-colors hover:text-fg-2"
       >
         <span aria-hidden className="ichigo-dot h-1.5 w-1.5 shrink-0 rounded-full bg-neon-lime" />
         <span className="text-[13px]">一期一会</span>
-        <span className="border-b border-dashed border-white/30 pb-px">one time, one meeting</span>
+        <span className="border-b border-dashed border-line-2 pb-px">one time, one meeting</span>
       </button>
 
       {open && (

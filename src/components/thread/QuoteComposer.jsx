@@ -73,11 +73,11 @@ export default function QuoteComposer({ open, onClose, booking, payoutsReady, on
   if (!open) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/[0.12] bg-ink/95 backdrop-blur-xl">
+    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-line bg-[var(--bar)] backdrop-blur-xl">
       <div className="mx-auto max-h-[85vh] w-full max-w-[640px] overflow-y-auto px-4 py-5 sm:px-5">
         <div className="mb-4 flex items-center justify-between gap-4">
-          <p className="text-[11px] font-semibold text-white/45">SEND A QUOTE</p>
-          <button type="button" onClick={() => onClose?.()} className="text-white/40 hover:text-white" aria-label="Close">
+          <p className="text-[11px] font-semibold text-fg-3">SEND A QUOTE</p>
+          <button type="button" onClick={() => onClose?.()} className="text-fg-3 hover:text-fg" aria-label="Close">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -95,7 +95,7 @@ export default function QuoteComposer({ open, onClose, booking, payoutsReady, on
         </label>
 
         {amount && Number(amount) > 0 && (
-          <p className="mt-2 text-[12px] text-white/40">
+          <p className="mt-2 text-[12px] text-fg-3">
             You receive ${creatorPayout(Number(amount)).toLocaleString()} after Stelli's fee
           </p>
         )}
@@ -111,9 +111,9 @@ export default function QuoteComposer({ open, onClose, booking, payoutsReady, on
                 aria-pressed={expiry === option.value}
                 className="rounded-[980px] border px-4 py-2.5 text-[14px] transition-colors"
                 style={{
-                  borderColor: expiry === option.value ? 'hsl(var(--neon-lime))' : 'rgba(255,255,255,0.14)',
-                  background: expiry === option.value ? 'hsl(var(--neon-lime) / 0.12)' : 'transparent',
-                  color: expiry === option.value ? 'hsl(var(--neon-lime))' : 'rgba(255,255,255,0.6)',
+                  borderColor: expiry === option.value ? 'var(--fg)' : 'var(--line-2)',
+                  background: expiry === option.value ? 'var(--fill-2)' : 'transparent',
+                  color: expiry === option.value ? 'var(--fg)' : 'var(--fg-2)',
                 }}
               >
                 {option.label}
@@ -169,7 +169,7 @@ export default function QuoteComposer({ open, onClose, booking, payoutsReady, on
               <button
                 type="button"
                 onClick={() => setAddOn(null)}
-                className="shrink-0 text-white/40 hover:text-white"
+                className="shrink-0 text-fg-3 hover:text-fg"
                 aria-label="Remove line item"
               >
                 <X className="h-4 w-4" />
@@ -179,7 +179,7 @@ export default function QuoteComposer({ open, onClose, booking, payoutsReady, on
             <button
               type="button"
               onClick={() => setAddOn({ name: '', price: 0 })}
-              className="inline-flex items-center gap-1.5 text-[13px] text-white/50 hover:text-white"
+              className="inline-flex items-center gap-1.5 text-[13px] text-fg-3 hover:text-fg"
             >
               <Plus className="h-3.5 w-3.5" /> Add a line item
             </button>
@@ -187,7 +187,7 @@ export default function QuoteComposer({ open, onClose, booking, payoutsReady, on
         </div>
 
         {error && (
-          <p className="mt-4 text-[13px]" style={{ color: 'hsl(var(--neon-magenta))' }}>
+          <p className="mt-4 text-[13px]" style={{ color: 'var(--danger)' }}>
             {error}
           </p>
         )}

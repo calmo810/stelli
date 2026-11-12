@@ -40,8 +40,8 @@ export default function CreatorHoldButton({ lensman }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="min-h-[44px] border border-white/15 px-3 font-body text-[12px] font-medium text-white/70 transition-colors hover:bg-white/5 hover:text-white"
-        style={{ borderRadius: 4 }}
+        className="min-h-[44px] border border-line px-3 text-[12px] font-medium text-fg-2 transition-colors hover:bg-fill-2 hover:text-fg"
+        style={{ borderRadius: 16 }}
       >
         {onHold ? 'Lift hold' : 'Put on hold'}
       </button>

@@ -65,7 +65,7 @@ export default function ProfileWizard() {
     return (
       <div className="pw-root">
         <div className="pw-state" role="status" aria-label="Loading your profile">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-white/15 border-t-white" />
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-line border-t-[var(--fg)]" />
         </div>
       </div>
     );

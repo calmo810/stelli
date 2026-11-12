@@ -21,10 +21,10 @@ export default function SectionHeader({
 
   return (
     <header className={centered ? 'text-center' : ''}>
-      {eyebrow && <p className="label-mono text-[10px] text-white/40 mb-5">{eyebrow}</p>}
+      {eyebrow && <p className="st-kicker text-fg-3 mb-5">{eyebrow}</p>}
 
       <Tag
-        className="font-semibold leading-[0.98] tracking-[-0.02em] text-white"
+        className="font-semibold leading-[0.98] tracking-[-0.02em] text-fg"
         style={{ fontSize: SIZES[size] }}
       >
         {title}
@@ -39,7 +39,7 @@ export default function SectionHeader({
           }`}
         >
           {intro && (
-            <p className={`text-[15px] leading-relaxed text-white/45 ${centered ? 'max-w-[520px]' : 'max-w-[460px]'}`}>
+            <p className={`text-[15px] leading-relaxed text-fg-3 ${centered ? 'max-w-[520px]' : 'max-w-[460px]'}`}>
               {intro}
             </p>
           )}

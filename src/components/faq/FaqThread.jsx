@@ -9,7 +9,7 @@ import './faqPhone.css';
  * The FAQ as a real iMessage conversation on an iPhone 17 Pro.
  *
  * The screen is laid out at the phone's true size in iOS points (402 × 874) and
- * the whole device is scaled to fit, so every measurement (17pt text, 44pt glass
+ * the whole device is scaled to fit, so every measurement (17pt text, 44pt st-card
  * buttons, bubble radii, Dynamic Island) matches the real thing.
  *
  * Tap a suggested question (Apple Messages for Business-style quick replies) or

@@ -125,8 +125,8 @@ export default function CreatorProfileView({ creatorId }) {
     return (
       <div className="min-h-screen bg-ink flex items-center justify-center px-6">
         <div className="text-center">
-          <p className="font-display text-4xl text-white mb-3">This page didn't load.</p>
-          <button type="button" onClick={() => refetch()} className="text-[13px] font-semibold text-neon-lime">
+          <p className="font-display text-4xl text-fg mb-3">This page didn't load.</p>
+          <button type="button" onClick={() => refetch()} className="text-[13px] font-semibold text-accent2">
             Try again
           </button>
         </div>
@@ -142,8 +142,8 @@ export default function CreatorProfileView({ creatorId }) {
     return (
       <div className="min-h-screen bg-ink flex items-center justify-center px-6">
         <div className="text-center">
-          <p className="font-display text-4xl text-white mb-3">Creator not found.</p>
-          <Link to="/creators" className="text-[13px] font-semibold text-neon-lime">
+          <p className="font-display text-4xl text-fg mb-3">Creator not found.</p>
+          <Link to="/creators" className="text-[13px] font-semibold text-accent2">
             Back to all creators
           </Link>
         </div>

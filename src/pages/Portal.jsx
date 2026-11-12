@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Loader2, X } from 'lucide-react';
+import { X } from 'lucide-react';
+import { Btn, Chip, IconBtn, Loading, Page, Sheet } from '@/components/system';
 import { applyPendingSignup } from '@/lib/pendingSignup';
 import { loginUrl } from '@/lib/requireSignIn';
 import { queryClientInstance } from '@/lib/query-client';
@@ -73,47 +74,44 @@ export default function Portal() {
 
   if (loading || !promptType) {
     return (
-      <div className="min-h-screen bg-ink flex items-center justify-center">
-        <Loader2 className="w-6 h-6 animate-spin" style={{ color: 'hsl(var(--neon-lime))' }} />
-      </div>
+      <Page width="narrow">
+        <Loading label="Opening your portal" className="min-h-[60vh]" />
+      </Page>
     );
   }
 
   const isCreator = promptType === 'creator';
 
   return (
-    <div className="min-h-screen bg-ink flex items-center justify-center px-5 py-24">
-      <div className="w-full max-w-2xl border border-white/10 bg-surface p-6 md:p-10" style={{ borderRadius: 4 }}>
-        <button onClick={closePrompt} className="ml-auto flex text-white/35 hover:text-white transition-colors" aria-label="Apply later">
-          <X className="w-5 h-5" />
-        </button>
-        <p className="label-mono text-[10px] text-neon-lime mb-5">Portal ready</p>
-        <h1 className="font-heading font-semibold text-white leading-[0.95] mb-5" style={{ fontSize: 'clamp(38px, 6vw, 76px)' }}>
-          {isCreator ? 'Ready to get listed?' : 'Ready to book your first creator?'}
+    <Page width="narrow">
+      <Sheet className={`st-aurora ${isCreator ? 'st-aurora--sky' : 'st-aurora--lime'} px-6 py-10 sm:px-10 sm:py-14`}>
+        <div className="flex items-start justify-between gap-4">
+          <Chip tone="ink">Portal ready</Chip>
+          <IconBtn label="Not now, go to my portal" variant="soft" onClick={closePrompt}>
+            <X />
+          </IconBtn>
+        </div>
+        <h1 className="st-display mt-6">
+          {isCreator ? (
+            <>Ready to get <span className="st-serif">listed?</span></>
+          ) : (
+            <>Ready to book your <span className="st-serif">first creator?</span></>
+          )}
         </h1>
-        <p className="font-body text-[14px] leading-relaxed text-white/55 max-w-lg mb-9">
+        <p className="st-lede mt-5">
           {isCreator
-            ? 'Your creator portal is set. Start your application and Stelli will review your work and build your public profile.'
+            ? 'Your creator portal is set. Build your page and Stelli will review your work before it goes live.'
             : 'Your client portal is set. Browse vetted creators and send your first request.'}
         </p>
-        <div className="flex flex-col sm:flex-row gap-3">
-          <button
-            onClick={startNextStep}
-            className="inline-flex items-center justify-center gap-2 label-mono text-[11px] font-semibold px-8 py-4 transition-transform duration-300 hover:-translate-y-0.5"
-            style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))', borderRadius: 4 }}
-          >
+        <div className="mt-8 flex flex-col gap-2.5 sm:flex-row">
+          <Btn variant="ink" size="lg" arrow="end" onClick={startNextStep}>
             {isCreator ? 'Start your application' : 'Find a creator'}
-            <ArrowRight className="w-4 h-4" />
-          </button>
-          <button
-            onClick={closePrompt}
-            className="label-mono text-[11px] px-8 py-4 border border-white/15 text-white/50 hover:text-white hover:border-white/40 transition-colors"
-            style={{ borderRadius: 4 }}
-          >
-            {isCreator ? 'Apply later' : 'Browse first'}
-          </button>
+          </Btn>
+          <Btn variant="outline" size="lg" onClick={closePrompt}>
+            {isCreator ? 'Apply later' : 'Go to my portal'}
+          </Btn>
         </div>
-      </div>
-    </div>
+      </Sheet>
+    </Page>
   );
 }

@@ -61,7 +61,7 @@ export default function Navbar({ inFlow = false }) {
           background: solid ? 'hsl(var(--ink) / 0.86)' : 'transparent',
           backdropFilter: solid ? 'blur(16px) saturate(1.4)' : 'none',
           WebkitBackdropFilter: solid ? 'blur(16px) saturate(1.4)' : 'none',
-          borderBottom: solid ? '1px solid rgba(255,255,255,0.08)' : '1px solid transparent',
+          borderBottom: solid ? '1px solid var(--line)' : '1px solid transparent',
         }}
       >
         <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-4 px-4 md:px-8">
@@ -77,7 +77,7 @@ export default function Navbar({ inFlow = false }) {
                 to={link.to}
                 className={({ isActive }) =>
                   `inline-flex min-h-[40px] items-center rounded-full px-4 text-[14px] font-semibold transition-colors ${
-                    isActive ? 'bg-white/10 text-white' : 'text-white/70 hover:bg-white/[0.06] hover:text-white'
+                    isActive ? 'bg-fill text-fg' : 'text-fg-2 hover:bg-fill-2 hover:text-fg'
                   }`
                 }
               >

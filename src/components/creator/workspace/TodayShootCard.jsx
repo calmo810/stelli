@@ -28,7 +28,7 @@ export default function TodayShootCard({ shoot, profile }) {
           </div>
           <h2>You’re available for new bookings.</h2>
           <p>Share your profile when you’re ready for new work.</p>
-          <span><CopyLinkPill creator={profile} tone="glass" className="arch-open__link" /></span>
+          <span><CopyLinkPill creator={profile} tone="st-card" className="arch-open__link" /></span>
         </div>
       </section>
     );

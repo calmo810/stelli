@@ -7,7 +7,7 @@ export default function SegmentedTabs({ value, onChange, options, className = ''
   return (
     <div
       role="tablist"
-      className={`glass relative grid rounded-[980px] p-1 ${className}`}
+      className={`st-card relative grid rounded-[980px] p-1 ${className}`}
       style={{ gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))` }}
     >
       <span
@@ -16,8 +16,8 @@ export default function SegmentedTabs({ value, onChange, options, className = ''
         style={{
           width: `calc((100% - 8px) / ${options.length})`,
           transform: `translateX(${index * 100}%)`,
-          background: 'rgba(255,255,255,0.18)',
-          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25)',
+          background: 'var(--line-2)',
+          boxShadow: 'inset 0 1px 0 var(--line-2)',
         }}
       />
 
@@ -31,12 +31,12 @@ export default function SegmentedTabs({ value, onChange, options, className = ''
             aria-selected={active}
             onClick={() => onChange(option.value)}
             className={`relative z-[1] rounded-[980px] py-2.5 text-[13px] font-medium transition-colors min-[420px]:text-[14px] ${
-              active ? 'text-white' : 'text-white/65'
+              active ? 'text-fg' : 'text-fg-2'
             }`}
           >
             {option.label}
             {typeof option.count === 'number' && (
-              <span className="ml-1 hidden text-[12px] text-white/45 min-[420px]:inline">{option.count}</span>
+              <span className="ml-1 hidden text-[12px] text-fg-3 min-[420px]:inline">{option.count}</span>
             )}
           </button>
         );

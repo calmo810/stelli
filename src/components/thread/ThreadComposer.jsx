@@ -47,7 +47,7 @@ export default function ThreadComposer({ onSend, booking, disabled, placeholder,
 
   return (
     <div
-      className="shrink-0 border-t border-white/[0.08] bg-ink/80 px-3 pt-3 backdrop-blur-xl sm:px-5"
+      className="shrink-0 border-t border-line bg-[var(--bar)] px-3 pt-3 backdrop-blur-xl sm:px-5"
       style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
     >
       {suggestions.length > 0 && !text && (
@@ -60,7 +60,7 @@ export default function ThreadComposer({ onSend, booking, disabled, placeholder,
                 setText(s);
                 box.current?.focus();
               }}
-              className="shrink-0 rounded-full bg-white/[0.08] px-3.5 py-2 text-[13px] text-white/70 transition-colors hover:bg-white/[0.14] hover:text-white"
+              className="shrink-0 rounded-full bg-fill px-3.5 py-2 text-[13px] text-fg-2 transition-colors hover:bg-fill-2 hover:text-fg"
             >
               {s}
             </button>
@@ -69,12 +69,12 @@ export default function ThreadComposer({ onSend, booking, disabled, placeholder,
       )}
 
       {(error || blocked) && (
-        <p className="mb-2 px-1 text-[13px] leading-relaxed" style={{ color: 'hsl(var(--neon-magenta))' }}>
+        <p className="mb-2 px-1 text-[13px] leading-relaxed" style={{ color: 'var(--danger)' }}>
           {blocked ? CONTACT_BLOCK_MESSAGE : error}
         </p>
       )}
 
-      <div className="glass flex items-end gap-2 rounded-[26px] p-2">
+      <div className="st-card flex items-end gap-2 rounded-[26px] p-2">
         <textarea
           ref={box}
           rows={1}
@@ -91,7 +91,7 @@ export default function ThreadComposer({ onSend, booking, disabled, placeholder,
               submit();
             }
           }}
-          className="min-h-[44px] flex-1 resize-none bg-transparent px-3 py-3 text-[15px] leading-[20px] text-white outline-none placeholder:text-white/30 disabled:opacity-50"
+          className="min-h-[44px] flex-1 resize-none bg-transparent px-3 py-3 text-[15px] leading-[20px] text-fg outline-none placeholder:text-fg-3 disabled:opacity-50"
           style={{ maxHeight: 140 }}
         />
         <button
@@ -99,7 +99,7 @@ export default function ThreadComposer({ onSend, booking, disabled, placeholder,
           onClick={submit}
           disabled={disabled || busy || !text.trim()}
           className="grid h-11 w-11 shrink-0 place-items-center rounded-full transition-transform active:scale-[0.96] disabled:opacity-40"
-          style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))' }}
+          style={{ background: 'var(--st-primary)', color: 'var(--st-on-primary)' }}
           aria-label="Send message"
         >
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
@@ -107,7 +107,7 @@ export default function ThreadComposer({ onSend, booking, disabled, placeholder,
       </div>
 
       {locked && (
-        <p className="mt-2 px-1 text-[12px] text-white/30">
+        <p className="mt-2 px-1 text-[12px] text-fg-3">
           Contact details unlock once the booking is confirmed
         </p>
       )}

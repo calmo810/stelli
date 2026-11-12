@@ -12,7 +12,7 @@ function Skeleton() {
   return (
     <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4">
       {Array.from({ length: 8 }).map((_, i) => (
-        <div key={i} className="aspect-square animate-pulse rounded-[18px] bg-white/[0.06]" />
+        <div key={i} className="aspect-square animate-pulse rounded-[18px] bg-fill" />
       ))}
     </div>
   );
@@ -21,10 +21,10 @@ function Skeleton() {
 /** The lock panel: the gallery is real, the visitor just cannot prove they were invited. */
 function Locked() {
   return (
-    <div className="glass rounded-[26px] p-7 text-center sm:p-10">
-      <KeyRound className="mx-auto h-6 w-6 text-white/40" />
-      <p className="mt-4 text-[15px] font-semibold text-white">This link is missing its key</p>
-      <p className="mx-auto mt-2 max-w-[38ch] text-[13px] leading-relaxed text-white/50">
+    <div className="st-card rounded-[26px] p-7 text-center sm:p-10">
+      <KeyRound className="mx-auto h-6 w-6 text-fg-3" />
+      <p className="mt-4 text-[15px] font-semibold text-fg">This link is missing its key</p>
+      <p className="mx-auto mt-2 max-w-[38ch] text-[13px] leading-relaxed text-fg-3">
         Album links only open with the code at the end of them. Ask your creator to send the link
         again, or sign in with the email you booked with.
       </p>
@@ -32,7 +32,7 @@ function Locked() {
         type="button"
         onClick={() => base44.auth.redirectToLogin(window.location.href)}
         className="mt-5 inline-flex items-center gap-2 rounded-full px-5 py-3 text-[13px] font-semibold"
-        style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))' }}
+        style={{ background: 'var(--st-primary)', color: 'var(--st-on-primary)' }}
       >
         Sign in
       </button>
@@ -129,7 +129,7 @@ export default function MemoryAlbum() {
           <AlbumCover booking={booking} cover={photos[0]} count={photos.length} />
 
           <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-[12.5px] text-white/45">
+            <p className="text-[12.5px] text-fg-3">
               {photos.length
                 ? `${photos.length} photo${photos.length === 1 ? '' : 's'} · tap any one to open it`
                 : 'Your photos will land here'}
@@ -141,7 +141,7 @@ export default function MemoryAlbum() {
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-[12.5px] font-semibold"
-                  style={{ background: 'hsl(var(--neon-lime))', color: 'hsl(var(--ink))' }}
+                  style={{ background: 'var(--st-primary)', color: 'var(--st-on-primary)' }}
                 >
                   <ExternalLink className="h-3.5 w-3.5" /> Full gallery
                 </a>
@@ -149,7 +149,7 @@ export default function MemoryAlbum() {
               <button
                 type="button"
                 onClick={copyLink}
-                className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2.5 text-[12.5px] font-semibold text-white/75 transition-colors hover:text-white"
+                className="inline-flex items-center gap-2 rounded-full border border-line px-4 py-2.5 text-[12.5px] font-semibold text-fg-2 transition-colors hover:text-fg"
               >
                 {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                 {copied ? 'Link copied' : 'Share album'}
@@ -161,14 +161,14 @@ export default function MemoryAlbum() {
                   type="button"
                   onClick={resetLink}
                   disabled={resetting}
-                  className="font-body text-[12px] text-white/50 underline underline-offset-4 transition-colors hover:text-white disabled:opacity-50"
+                  className="text-[12px] text-fg-3 underline underline-offset-4 transition-colors hover:text-fg disabled:opacity-50"
                 >
                   {resetting ? 'Resetting…' : 'Reset this link'}
                 </button>
-                <p className="mt-1.5 font-body text-[11px] leading-relaxed text-white/35">
+                <p className="mt-1.5 text-[11px] leading-relaxed text-fg-3">
                   Anyone with the link can see this album. If it has gone somewhere it shouldn’t, reset it and the old link stops working.
                 </p>
-                {resetNote && <p className="mt-2 font-body text-[12px] text-white/70">{resetNote}</p>}
+                {resetNote && <p className="mt-2 text-[12px] text-fg-2">{resetNote}</p>}
               </div>
             )}
           </div>
@@ -179,9 +179,9 @@ export default function MemoryAlbum() {
             ) : photos.length ? (
               <AlbumGrid photos={photos} onOpen={setOpenIndex} />
             ) : (
-              <div className="glass rounded-[26px] p-8 text-center">
-                <Images className="mx-auto h-6 w-6 text-white/35" />
-                <p className="mx-auto mt-4 max-w-[36ch] text-[13px] leading-relaxed text-white/50">
+              <div className="st-card rounded-[26px] p-8 text-center">
+                <Images className="mx-auto h-6 w-6 text-fg-3" />
+                <p className="mx-auto mt-4 max-w-[36ch] text-[13px] leading-relaxed text-fg-3">
                   Nothing in your album yet. The moment your creator hands over the photos, they
                   appear right here.
                 </p>
@@ -190,7 +190,7 @@ export default function MemoryAlbum() {
           </div>
 
           {photos.length > 0 && (
-            <p className="mt-6 text-center text-[11.5px] text-white/30">
+            <p className="mt-6 text-center text-[11.5px] text-fg-3">
               Anyone with this link can see these photos. The client can reset it at any time.
             </p>
           )}

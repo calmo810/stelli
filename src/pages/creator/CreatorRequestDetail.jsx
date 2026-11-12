@@ -51,7 +51,7 @@ export default function CreatorRequestDetail() {
   if (!booking) {
     return (
       <div>
-        <Link to="/lensman-dashboard/requests" className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-white/50 hover:text-white">
+        <Link to="/lensman-dashboard/requests" className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-3 hover:text-fg">
           <ArrowLeft className="h-3.5 w-3.5" /> Requests
         </Link>
         <div className="mt-5">
@@ -87,7 +87,7 @@ export default function CreatorRequestDetail() {
     <div>
       <Link
         to="/lensman-dashboard/requests"
-        className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-white/50 hover:text-white"
+        className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-fg-3 hover:text-fg"
       >
         <ArrowLeft className="h-3.5 w-3.5" /> Requests
       </Link>
@@ -97,7 +97,7 @@ export default function CreatorRequestDetail() {
         {deadline && (
           <span
             className="text-[12px] font-semibold"
-            style={{ color: late ? '#f0a3c6' : 'rgba(255,255,255,0.45)' }}
+            style={{ color: late ? '#f0a3c6' : 'var(--fg-3)' }}
           >
             {late ? 'Reply window closed' : `Reply by ${format(deadline, 'MMM d, h:mm a')}`}
           </span>
@@ -105,7 +105,7 @@ export default function CreatorRequestDetail() {
       </div>
 
       <h1 className="wk-h1 mt-2">{booking.client_name || 'Client'}</h1>
-      <p className="mt-1 text-[14px] capitalize text-white/50">{booking.event_type || 'A shoot'}</p>
+      <p className="mt-1 text-[14px] capitalize text-fg-3">{booking.event_type || 'A shoot'}</p>
 
       <div className="wk-card wk-card--pad mt-5">
         <div className="grid grid-cols-2 gap-x-4 gap-y-5">

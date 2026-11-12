@@ -6,8 +6,8 @@ export default function Surface({ as: Tag = 'div', className = '', hover = false
   return (
     <Tag
       className={cn(
-        'border border-white/[0.09] bg-surface rounded-[18px]',
-        hover && 'transition-colors duration-300 hover:border-white/25',
+        'border border-line bg-[var(--st-card)] rounded-[18px]',
+        hover && 'transition-colors duration-300 hover:border-line-2',
         className
       )}
       {...rest}

@@ -68,12 +68,12 @@ function EarlyRelease({ booking, onChanged }) {
   };
 
   return (
-    <div className="glass rounded-[22px] px-[18px] py-4">
-      <p className="text-[14px] leading-relaxed text-white/75">Happy with your photos? You can release the payment now instead of waiting.</p>
+    <div className="st-card rounded-[22px] px-[18px] py-4">
+      <p className="text-[14px] leading-relaxed text-fg-2">Happy with your photos? You can release the payment now instead of waiting.</p>
       {done ? (
-        <p className="mt-3 text-[13px] font-medium" style={{ color: 'hsl(var(--neon-lime))' }}>{done}</p>
+        <p className="mt-3 text-[13px] font-medium" style={{ color: 'var(--st-accent)' }}>{done}</p>
       ) : (
-        <Pill as="button" type="button" tone="glass" onClick={() => setOpen(true)} className="mt-3">
+        <Pill as="button" type="button" tone="st-card" onClick={() => setOpen(true)} className="mt-3">
           Release the payment now
         </Pill>
       )}
@@ -105,7 +105,7 @@ function ReviewBox({ booking, queryClient }) {
   if (isLoading) return null;
   if (existing) {
     return (
-      <p className="glass rounded-[22px] px-[18px] py-4 text-[13px] text-white/55">
+      <p className="st-card rounded-[22px] px-[18px] py-4 text-[13px] text-fg-3">
         You rated this shoot {existing.rating} out of 5. Thank you.
       </p>
     );
@@ -130,8 +130,8 @@ function ReviewBox({ booking, queryClient }) {
   };
 
   return (
-    <div className="glass rounded-[22px] px-[18px] py-4">
-      <p className="text-[14px] font-semibold text-white">How was your shoot with {(booking.lensman_name || 'your creator').split(' ')[0]}?</p>
+    <div className="st-card rounded-[22px] px-[18px] py-4">
+      <p className="text-[14px] font-semibold text-fg">How was your shoot with {(booking.lensman_name || 'your creator').split(' ')[0]}?</p>
       <div className="mt-3 flex gap-1" role="radiogroup" aria-label="Rating">
         {[1, 2, 3, 4, 5].map((n) => (
           <button
@@ -145,7 +145,7 @@ function ReviewBox({ booking, queryClient }) {
           >
             <Star
               className="h-6 w-6"
-              style={{ color: 'hsl(var(--neon-magenta))', fill: n <= stars ? 'hsl(var(--neon-magenta))' : 'transparent' }}
+              style={{ color: 'var(--danger)', fill: n <= stars ? 'var(--danger)' : 'transparent' }}
             />
           </button>
         ))}
@@ -158,11 +158,11 @@ function ReviewBox({ booking, queryClient }) {
         placeholder="A few words for the next client (optional)"
         className={`${fieldClass} mt-3`}
       />
-      <p className="mt-2 text-[12px] text-white/40">Shown on their page with your first name and last initial.</p>
+      <p className="mt-2 text-[12px] text-fg-3">Shown on their page with your first name and last initial.</p>
       <Pill as="button" type="button" tone="lime" onClick={send} disabled={busy} className="mt-3 w-full py-3.5">
         {busy ? 'Saving…' : 'Post review'}
       </Pill>
-      {error && <p className="mt-2 text-[13px]" style={{ color: 'hsl(var(--neon-magenta))' }}>{error}</p>}
+      {error && <p className="mt-2 text-[13px]" style={{ color: 'var(--danger)' }}>{error}</p>}
     </div>
   );
 }
@@ -207,7 +207,7 @@ function CancelLink({ booking, role, onChanged }) {
         type="button"
         onClick={ask}
         disabled={busy}
-        className="min-h-[44px] px-4 text-[13px] text-white/45 underline-offset-4 transition-colors hover:text-white hover:underline disabled:opacity-50"
+        className="min-h-[44px] px-4 text-[13px] text-fg-3 underline-offset-4 transition-colors hover:text-fg hover:underline disabled:opacity-50"
       >
         Cancel this booking
       </button>

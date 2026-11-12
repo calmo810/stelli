@@ -1,14 +1,10 @@
 import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { useParams, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowRight, MessageCircle } from 'lucide-react';
-import { format } from 'date-fns';
-import { Skeleton } from '@/components/ui/skeleton';
-
-const LIME = 'hsl(var(--neon-lime))';
-const INK = 'hsl(var(--ink))';
+import { useParams } from 'react-router-dom';
+import { Check, MessageCircle, SearchX } from 'lucide-react';
+import { longDate, timeLabel } from '@/lib/format';
+import { Avatar, Btn, Card, EmptyState, Page, Sheet, Skeleton } from '@/components/system';
 
 /** Lands here the moment a booking request is filed. */
 export default function RequestSent() {
@@ -34,78 +30,81 @@ export default function RequestSent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-ink">
-        <div className="max-w-[760px] mx-auto px-5 md:px-10 pt-32 pb-24">
-          <Skeleton className="h-[420px] w-full" />
-        </div>
-      </div>
+      <Page width="narrow">
+        <Skeleton className="h-[460px] !rounded-st-lg" />
+      </Page>
     );
   }
 
-  const name = creator?.display_name || creator?.full_name || booking?.lensman_name || 'your creator';
+  // Someone else's request, or a link that never existed: nothing to show.
+  if (!booking) {
+    return (
+      <Page width="narrow">
+        <Sheet>
+          <EmptyState
+            icon={SearchX}
+            title="We couldn't find that request."
+            body="It may belong to another account. Your requests are all in your messages."
+            action={<Btn to="/messages">Go to messages</Btn>}
+          />
+        </Sheet>
+      </Page>
+    );
+  }
+
+  const name = creator?.display_name || booking.lensman_name || 'your creator';
+  const firstName = name.split(' ')[0];
   const photo = creator?.profile_image || creator?.portfolio_images?.[0] || '';
-  const dateLabel = booking?.event_date
-    ? format(new Date(`${booking.event_date}T12:00:00`), 'MMMM d, yyyy')
-    : null;
+  const when = [longDate(booking.event_date), timeLabel(booking.event_time)].filter(Boolean).join(' · ');
 
   const steps = [
-    `${name} looks at your date.`,
-    "They'll message you here to work out the details.",
-    "You'll get a private quote. Nothing is charged until you accept it.",
+    [`${firstName} looks at your date.`, 'Most creators reply within a day.'],
+    ['You talk it through here.', 'Messages stay on Stelli until the booking is confirmed.'],
+    ['You get a private quote.', 'Nothing is charged until you accept it.'],
   ];
 
   return (
-    <div className="min-h-screen bg-ink">
-      <div className="max-w-[760px] mx-auto px-5 md:px-10 pt-28 md:pt-32 pb-24">
-        <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: 'easeOut' }}>
-          <p className="label-mono text-[9px] text-white/35 mb-5">Request filed</p>
-          <h1 className="font-heading font-semibold text-white leading-[0.95] mb-10" style={{ fontSize: 'clamp(44px, 8vw, 92px)' }}>
-            Request sent.
-          </h1>
+    <Page width="narrow">
+      <Sheet className="st-rise">
+        <span className="grid h-14 w-14 place-items-center rounded-full bg-neon-lime text-ink" aria-hidden>
+          <Check className="h-7 w-7" strokeWidth={3} />
+        </span>
+        <p className="st-kicker mt-6">Request filed</p>
+        <h1 className="st-display mt-2">
+          Request <span className="st-serif">sent.</span>
+        </h1>
 
-          <div className="flex items-center gap-4 border border-white/10 p-4 mb-10" style={{ background: 'hsl(var(--surface))', borderRadius: 4 }}>
-            {photo ? (
-              <img src={photo} alt={name} className="w-16 h-16 object-cover shrink-0" style={{ borderRadius: 3 }} />
-            ) : (
-              <div className="w-16 h-16 shrink-0" style={{ background: 'hsl(var(--surface-2))', borderRadius: 3 }} />
-            )}
-            <div className="min-w-0">
-              <p className="font-heading text-[22px] font-semibold text-white leading-tight truncate">{name}</p>
-              {dateLabel && (
-                <p className="label-mono text-[9px] text-white/40 mt-2">Requested for {dateLabel}</p>
-              )}
-            </div>
+        <Card tone="lime" className="mt-7 flex items-center gap-4">
+          <Avatar src={photo} name={name} size="lg" />
+          <div className="min-w-0">
+            <p className="truncate text-[20px] font-extrabold tracking-[-0.03em]">{name}</p>
+            {when && <p className="mt-0.5 text-[13.5px] text-fg-2">Requested for {when}</p>}
           </div>
+        </Card>
 
-          <ol className="space-y-5 mb-12">
-            {steps.map((step, i) => (
-              <li key={i} className="flex items-start gap-4">
-                <span className="font-mono text-[11px] shrink-0 mt-0.5" style={{ color: LIME }}>
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-                <span className="font-body text-[14px] leading-relaxed text-white/55">{step}</span>
-              </li>
-            ))}
-          </ol>
+        <h2 className="st-kicker mt-8">What happens next</h2>
+        <ol className="mt-3 space-y-3.5">
+          {steps.map(([lead, rest], i) => (
+            <li key={lead} className="flex gap-3.5">
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-ink text-[12px] font-bold text-white" aria-hidden>
+                {i + 1}
+              </span>
+              <p className="text-[15px] leading-snug text-fg-2">
+                <b className="font-semibold text-fg">{lead}</b> {rest}
+              </p>
+            </li>
+          ))}
+        </ol>
 
-          {booking && (
-            <Link
-              to={`/messages/${booking.id}`}
-              className="flex items-center justify-center gap-2.5 w-full label-mono text-[11px] font-semibold px-8 py-4 transition-transform duration-300 hover:-translate-y-0.5"
-              style={{ background: LIME, color: INK, borderRadius: 4 }}
-            >
-              <MessageCircle className="w-4 h-4" /> Go to messages
-            </Link>
-          )}
-
-          <Link
-            to="/creators"
-            className="inline-flex items-center gap-2 label-mono text-[10px] text-white/35 hover:text-neon-lime transition-colors mt-6"
-          >
-            Back to creators <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </motion.div>
-      </div>
-    </div>
+        <div className="mt-8 flex flex-col gap-2.5 sm:flex-row">
+          <Btn to={`/messages/${booking.id}`} size="lg" className="sm:flex-1">
+            <MessageCircle aria-hidden /> Go to messages
+          </Btn>
+          <Btn to="/creators" variant="outline" size="lg">
+            Keep browsing
+          </Btn>
+        </div>
+      </Sheet>
+    </Page>
   );
 }

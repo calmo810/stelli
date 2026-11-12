@@ -18,7 +18,7 @@ function Segmented({ options, value, onPick, label, disabled = false }) {
           aria-checked={value === option.v}
           onClick={() => onPick(option.v)}
         >
-          {option.sw && <span className="swatch" style={{ background: option.sw, boxShadow: 'inset 0 0 0 1px rgba(255,255,255,.2)' }} />}
+          {option.sw && <span className="swatch" style={{ background: option.sw, boxShadow: 'inset 0 0 0 1px var(--line-2)' }} />}
           {option.l}
         </button>
       ))}

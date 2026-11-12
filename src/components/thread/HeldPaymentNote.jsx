@@ -12,16 +12,16 @@ export default function HeldPaymentNote({ booking, role }) {
   const payout = Number(booking.creator_payout) > 0 ? Number(booking.creator_payout) : creatorPayout(booking.total_price);
 
   return (
-    <div className="glass flex items-start gap-3 rounded-[22px] px-[18px] py-4">
-      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" style={{ color: 'hsl(var(--neon-lime))' }} />
+    <div className="st-card flex items-start gap-3 rounded-[22px] px-[18px] py-4">
+      <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" style={{ color: 'var(--st-accent)' }} />
       <div>
-        <p className="text-[14px] leading-relaxed text-white/75">
+        <p className="text-[14px] leading-relaxed text-fg-2">
           {role === 'lensman'
             ? `The client has paid. ${money(payout)} is held for you and released 48 hours after you deliver the final edits.`
             : 'Your payment is held safely by Stelli until your photos arrive. Your creator is paid 48 hours after delivery, unless you report a problem.'}
         </p>
         {booking.paid_at && (
-          <p className="mt-2 text-[11px] text-white/35">
+          <p className="mt-2 text-[11px] text-fg-3">
             Paid {format(new Date(booking.paid_at), 'MMM d, yyyy')}
           </p>
         )}

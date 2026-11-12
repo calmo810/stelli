@@ -12,7 +12,7 @@ const WIDTHS = {
  */
 export default function PageShell({ width = 'wide', children, className = '' }) {
   return (
-    <div className="min-h-screen bg-ink text-white">
+    <div className="min-h-screen bg-ink text-fg">
       <div className={`mx-auto px-5 md:px-10 pt-24 md:pt-32 pb-24 md:pb-32 ${WIDTHS[width]} ${className}`}>
         {children}
       </div>
