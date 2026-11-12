@@ -1,25 +1,19 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
-import { MapPin, Star, X } from 'lucide-react';
+import { MapPin, X } from 'lucide-react';
 import { accentOf, cssUrl, galleryImages, ratingLabel, taglineOf } from '@/lib/creatorBrowse';
 import { displayNameOf } from '@/lib/profilePresets';
 
-/** One big frame and two small ones: a clean collage instead of a long carousel. */
-function collageFrames(images) {
-  if (images.length === 1) return [{ url: images[0], className: 'col-span-3 row-span-2' }];
-  if (images.length === 2) {
-    return [
-      { url: images[0], className: 'col-span-2 row-span-2' },
-      { url: images[1], className: 'col-span-1 row-span-2' },
-    ];
-  }
-  return [
-    { url: images[0], className: 'col-span-2 row-span-2' },
-    { url: images[1], className: 'col-span-1 row-span-1' },
-    { url: images[2], className: 'col-span-1 row-span-1' },
-  ];
-}
+/* Where the smaller prints sit around the portrait. Literal classes only. */
+const TILE_SLOTS = [
+  'left-[3%] top-[3%] w-[74px] rotate-[-7deg] sm:w-[88px]',
+  'right-[2%] top-[0%] w-[64px] rotate-[6deg] sm:w-[78px]',
+  'left-[0%] top-[44%] w-[62px] rotate-[5deg] sm:w-[76px]',
+  'right-[0%] top-[41%] w-[70px] rotate-[-6deg] sm:w-[90px]',
+  'bottom-[0%] left-[23%] w-[58px] rotate-[4deg] sm:w-[70px]',
+  'bottom-[2%] right-[21%] w-[62px] rotate-[-4deg] sm:w-[74px]',
+];
 
 /** A small numbered fact, so the numbers read at a glance. */
 function Fact({ label, value }) {
@@ -31,21 +25,24 @@ function Fact({ label, value }) {
   );
 }
 
-/** The quick look: their work as one collage, who they are, and one way to book. */
+/** The quick look: their face in the middle of their work, then one way to book. */
 export default function QuickViewSheet({ creator, onClose }) {
   const [open, setOpen] = useState(false);
   const sheetRef = useRef(null);
   const closeRef = useRef(null);
 
   const accent = accentOf(creator);
-  const frames = collageFrames(galleryImages(creator));
+  const images = galleryImages(creator);
   const name = displayNameOf(creator);
+  const initial = (String(name || '?').trim()[0] || '?').toUpperCase();
   const tagline = taglineOf(creator);
   const spots = (creator?.neighborhoods || []).filter(Boolean);
   const specialties = (creator?.specialties || []).filter(Boolean);
   const years = Number(creator?.years_experience) > 0 ? creator.years_experience : null;
   const reviews = Number(creator?.review_count || 0);
   const profilePath = `/creators/${creator?.slug || creator?.id}`;
+  const portrait = creator?.profile_image || images[0];
+  const tiles = images.slice(0, TILE_SLOTS.length);
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => setOpen(true));
@@ -90,14 +87,12 @@ export default function QuickViewSheet({ creator, onClose }) {
         onClick={onClose}
       />
 
-      {/* A column, not one scrolling stack: the words scroll on their own and the
-          booking bar sits below them, so it can never cover the name. */}
       <aside
         ref={sheetRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="quickview-title"
-        className={`fixed inset-x-0 bottom-0 z-[61] flex max-h-[90vh] flex-col overflow-hidden rounded-t-[26px] border border-white/10 bg-surface transition-transform duration-[600ms] ease-[cubic-bezier(.6,0,.2,1)] sm:inset-x-auto sm:bottom-4 sm:right-4 sm:top-4 sm:max-h-none sm:w-[min(560px,calc(100%-32px))] sm:rounded-[26px] ${
+        className={`fixed inset-x-0 bottom-0 z-[61] flex max-h-[92vh] flex-col overflow-hidden rounded-t-[26px] border border-white/10 bg-surface transition-transform duration-[600ms] ease-[cubic-bezier(.6,0,.2,1)] sm:inset-x-auto sm:bottom-4 sm:right-4 sm:top-4 sm:max-h-none sm:w-[min(560px,calc(100%-32px))] sm:rounded-[26px] ${
           open ? 'translate-y-0' : 'translate-y-full sm:translate-x-[calc(100%+40px)] sm:translate-y-0'
         }`}
         style={{ '--acc': accent }}
@@ -107,36 +102,49 @@ export default function QuickViewSheet({ creator, onClose }) {
           type="button"
           onClick={onClose}
           aria-label="Close"
-          className="absolute right-3 top-3 z-[2] grid h-9 w-9 place-items-center rounded-full border border-white/20 bg-ink/70 text-white backdrop-blur-[10px] transition-transform duration-300 hover:rotate-90"
+          className="absolute right-3 top-3 z-[3] grid h-9 w-9 place-items-center rounded-full border border-white/20 bg-ink/70 text-white backdrop-blur-[10px] transition-transform duration-300 hover:rotate-90"
         >
           <X className="h-[15px] w-[15px]" />
         </button>
 
         <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto overscroll-contain">
-          {/* The collage. */}
-          <div className="px-4 pt-4">
-            <div className="relative">
-              <div className="grid h-[212px] grid-cols-3 grid-rows-2 gap-1.5 overflow-hidden rounded-[18px] sm:h-[236px]">
-                {frames.map((frame, i) => (
-                  <div
-                    key={`${frame.url}-${i}`}
-                    className={`${frame.className} rounded-[10px] bg-surface-2 bg-cover bg-center transition-transform duration-700 hover:scale-[1.02]`}
-                    style={{ backgroundImage: cssUrl(frame.url) }}
-                  />
-                ))}
-              </div>
+          {/* The collage: their portrait in the middle, their work pinned around it. */}
+          <div className="relative mx-auto h-[252px] w-full max-w-[460px] px-4 pt-2 sm:h-[280px]">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute left-1/2 top-1/2 h-[280px] w-[280px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-[0.16] blur-[46px]"
+              style={{ background: accent }}
+            />
 
-              <div
-                className="absolute -bottom-3 left-4 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-bold text-ink shadow-[0_10px_24px_-10px_rgba(0,0,0,.9)]"
-                style={{ background: accent }}
-              >
-                <Star className="h-3 w-3" fill="currentColor" strokeWidth={0} />
-                {reviews ? `${ratingLabel(creator).replace('★ ', '')} · ${reviews} review${reviews === 1 ? '' : 's'}` : 'New to Stelli'}
-              </div>
+            {tiles.length > 1 &&
+              tiles.map((url, i) => (
+                <div
+                  key={`${url}-${i}`}
+                  className={`absolute aspect-[3/4] overflow-hidden rounded-[10px] bg-surface-2 bg-cover bg-center ring-1 ring-white/10 shadow-[0_16px_34px_-16px_rgba(0,0,0,.9)] transition-transform duration-500 hover:rotate-0 hover:scale-[1.06] ${TILE_SLOTS[i]}`}
+                  style={{ backgroundImage: cssUrl(url) }}
+                />
+              ))}
+
+            <div
+              className="absolute left-1/2 top-1/2 h-[148px] w-[148px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full bg-surface-2 ring-[6px] ring-surface sm:h-[176px] sm:w-[176px]"
+              style={{ boxShadow: `0 0 0 1.5px ${accent}, 0 26px 60px -22px rgba(0,0,0,.95)` }}
+            >
+              {portrait ? (
+                <img
+                  src={portrait}
+                  alt={name}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="grid h-full w-full place-items-center font-display text-[54px] text-white/60">
+                  {initial}
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="px-[22px] pb-5 pt-7">
+          <div className="px-[22px] pb-5 pt-4">
             <p className="label-mono text-[10px] text-white/40">
               {creator?.market === 'ELON' || !creator?.market ? 'Elon' : creator.market} · Photographer
             </p>
@@ -188,20 +196,23 @@ export default function QuickViewSheet({ creator, onClose }) {
           </div>
         </div>
 
-        <div className="shrink-0 border-t border-white/10 bg-surface px-[22px] pb-[calc(18px+var(--safe-bottom))] pt-4">
-          <Link
-            to={`/book/${creator.id}`}
-            className="block w-full rounded-2xl py-[16px] text-center text-[15px] font-semibold text-ink transition-transform duration-[250ms] hover:-translate-y-0.5"
-            style={{ background: accent }}
-          >
-            {creator.booking_cta || 'Request a date'}
-          </Link>
-          <div className="mt-2 flex items-center justify-between gap-3">
-            <Link to={profilePath} className="text-[12.5px] text-white/50 transition-colors hover:text-white">
-              See the full profile
+        <div className="shrink-0 border-t border-white/10 bg-surface px-[22px] pb-[calc(16px+var(--safe-bottom))] pt-4">
+          <div className="flex items-center gap-2">
+            <Link
+              to={`/book/${creator.id}`}
+              className="flex-1 rounded-2xl py-[15px] text-center text-[15px] font-semibold text-ink transition-transform duration-200 hover:-translate-y-0.5"
+              style={{ background: accent }}
+            >
+              {creator.booking_cta || 'Request a date'}
             </Link>
-            <p className="text-right text-[11px] text-white/35">Protected on Stelli</p>
+            <Link
+              to={profilePath}
+              className="shrink-0 whitespace-nowrap rounded-2xl border border-white/15 px-4 py-[15px] text-center text-[13px] font-semibold text-white/85 transition-colors hover:border-white/35 hover:text-white"
+            >
+              See full profile
+            </Link>
           </div>
+          <p className="mt-2 text-center text-[11px] text-white/35">Payments and messaging stay protected on Stelli.</p>
         </div>
       </aside>
     </>,
