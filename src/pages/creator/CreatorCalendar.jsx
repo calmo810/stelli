@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react';
 import { Link, useOutletContext } from 'react-router-dom';
 import { addDays, format } from 'date-fns';
-import { CalendarDays, Loader2 } from 'lucide-react';
+import { CalendarDays, Download, Loader2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { todayKey } from '@/hooks/useCreatorPortal';
 import WorkspaceEmpty from '@/components/creator/workspace/WorkspaceEmpty';
+import { downloadCreatorCalendar } from '@/lib/creatorCalendarExport';
 
 const WINDOW_DAYS = 28;
 const INK = '#0a1226';
@@ -58,6 +59,7 @@ export default function CreatorCalendar() {
   );
   const offOnSelected = blackouts.includes(selectedKey);
   const canToggle = selectedKey >= today;
+  const canExport = confirmed.some((booking) => booking.event_date >= today);
 
   const toggleAvailability = async () => {
     setSaving(true);
@@ -84,6 +86,26 @@ export default function CreatorCalendar() {
     <div className="arch-tab arch-tab--calendar">
       <h1 className="wk-h1">Schedule</h1>
       <p className="wk-lede">Four weeks at a glance. Pick a day to view it or block it.</p>
+
+      <div className="calendar-export mt-5">
+        <div className="calendar-export__copy">
+          <span className="calendar-export__icon"><CalendarDays className="h-4 w-4" strokeWidth={2.2} /></span>
+          <span>
+            <small>Calendar</small>
+            <strong>Take confirmed shoots with you</strong>
+            <em>Download one file for Apple Calendar or Google Calendar.</em>
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={() => downloadCreatorCalendar(confirmed)}
+          disabled={!canExport}
+          className="calendar-export__button"
+        >
+          <Download className="h-3.5 w-3.5" strokeWidth={2.5} />
+          Export .ics
+        </button>
+      </div>
 
       <div className="wk-strip mt-5">
         {strip.map((day) => {
