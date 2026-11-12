@@ -43,6 +43,7 @@ export default async function (req) {
     const shootSetting = ['outdoor', 'indoor', 'flexible'].includes(String(body.shootSetting))
       ? String(body.shootSetting)
       : 'flexible';
+    const weatherAlertsEnabled = shootSetting === 'outdoor' && body.weatherAlertsEnabled === true;
     // In the client's own words, both optional.
     const budget = String(body.budget || '').trim().slice(0, MAX.budget);
     const duration = String(body.duration || '').trim().slice(0, MAX.duration);
@@ -130,6 +131,7 @@ export default async function (req) {
       event_type: eventType || 'Custom shoot',
       location,
       shoot_setting: shootSetting,
+      weather_alerts_enabled: weatherAlertsEnabled,
       event_description: brief,
       budget,
       duration,
