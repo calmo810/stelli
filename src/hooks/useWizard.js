@@ -1,36 +1,82 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import {
-  PROMPTS, STEPS, MIN_SHOTS, MAX_SHOTS, MARKET,
-  freshState, defaultTiers, applicableReqs, missingReqs, strength, activeTiers,
-  buildPayload, slugify, validEmail, shareUrl, shareLabel,
+  PROMPTS, MIN_SHOTS, MAX_SHOTS, MARKET, FIELD_STEP,
+  freshState, defaultTiers, stepsFor, stepProblem, missingReqs, strength, activeTiers,
+  buildPayload, slugify, shareUrl, shareLabel, hasContent, REQS,
 } from '@/lib/wizardData';
 import { PRIVACY_VERSION, TERMS_VERSION } from '@/lib/legalDocuments';
+import { prepareImage, imageProblemMessage } from '@/lib/prepareImage';
+import { applyPendingSignupChoices } from '@/lib/signupChoices';
+import { loginUrl } from '@/lib/requireSignIn';
 
-const DRAFT_KEY = 'stelli_profile_draft_v2';
+const LEGACY_DRAFT_KEY = 'stelli_profile_draft_v2';
+const draftKey = (userId) => `stelli_profile_draft_v3:${userId}`;
+const NEXT_STEP_PROMPT_KEY = 'stelli_next_step_prompt';
+/** How many photos upload at once. */
+const UPLOADS_AT_ONCE = 3;
 
-function readDraft() {
+function readJson(key) {
   try {
-    return JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
+    return JSON.parse(localStorage.getItem(key) || 'null');
   } catch {
     return null;
   }
 }
-function writeDraft(data) {
+function writeJson(key, data) {
   try {
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(data));
+    localStorage.setItem(key, JSON.stringify(data));
   } catch {
     /* a full or blocked store never blocks the wizard */
   }
 }
-function clearDraft() {
+function removeKey(key) {
   try {
-    localStorage.removeItem(DRAFT_KEY);
+    localStorage.removeItem(key);
   } catch {
     /* nothing to clear */
   }
+}
+
+/**
+ * The newest saved application for this person: the one on their account
+ * (which follows them to any device) or the one in this browser.
+ */
+function newestDraft(user) {
+  const onAccount = user?.creator_draft && typeof user.creator_draft === 'object' && hasDraftContent(user.creator_draft)
+    ? user.creator_draft
+    : null;
+  const onDevice = readJson(draftKey(user.id)) || readJson(LEGACY_DRAFT_KEY);
+  if (onAccount && onDevice) {
+    return String(onAccount._savedAt || '') > String(onDevice._savedAt || '') ? onAccount : onDevice;
+  }
+  return onAccount || onDevice;
+}
+
+function hasDraftContent(draft) {
+  try {
+    return hasContent({ ...freshState(), ...draft });
+  } catch {
+    return false;
+  }
+}
+
+/** A saved draft, made safe to load whatever version of the wizard wrote it. */
+function fromDraft(draft, user) {
+  const base = freshState();
+  const merged = { ...base, ...draft };
+  delete merged._savedAt;
+  delete merged._step;
+  for (const field of ['tags', 'where', 'what', 'portfolio']) {
+    if (!Array.isArray(merged[field])) merged[field] = base[field];
+  }
+  merged.portfolio = merged.portfolio.filter((item) => item && item.src);
+  merged.tiers = Array.isArray(merged.tiers) && merged.tiers.length === 3 ? merged.tiers : defaultTiers();
+  merged.fullName = merged.fullName || user?.full_name || '';
+  merged.email = merged.email || user?.email || '';
+  return merged;
 }
 
 /** Turns a saved creator profile back into wizard state. */
@@ -77,16 +123,28 @@ function prefill(lensman, contact, user) {
     frame: lensman.print_frame || 'mat',
     mat: lensman.print_mat || 'mixed',
     captions: lensman.show_captions !== false,
-    fullName: contact?.full_name || '',
+    fullName: contact?.full_name || user?.full_name || '',
     email: contact?.email || user?.email || '',
     phone: contact?.phone || '',
     ig: contact?.instagram || '',
   };
 }
 
+/** The message a failed save came back with, and the field it was about. */
+function readFailure(error) {
+  const data = error?.response?.data || error?.data || {};
+  return {
+    message: data.error || error?.message || 'Please try again.',
+    field: data.field || '',
+  };
+}
+
 /**
  * The wizard's whole brain: the profile being built, where the creator is in
- * the flow, uploads, the local draft, and publishing to Stelli.
+ * the flow, uploads, the saved draft, and sending it to Stelli.
+ *
+ * Without a profile it is the application (four screens, then send). With one
+ * it is the page editor (every step, then a review screen).
  */
 export default function useWizard() {
   const navigate = useNavigate();
@@ -103,11 +161,14 @@ export default function useWizard() {
   const [confirm, setConfirm] = useState(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [uploadNote, setUploadNote] = useState('');
   const [publishing, setPublishing] = useState(false);
   const [flash, setFlash] = useState(false);
   const [saveState, setSaveState] = useState('');
+  const [justSent, setJustSent] = useState('');
 
   const loadedRef = useRef(false);
+  const settledRef = useRef(false);
   const toastTimer = useRef(null);
 
   const { data: user, isLoading: userLoading } = useQuery({
@@ -141,50 +202,99 @@ export default function useWizard() {
   // A failed load must never look like "no profile yet": that would start a
   // fresh application on top of an existing one.
   const lensmanFetched = ownFetched && !ownFailed;
-  const contactFetched = lensmanFetched;
 
-  // A creator profile belongs to an account, so building one starts at sign-in.
+  const applying = !lensman;
+  const steps = useMemo(() => stepsFor(!applying), [applying]);
+  const needsChanges = lensman?.status === 'needs_changes';
+
+  // A creator profile belongs to an account. Someone new who taps "Apply" goes
+  // to creator signup and comes straight back here; someone editing logs in.
   useEffect(() => {
-    if (!userLoading && !user) base44.auth.redirectToLogin(window.location.pathname);
+    if (userLoading || user) return;
+    const here = window.location.pathname;
+    window.location.replace(
+      here === '/apply' ? `/register?role=creator&returnTo=${encodeURIComponent(here)}` : loginUrl(here)
+    );
   }, [userLoading, user]);
+
+  // Arriving here straight from signup skips the portal, so this page finishes
+  // what the portal would have: the account type chosen before a Google
+  // sign-in, and no "ready to apply?" prompt waiting for later.
+  useEffect(() => {
+    if (!user || settledRef.current) return;
+    settledRef.current = true;
+    (async () => {
+      const current = await applyPendingSignupChoices(user);
+      if (!current?.account_type && window.location.pathname === '/apply') {
+        await base44.auth.updateMe({ account_type: 'creator' }).catch(() => {});
+      }
+      try {
+        if (localStorage.getItem(NEXT_STEP_PROMPT_KEY) === 'creator') localStorage.removeItem(NEXT_STEP_PROMPT_KEY);
+      } catch {
+        /* nothing to clear */
+      }
+    })();
+  }, [user]);
 
   useEffect(() => {
     if (loadedRef.current || userLoading || !user) return;
-    // Both lookups must have come back before we can tell a new creator from
-    // one who is coming back to a profile they already have.
-    if (!lensmanFetched || !contactFetched) return;
+    // The profile lookup must have come back before we can tell a new creator
+    // from one who is coming back to a profile they already have.
+    if (!lensmanFetched) return;
     if (lensman) {
       setS(prefill(lensman, contact, user));
-      setView('welcome');
+      // An existing page can be opened at any step.
+      setMaxStep(stepsFor(true).length - 1);
     } else {
-      const draft = readDraft();
-      if (draft) setS({ ...freshState(), ...draft, tiers: Array.isArray(draft.tiers) && draft.tiers.length === 3 ? draft.tiers : defaultTiers() });
+      const draft = newestDraft(user);
+      if (draft) {
+        setS(fromDraft(draft, user));
+        const resumeAt = stepsFor(false).findIndex((item) => item.key === draft._step);
+        if (resumeAt > 0) setMaxStep(resumeAt);
+      } else {
+        setS((prev) => ({ ...prev, fullName: user.full_name || '', email: user.email || '' }));
+      }
     }
+    setView('welcome');
     loadedRef.current = true;
     setReady(true);
-  }, [user, userLoading, lensman, lensmanFetched, contact, contactFetched]);
+  }, [user, userLoading, lensman, lensmanFetched, contact]);
 
-  // The draft lives on the device, so a creator can leave and pick it back up.
+  // An application in progress is saved twice: in this browser right away, and
+  // on the account a moment later, so it can be picked up on another device
+  // (start on a phone, finish on the laptop with the photos).
+  const stepKey = steps[Math.min(step, steps.length - 1)]?.key;
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || !user || !applying) return undefined;
     setSaveState('Saving…');
-    const timer = setTimeout(() => {
-      writeDraft(s);
+    const draft = { ...s, _savedAt: new Date().toISOString(), _step: stepKey };
+    const local = setTimeout(() => {
+      writeJson(draftKey(user.id), draft);
+      removeKey(LEGACY_DRAFT_KEY);
       setSaveState('Draft saved');
     }, 500);
-    return () => clearTimeout(timer);
-  }, [s, ready]);
+    const remote = setTimeout(() => {
+      if (!hasContent(s)) return;
+      base44.auth
+        .updateMe({ creator_draft: draft, creator_draft_step: stepKey, creator_draft_at: draft._savedAt })
+        .catch(() => {});
+    }, 2500);
+    return () => {
+      clearTimeout(local);
+      clearTimeout(remote);
+    };
+  }, [s, stepKey, ready, user, applying]);
 
   const showToast = useCallback((message) => {
     setToast(message);
     clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(''), 3200);
+    toastTimer.current = setTimeout(() => setToast(''), 4200);
   }, []);
 
   const patch = useCallback((changes) => setS((prev) => ({ ...prev, ...changes })), []);
 
   const goStep = useCallback((target, { jump = false } = {}) => {
-    const next = Math.max(0, Math.min(target, STEPS.length - 1));
+    const next = Math.max(0, Math.min(target, steps.length - 1));
     setDir(next >= step ? 1 : -1);
     setView('wizard');
     setStep(next);
@@ -192,40 +302,16 @@ export default function useWizard() {
     setErrMsg('');
     setSheetOpen(false);
     if (!jump) window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [step]);
+  }, [step, steps]);
 
-  const validate = useCallback(() => {
-    const key = STEPS[step].key;
-    if (key === 'name' && !s.name.trim()) return 'Add a name clients can call you.';
-    if (key === 'where' && !s.where.length) return 'Pick at least one spot — clients filter by this.';
-    if (key === 'what' && !s.what.length) return 'Pick at least one shoot type — it is the first thing clients search.';
-    if (key === 'price' && s.tiers.some((tier) => tier.on && tier.price && !tier.name.trim())) return "Give each package you're offering a name.";
-    if (key === 'priv' && !validEmail(s.email)) return 'Add a valid email so booking requests can reach you.';
-    return '';
-  }, [step, s]);
+  /** Opens the step a given key lives on, if this flow has it. */
+  const goKey = useCallback((key, options = { jump: true }) => {
+    const index = steps.findIndex((item) => item.key === key);
+    if (index >= 0) goStep(index, options);
+    return index >= 0;
+  }, [steps, goStep]);
 
-  const goNext = useCallback(() => {
-    const problem = validate();
-    if (problem) {
-      setErrMsg(problem);
-      return;
-    }
-    if (step === STEPS.length - 1) {
-      setView('preview');
-      setSheetOpen(false);
-      window.scrollTo(0, 0);
-      return;
-    }
-    goStep(step + 1);
-  }, [validate, step, goStep]);
-
-  const goBack = useCallback(() => {
-    if (step === 0) {
-      setView('welcome');
-      return;
-    }
-    goStep(step - 1);
-  }, [step, goStep]);
+  const validate = useCallback(() => stepProblem(steps[step]?.key, s), [steps, step, s]);
 
   const applyStarter = useCallback((starter) => {
     if (!starter) return;
@@ -249,8 +335,8 @@ export default function useWizard() {
         promptA: starter.promptA,
         dont: starter.dont,
       }));
-      goStep(0);
-      showToast(`Started from ${starter.name} — every word is editable.`);
+      if (!goKey('line', { jump: false })) goStep(0);
+      showToast(`Started from ${starter.name}. Every word is editable.`);
     };
     if (s.oneLiner || s.bio || s.tags.length || s.dont) {
       setConfirm({
@@ -262,99 +348,198 @@ export default function useWizard() {
     } else {
       run();
     }
-  }, [s, goStep, showToast]);
+  }, [s, goKey, goStep, showToast]);
+
+  /** One file, made web-ready and uploaded. Throws with a reason on failure. */
+  const uploadOne = useCallback(async (file) => {
+    const prepared = await prepareImage(file);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file: prepared });
+    if (!file_url) throw new Error('upload');
+    return file_url;
+  }, []);
 
   const uploadPhoto = useCallback(async (file) => {
     if (!file) return;
-    if (!file.type.startsWith('image/')) {
-      showToast('That file is not an image.');
-      return;
-    }
     setUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      patch({ photo: file_url });
-    } catch {
-      showToast('That image could not be uploaded.');
+      patch({ photo: await uploadOne(file) });
+      setErrMsg('');
+    } catch (error) {
+      showToast(imageProblemMessage(error));
     } finally {
       setUploading(false);
     }
-  }, [patch, showToast]);
+  }, [patch, uploadOne, showToast]);
 
   const uploadPortfolio = useCallback(async (files) => {
     const room = MAX_SHOTS - s.portfolio.length;
     if (room <= 0) {
-      showToast(`Max ${MAX_SHOTS} shots — remove one to add more.`);
+      showToast(`Max ${MAX_SHOTS} shots. Remove one to add more.`);
       return;
     }
+    const picked = Array.from(files || []);
+    const queue = picked.slice(0, room);
+    if (!queue.length) return;
+
     setUploading(true);
-    const added = [];
-    for (const file of Array.from(files).slice(0, room)) {
-      if (!file.type.startsWith('image/')) continue;
-      try {
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        added.push({ src: file_url });
-      } catch {
-        showToast('One of those images could not be uploaded.');
+    let done = 0;
+    let lastProblem = null;
+    const results = new Array(queue.length).fill(null);
+    const note = () => setUploadNote(`Uploading ${Math.min(done + 1, queue.length)} of ${queue.length}…`);
+    note();
+
+    // A few at a time, in the order they were picked.
+    let cursor = 0;
+    const worker = async () => {
+      while (cursor < queue.length) {
+        const index = cursor;
+        cursor += 1;
+        try {
+          results[index] = await uploadOne(queue[index]);
+        } catch (error) {
+          lastProblem = error;
+        }
+        done += 1;
+        if (done < queue.length) note();
       }
+    };
+    await Promise.all(Array.from({ length: Math.min(UPLOADS_AT_ONCE, queue.length) }, worker));
+
+    const added = results.filter(Boolean).map((src) => ({ src }));
+    if (added.length) {
+      setS((prev) => ({ ...prev, portfolio: [...prev.portfolio, ...added].slice(0, MAX_SHOTS) }));
+      setErrMsg('');
     }
-    if (added.length) patch({ portfolio: [...s.portfolio, ...added] });
+    const failed = queue.length - added.length;
+    if (failed) {
+      showToast(
+        failed === 1 && queue.length === 1
+          ? imageProblemMessage(lastProblem)
+          : `${failed} of ${queue.length} could not be added. ${imageProblemMessage(lastProblem)}`
+      );
+    } else if (picked.length > queue.length) {
+      showToast(`Added ${queue.length}. The max is ${MAX_SHOTS} shots.`);
+    }
     setUploading(false);
-  }, [s.portfolio, patch, showToast]);
+    setUploadNote('');
+  }, [s.portfolio.length, uploadOne, showToast]);
 
   const publish = useCallback(async () => {
-    if (missingReqs(s, Boolean(lensman)).length || publishing) return;
+    if (publishing) return;
+    const missing = missingReqs(s);
+    if (missing.length) {
+      if (goKey(missing[0].k)) setErrMsg(stepProblem(missing[0].k, s) || `Still needed: ${missing[0].t}.`);
+      return;
+    }
+    if (uploading) {
+      showToast('Hang on, your photos are still uploading.');
+      return;
+    }
     setPublishing(true);
     setFlash(true);
     setTimeout(() => setFlash(false), 700);
     try {
       const payload = buildPayload(s);
-      const response = await base44.functions.invoke(lensman ? 'updateCreatorProfile' : 'applyAsCreator', payload);
+      const response = applying
+        ? await base44.functions.invoke('applyAsCreator', payload)
+        : await base44.functions.invoke('updateCreatorProfile', { ...payload, resubmit: needsChanges });
       const problem = response?.data?.error;
-      if (problem) throw new Error(problem);
-      if (!lensman) {
-        await Promise.all([
+      if (problem) {
+        const failure = new Error(problem);
+        failure.data = response.data;
+        throw failure;
+      }
+
+      if (applying) {
+        // The application is in. Recording the terms is a second, separate
+        // record: if it hiccups it is retried later, never shown as a failed
+        // application.
+        Promise.all([
           base44.functions.invoke('recordAgreementAcceptance', { documentType: 'terms', documentVersion: TERMS_VERSION }),
           base44.functions.invoke('recordAgreementAcceptance', { documentType: 'privacy', documentVersion: PRIVACY_VERSION }),
-        ]);
+        ]).catch(() => {
+          try {
+            localStorage.setItem('stelli_pending_legal_acceptance', 'true');
+          } catch {
+            /* nothing to do */
+          }
+        });
+        removeKey(draftKey(user.id));
+        removeKey(LEGACY_DRAFT_KEY);
+        base44.auth
+          .updateMe({ creator_draft: {}, creator_draft_step: 'submitted', creator_draft_at: new Date().toISOString() })
+          .catch(() => {});
       }
-      clearDraft();
+
+      setJustSent(applying ? 'applied' : response?.data?.resubmitted ? 'resubmitted' : 'saved');
       queryClient.invalidateQueries({ queryKey: ['my-lensman-profile'] });
-      queryClient.invalidateQueries({ queryKey: ['my-creator-profile-full'] });
+      // Wait for the saved profile, so the page steps are there to walk into.
+      await queryClient.refetchQueries({ queryKey: ['my-creator-profile-full'] }).catch(() => {});
       setView('share');
       window.scrollTo(0, 0);
     } catch (error) {
-      showToast(`Couldn't publish — ${error?.message || 'please try again.'}`);
+      const { message, field } = readFailure(error);
+      const key = FIELD_STEP[field];
+      if (key && goKey(key)) setErrMsg(message);
+      else showToast(`That didn't go through. ${message}`);
     } finally {
       setPublishing(false);
     }
-  }, [s, lensman, publishing, queryClient, showToast]);
+  }, [s, applying, needsChanges, publishing, uploading, user, queryClient, showToast, goKey]);
+
+  const goNext = useCallback(() => {
+    const problem = validate();
+    if (problem) {
+      setErrMsg(problem);
+      return;
+    }
+    if (step === steps.length - 1) {
+      // The application sends from its last screen. A page gets a review first.
+      if (applying) {
+        publish();
+        return;
+      }
+      setView('preview');
+      setSheetOpen(false);
+      window.scrollTo(0, 0);
+      return;
+    }
+    goStep(step + 1);
+  }, [validate, step, steps, applying, publish, goStep]);
+
+  const goBack = useCallback(() => {
+    if (step === 0) {
+      setView('welcome');
+      return;
+    }
+    goStep(step - 1);
+  }, [step, goStep]);
 
   const exit = useCallback(() => {
-    writeDraft(s);
+    if (applying && user) writeJson(draftKey(user.id), { ...s, _savedAt: new Date().toISOString(), _step: stepKey });
     navigate(lensman ? '/lensman-dashboard' : '/');
-  }, [s, lensman, navigate]);
+  }, [s, stepKey, applying, user, lensman, navigate]);
 
   const copy = useCallback(async (text, message) => {
     try {
       await navigator.clipboard.writeText(text);
       showToast(message);
     } catch {
-      showToast('Could not copy — select it by hand.');
+      showToast('Could not copy. Select it by hand.');
     }
   }, [showToast]);
 
-  const live = Boolean(lensman);
-  const reqs = missingReqs(s, live);
-  const reqTotal = applicableReqs(s, live).length;
-  const pct = Math.round(((reqTotal - reqs.length) / reqTotal) * 100);
+  const reqs = missingReqs(s);
+  const pct = Math.round(((REQS.length - reqs.length) / REQS.length) * 100);
 
   return {
     user, lensman, contact, ready,
     s, patch, view, setView, step, maxStep, dir,
+    steps, applying, needsChanges, justSent,
+    changesNote: needsChanges ? contact?.changes_requested || '' : '',
     errMsg, setErrMsg, toast, showToast, confirm, setConfirm,
-    sheetOpen, setSheetOpen, uploading, publishing, flash, saveState,
-    goStep, goNext, goBack, applyStarter, validate,
+    sheetOpen, setSheetOpen, uploading, uploadNote, publishing, flash, saveState,
+    goStep, goKey, goNext, goBack, applyStarter, validate,
     uploadPhoto, uploadPortfolio, publish, exit, copy,
     missing: reqs, pct, strength: strength(s), readyToPublish: reqs.length === 0,
     approved: lensman?.status === 'approved',
@@ -363,9 +548,10 @@ export default function useWizard() {
     linkLabel: shareLabel(s.slug),
     slugFor: slugify,
     reset: () => {
-      clearDraft();
+      if (user) removeKey(draftKey(user.id));
+      removeKey(LEGACY_DRAFT_KEY);
       setConfirm(null);
-      setS(freshState());
+      setS({ ...freshState(), fullName: user?.full_name || '', email: user?.email || '' });
       setView('welcome');
       setStep(0);
       setMaxStep(0);
