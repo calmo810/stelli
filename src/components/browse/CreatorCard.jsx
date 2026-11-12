@@ -31,7 +31,6 @@ export default function CreatorCard({ creator, index = 0, onOpen }) {
   const accent = accentOf(creator);
   const name = displayNameOf(creator);
   const tagline = taglineOf(creator);
-  const spots = (creator?.neighborhoods || []).filter(Boolean).slice(0, 3);
   const face = creator?.profile_image;
   const initial = (String(name || '?').trim()[0] || '?').toUpperCase();
   /* Skip the badge when the card is already showing their portrait. */
@@ -212,23 +211,6 @@ export default function CreatorCard({ creator, index = 0, onOpen }) {
           </div>
 
           <div className="mt-1 truncate text-[14px] text-white/70">{tagline}</div>
-
-          {spots.length > 0 && (
-            <div
-              className={`flex flex-wrap gap-1.5 overflow-hidden pr-[58px] transition-[max-height,margin-top,opacity] duration-500 ${
-                active ? 'mt-3.5 max-h-[72px] opacity-100' : 'mt-0 max-h-0 opacity-0'
-              } [@media(hover:none)]:mt-3.5 [@media(hover:none)]:max-h-[72px] [@media(hover:none)]:opacity-100`}
-            >
-              {spots.map((spot) => (
-                <span
-                  key={spot}
-                  className="whitespace-nowrap rounded-full bg-white/[0.12] px-2.5 py-1.5 text-[12px] backdrop-blur-[10px]"
-                >
-                  {spot}
-                </span>
-              ))}
-            </div>
-          )}
 
           <div
             aria-hidden="true"
