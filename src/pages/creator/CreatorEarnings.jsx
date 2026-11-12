@@ -128,6 +128,7 @@ export default function CreatorEarnings() {
             </div>
           ) : (
             <WorkspaceEmpty
+              tone="workbench"
               icon={Wallet}
               title="Nothing held right now"
               body="Money is held here from the moment a client pays until you deliver."
@@ -173,7 +174,7 @@ export default function CreatorEarnings() {
             ))}
           </div>
         ) : (
-          <WorkspaceEmpty icon={Wallet} title="Nothing paid out yet" body="Payouts show up here once delivered." />
+          <WorkspaceEmpty tone="workbench" icon={Wallet} title="Nothing paid out yet" body="Payouts show up here once delivered." />
         )}
       </div>
 
