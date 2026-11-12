@@ -45,6 +45,9 @@ export default function TodayShootCard({ shoot, profile }) {
 
   return (
     <section className="today-feature">
+      <span className="today-feature__camera" aria-hidden="true">📷</span>
+      <span className="today-feature__star today-feature__star--one" aria-hidden="true">✦</span>
+      <span className="today-feature__star today-feature__star--two" aria-hidden="true">✧</span>
       <div className="today-feature__eyebrow">
         <span><CalendarDays className="h-3.5 w-3.5" strokeWidth={2.5} /> Next shoot</span>
         <b>{whenLabel(shoot.event_date)}</b>
