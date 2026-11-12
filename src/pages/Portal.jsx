@@ -99,7 +99,7 @@ export default function Portal() {
   return (
     <DashboardShell>
       <div
-        className="glass depth relative overflow-hidden rounded-[28px] px-6 pb-7 pt-14 sm:px-9 sm:pb-9"
+        className="glass relative overflow-hidden rounded-[28px] px-6 pb-7 pt-14 sm:px-9 sm:pb-9"
         style={{ background: `radial-gradient(90% 70% at 50% 110%, hsl(${accent} / 0.22), transparent 70%), rgba(255,255,255,0.08)` }}
       >
         <button

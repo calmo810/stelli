@@ -1,27 +1,62 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import BackButton from '@/components/shared/BackButton';
-import Surface from '@/components/shared/Surface';
+import CanvasGlow from '@/components/shared/CanvasGlow';
+import StelliWordmark from '@/components/shared/StelliWordmark';
 
-/** One quiet column for every sign-in screen, on the same ink canvas. */
-export default function AuthLayout({ icon: Icon, title, subtitle, footer, children }) {
+/**
+ * The canvas every screen outside the main site sits on — sign-in, two-factor,
+ * onboarding: the portal's soft light, the way back on the left, the Stelli
+ * mark in the middle, and one centred column.
+ */
+export function AuthCanvas({ children, width = "max-w-[440px]", back = true }) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-ink px-4 py-20">
-      <BackButton />
-      <div className="w-full max-w-[420px]">
-        <div className="text-center mb-9">
-          {Icon && (
-            <span className="mb-5 inline-grid place-items-center w-11 h-11 rounded-full border border-white/10 text-neon-lime">
-              <Icon className="w-5 h-5" strokeWidth={1.6} aria-hidden="true" />
-            </span>
-          )}
-          <h1 className="text-[26px] font-semibold tracking-[-0.01em] text-white">{title}</h1>
-          {subtitle && <p className="mt-2 text-[14px] leading-relaxed text-white/45">{subtitle}</p>}
-        </div>
-
-        <Surface className="p-7 md:p-8">{children}</Surface>
-
-        {footer && <p className="mt-6 text-center text-[14px] text-white/45">{footer}</p>}
-      </div>
+    <div className="relative min-h-screen bg-ink">
+      <CanvasGlow />
+      <header
+        className="relative z-10 mx-auto grid max-w-[1500px] grid-cols-[1fr_auto_1fr] items-center px-5 md:px-10"
+        style={{ paddingTop: "calc(16px + var(--safe-top))" }}
+      >
+        <div>{back && <BackButton />}</div>
+        <Link to="/" aria-label="Stelli — home">
+          <StelliWordmark />
+        </Link>
+        <div />
+      </header>
+      <main className="relative z-10 flex min-h-[calc(100vh-72px)] items-center justify-center px-4 pb-16 pt-8">
+        <div className={`w-full ${width}`}>{children}</div>
+      </main>
     </div>
+  );
+}
+
+/** The title block over a sign-in card: an icon tile, a display headline, one line under it. */
+export function AuthHeading({ icon: Icon, title, subtitle }) {
+  return (
+    <div className="mb-7 text-center">
+      {Icon && (
+        <span className="mb-5 inline-grid h-[52px] w-[52px] place-items-center rounded-2xl bg-white/[0.08] text-white/75">
+          <Icon className="h-6 w-6" strokeWidth={1.7} aria-hidden="true" />
+        </span>
+      )}
+      <h1
+        className="font-display font-medium text-white"
+        style={{ fontSize: "clamp(30px, 4vw, 38px)", letterSpacing: "-0.02em", lineHeight: 1.05 }}
+      >
+        {title}
+      </h1>
+      {subtitle && <p className="mx-auto mt-2.5 max-w-[360px] text-[15px] leading-snug text-white/55">{subtitle}</p>}
+    </div>
+  );
+}
+
+/** One quiet column for every sign-in screen: heading, a glass card, a line under it. */
+export default function AuthLayout({ icon, title, subtitle, footer, children }) {
+  return (
+    <AuthCanvas>
+      <AuthHeading icon={icon} title={title} subtitle={subtitle} />
+      {children && <div className="glass rounded-[28px] p-5 sm:p-7">{children}</div>}
+      {footer && <p className="mt-6 text-center text-[14px] text-white/50">{footer}</p>}
+    </AuthCanvas>
   );
 }
