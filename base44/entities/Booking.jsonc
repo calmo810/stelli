@@ -17,7 +17,14 @@
     },
     "lensman_email": {
       "type": "string",
-      "description": "Email of the account that owns the booked creator profile"
+      "description": "Email of the account that owns the booked creator profile",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "client_id": {
       "type": "string",
@@ -29,7 +36,14 @@
     },
     "creator_email": {
       "type": "string",
-      "description": "Email of the account that owns the booked creator profile"
+      "description": "Email of the account that owns the booked creator profile",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "contract_id": {
       "type": "string",
@@ -69,11 +83,25 @@
     },
     "client_email": {
       "type": "string",
-      "description": "Client email"
+      "description": "Client email",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "client_phone": {
       "type": "string",
-      "description": "Client phone"
+      "description": "Client phone",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "event_date": {
       "type": "string",
@@ -360,7 +388,108 @@
     },
     "billing_address": {
       "type": "string",
-      "description": "Client billing address"
+      "description": "Client billing address",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
+    },
+    "stripe_livemode": {
+      "type": "boolean",
+      "description": "Whether the client's payment was taken in Stripe live mode. False means a test payment that must never be paid out with real money."
+    },
+    "stray_payment_count": {
+      "type": "number",
+      "default": 0,
+      "description": "How many unmatched payments on this booking are still open (each one is a StrayPayment record)"
+    },
+    "stray_payment_intent_id": {
+      "type": "string",
+      "description": "Summary: the latest open payment that arrived for this booking but did not match its accepted quote (old checkout, wrong amount, cancelled or already-paid booking). Each such payment is its own StrayPayment record; this is empty once none is open."
+    },
+    "stray_payment_amount": {
+      "type": "number",
+      "description": "Summary: what the open unmatched payments charged in all, in dollars"
+    },
+    "stray_payment_reason": {
+      "type": "string",
+      "description": "Why the stray payment was not treated as this booking's payment"
+    },
+    "stray_payment_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the stray payment arrived"
+    },
+    "payout_lock": {
+      "type": "string",
+      "description": "Set while a payout, refund, cancellation or problem report is working on this booking's money, so only one of them runs at a time. Empty when nothing is in progress."
+    },
+    "payout_lock_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When payout_lock was taken. A lock older than ten minutes was left by a run that died and may be taken over."
+    },
+    "payout_error": {
+      "type": "string",
+      "description": "What Stripe said the last time the payout to the creator failed. Empty once it goes through."
+    },
+    "payout_attempts": {
+      "type": "number",
+      "description": "How many times the payout to the creator has failed"
+    },
+    "payout_failed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the payout to the creator last failed"
+    },
+    "cancellation_payout_due": {
+      "type": "boolean",
+      "description": "A late client cancellation left the creator a share that has not been paid yet"
+    },
+    "payout_key_version": {
+      "type": "number",
+      "description": "Bumped each time Stripe definitively refuses the payout transfer, so the next attempt is not answered with the same stored refusal"
+    },
+    "reversal_status": {
+      "type": "string",
+      "description": "Where pulling the creator's payout back stands after a refund or a lost dispute: empty (nothing to pull back), needed, done or failed. Tracked separately from the refund itself so a failed pull-back can be retried."
+    },
+    "reversal_amount_due": {
+      "type": "number",
+      "description": "How much of the creator's payout should come back, in dollars"
+    },
+    "reversal_amount_done": {
+      "type": "number",
+      "description": "How much of the creator's payout has actually been pulled back, in dollars"
+    },
+    "reversal_error": {
+      "type": "string",
+      "description": "What Stripe said the last time pulling the payout back failed"
+    },
+    "reversal_attempts": {
+      "type": "number",
+      "description": "How many times pulling the payout back has failed"
+    },
+    "creator_payout_original": {
+      "type": "number",
+      "description": "The creator's payout before a partial refund or late cancellation reduced it, in dollars"
+    },
+    "album_token_reset_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the album link was last reset, cutting off the previous link"
+    },
+    "album_notified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the creator last emailed the client their album link (one email per 10 minutes)"
+    },
+    "manual_payout_id": {
+      "type": "string",
+      "description": "Set when a founder paid this booking's creator by hand. The automatic payout treats the booking as already paid."
     }
   },
   "required": [
@@ -377,15 +506,6 @@
         },
         {
           "data.creator_id": "{{user.id}}"
-        },
-        {
-          "data.client_email": "{{user.email}}"
-        },
-        {
-          "data.lensman_email": "{{user.email}}"
-        },
-        {
-          "data.creator_email": "{{user.email}}"
         },
         {
           "user_condition": {

@@ -1,0 +1,112 @@
+{
+  "name": "StrayPayment",
+  "type": "object",
+  "properties": {
+    "payment_intent_id": {
+      "type": "string",
+      "description": "The Stripe PaymentIntent this record is about (or the Checkout session ID when Stripe gave no intent). One record per payment: it is the key."
+    },
+    "checkout_session_id": {
+      "type": "string",
+      "description": "The Checkout session the client paid"
+    },
+    "booking_id": {
+      "type": "string",
+      "description": "The booking the Checkout page belonged to"
+    },
+    "client_id": {
+      "type": "string",
+      "description": "The client's account ID on that booking"
+    },
+    "amount": {
+      "type": "number",
+      "description": "What Stripe charged, in dollars"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Why it was not treated as the booking's payment, as short codes (for example quote-replaced, amount-mismatch)"
+    },
+    "summary": {
+      "type": "string",
+      "description": "The same, in a sentence for the founders"
+    },
+    "livemode": {
+      "type": "boolean",
+      "description": "Whether Stripe took it in live mode"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "refunding",
+        "refund_failed",
+        "refunded",
+        "disputed",
+        "dispute_lost"
+      ],
+      "default": "open",
+      "description": "open: waiting on a founder. refunding: a refund is being sent. refund_failed: Stripe refused it, try again. refunded: sent back. disputed: the client's bank opened a dispute, so it can't be refunded. dispute_lost: the bank took it back."
+    },
+    "received_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the payment arrived"
+    },
+    "refund_id": {
+      "type": "string",
+      "description": "The Stripe refund, once sent"
+    },
+    "refunded_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "refund_started_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the refund in progress was started (a stuck one is retried after 10 minutes)"
+    },
+    "refund_error": {
+      "type": "string",
+      "description": "What Stripe said when it refused the refund"
+    },
+    "refund_attempts": {
+      "type": "number",
+      "default": 0
+    },
+    "refund_key_version": {
+      "type": "number",
+      "default": 0,
+      "description": "Moves on after Stripe definitely refuses a refund, so the retry is a new request"
+    },
+    "dispute_status": {
+      "type": "string",
+      "description": "Stripe's status for a dispute on this payment"
+    }
+  },
+  "required": [
+    "payment_intent_id",
+    "booking_id"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

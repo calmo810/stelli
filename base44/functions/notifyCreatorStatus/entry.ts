@@ -1,102 +1,39 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
-import { sendEmail } from '../../shared/notify.ts';
-
-const PUBLISHED_ORIGIN = 'https://getstelli.base44.app';
+import { emailCreatorStatus } from '../../shared/creatorStatus.ts';
+import { requireAdmin } from '../../shared/audit.ts';
 
 /**
  * Emails a creator when a founder changes their status in the Base44 dashboard.
  * Called by the "Creator Status Emails" workflow on the Lensman entity.
  * Only `status` is read — `under_review` is reserved for flagging and never touched.
  *
- * Contact details live in CreatorContact, so this reads that record for the
- * address to write to.
- *
  * The workflow calls this as an app admin, and so must anyone invoking it by
  * hand: without that check an anonymous caller could read a creator's vetting
  * state straight off the response, and probe which profiles exist. The status
  * itself always comes from the record, never from the caller, and each status
- * is emailed once — replaying the call sends nothing.
+ * is emailed once — replaying the call sends nothing. The admin page's own
+ * approve / reject action (reviewCreator) shares the same sender, so whichever
+ * door a founder uses, the creator gets exactly one email.
  */
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
 
-    // Founders only. An anonymous caller gets no status to read here.
-    let user = null;
-    try {
-      user = await base44.auth.me();
-    } catch {
-      user = null;
-    }
-    if (!user) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-    if (user.role !== 'admin') {
-      return Response.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const user = await requireAdmin(base44);
+    if (!user) return Response.json({ error: 'Forbidden' }, { status: 403 });
 
     const { lensman_id } = await req.json();
-
     if (!lensman_id) {
       return Response.json({ error: 'lensman_id is required.' }, { status: 400 });
     }
 
-    const lensman = await base44.asServiceRole.entities.Lensman.get(lensman_id);
-    if (!lensman) {
-      return Response.json({ error: 'Creator not found.' }, { status: 404 });
-    }
+    const lensman = await base44.asServiceRole.entities.Lensman.get(lensman_id).catch(() => null);
+    if (!lensman) return Response.json({ error: 'Creator not found.' }, { status: 404 });
 
-    const contacts = await base44.asServiceRole.entities.CreatorContact.filter({
-      lensman_id: lensman.id,
-    });
-    const contact = contacts[0];
-    const email = contact?.email || '';
-    if (!email) {
-      return Response.json({ error: 'No contact email on file for this creator.' }, { status: 404 });
-    }
-
-    // Read from the record, never from the caller: nobody gets to choose which
-    // template fires.
-    const status = lensman.status;
-
-    if (status !== 'approved' && status !== 'rejected') {
-      // pending and anything else stay silent.
-      return Response.json({ sent: false, status });
-    }
-
-    // One email per decision. A repeat call for a status already announced is a
-    // no-op, so nobody can make a creator think they were approved or turned
-    // down a second time.
-    if (contact.status_notified === status) {
-      return Response.json({ sent: false, status, reason: 'Already notified.' });
-    }
-
-    const profileUrl = `${PUBLISHED_ORIGIN}/creators/${lensman.slug || lensman.id}`;
-
-    if (status === 'approved') {
-      await sendEmail(
-        base44,
-        email,
-        "You're live on Stelli.",
-        `Your profile is approved and live. Clients can now find you and send booking requests.\n\n${profileUrl}`
-      );
-    } else {
-      await sendEmail(
-        base44,
-        email,
-        'About your Stelli application.',
-        "Thanks for applying to Stelli. We're not able to approve your profile right now."
-      );
-    }
-
-    await base44.asServiceRole.entities.CreatorContact.update(contact.id, {
-      status_notified: status,
-    });
-
-    console.log(`Status email sent for status "${status}".`);
-    return Response.json({ sent: true, status });
+    const result = await emailCreatorStatus(base44, lensman);
+    return Response.json(result);
   } catch (error) {
     console.error('notifyCreatorStatus error:', error.message);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: 'The status email could not be sent.' }, { status: 500 });
   }
 }

@@ -1,9 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { viewerRole, creatorEmail } from '../../shared/bookingAccess.ts';
 import { notifyBoth } from '../../shared/notify.ts';
+import { moneyTaken, photoAddBlocker, photoRemoveBlocker } from '../../shared/bookingRules.ts';
 import { ensureAlbumToken, albumUrl } from '../../shared/albumAccess.ts';
+import { logAdminAction } from '../../shared/audit.ts';
 import {
-  DELIVERABLE,
   MAX_DELIVERY_PHOTOS,
   MAX_PHOTOS_PER_UPLOAD,
   deliveryPhotoRows,
@@ -16,9 +17,18 @@ import {
  * the portal, and the client opens them in their memory album.
  *
  *   list   — the booking's photos with signed links (either side of the booking)
+ *   link   — the album link with its key, to copy (either side of the booking)
  *   add    — the creator files newly uploaded photos against the booking
- *   remove — the creator takes one back before the client sees the album
+ *   remove — the creator takes one back, until the final edits are delivered
+ *   notify — the creator emails the client the album link (once per 10 minutes)
+ *
+ * Once the final edits are delivered the album is locked: the creator can no
+ * longer add to it or take photos out of it. What the client was handed, and
+ * had 48 hours to check, stays what they have. A founder can still remove a
+ * photo if one has to come down.
  */
+const NOTIFY_GAP_MS = 10 * 60 * 1000;
+
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
@@ -60,6 +70,9 @@ export default async function (req) {
       const photoId = typeof body.photoId === 'string' ? body.photoId : '';
       if (!photoId) return Response.json({ error: 'Which photo?' }, { status: 400 });
 
+      const locked = user.role === 'admin' ? '' : photoRemoveBlocker(booking);
+      if (locked) return Response.json({ error: locked }, { status: 409 });
+
       const photo = await base44.asServiceRole.entities.DeliveryPhoto
         .get(photoId)
         .catch((e) => (e.status === 404 ? null : Promise.reject(e)));
@@ -68,12 +81,30 @@ export default async function (req) {
       }
 
       await base44.asServiceRole.entities.DeliveryPhoto.delete(photoId);
+      if (role !== 'lensman') {
+        await logAdminAction(base44, user, {
+          action: 'remove_photo',
+          summary: `Removed a photo from ${booking.client_name || 'a client'}'s ${booking.event_date} album.`,
+          bookingId,
+          lensmanId: booking.lensman_id || '',
+          details: { photoId, name: photo.name || '' },
+        });
+      }
       return Response.json({ removed: photoId });
     }
 
     // Photos land in the album silently. The client is emailed only when the
     // creator has looked at the album and pressed send.
     if (action === 'notify') {
+      if (booking.status === 'cancelled' || !moneyTaken(booking)) {
+        return Response.json({ error: 'Photos can go to the client once the shoot is paid for.' }, { status: 409 });
+      }
+      // One email per few minutes, so a double tap or an impatient resend
+      // doesn't fill the client's inbox.
+      const last = Date.parse(booking.album_notified_at || '') || 0;
+      if (Date.now() - last < NOTIFY_GAP_MS) {
+        return Response.json({ sent: true, alreadySent: true, url: albumUrl(bookingId, booking.album_token || '') });
+      }
       const filed = await deliveryPhotoRows(base44, bookingId);
       if (!filed.length && !booking.delivery_link) {
         return Response.json({ error: 'Add the photos first.' }, { status: 400 });
@@ -87,6 +118,7 @@ export default async function (req) {
       const url = albumUrl(bookingId, token);
       const count = filed.length || 0;
 
+      await base44.asServiceRole.entities.Booking.update(bookingId, { album_notified_at: new Date().toISOString() });
       await notifyBoth(
         base44,
         [booking.client_email],
@@ -96,19 +128,17 @@ export default async function (req) {
         } to your ${booking.event_date} shoot.\n\nOpen your album: ${url}`
       );
 
-      return Response.json({ sent: true, to: booking.client_email, url });
+      // The client's address is not handed back: it is the founders' to see.
+      return Response.json({ sent: true, url });
     }
 
     if (action !== 'add') {
       return Response.json({ error: 'Unknown action.' }, { status: 400 });
     }
 
-    if (!DELIVERABLE.includes(booking.status)) {
-      return Response.json(
-        { error: 'Photos can go to the client once the shoot is paid for.' },
-        { status: 400 }
-      );
-    }
+    // Paid, not cancelled, and not yet finally delivered.
+    const addBlocker = photoAddBlocker(booking);
+    if (addBlocker) return Response.json({ error: addBlocker }, { status: 409 });
 
     const incoming = Array.isArray(body.files) ? body.files.slice(0, MAX_PHOTOS_PER_UPLOAD) : [];
     const cleaned = incoming
@@ -159,6 +189,6 @@ export default async function (req) {
     });
   } catch (error) {
     console.error('deliveryPhotos error:', error.message);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: 'The photos could not be updated. Try again.' }, { status: 500 });
   }
 }

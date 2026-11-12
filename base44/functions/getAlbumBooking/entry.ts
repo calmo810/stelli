@@ -1,7 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { viewerRole } from '../../shared/bookingAccess.ts';
 import { signedDeliveryPhotos } from '../../shared/deliveryPhotos.ts';
-import { ensureAlbumToken } from '../../shared/albumAccess.ts';
+import { ensureAlbumToken, tokenMatches } from '../../shared/albumAccess.ts';
 
 /**
  * Read for a shareable memory album. Returns only what the album shows — never
@@ -15,21 +15,25 @@ import { ensureAlbumToken } from '../../shared/albumAccess.ts';
  * so the link they copy out is the shareable one.
  *
  * A missing booking and a wrong token answer identically, so this cannot be used
- * to find out which booking IDs exist.
+ * to find out which booking IDs exist. The token is compared in constant time.
+ *
+ * A leaked link can be cut off: the client (or a founder) resets it with the
+ * resetAlbumLink function, after which the old token opens nothing.
  */
+// One answer for "no such album" and "wrong key", so it can't be used to
+// find out which booking IDs exist. The album page shows its key panel for it.
+const NOT_FOUND = () => Response.json({ error: 'Album not found', code: 'locked' }, { status: 404 });
+
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
-    const { bookingId, token } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const bookingId = typeof body.bookingId === 'string' ? body.bookingId.trim() : '';
+    const token = typeof body.token === 'string' ? body.token : '';
 
-    if (!bookingId) {
-      return Response.json({ error: 'Booking ID is required', code: 'missing' }, { status: 400 });
-    }
+    if (!bookingId) return NOT_FOUND();
 
     const booking = await base44.asServiceRole.entities.Booking.get(bookingId).catch(() => null);
-    if (!booking) {
-      return Response.json({ error: 'Album not found', code: 'missing' }, { status: 404 });
-    }
 
     let user = null;
     try {
@@ -38,18 +42,17 @@ export default async function (req) {
       user = null;
     }
 
-    const isParty = Boolean(viewerRole(booking, user)) || user?.role === 'admin';
-    const presented = typeof token === 'string' ? token.trim() : '';
-    const tokenMatches =
-      Boolean(booking.album_token) && presented !== '' && presented === booking.album_token;
+    const role = booking ? viewerRole(booking, user) : null;
+    const isAdmin = user?.role === 'admin';
+    const isParty = Boolean(role) || isAdmin;
+    // Always run the comparison, even with no booking, so both cases take alike.
+    const tokenOk = tokenMatches(token, booking?.album_token || '');
 
-    if (!isParty && !tokenMatches) {
-      // A link that lost its key is the common case here: the gallery exists,
-      // the visitor just cannot prove they were invited to it.
-      return Response.json({ error: 'This link is missing its key', code: 'locked' }, { status: 404 });
-    }
+    if (!booking || (!isParty && !tokenOk)) return NOT_FOUND();
 
-    const albumToken = await ensureAlbumToken(base44, booking);
+    // A party opening a booking that predates album tokens gets one now, so the
+    // link they copy carries it.
+    const albumToken = isParty ? await ensureAlbumToken(base44, booking) : '';
 
     return Response.json({
       booking: {
@@ -57,15 +60,18 @@ export default async function (req) {
         event_type: booking.event_type,
         event_date: booking.event_date,
         lensman_name: booking.lensman_name,
-        client_name: booking.client_name,
         delivery_link: booking.delivery_link || '',
         delivered_at: booking.delivered_at || '',
-        album_token: albumToken,
+        // Only the people on the booking are handed the token to share. A
+        // guest already has it in their link and learns nothing new here.
+        album_token: isParty ? albumToken : '',
       },
+      // The client owns the album, so the client (or a founder) may reset its link.
+      canResetLink: role === 'client' || isAdmin,
       photos: await signedDeliveryPhotos(base44, booking.id),
     });
   } catch (error) {
     console.error('getAlbumBooking error:', error.message);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: 'The album could not be opened. Try again.' }, { status: 500 });
   }
 }

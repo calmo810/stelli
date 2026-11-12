@@ -45,6 +45,7 @@ export default function Register() {
   const [showOtp, setShowOtp] = useState(draft.step === 'otp');
   const [otpCode, setOtpCode] = useState("");
   const [legalAgreed, setLegalAgreed] = useState(Boolean(draft.legalAgreed));
+  const [adult, setAdult] = useState(Boolean(draft.adult));
   const [accountType, setAccountType] = useState(initialAccountType);
 
   useEffect(() => {
@@ -62,9 +63,10 @@ export default function Register() {
       email,
       accountType,
       legalAgreed,
+      adult,
       step: showOtp ? 'otp' : 'details',
     }));
-  }, [email, accountType, legalAgreed, showOtp]);
+  }, [email, accountType, legalAgreed, adult, showOtp]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -75,6 +77,10 @@ export default function Register() {
     }
     if (!accountType) {
       setError("Choose whether this is a client or creator account.");
+      return;
+    }
+    if (!adult) {
+      setError("Stelli is for adults. Confirm you're 18 or older to continue.");
       return;
     }
     if (!legalAgreed) {
@@ -100,7 +106,7 @@ export default function Register() {
       if (result?.access_token) {
         base44.auth.setToken(result.access_token);
       }
-      await base44.auth.updateMe({ account_type: accountType });
+      await base44.auth.updateMe({ account_type: accountType, age_confirmed: true });
       localStorage.setItem('stelli_next_step_prompt', accountType);
       try {
         await Promise.all([
@@ -137,6 +143,10 @@ export default function Register() {
       setError("Choose whether this is a client or creator account.");
       return;
     }
+    if (!adult) {
+      setError("Stelli is for adults. Confirm you're 18 or older to continue.");
+      return;
+    }
     if (!legalAgreed) {
       setError("Please accept Stelli's Terms and Conditions to continue.");
       return;
@@ -144,6 +154,8 @@ export default function Register() {
     localStorage.setItem('stelli_pending_account_type', accountType);
     localStorage.setItem('stelli_next_step_prompt', accountType);
     localStorage.setItem('stelli_pending_legal_acceptance', 'true');
+    // Applied on the account by /portal once Google sends them back.
+    localStorage.setItem('stelli_pending_age_confirmed', 'true');
     base44.auth.loginWithProvider("google", afterAuth());
   };
 
@@ -235,7 +247,7 @@ export default function Register() {
         variant="outline"
         className="w-full h-12 text-sm font-medium mb-6"
         onClick={handleGoogle}
-        disabled={!legalAgreed || !accountType}
+        disabled={!legalAgreed || !adult || !accountType}
       >
         <GoogleIcon className="w-5 h-5 mr-2" />
         Continue with Google
@@ -307,12 +319,16 @@ export default function Register() {
           </div>
         </div>
         <label className="flex items-start gap-3 rounded-lg border border-border p-3 cursor-pointer">
+          <Checkbox checked={adult} onCheckedChange={setAdult} className="mt-0.5" />
+          <span className="text-xs leading-relaxed text-muted-foreground">I'm 18 or older.</span>
+        </label>
+        <label className="flex items-start gap-3 rounded-lg border border-border p-3 cursor-pointer">
           <Checkbox checked={legalAgreed} onCheckedChange={setLegalAgreed} className="mt-0.5" />
           <span className="text-xs leading-relaxed text-muted-foreground">
             I agree to Stelli's <Link to="/terms" className="text-primary underline">Terms and Conditions</Link>.
           </span>
         </label>
-        <Button type="submit" className="w-full h-12 font-medium" disabled={loading || !legalAgreed || !accountType}>
+        <Button type="submit" className="w-full h-12 font-medium" disabled={loading || !legalAgreed || !adult || !accountType}>
           {loading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />

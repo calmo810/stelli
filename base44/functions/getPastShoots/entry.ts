@@ -49,7 +49,7 @@ export default async function (req) {
     if (!lensmanId) return Response.json({ shoots: [] });
 
     const lensman = await base44.asServiceRole.entities.Lensman.get(lensmanId).catch(() => null);
-    if (!lensman || lensman.status !== 'approved') return Response.json({ shoots: [] });
+    if (!lensman || lensman.status !== 'approved' || lensman.under_review) return Response.json({ shoots: [] });
 
     const releases = await base44.asServiceRole.entities.PhotoRelease.filter(
       { lensman_id: lensmanId, client_decision: 'approved', creator_decision: 'approved' },

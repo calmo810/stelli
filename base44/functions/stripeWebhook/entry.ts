@@ -1,21 +1,34 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { secrets } from 'base44:runtime';
-import { notifyBoth, sendEmail } from '../../shared/notify.ts';
-import { markBookingPaid, releaseWaitingPayouts } from '../../shared/payouts.ts';
+import { releaseWaitingPayouts } from '../../shared/payouts.ts';
+import { syncRefundFromStripe, syncReversalFromStripe } from '../../shared/refunds.ts';
+import { disputeClosed, disputeOpened } from '../../shared/disputes.ts';
+import {
+  markBookingPaid,
+  markCheckoutExpired,
+  markPaymentFailed,
+  markPaymentProcessing,
+} from '../../shared/payments.ts';
+import { sameStripeMode } from '../../shared/stripe.ts';
 
 /** Anything older than this is a replay and is refused. */
 const SIGNATURE_TOLERANCE_SECONDS = 300;
 
 /**
- * Every Stripe endpoint pointed at this function is a platform endpoint that
- * signs with the platform account's own signing secret — one in test mode and
- * one in live. Only names that are actually registered belong here: a name
- * with no stored value can never verify anything.
+ * Every Stripe endpoint pointed at this function has its own signing secret.
+ * There are up to four: the platform endpoint ("Your account": checkouts,
+ * refunds, disputes, reversals) and the Connect endpoint ("Connected
+ * accounts": account.updated when a creator finishes payout setup), each once
+ * in live mode and once in test mode. An event is accepted when it verifies
+ * against any of them; whether it belongs to the mode in use is checked after.
+ * A name with no stored value is skipped, so unused names cost nothing.
  */
 const WEBHOOK_SECRET_NAMES = [
   'STRIPE_LIVE_WEBHOOK_SECRET',
   'STRIPE_WEBHOOK_SECRET',
   'STRIPE_TEST_WEBHOOK_SECRET',
+  'STRIPE_CONNECT_WEBHOOK_SECRET',
+  'STRIPE_TEST_CONNECT_WEBHOOK_SECRET',
 ];
 
 function parseSignatureHeader(header) {
@@ -72,16 +85,6 @@ async function signatureIsValid(payload, header) {
   return false;
 }
 
-async function emailAdmins(base44, subject, body) {
-  const admins = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
-  await notifyBoth(
-    base44,
-    admins.map((admin) => admin.email),
-    subject,
-    body
-  );
-}
-
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
@@ -102,6 +105,20 @@ export default async function (req) {
     const event = JSON.parse(payload);
     const object = event?.data?.object || {};
 
+    // The endpoint accepts both the live and the test signing secret, so the
+    // event's own mode has to match the keys this app is running on. A test
+    // event must never mark a real booking paid; and while the app is switched
+    // to test mode for a rehearsal, live events are sent back for Stripe to
+    // retry rather than dropped.
+    if (!sameStripeMode(event.livemode)) {
+      if (event.livemode) {
+        console.warn(`Live Stripe event ${event.type} arrived while in test mode. Asking Stripe to retry.`);
+        return Response.json({ error: 'App is in test mode' }, { status: 409 });
+      }
+      console.warn(`Ignored test-mode Stripe event ${event.type}.`);
+      return Response.json({ received: true, ignored: 'test-mode event' });
+    }
+
     // One-off payments taken by a founder outside the booking flow.
     const oneOffId = object?.metadata?.one_off_charge_id;
     if (oneOffId && event.type.startsWith('checkout.session.')) {
@@ -118,104 +135,36 @@ export default async function (req) {
           status,
           stripe_payment_intent_id: object.payment_intent || '',
           ...(status === 'paid' ? { paid_at: new Date().toISOString() } : {}),
-        });
+        }).catch((error) => console.error('One-off charge', oneOffId, 'not updated -', error.message));
       }
       return Response.json({ received: true });
     }
 
     // Paid by card: the money is held. Paid by bank: it has to clear first.
+    // Each handler checks the booking's current state itself, so an event that
+    // is retried or arrives out of order changes nothing.
     if (event.type === 'checkout.session.completed') {
-      const bookingId = object?.metadata?.booking_id;
-
-      if (bookingId && object.payment_status === 'paid') {
+      if (object.payment_status === 'paid' || object.payment_status === 'no_payment_required') {
         await markBookingPaid(base44, object);
-      } else if (bookingId && object.payment_status === 'unpaid') {
-        const booking = await base44.asServiceRole.entities.Booking.get(bookingId).catch(() => null);
-        if (booking) {
-          // Not confirmed and contact details stay locked until the money clears.
-          await base44.asServiceRole.entities.Booking.update(bookingId, {
-            payment_status: 'processing',
-          });
-          await sendEmail(
-            base44,
-            booking.client_email,
-            'Your payment is processing',
-            'Your payment is processing. Your date is locked in once it clears, usually within a few business days.'
-          );
-        }
+      } else {
+        // Not confirmed and contact details stay locked until the money clears.
+        await markPaymentProcessing(base44, object);
       }
     } else if (event.type === 'checkout.session.async_payment_succeeded') {
       await markBookingPaid(base44, object);
     } else if (event.type === 'checkout.session.async_payment_failed') {
-      const bookingId = object?.metadata?.booking_id;
-      if (bookingId) {
-        const booking = await base44.asServiceRole.entities.Booking.get(bookingId).catch(() => null);
-        if (booking) {
-          await base44.asServiceRole.entities.Booking.update(bookingId, {
-            payment_status: 'pending',
-            status: 'quote_accepted',
-          });
-          await sendEmail(
-            base44,
-            booking.client_email,
-            'Your bank payment did not go through',
-            "Your bank payment didn't go through. Open your Stelli messages to pay again."
-          );
-        }
-      }
+      await markPaymentFailed(base44, object);
+    } else if (event.type === 'checkout.session.expired') {
+      await markCheckoutExpired(base44, object);
     } else if (event.type === 'charge.refunded') {
-      const charge = object;
-      // Found from the payment intent — charge metadata is not reliable.
-      if (charge?.payment_intent) {
-        const matches = await base44.asServiceRole.entities.Booking.filter({
-          stripe_payment_intent_id: charge.payment_intent,
-        });
-        const booking = matches[0];
-        if (booking) {
-          await base44.asServiceRole.entities.Booking.update(booking.id, {
-            refund_amount: Number(charge.amount_refunded || 0) / 100,
-            refunded_at: new Date().toISOString(),
-            ...(charge.refunded === true
-              ? { payment_status: 'refunded' }
-              : booking.payment_status === 'held'
-                ? { payment_status: 'partially_refunded' }
-                : {}),
-          });
-        }
-      }
+      // A refund made by the app or straight from the Stripe dashboard.
+      await syncRefundFromStripe(base44, object);
+    } else if (event.type === 'transfer.reversed') {
+      await syncReversalFromStripe(base44, object);
     } else if (event.type === 'charge.dispute.created') {
-      const dispute = object;
-      if (dispute?.payment_intent) {
-        const matches = await base44.asServiceRole.entities.Booking.filter({
-          stripe_payment_intent_id: dispute.payment_intent,
-        });
-        const booking = matches[0];
-        if (booking) {
-          await base44.asServiceRole.entities.Booking.update(booking.id, {
-            dispute_status: dispute.status,
-            flagged_for_review: true,
-            flag_reason: 'Card dispute opened. Respond in Stripe before the deadline.',
-          });
-          await emailAdmins(
-            base44,
-            'Card dispute opened',
-            `A client opened a card dispute on the ${booking.event_date} shoot (${dispute.status}). Respond in Stripe before the deadline.`
-          );
-        }
-      }
+      await disputeOpened(base44, object);
     } else if (event.type === 'charge.dispute.closed') {
-      const dispute = object;
-      if (dispute?.payment_intent) {
-        const matches = await base44.asServiceRole.entities.Booking.filter({
-          stripe_payment_intent_id: dispute.payment_intent,
-        });
-        // The flag stays on, so a founder clears it by hand.
-        if (matches[0]) {
-          await base44.asServiceRole.entities.Booking.update(matches[0].id, {
-            dispute_status: dispute.status,
-          });
-        }
-      }
+      await disputeClosed(base44, object);
     } else if (event.type === 'account.updated') {
       const account = object;
       const profiles = await base44.asServiceRole.entities.Lensman.filter({

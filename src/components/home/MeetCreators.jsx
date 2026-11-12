@@ -31,7 +31,8 @@ export default function MeetCreators() {
 
   const { data: creators = [], isLoading } = useQuery({
     queryKey: APPROVED_CREATORS_QUERY_KEY,
-    queryFn: () => base44.entities.Lensman.filter({ status: 'approved' }),
+    // A creator on hold (under review) is not shown while a founder looks.
+    queryFn: async () => (await base44.entities.Lensman.filter({ status: 'approved' })).filter((c) => !c.under_review),
   });
 
   const shown = [...creators]

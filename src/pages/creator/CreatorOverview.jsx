@@ -11,7 +11,6 @@ import UpcomingShoots from '@/components/creator/UpcomingShoots';
 import ProfilePerformance from '@/components/creator/ProfilePerformance';
 import money from '@/lib/money';
 import shortDate from '@/lib/shortDate';
-import { todayKey } from '@/hooks/useCreatorPortal';
 
 const viewAll = (to) => (
   <Link to={to} className="text-[12.5px] font-semibold text-white/45 hover:text-white">
@@ -24,44 +23,32 @@ export default function CreatorOverview() {
   const {
     user,
     myProfile,
-    newRequests,
+    bookings,
+    steps,
     upcomingShoots,
-    confirmed,
     finished,
     metrics,
+    hasClientBookings,
     money: totals,
   } = useOutletContext();
 
   const firstName = (user?.full_name || '').split(' ')[0] || 'there';
-  const today = todayKey();
 
-  // Everything that still needs a decision from the creator, in priority order.
+  // The one real next step on each booking that has one (bookingNextStep.js):
+  // a request to quote, an agreement to accept, the unedited set once the
+  // shoot has happened, then the final edits. Most pressing first.
   const attention = [
-    ...newRequests.map((b) => ({
-      id: b.id,
-      title: `${b.client_name || 'Someone'} wants ${b.event_type ? b.event_type.toLowerCase() : 'photos'}`,
-      meta: [shortDate(b.event_date), b.location].filter(Boolean).join(' · ') || 'New request',
-      action: 'Review',
-      to: `/lensman-dashboard/requests/${b.id}`,
-    })),
-    ...confirmed
-      .filter((b) => !b.delivery_link && b.event_date && b.event_date <= today)
-      .map((b) => ({
-        id: `deliver-${b.id}`,
-        title: `Deliver to ${b.client_name || 'your client'}`,
-        meta: `Shot ${shortDate(b.event_date)} · gallery not posted`,
-        action: 'Deliver',
-        to: `/messages/${b.id}`,
-      })),
-    ...confirmed
-      .filter((b) => !b.creator_contract_accepted)
-      .map((b) => ({
-        id: `contract-${b.id}`,
-        title: 'Sign a booking contract',
-        meta: `${b.client_name || 'Your client'} · ${shortDate(b.event_date)}`,
-        action: 'Sign',
-        to: '/lensman-dashboard/bookings',
-      })),
+    ...steps.map((step) => {
+      const booking = bookings.find((b) => b.id === step.bookingId);
+      const isRequest = step.key === 'request';
+      return {
+        id: step.id,
+        title: step.title,
+        meta: [shortDate(booking?.event_date), booking?.location].filter(Boolean).join(' · ') || (isRequest ? 'New request' : ''),
+        action: isRequest ? 'Review' : step.action,
+        to: isRequest ? `/lensman-dashboard/requests/${step.bookingId}` : step.to,
+      };
+    }),
     ...(myProfile.payouts_enabled
       ? []
       : [
@@ -123,10 +110,14 @@ export default function CreatorOverview() {
 
       {myProfile.under_review ? (
         <PendingBanner tone="magenta">
-          Your profile is under review by the Stelli team after a cancellation.
+          Your profile is on hold while the Stelli team reviews it. Your current bookings carry on.
         </PendingBanner>
       ) : myProfile.status === 'pending' ? (
         <PendingBanner />
+      ) : myProfile.status === 'rejected' ? (
+        <PendingBanner tone="magenta">
+          Your application wasn’t approved, so your profile isn’t public. Email getstelli@gmail.com with any questions.
+        </PendingBanner>
       ) : null}
 
       <div className="mt-6">
@@ -158,6 +149,7 @@ export default function CreatorOverview() {
         rows={[
           { label: 'Messages', to: '/messages' },
           { label: 'Completed shoots', to: '/lensman-dashboard/bookings', value: String(finished.length) },
+          ...(hasClientBookings ? [{ label: 'Client portal', to: '/client-dashboard' }] : []),
           { label: 'Account', to: '/account-settings' },
         ]}
       />

@@ -18,12 +18,8 @@ import useCreatorPortal from '@/hooks/useCreatorPortal';
 export default function CreatorPortal() {
   const data = useCreatorPortal();
   const queryClient = useQueryClient();
-  const { user, userLoading, myProfile, refetchProfile, isLoading, newRequests } = data;
+  const { user, userLoading, myProfile, profileFetched, refetchProfile, isLoading, newRequests } = data;
 
-  // Creators who joined before the 18+ check existed confirm it once, here.
-  if (myProfile && !myProfile.age_confirmed) {
-    return <AgeConfirmGate onConfirmed={refetchProfile} />;
-  }
 
   const refreshAll = () =>
     Promise.all([
@@ -34,7 +30,9 @@ export default function CreatorPortal() {
       queryClient.invalidateQueries({ queryKey: ['waiting-manual-payouts'] }),
     ]);
 
-  if (isLoading || userLoading) {
+  // Wait for the profile too, or a creator sees "No creator page yet" for a
+  // moment on every visit.
+  if (userLoading || (user && (isLoading || !profileFetched))) {
     return (
       <DashboardShell>
         <div className="glass h-[260px] animate-pulse rounded-[28px]" />
@@ -74,6 +72,11 @@ export default function CreatorPortal() {
         />
       </DashboardShell>
     );
+  }
+
+  // Creators who joined before the 18+ check existed confirm it once, here.
+  if (!myProfile.age_confirmed) {
+    return <AgeConfirmGate onConfirmed={refetchProfile} />;
   }
 
   return (

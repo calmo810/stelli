@@ -1,41 +1,183 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
-import { releaseBooking, refundBooking } from '../../shared/payouts.ts';
+import { releaseBooking } from '../../shared/payouts.ts';
+import { pullBackPayout, refundBooking, refundStrayPayment } from '../../shared/refunds.ts';
+import { money } from '../../shared/money.ts';
+import { openStraysFor } from '../../shared/strayPayments.ts';
+import { logAdminAction, requireAdmin } from '../../shared/audit.ts';
 
 /**
- * A founder deciding what happens to frozen money: release it to the creator
- * or send it back to the client.
+ * A founder's decision on a booking in the queue.
+ *
+ *   release        pay the held money to the creator
+ *   refund         refund the client — everything left, or `amount` dollars
+ *   pull_back      pull the creator's payout back (or retry a failed attempt)
+ *   refund_stray   send back one payment that did not match the booking
+ *                  (`strayId` says which, when the booking has more than one)
+ *   mark_reviewed  take a settled booking out of the queue
+ *
+ * Every action answers with what actually happened, in a sentence, and only
+ * changes the booking when money really moved. `actionId` comes from the
+ * confirmation dialog: the same decision sent twice does the thing once.
  */
+const ACTIONS = ['release', 'refund', 'pull_back', 'retry_reversal', 'refund_stray', 'mark_reviewed'];
+
+const RELEASE_REASONS = {
+  'already-paid': 'The creator has already been paid for this booking.',
+  'nothing-held': 'There is no held money on this booking to release.',
+  disputed: 'A card dispute is open (or was lost) on this payment, so it can’t be released.',
+  'test-payment': 'This booking was paid in Stripe test mode. It can’t be paid out with real money.',
+  'live-payment': 'This booking was paid with real money, and the app is in Stripe test mode right now. Switch STRIPE_MODE back to live, then try again.',
+  'no-payout-account': 'The creator hasn’t finished payout setup. The money stays held until they do, then goes out on its own.',
+  'nothing-owed': 'Nothing is owed to the creator on this booking.',
+  'stripe-unreachable': 'Stripe couldn’t be reached. Nothing moved. Try again in a minute.',
+  busy: 'Something else is updating this booking right now. Nothing moved. Try again in a moment.',
+};
+
+const REFUND_REASONS = {
+  'no-charge': 'There is no payment on this booking to refund.',
+  'nothing-paid': 'There is no settled payment on this booking to refund.',
+  disputed: 'A card dispute is open on this payment. The bank already holds the money, so a refund would pay the client twice.',
+  'already-refunded': 'This payment has already been refunded in full.',
+  'stripe-unreachable': 'Stripe couldn’t be reached. Nothing moved. Try again in a minute.',
+  busy: 'Something else is updating this booking right now. Nothing moved. Try again in a moment.',
+  'no-stray-payment': 'There is no unmatched payment on this booking.',
+  'which-stray': 'This booking has more than one unmatched payment. Refund them one at a time from the queue.',
+  'disputed-stray': 'The client’s bank opened a dispute on this payment, so it can’t be refunded. Respond in Stripe.',
+  'dispute-lost': 'The client’s bank already took this payment back. Nothing to refund.',
+  'refund-in-stripe': 'This payment has to be refunded from the Stripe dashboard.',
+  'other-mode': 'This payment was made in the other Stripe mode from the one the app is in now (check STRIPE_MODE). Nothing moved.',
+};
+
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user || user.role !== 'admin') {
-      return Response.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const user = await requireAdmin(base44);
+    if (!user) return Response.json({ error: 'Forbidden' }, { status: 403 });
 
-    const { bookingId, action, note } = await req.json();
-    if (!bookingId || !['release', 'refund'].includes(action)) {
+    const { bookingId, action, note, amount, actionId, strayId } = await req.json();
+    if (!bookingId || !ACTIONS.includes(action)) {
       return Response.json({ error: 'A booking and an action are required.' }, { status: 400 });
     }
 
-    const booking = await base44.asServiceRole.entities.Booking.get(bookingId);
+    const Booking = base44.asServiceRole.entities.Booking;
+    const booking = await Booking.get(bookingId).catch(() => null);
     if (!booking) return Response.json({ error: 'Booking not found.' }, { status: 404 });
 
+    const reason = String(note || '').trim().slice(0, 500);
+    const key = String(actionId || '').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64);
+
+    // Every decision is answered in a sentence and written to the admin log:
+    // who, what, which booking, how much, and how it ended.
+    const done = async (payload, loggedAmount = 0) => {
+      await logAdminAction(base44, user, {
+        action,
+        summary: payload.message,
+        outcome: payload.ok ? 'ok' : payload.result?.error ? 'failed' : 'refused',
+        bookingId,
+        lensmanId: booking.lensman_id || '',
+        amount: loggedAmount,
+        details: { note: reason, actionId: key, reason: payload.result?.reason || '', result: payload.result || null },
+      });
+      return Response.json(payload);
+    };
+
     if (action === 'release') {
-      const result = await releaseBooking(base44, { ...booking, flagged_for_review: false }, 'founder');
-      return Response.json({ result });
+      // Runs through the same lock and rules as every payout: never twice,
+      // never through an open card dispute. Clears the flag once money moved.
+      const result = await releaseBooking(base44, bookingId, 'founder');
+      const message = result.released
+        ? `${money(result.amount)} is on its way to ${booking.lensman_name || 'the creator'}.`
+        : result.reason === 'transfer-failed'
+          ? `Stripe refused the payout: ${result.error}`
+          : RELEASE_REASONS[result.reason] || 'Nothing was released.';
+      return done({ ok: Boolean(result.released), message, result }, result.amount || 0);
     }
 
-    const result = await refundBooking(base44, booking, 0, note || 'Refunded by a founder.');
-    await base44.asServiceRole.entities.Booking.update(bookingId, {
-      status: 'cancelled',
-      cancelled_by: 'creator',
-      flag_reason: note || 'Refunded by a founder.',
-    });
+    if (action === 'refund') {
+      const dollars = Number(amount) > 0 ? Math.round(Number(amount) * 100) / 100 : 0;
+      const result = await refundBooking(base44, bookingId, dollars, reason || 'Refunded by a founder.', {
+        key: key ? `admin-${key}` : '',
+      });
 
-    return Response.json({ result });
+      // The booking only changes when the client really has all their money back.
+      if (result.fullyRefunded && booking.status !== 'cancelled') {
+        await Booking.update(bookingId, {
+          status: 'cancelled',
+          cancelled_at: new Date().toISOString(),
+          cancellation_reason: reason || 'Refunded by a founder.',
+          cancellation_payout_due: false,
+        });
+      }
+
+      let message;
+      if (result.refunded) {
+        message = `${money(result.amount)} refunded to ${booking.client_name || 'the client'}.`;
+        if (result.reversal?.status === 'done') message += ' The creator’s payout was pulled back.';
+        if (result.reversal?.status === 'failed') {
+          message += ` The creator’s payout could not be pulled back (${result.reversal.error}). It stays in the queue with a retry.`;
+        }
+      } else if (result.reason === 'refund-failed') {
+        message = `Stripe refused the refund: ${result.error}`;
+      } else if (result.reason === 'already-refunded' && result.reversal?.status === 'failed') {
+        message = `Already refunded. The creator’s payout still could not be pulled back (${result.reversal.error}).`;
+      } else {
+        message = REFUND_REASONS[result.reason] || 'Nothing was refunded.';
+      }
+      return done({ ok: Boolean(result.refunded), message, result }, result.amount || 0);
+    }
+
+    if (action === 'pull_back' || action === 'retry_reversal') {
+      // A founder may pull the whole payout back during a card dispute; a
+      // retry only finishes what an earlier refund left undone.
+      const all = action === 'pull_back' && !['needed', 'failed'].includes(booking.reversal_status);
+      const result = await pullBackPayout(base44, bookingId, { all });
+      const message =
+        result.status === 'done'
+          ? `${money(result.reversed)} pulled back from ${booking.lensman_name || 'the creator'}.`
+          : result.status === 'failed'
+            ? `The payout could not be pulled back: ${result.error}`
+            : result.status === 'busy'
+              ? REFUND_REASONS.busy
+              : result.status === 'other-mode'
+                ? REFUND_REASONS['other-mode']
+                : 'There is nothing to pull back on this booking.';
+      return done({ ok: result.status === 'done', message, result }, result.reversed || 0);
+    }
+
+    if (action === 'refund_stray') {
+      const result = await refundStrayPayment(base44, bookingId, typeof strayId === 'string' ? strayId : '');
+      const message = result.refunded
+        ? `${money(result.amount)} sent back to ${booking.client_name || 'the client'}. The booking itself is unchanged.`
+        : result.reason === 'refund-failed'
+          ? `Stripe refused the refund: ${result.error}`
+          : result.reason === 'already-refunded'
+            ? `${money(result.stray?.amount)} was already sent back.`
+            : REFUND_REASONS[result.reason === 'disputed' ? 'disputed-stray' : result.reason] || 'Nothing was refunded.';
+      return done({ ok: Boolean(result.refunded), message, result }, result.amount || 0);
+    }
+
+    // mark_reviewed: only for bookings where no money decision is still open.
+    const fresh = await Booking.get(bookingId);
+    const openStrays = await openStraysFor(base44, bookingId);
+    const stillOpen =
+      (fresh.payment_status === 'held' && (fresh.problem_reported_at || fresh.payout_error)) ||
+      fresh.stray_payment_intent_id ||
+      openStrays.length > 0 ||
+      ['needed', 'failed'].includes(fresh.reversal_status) ||
+      (fresh.dispute_status && !['won', 'lost', 'warning_closed'].includes(fresh.dispute_status));
+    if (stillOpen) {
+      return done({
+        ok: false,
+        message: 'This booking still has money to decide on. Release, refund or pull back first.',
+      });
+    }
+    await Booking.update(bookingId, {
+      flagged_for_review: false,
+      flag_reason: reason || fresh.flag_reason || '',
+    });
+    return done({ ok: true, message: 'Marked as reviewed.' });
   } catch (error) {
     console.error('releasePayout error:', error.message);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: 'That did not go through. Nothing was changed.' }, { status: 500 });
   }
 }

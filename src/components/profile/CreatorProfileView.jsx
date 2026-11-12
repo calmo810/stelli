@@ -116,7 +116,12 @@ export default function CreatorProfileView({ creatorId, adminPanel = null }) {
     );
   }
 
-  if (!creator) {
+  // On hold: the page is not shown while a founder looks, except to the
+  // creator themselves and to founders. Booking is refused on the server too.
+  const onHold =
+    creator?.under_review && viewer?.id !== creator.user_id && viewer?.role !== 'admin';
+
+  if (!creator || onHold) {
     return (
       <div className="min-h-screen bg-ink flex items-center justify-center px-6">
         <div className="text-center">

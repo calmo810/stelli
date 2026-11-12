@@ -17,17 +17,19 @@ export default function AgreementDetail() {
   });
 
   const acceptContract = useMutation({
-    mutationFn: () => base44.functions.invoke('acceptBookingContract', { bookingId: contract.booking_id, party: 'creator' }),
+    // Which side you are is decided on the server, from the booking.
+    mutationFn: () => base44.functions.invoke('acceptBookingContract', { bookingId: contract.booking_id }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['booking-contract', contractId] }),
   });
 
   const paragraphs = contract?.contract_text?.split('\n').filter(Boolean) || [];
-  const needsCreatorAcceptance = contract && !contract.creator_accepted_at;
+  const superseded = contract?.status === 'superseded';
+  const needsCreatorAcceptance = contract && !superseded && !contract.creator_accepted_at;
 
   return (
     <div className="min-h-screen bg-[#10182d] text-[#f0ede6] px-6 md:px-14 pt-24 pb-16">
       <div className="max-w-4xl mx-auto">
-        <Link to="/client-dashboard" className="text-[10px] font-body tracking-[0.18em] uppercase" style={{ color: 'rgba(242,220,169,0.6)' }}>Back to dashboard</Link>
+        <Link to="/portal" className="text-[10px] font-body tracking-[0.18em] uppercase" style={{ color: 'rgba(242,220,169,0.6)' }}>Back to dashboard</Link>
         <div className="mt-8 mb-10">
           <p className="text-[8px] font-body tracking-[0.45em] uppercase mb-4" style={{ color: 'rgba(242,220,169,0.5)' }}>Booking Agreement</p>
           <h1 className="font-display text-4xl md:text-6xl font-semibold">Review your booking agreement</h1>
@@ -50,6 +52,8 @@ export default function AgreementDetail() {
                 </label>
                 <Button onClick={() => acceptContract.mutate()} disabled={!agreed || acceptContract.isPending} className="rounded-full bg-[#F2DCA9] text-[#10182d]">Accept agreement</Button>
               </div>
+            ) : superseded ? (
+              <p className="mt-6 text-sm" style={{ color: 'rgba(242,220,169,0.72)' }}>A newer quote replaced this agreement. It is kept here for the record.</p>
             ) : (
               <p className="mt-6 text-sm" style={{ color: 'rgba(242,220,169,0.72)' }}>This agreement has been accepted and is read-only.</p>
             )}

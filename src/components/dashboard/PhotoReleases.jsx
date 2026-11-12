@@ -77,6 +77,8 @@ function ReleaseCard({ release: r, role }) {
   const pending = !mine || mine === 'pending';
   const status = statusText(r, role);
   const other = role === 'client' ? r.lensman_name || 'your creator' : (r.client_name || 'your client').split(' ')[0];
+  // A client can't say yes to photos that haven't been chosen.
+  const waitingOnPhotos = role === 'client' && !(r.photos || []).length;
 
   const answer = async (decision) => {
     setSaving(decision);
@@ -109,15 +111,30 @@ function ReleaseCard({ release: r, role }) {
         <>
           <p className="mt-2.5 text-[13.5px] leading-relaxed text-white/70">
             {role === 'client'
-              ? `Can this shoot appear under Past Stelli shoots on ${other}'s page? Photos ${other} picks and your review would show publicly, with your first name only.`
+              ? `Can this shoot appear under Past Stelli shoots on ${other}'s page? These photos and your review would show publicly, with your first name only. If ${other} changes the photos, you are asked again.`
               : `Can this shoot appear under Past Stelli shoots on your page? Pick up to ${MAX_PHOTOS} photos to show. ${other} is asked too.`}
           </p>
           {role === 'lensman' && <PhotoPicker photos={photos} setPhotos={setPhotos} />}
+          {/* The client says yes to these exact photos, so they are shown. */}
+          {role === 'client' && (r.photos || []).length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {r.photos.map((src) => (
+                <a key={src} href={src} target="_blank" rel="noreferrer" className="block h-[72px] w-[58px] overflow-hidden rounded-lg">
+                  <img src={src} alt="A photo that would be shown" className="h-full w-full object-cover" />
+                </a>
+              ))}
+            </div>
+          )}
+          {waitingOnPhotos && (
+            <p className="mt-2.5 text-[13px] text-white/60">
+              {other} hasn’t picked the photos yet. You can answer once you can see them.
+            </p>
+          )}
           <p className="mt-2.5 text-[12px] text-white/40">Nothing shows unless you both say yes. Either of you can take it down later.</p>
           <div className="mt-3 flex gap-2">
             <button
               type="button"
-              disabled={!!saving || (role === 'lensman' && !photos.length)}
+              disabled={!!saving || (role === 'lensman' && !photos.length) || waitingOnPhotos}
               onClick={() => answer('approved')}
               className="flex-1 rounded-full bg-neon-lime py-2.5 text-[13.5px] font-semibold text-ink transition-opacity disabled:opacity-40"
             >
@@ -171,8 +188,8 @@ export default function PhotoReleases({ role, user }) {
 
   const mineList = releases.filter((r) =>
     role === 'client'
-      ? r.client_id === user.id || r.client_email === user.email
-      : r.creator_id === user.id || r.creator_email === user.email
+      ? r.client_id === user.id
+      : r.creator_id === user.id
   );
   if (!mineList.length) return null;
 

@@ -16,11 +16,25 @@
     },
     "client_email": {
       "type": "string",
-      "description": "Email of the booking's client, used to scope access to the conversation"
+      "description": "Email of the booking's client, used to scope access to the conversation",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "lensman_email": {
       "type": "string",
-      "description": "Email of the booking's creator, used to scope access to the conversation"
+      "description": "Email of the booking's creator, used to scope access to the conversation",
+      "rls": {
+        "read": {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      }
     },
     "sender_name": {
       "type": "string",
@@ -67,12 +81,6 @@
         },
         {
           "data.creator_id": "{{user.id}}"
-        },
-        {
-          "data.client_email": "{{user.email}}"
-        },
-        {
-          "data.lensman_email": "{{user.email}}"
         },
         {
           "user_condition": {

@@ -1,0 +1,73 @@
+{
+  "name": "AdminAuditLog",
+  "type": "object",
+  "properties": {
+    "actor_id": {
+      "type": "string",
+      "description": "User ID of the founder who did it"
+    },
+    "actor_email": {
+      "type": "string",
+      "description": "Email of the founder who did it"
+    },
+    "action": {
+      "type": "string",
+      "description": "What was done, as a short code: release, refund, pull_back, refund_stray, mark_reviewed, manual_payout, one_off_charge, approve_creator, reject_creator, hold_creator, unhold_creator, reset_album_link, remove_photo, run_sweep, migrate_data"
+    },
+    "summary": {
+      "type": "string",
+      "description": "One plain sentence saying what happened"
+    },
+    "outcome": {
+      "type": "string",
+      "description": "ok when it went through, refused when the rules stopped it, failed when Stripe or the system did"
+    },
+    "booking_id": {
+      "type": "string",
+      "description": "The booking it touched, if any"
+    },
+    "lensman_id": {
+      "type": "string",
+      "description": "The creator it touched, if any"
+    },
+    "amount": {
+      "type": "number",
+      "description": "The amount of money involved, in dollars, if any"
+    },
+    "details": {
+      "type": "string",
+      "description": "Extra detail as JSON: Stripe IDs, the reason given, what the rules answered"
+    },
+    "at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When it happened"
+    }
+  },
+  "required": [
+    "action",
+    "at"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

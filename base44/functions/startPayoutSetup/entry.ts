@@ -21,7 +21,7 @@ function splitName(fullName) {
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const user = await base44.auth.me().catch(() => null);
     if (!user) return Response.json({ error: 'Please sign in.' }, { status: 401 });
 
     const { origin, action } = await req.json();
@@ -84,7 +84,7 @@ export default async function (req) {
     if (!accountId) {
       const { first, last } = splitName(contact?.full_name);
 
-      const individual = {};
+      const individual: Record<string, any> = {};
       if (first) individual.given_name = first;
       if (last) individual.surname = last;
       if (contact?.phone) individual.phone = contact.phone;

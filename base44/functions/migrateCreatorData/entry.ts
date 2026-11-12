@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { logAdminAction } from '../../shared/audit.ts';
 
 /**
  * One-off data move for the CreatorContact split. Safe to run more than once.
@@ -22,7 +23,7 @@ function firstWord(value) {
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const user = await base44.auth.me().catch(() => null);
     if (!user || user.role !== 'admin') {
       return Response.json({ error: 'Admins only.' }, { status: 403 });
     }
@@ -37,8 +38,8 @@ export default async function (req) {
     const report = { contactsCreated: 0, contactsUpdated: 0, lensmanUpdated: 0, quotesFixed: 0, messagesFixed: 0, ratingsZeroed: 0, themesMoved: 0 };
 
     for (const lensman of lensmen) {
-      const patch = {};
-      const privatePatch = {};
+      const patch: Record<string, any> = {};
+      const privatePatch: Record<string, any> = {};
 
       if (!String(lensman.display_name || '').trim()) {
         const fallback = firstWord(lensman.full_name) || 'Stelli creator';
@@ -95,7 +96,7 @@ export default async function (req) {
           await base44.asServiceRole.entities.Lensman.update(lensman.id, patch);
         }
 
-        const unset = {};
+        const unset: Record<string, any> = {};
         for (const field of PRIVATE_FIELDS) {
           if (lensman[field] !== undefined) unset[field] = '';
         }
@@ -132,6 +133,14 @@ export default async function (req) {
         });
       }
       report.messagesFixed += 1;
+    }
+
+    if (!dryRun) {
+      await logAdminAction(base44, user, {
+        action: 'migrate_data',
+        summary: `Ran the creator data migration across ${lensmen.length} profiles.`,
+        details: report,
+      });
     }
 
     return Response.json({ dryRun, creators: lensmen.length, ...report });

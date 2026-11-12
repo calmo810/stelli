@@ -1,9 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-
-const UPCOMING = ['quoted', 'quote_accepted'];
-const DELIVERIES = ['confirmed', 'in_progress', 'awaiting_delivery'];
-const COMPLETED = ['delivered', 'completed'];
+import { isPast, nextSteps } from '@/lib/bookingNextStep';
 
 /** Everything the creator's dashboard and its sheets read. */
 export default function useCreatorDashboard() {
@@ -14,27 +11,27 @@ export default function useCreatorDashboard() {
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['me'],
     queryFn: () => base44.auth.me().catch(() => null),
+    retry: false,
   });
 
-  const { data: myProfile, refetch: refetchProfile } = useQuery({
+  // Payout status, the Stripe account and holds are readable by founders
+  // only, so the creator's own full record comes from the server.
+  const { data: myProfile, refetch: refetchProfile, isFetched: profileFetched } = useQuery({
     queryKey: ['my-lensman-profile', user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
-      const list = await base44.entities.Lensman.filter({ user_id: user.id });
-      return list[0] || null;
+      const response = await base44.functions.invoke('getMyCreatorProfile', {});
+      return response.data?.lensman || null;
     },
   });
 
   const { data: bookings = [], isLoading } = useQuery({
-    queryKey: ['lensman-bookings', user?.email],
+    queryKey: ['lensman-bookings', user?.id, user?.email],
     enabled: !!user?.email,
-    queryFn: () => base44.entities.Booking.filter({ lensman_email: user.email }, '-created_date'),
-  });
-
-  const { data: waitingPayouts = [] } = useQuery({
-    queryKey: ['waiting-payouts', user?.email],
-    enabled: !!user?.email,
-    queryFn: () => base44.entities.Booking.filter({ needs_payout_setup: true, lensman_email: user.email }),
+    queryFn: async () => {
+      // By account: emails on bookings are readable by founders only.
+      return base44.entities.Booking.filter({ creator_id: user.id }, '-created_date');
+    },
   });
 
   // Founder payouts made outside a booking, still waiting to go out.
@@ -57,7 +54,7 @@ export default function useCreatorDashboard() {
       try {
         const response = await base44.functions.invoke('startPayoutSetup', { action: 'status' });
         if (response.data?.paidOut) {
-          queryClient.invalidateQueries({ queryKey: ['waiting-payouts'] });
+          queryClient.invalidateQueries({ queryKey: ['lensman-bookings'] });
           queryClient.invalidateQueries({ queryKey: ['waiting-manual-payouts'] });
         }
         await refetchProfile();
@@ -69,19 +66,36 @@ export default function useCreatorDashboard() {
     },
   });
 
+  // Someone who also books shoots as a client gets a way across to that portal.
+  const { data: hasClientBookings = false } = useQuery({
+    queryKey: ['has-client-bookings', user?.id],
+    enabled: !!user?.id,
+    queryFn: async () => (await base44.entities.Booking.filter({ client_id: user.id }, '-created_date', 1).catch(() => [])).length > 0,
+  });
+
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['lensman-bookings'] });
+
+  // Every booking is in exactly one of these two lists. (Cancelled bookings and
+  // a few other states used to be in neither.)
+  const active = bookings.filter((b) => !isPast(b));
+  const past = bookings.filter((b) => isPast(b));
+
+  // Money held for this creator until they finish payout setup.
+  const waitingPayouts = bookings.filter((b) => b.needs_payout_setup && !b.stripe_transfer_id);
 
   return {
     user,
     userLoading,
     myProfile,
+    profileFetched,
     refetchProfile,
     bookings,
     isLoading,
-    requests: bookings.filter((b) => b.status === 'requested'),
-    upcoming: bookings.filter((b) => UPCOMING.includes(b.status)),
-    deliveries: bookings.filter((b) => DELIVERIES.includes(b.status)),
-    completed: bookings.filter((b) => COMPLETED.includes(b.status)),
+    active,
+    past,
+    hasClientBookings,
+    // The one real next step for each booking that has one.
+    steps: nextSteps(active, 'lensman'),
     waitingPayouts,
     waitingTotal:
       waitingPayouts.reduce((sum, b) => sum + Number(b.creator_payout || 0), 0) +

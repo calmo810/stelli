@@ -6,8 +6,6 @@ import { buildProfilePatch } from '../../shared/profileRules.ts';
 const DUPLICATE_EMAIL =
   "There's already a creator profile with this email. Log in to that account instead.";
 
-const GALLERIES = ['ordered_grid', 'hero_grid', 'contact_sheet'];
-
 /**
  * Creator signup — the only way a creator profile can be created.
  *
@@ -18,7 +16,7 @@ const GALLERIES = ['ordered_grid', 'hero_grid', 'contact_sheet'];
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const user = await base44.auth.me().catch(() => null);
     if (!user) return Response.json({ error: 'Please sign in to apply.' }, { status: 401 });
 
     const body = await req.json();
@@ -63,7 +61,6 @@ export default async function (req) {
     const specialties = Array.isArray(patch.specialties) ? patch.specialties : [];
     const portfolio = Array.isArray(patch.portfolio_images) ? patch.portfolio_images.filter(Boolean) : [];
     const cover = portfolio.includes(patch.cover_image) ? patch.cover_image : portfolio[0] || '';
-    const years = body.years_experience === '' || body.years_experience == null ? null : Number(body.years_experience);
 
     const lensman = await base44.asServiceRole.entities.Lensman.create({
       user_id: user.id,
@@ -74,9 +71,9 @@ export default async function (req) {
       profile_tagline: specialties.slice(0, 3).join(' · '),
       booking_cta: 'Request a date',
       featured_quote: '',
-      profile_theme: body.profile_theme === 'clean_portfolio' ? 'clean_portfolio' : 'night_flash',
+      profile_theme: patch.profile_theme || 'night_flash',
       accent_color: patch.accent_color || 'lime',
-      gallery_style: GALLERIES.includes(body.gallery_style) ? body.gallery_style : 'hero_grid',
+      gallery_style: patch.gallery_style || 'hero_grid',
       wall_layout: patch.wall_layout || 'wall',
       wall_curve: patch.wall_curve || 'soft',
       print_frame: patch.print_frame || 'mat',
@@ -96,14 +93,16 @@ export default async function (req) {
       prompt_answer: patch.prompt_answer || '',
       dont_shoot: patch.dont_shoot || '',
       pricing_tiers: patch.pricing_tiers || [],
-      ...(Number.isFinite(years) ? { years_experience: years } : {}),
+      ...(patch.years_experience !== undefined ? { years_experience: patch.years_experience } : {}),
       // New profiles have no reviews yet — the UI shows "New", never fake stars.
       avg_rating: 0,
       review_count: 0,
       completed_shoots: 0,
       status: 'pending',
-      age_confirmed: true,
-      age_confirmed_at: now,
+      // Only what the applicant has actually confirmed. If they have not, the
+      // creator dashboard asks before it opens.
+      age_confirmed: user.age_confirmed === true,
+      ...(user.age_confirmed === true ? { age_confirmed_at: now } : {}),
     });
 
     await base44.asServiceRole.entities.CreatorContact.create({
@@ -145,6 +144,6 @@ export default async function (req) {
     return Response.json({ lensman });
   } catch (error) {
     console.error('applyAsCreator error:', error.message);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: 'Your application did not send. Try again.' }, { status: 500 });
   }
 }

@@ -2,6 +2,8 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { secrets } from 'base44:runtime';
 import { stripePost, toCents } from '../../shared/stripe.ts';
 import { safeOrigin } from '../../shared/origins.ts';
+import { logAdminAction, requireAdmin } from '../../shared/audit.ts';
+import { money } from '../../shared/money.ts';
 
 const MAX_CHARGE = 5000;
 
@@ -14,10 +16,8 @@ const MAX_CHARGE = 5000;
 export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user || user.role !== 'admin') {
-      return Response.json({ error: 'Forbidden' }, { status: 403 });
-    }
+    const user = await requireAdmin(base44);
+    if (!user) return Response.json({ error: 'Forbidden' }, { status: 403 });
 
     const { amount, description, customerEmail, origin } = await req.json();
     const value = Math.round(Number(amount) * 100) / 100;
@@ -68,9 +68,16 @@ export default async function (req) {
       stripe_checkout_session_id: session.id,
     });
 
+    await logAdminAction(base44, user, {
+      action: 'one_off_charge',
+      summary: `Created a ${money(value)} payment link: ${label}${email ? ` (for ${email})` : ''}.`,
+      amount: value,
+      details: { chargeId: charge.id, sessionId: session.id },
+    });
+
     return Response.json({ chargeId: charge.id, url: session.url });
   } catch (error) {
     console.error('createOneOffCharge error:', error.message);
-    return Response.json({ error: error.message }, { status: 500 });
+    return Response.json({ error: 'The payment link could not be created. Try again.' }, { status: 500 });
   }
 }

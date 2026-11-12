@@ -6,10 +6,12 @@ import { useQuery } from '@tanstack/react-query';
 
 /** Booking contracts, folded into one compact glass list. */
 export default function MyAgreements({ role = 'client' }) {
-  const { data: contracts = [], isLoading } = useQuery({
+  const { data: allContracts = [], isLoading } = useQuery({
     queryKey: ['my-agreements', role],
     queryFn: () => base44.entities.BookingContract.list('-created_at'),
   });
+  // An agreement replaced by a newer quote is kept on record but not listed.
+  const contracts = allContracts.filter((contract) => contract.status !== 'superseded');
 
   // Nothing signed yet means nothing to show.
   if (!isLoading && !contracts.length) return null;

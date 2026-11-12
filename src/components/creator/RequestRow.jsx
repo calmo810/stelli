@@ -4,6 +4,7 @@ import { ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { statusChip } from '@/lib/threadStatus';
 import { deadlineFor } from '@/hooks/useCreatorPortal';
+import { effectiveStatus } from '@/lib/bookingNextStep';
 
 /** One booking request in a list, with everything needed to triage it. */
 export default function RequestRow({ booking }) {
@@ -11,7 +12,7 @@ export default function RequestRow({ booking }) {
     ? format(new Date(`${booking.event_date}T12:00:00`), 'EEE, MMM d')
     : 'Date open';
 
-  const isNew = booking.status === 'requested';
+  const isNew = effectiveStatus(booking) === 'requested';
   const hours = isNew && booking.created_date
     ? Math.round((deadlineFor(booking).getTime() - Date.now()) / 3600000)
     : null;
@@ -55,7 +56,7 @@ export default function RequestRow({ booking }) {
           </small>
         ) : (
           <small className="mt-0.5 block text-[10.5px] font-semibold text-white/35">
-            {statusChip(booking.status)}
+            {statusChip(booking)}
           </small>
         )}
       </span>

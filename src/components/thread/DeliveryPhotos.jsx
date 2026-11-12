@@ -19,6 +19,9 @@ export default function DeliveryPhotos({ booking, role, onChanged }) {
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const isCreator = role === 'lensman';
+  // Once the final edits are delivered the album is locked: no adding, no removing.
+  const locked = Boolean(booking?.delivered_at);
+  const canEdit = isCreator && !locked;
 
   const clientFirst = (booking?.client_name || '').trim().split(' ')[0] || 'your client';
 
@@ -173,7 +176,7 @@ export default function DeliveryPhotos({ booking, role, onChanged }) {
                   className="aspect-square w-full object-cover"
                 />
               </a>
-              {isCreator && (
+              {canEdit && (
                 <button
                   type="button"
                   onClick={() => remove(photo.id)}
@@ -189,7 +192,13 @@ export default function DeliveryPhotos({ booking, role, onChanged }) {
         </div>
       )}
 
-      {isCreator && (
+      {isCreator && locked && (
+        <p className="mt-3 text-[12px] leading-relaxed text-white/40">
+          Delivered. The album is locked so your client keeps exactly what you sent.
+        </p>
+      )}
+
+      {canEdit && (
         <div className="mt-3 space-y-2">
           <input
             ref={inputRef}

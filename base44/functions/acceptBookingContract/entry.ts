@@ -1,41 +1,65 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { viewerRole } from '../../shared/bookingAccess.ts';
+import { activeContract } from '../../shared/bookingContract.ts';
+import { effectiveStatus, isConfirmed } from '../../shared/bookingRules.ts';
+import { sendEmail } from '../../shared/notify.ts';
+import { SITE_ORIGIN } from '../../shared/origins.ts';
 
+/**
+ * One side accepting the booking agreement.
+ *
+ * Accepting records a signature. It does nothing else: it never changes the
+ * booking's status. (It used to recompute the status from the two acceptance
+ * flags, which pushed paid, confirmed bookings back to
+ * "awaiting_creator_acceptance" and could un-cancel a cancelled one.) A
+ * booking is confirmed by payment and by nothing else.
+ *
+ * Which side you are comes from the booking, not from the request.
+ */
 async function sendContractCopies(base44, booking, contract) {
-  const viewUrl = `/agreements/${contract.id}`;
   const subject = `Stelli booking agreement · ${contract.shoot_date}`;
-  const body = `${contract.contract_text}\n\nView in Stelli: ${viewUrl}`;
-  const recipients = [booking.client_email, contract.creator_email].filter(Boolean);
-  await Promise.all(recipients.map(to => base44.asServiceRole.integrations.Core.SendEmail({ to, subject, body })));
+  const body = `${contract.contract_text}\n\nView it in Stelli: ${SITE_ORIGIN}/agreements/${contract.id}`;
+  const recipients = [...new Set([booking.client_email, booking.creator_email || booking.lensman_email].filter(Boolean))];
+  await Promise.all(recipients.map((to) => sendEmail(base44, to, subject, body)));
 }
 
-export default async function(req) {
+export default async function (req) {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const user = await base44.auth.me().catch(() => null);
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { bookingId, party } = await req.json();
-    if (!bookingId || !party) return Response.json({ error: 'Booking ID and party are required' }, { status: 400 });
+    const { bookingId } = await req.json();
+    if (!bookingId) return Response.json({ error: 'Booking ID is required' }, { status: 400 });
 
-    const booking = await base44.asServiceRole.entities.Booking.get(bookingId);
+    const booking = await base44.asServiceRole.entities.Booking.get(bookingId).catch(() => null);
     if (!booking) return Response.json({ error: 'Booking not found' }, { status: 404 });
 
-    const isCreator = party === 'creator';
-    const isClientParty = booking.client_id === user.id || booking.client_email === user.email;
-    const isCreatorParty = !!booking.lensman_email && booking.lensman_email === user.email;
-    if (!(isCreator ? isCreatorParty : isClientParty)) {
+    const role = viewerRole(booking, user);
+    if (!role) {
       return Response.json({ error: 'You are not a party to this booking.' }, { status: 403 });
     }
+    const isCreator = role === 'lensman';
 
-    const contracts = await base44.asServiceRole.entities.BookingContract.filter({ booking_id: bookingId });
-    const contract = contracts[0];
+    if (effectiveStatus(booking) === 'cancelled') {
+      return Response.json({ error: 'This booking was cancelled.' }, { status: 409 });
+    }
+
+    const contract = await activeContract(base44, booking);
     if (!contract) return Response.json({ error: 'Contract not found' }, { status: 404 });
 
+    // Already accepted: nothing to do, and nothing to send again.
+    const already = isCreator ? contract.creator_accepted_at : contract.client_accepted_at;
+    if (already) {
+      return Response.json({
+        booking: { id: booking.id, status: booking.status },
+        contract,
+        alreadyAccepted: true,
+        confirmed: isConfirmed(booking),
+      });
+    }
+
     const now = new Date().toISOString();
-    const bookingPatch = isCreator
-      ? { creator_contract_accepted: true, creator_contract_accepted_at: now }
-      : { client_contract_accepted: true, client_contract_accepted_at: now };
-    const contractPatch = isCreator ? { creator_accepted_at: now } : { client_accepted_at: now };
 
     await base44.asServiceRole.entities.AgreementAcceptance.create({
       user_id: user.id,
@@ -48,18 +72,30 @@ export default async function(req) {
       user_agent: req.headers.get('user-agent') || '',
     });
 
-    const updatedContract = await base44.asServiceRole.entities.BookingContract.update(contract.id, contractPatch);
-    const clientAccepted = isCreator ? booking.client_contract_accepted : true;
-    const creatorAccepted = isCreator ? true : booking.creator_contract_accepted;
-    const nextStatus = clientAccepted && creatorAccepted ? 'confirmed' : 'awaiting_creator_acceptance';
-    const updatedBooking = await base44.asServiceRole.entities.Booking.update(bookingId, { ...bookingPatch, status: nextStatus });
+    const updatedContract = await base44.asServiceRole.entities.BookingContract.update(
+      contract.id,
+      isCreator ? { creator_accepted_at: now } : { client_accepted_at: now }
+    );
 
-    if (nextStatus === 'confirmed') {
-      await sendContractCopies(base44, updatedBooking, { ...contract, ...contractPatch });
-    }
+    // The signature — and only the signature. `status` is not written here.
+    await base44.asServiceRole.entities.Booking.update(
+      bookingId,
+      isCreator
+        ? { creator_contract_accepted: true, creator_contract_accepted_at: now }
+        : { client_contract_accepted: true, client_contract_accepted_at: now }
+    );
 
-    return Response.json({ booking: updatedBooking, contract: updatedContract, confirmed: nextStatus === 'confirmed' });
+    const bothSigned = Boolean(updatedContract.client_accepted_at && updatedContract.creator_accepted_at);
+    if (bothSigned) await sendContractCopies(base44, booking, updatedContract);
+
+    return Response.json({
+      booking: { id: booking.id, status: booking.status },
+      contract: updatedContract,
+      bothSigned,
+      confirmed: isConfirmed(booking),
+    });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error('acceptBookingContract error:', error.message);
+    return Response.json({ error: 'That did not save. Try again.' }, { status: 500 });
   }
 }

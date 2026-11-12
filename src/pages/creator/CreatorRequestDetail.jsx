@@ -19,6 +19,7 @@ import Pill from '@/components/shared/Pill';
 import money from '@/lib/money';
 import { statusChip } from '@/lib/threadStatus';
 import { deadlineFor } from '@/hooks/useCreatorPortal';
+import { effectiveStatus, moneyTaken } from '@/lib/bookingNextStep';
 
 function Fact({ icon: Icon, label, value, wide = false }) {
   return (
@@ -65,13 +66,14 @@ export default function CreatorRequestDetail() {
     );
   }
 
-  const isNew = booking.status === 'requested';
+  const status = effectiveStatus(booking);
+  const isNew = status === 'requested';
   const deadline = isNew ? deadlineFor(booking) : null;
   const late = deadline ? deadline.getTime() < Date.now() : false;
   const quotes = quotesFor(booking.id);
   const liveQuote = quotes.find((q) => q.status === 'sent');
   const acceptedQuote = quotes.find((q) => q.status === 'accepted');
-  const canQuote = ['requested', 'quoted'].includes(booking.status);
+  const canQuote = ['requested', 'quoted'].includes(status);
 
   const date = booking.event_date
     ? format(new Date(`${booking.event_date}T12:00:00`), 'EEEE, MMM d, yyyy')
@@ -96,7 +98,7 @@ export default function CreatorRequestDetail() {
           className="rounded-full px-2.5 py-1 text-[10px] font-bold tracking-wide"
           style={{ background: 'hsl(var(--neon-cyan) / 0.14)', color: 'hsl(var(--neon-cyan))' }}
         >
-          {statusChip(booking.status)}
+          {statusChip(booking)}
         </span>
         {deadline && (
           <span
@@ -164,7 +166,11 @@ export default function CreatorRequestDetail() {
           {Number(booking.creator_payout) > 0 && (
             <p className="mt-1.5 text-[13px] text-white/50">
               Your payout {money(booking.creator_payout)} ·{' '}
-              {booking.payment_status === 'released' ? 'paid out' : 'held until delivery'}
+              {booking.payment_status === 'released'
+                ? 'paid out'
+                : moneyTaken(booking)
+                  ? 'held until delivery'
+                  : 'once the client pays'}
             </p>
           )}
         </div>

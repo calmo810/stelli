@@ -39,11 +39,15 @@ export default function CreatorEarnings() {
     .sort((a, b) => String(b.event_date || '').localeCompare(String(a.event_date || '')));
 
   const openStripe = async () => {
-    const response = await base44.functions.invoke('startPayoutSetup', {
-      origin: window.location.origin,
-      action: 'dashboard',
-    });
-    if (response.data?.url) window.open(response.data.url, '_blank', 'noopener');
+    try {
+      const response = await base44.functions.invoke('startPayoutSetup', {
+        origin: window.location.origin,
+        action: 'dashboard',
+      });
+      if (response.data?.url) window.open(response.data.url, '_blank', 'noopener');
+    } catch (error) {
+      console.error('Stripe dashboard link failed:', error.message);
+    }
   };
 
   return (

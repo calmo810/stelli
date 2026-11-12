@@ -52,7 +52,7 @@ export default function UpcomingShoots({ shoots = [], emptyText }) {
               </b>
               {meta && <small className="mt-0.5 block truncate text-[13px] capitalize text-white/50">{meta}</small>}
             </span>
-            <span className="shrink-0 text-[10px] font-semibold text-white/40">{statusChip(booking.status)}</span>
+            <span className="shrink-0 text-[10px] font-semibold text-white/40">{statusChip(booking)}</span>
             <ChevronRight className="h-4 w-4 shrink-0 text-white/30" strokeWidth={2.4} />
           </Link>
         );

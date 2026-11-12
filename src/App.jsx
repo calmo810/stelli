@@ -33,6 +33,7 @@ import Register from './pages/Register';
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const OAuthConsent = lazy(() => import('./pages/OAuthConsent'));
+const Mfa = lazy(() => import('./pages/Mfa'));
 const RequestSent = lazy(() => import('./pages/RequestSent'));
 const Creators = lazy(() => import('./pages/Creators'));
 const CreatorProfile = lazy(() => import('./pages/CreatorProfile'));
@@ -81,6 +82,8 @@ const AuthenticatedApp = () => {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/oauth/consent" element={<OAuthConsent />} />
+      {/* Two-factor: finishes a sign-in that needs a second step, and manages the methods. */}
+      <Route path="/mfa" element={<Mfa />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/apply" element={<ProfileWizard />} />
       <Route path="/edit-profile" element={<ProfileWizard />} />
@@ -119,8 +122,9 @@ const AuthenticatedApp = () => {
         <Route path="/album/:bookingId" element={<MemoryAlbum />} />
         <Route path="/terms" element={<Terms />} />
         <Route path="/agreements/:contractId" element={<AgreementDetail />} />
+        {/* Inside the layout, so a broken link and a page you may not open look identical. */}
+        <Route path="*" element={<PageNotFound />} />
       </Route>
-      <Route path="*" element={<PageNotFound />} />
     </Routes>
     </Suspense>
   );

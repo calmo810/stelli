@@ -13,6 +13,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import useClientDashboard from '@/hooks/useClientDashboard';
 import useThreads from '@/hooks/useThreads';
 import shortDate from '@/lib/shortDate';
+import useRequireSignIn from '@/lib/requireSignIn';
 
 function SectionLabel({ children }) {
   return <h3 className="mb-2.5 mt-8 pl-1.5 text-[13px] font-semibold text-white/50">{children}</h3>;
@@ -23,9 +24,11 @@ function SectionLabel({ children }) {
  * What needs you, your shoots, and a short list of everything else.
  */
 export default function ClientDashboard() {
-  const { user, upcoming, awaiting, past, quoteFor, isLoading } = useClientDashboard();
+  const { user, userLoading, bookings, active, past, steps, isLoading, hasCreatorProfile } = useClientDashboard();
   const { unreadCount } = useThreads();
   const queryClient = useQueryClient();
+  // Signed out: go and log in, then come straight back here.
+  const waiting = useRequireSignIn(user, userLoading);
 
   // A pull at the top reloads the dashboard and the inbox together.
   const refreshAll = () =>
@@ -35,28 +38,22 @@ export default function ClientDashboard() {
       queryClient.invalidateQueries({ queryKey: ['messages-inbox'] }),
     ]);
 
+  if (waiting) return <DashboardShell><div className="glass h-[132px] animate-pulse rounded-3xl" /></DashboardShell>;
+
   const firstName = (user?.full_name || '').split(' ')[0] || 'there';
 
-  const needs = [
-    ...upcoming
-      .filter((b) => quoteFor(b.id))
-      .map((b) => ({
-        id: `quote-${b.id}`,
-        title: `${b.lensman_name || 'Your creator'} sent a quote`,
-        meta: [shortDate(b.event_date), b.location].filter(Boolean).join(' · '),
-        action: 'Review',
-        to: `/messages/${b.id}`,
-      })),
-    ...awaiting
-      .filter((b) => b.delivery_link)
-      .map((b) => ({
-        id: `ready-${b.id}`,
-        title: `${b.lensman_name || 'Your creator'} delivered your photos`,
-        meta: `Shot ${shortDate(b.event_date)}`,
-        action: 'View',
-        to: b.album_token ? `/album/${b.id}?t=${b.album_token}` : `/album/${b.id}`,
-      })),
-  ];
+  // The real next step on each booking that has one: a quote to answer, a
+  // payment to make, photos to look at.
+  const needs = steps.map((step) => {
+    const booking = bookings.find((b) => b.id === step.bookingId);
+    return {
+      id: step.id,
+      title: step.title,
+      meta: [shortDate(booking?.event_date), booking?.location].filter(Boolean).join(' · '),
+      action: step.action,
+      to: step.to,
+    };
+  });
 
   return (
     <PullToRefresh onRefresh={refreshAll}>
@@ -86,7 +83,7 @@ export default function ClientDashboard() {
       <SectionLabel>Your shoots</SectionLabel>
       <ShootList
         role="client"
-        active={[...upcoming, ...awaiting]}
+        active={active}
         past={past}
         isLoading={isLoading}
         emptyText="Shoots you request will show up here."
@@ -101,6 +98,7 @@ export default function ClientDashboard() {
         rows={[
           { label: 'Messages', to: '/messages', value: unreadCount ? `${unreadCount} new` : undefined },
           { label: 'Find a creator', to: '/creators' },
+          ...(hasCreatorProfile ? [{ label: 'Creator portal', to: '/lensman-dashboard' }] : []),
           { label: 'Account', to: '/account-settings' },
         ]}
       />

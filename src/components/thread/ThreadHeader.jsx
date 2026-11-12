@@ -1,32 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, ArrowUpRight, FileText } from 'lucide-react';
-import { statusChip } from '@/lib/threadStatus';
-
-const CHIP_TONE = {
-  REQUESTED: 'cyan',
-  'QUOTE SENT': 'magenta',
-  CONFIRMED: 'lime',
-  DELIVERED: 'lime',
-  CANCELLED: 'magenta',
-  'UNDER REVIEW': 'magenta',
-};
-
-// One plain line so either side always knows where the booking stands.
-const NEXT_STEP = {
-  requested: 'Waiting on a quote — nothing is charged yet.',
-  quoted: 'Quote sent — accept it to lock in the date.',
-  quote_accepted: 'Quote accepted — waiting on payment.',
-  pending: 'Quote sent — accept it to lock in the date.',
-  awaiting_creator_acceptance: 'Quote sent — accept it to lock in the date.',
-  confirmed: 'Booked — payment is held until the photos land.',
-  in_progress: 'Shoot day — payment is held until the photos land.',
-  awaiting_delivery: 'Shot — waiting on the photos.',
-  delivered: 'Delivered — payment releases after the 48 hour window.',
-  completed: 'All done — the payment has been released.',
-  cancelled: 'This booking was cancelled.',
-  disputed: 'Under review by the Stelli team.',
-};
+import { CHIP_TONE, statusChip } from '@/lib/threadStatus';
+import { statusLine } from '@/lib/bookingNextStep';
 
 function initials(name) {
   return String(name || 'S')
@@ -39,10 +15,11 @@ function initials(name) {
 
 /** The top of a chat: who you're talking to, where the booking stands, and one clear action. */
 export default function ThreadHeader({ booking, creator, role, talkingTo, profileHref, onQuote }) {
-  const chip = statusChip(booking?.status);
+  const chip = statusChip(booking);
   const tone = CHIP_TONE[chip] || 'cyan';
   const avatar = creator?.profile_image || creator?.cover_image;
-  const next = NEXT_STEP[booking?.status];
+  // One plain line so either side always knows where the booking stands.
+  const next = booking ? statusLine(booking, role) : '';
 
   const name = (
     <span className="truncate text-[17px] font-semibold text-white">{talkingTo || 'Stelli'}</span>

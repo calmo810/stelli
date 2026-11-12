@@ -26,7 +26,7 @@ export default function useThreads() {
     queryFn: async () => {
       const [byId, asClient, messages] = await Promise.all([
         user?.id ? base44.entities.Booking.filter({ creator_id: user.id }, '-updated_date') : [],
-        user?.email ? base44.entities.Booking.filter({ client_email: user.email }, '-updated_date') : [],
+        user?.id ? base44.entities.Booking.filter({ client_id: user.id }, '-updated_date') : [],
         base44.entities.Message.list('-created_date', 300),
       ]);
       const seen = new Set();

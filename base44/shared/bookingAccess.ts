@@ -17,12 +17,11 @@ export function viewerRole(booking, user) {
   return null;
 }
 
-/** Once a booking is confirmed, messaging is unrestricted. */
-export function isConfirmed(booking) {
-  return ['confirmed', 'in_progress', 'awaiting_delivery', 'delivered', 'completed'].includes(
-    booking?.status
-  );
-}
+/**
+ * Once a booking is confirmed — paid and going ahead — messaging is
+ * unrestricted. The rule itself lives in bookingRules.ts.
+ */
+export { isConfirmed } from './bookingRules.ts';
 
 /** The creator's account email on this booking, whichever field carries it. */
 export function creatorEmail(booking) {

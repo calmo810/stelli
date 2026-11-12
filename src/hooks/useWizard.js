@@ -122,23 +122,26 @@ export default function useWizard() {
     retry: false,
   });
 
-  const { data: lensman, isFetched: lensmanFetched } = useQuery({
-    queryKey: ['my-lensman-profile', user?.id],
+  // The creator's own full profile (packages included) and private contact
+  // details, from the server: some of those fields are readable by founders
+  // only, so reading the record directly would come back with them missing,
+  // and a save would then wipe them.
+  const { data: own, isFetched: ownFetched, isError: ownFailed } = useQuery({
+    queryKey: ['my-creator-profile-full', user?.id],
     enabled: !!user?.id,
+    retry: 1,
     queryFn: async () => {
-      const list = await base44.entities.Lensman.filter({ user_id: user.id });
-      return list[0] || null;
+      const response = await base44.functions.invoke('getMyCreatorProfile', {});
+      if (response.data?.error) throw new Error(response.data.error);
+      return response.data || { lensman: null, contact: null };
     },
   });
-
-  const { data: contact, isFetched: contactFetched } = useQuery({
-    queryKey: ['my-creator-contact', user?.id],
-    enabled: !!user?.id,
-    queryFn: async () => {
-      const list = await base44.entities.CreatorContact.filter({ user_id: user.id });
-      return list[0] || null;
-    },
-  });
+  const lensman = own?.lensman || null;
+  const contact = own?.contact || null;
+  // A failed load must never look like "no profile yet": that would start a
+  // fresh application on top of an existing one.
+  const lensmanFetched = ownFetched && !ownFailed;
+  const contactFetched = lensmanFetched;
 
   // A creator profile belongs to an account, so building one starts at sign-in.
   useEffect(() => {
@@ -317,7 +320,7 @@ export default function useWizard() {
       }
       clearDraft();
       queryClient.invalidateQueries({ queryKey: ['my-lensman-profile'] });
-      queryClient.invalidateQueries({ queryKey: ['my-creator-contact'] });
+      queryClient.invalidateQueries({ queryKey: ['my-creator-profile-full'] });
       setView('share');
       window.scrollTo(0, 0);
     } catch (error) {
