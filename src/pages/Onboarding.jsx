@@ -95,7 +95,7 @@ export default function Onboarding() {
           Which side are you on?
         </h1>
         <p className="mx-auto mt-3 max-w-[460px] text-[15px] leading-relaxed text-white/55">
-          Clients and creators see completely different portals. Pick once — it decides everything after this.
+          Clients and creators see completely different portals. Pick once\u00a0— it decides everything after this.
         </p>
       </div>
 

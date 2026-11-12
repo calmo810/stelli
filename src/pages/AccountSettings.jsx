@@ -1,13 +1,23 @@
 import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import DashboardShell from '@/components/dashboard/DashboardShell';
+import CanvasGlow from '@/components/shared/CanvasGlow';
 import LoginEmailBox from '@/components/account/LoginEmailBox';
 import PasswordBox from '@/components/account/PasswordBox';
 import DeleteAccountCard from '@/components/account/DeleteAccountCard';
 import TwoFactorCard from '@/components/account/TwoFactorCard';
 import { isGoogleUser } from '@/lib/authProvider';
 import useRequireSignIn from '@/lib/requireSignIn';
+
+/** The portal's canvas and column. Its light fades in under the back button. */
+function Shell({ children }) {
+  return (
+    <div className="relative min-h-screen bg-ink">
+      <CanvasGlow />
+      <div className="relative mx-auto w-full max-w-[640px] px-4 pb-24 pt-8 sm:px-5">{children}</div>
+    </div>
+  );
+}
 
 /** Account settings, on the same glass canvas as the portal. */
 export default function AccountSettings() {
@@ -17,18 +27,18 @@ export default function AccountSettings() {
 
   if (waiting || !user) {
     return (
-      <DashboardShell>
+      <Shell>
         <div className="glass h-12 w-2/3 animate-pulse rounded-2xl" />
         <div className="glass mt-8 h-[88px] animate-pulse rounded-3xl" />
         <div className="glass mt-4 h-[260px] animate-pulse rounded-3xl" />
-      </DashboardShell>
+      </Shell>
     );
   }
 
   const googleUser = isGoogleUser(user);
 
   return (
-    <DashboardShell>
+    <Shell>
       <h1
         className="font-display font-medium text-white"
         style={{ fontSize: 40, letterSpacing: '-0.02em', lineHeight: 1.05 }}
@@ -40,6 +50,6 @@ export default function AccountSettings() {
       <PasswordBox user={user} googleUser={googleUser} />
       <TwoFactorCard />
       <DeleteAccountCard />
-    </DashboardShell>
+    </Shell>
   );
 }
