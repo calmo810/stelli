@@ -17,18 +17,22 @@ export default function CreatorBookings() {
 
   return (
     <div className="arch-tab arch-tab--work">
-      <h1 className="wk-h1">Shoots</h1>
-      <p className="wk-lede">Open a shoot to message the client, share the gallery, or wrap it up.</p>
-
-      <div className="mt-4">
-        <WorkTabs requests={newRequests.length} />
+      <div className="arch-tab__topline">
+        <div className="arch-tab__heading">
+          <h1 className="wk-h1">Shoots</h1>
+          <p className="wk-lede">Everything confirmed, finished, and ready to share.</p>
+        </div>
+        <nav className="arch-tab__nav" aria-label="Work sections">
+          <WorkTabs requests={newRequests.length} />
+        </nav>
       </div>
 
-      <div className="mt-4">
+      <div className="arch-tab__toolbar">
         <NextPast value={tab} onChange={setTab} nextCount={confirmed.length} pastCount={past.length} />
+        <p className="arch-tab__count">{tab === 'next' ? `${confirmed.length} ahead` : `${past.length} complete`}</p>
       </div>
 
-      <div className="mt-3">
+      <div className="arch-tab__content">
         {list.length ? (
           <UpcomingShoots
             shoots={list}
@@ -51,7 +55,9 @@ export default function CreatorBookings() {
         )}
       </div>
 
-      <MyAgreements role="lensman" />
+      <div className="arch-tab__secondary">
+        <MyAgreements role="lensman" />
+      </div>
     </div>
   );
 }
