@@ -100,6 +100,10 @@ export default function CreatorOverview() {
       ) : null}
 
       <section className="today-greeting">
+        <span className="today-greeting__camera" aria-hidden="true">📸</span>
+        <span className="today-greeting__spark today-greeting__spark--one" aria-hidden="true">✦</span>
+        <span className="today-greeting__spark today-greeting__spark--two" aria-hidden="true">✧</span>
+        <span className="today-greeting__light" aria-hidden="true">✺</span>
         <p>Hi, {firstName}.</p>
         <strong>
           {metrics.requests
