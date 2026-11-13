@@ -55,45 +55,29 @@ export default function Navbar({ inFlow = false }) {
     <>
       <header
         ref={headerRef}
-        className={`st-ink ${inFlow ? 'relative' : 'fixed top-0'} inset-x-0 z-50 transition-[padding] duration-500`}
-        style={{ paddingTop: 'var(--safe-top)' }}
+        className={`st-ink ${inFlow ? 'relative' : 'fixed top-0'} inset-x-0 z-50 transition-[background-color,border-color] duration-500`}
+        style={{
+          paddingTop: 'var(--safe-top)',
+          background: solid ? 'hsl(var(--ink) / 0.86)' : 'transparent',
+          backdropFilter: solid ? 'blur(16px) saturate(1.4)' : 'none',
+          WebkitBackdropFilter: solid ? 'blur(16px) saturate(1.4)' : 'none',
+          borderBottom: solid ? '1px solid var(--line)' : '1px solid transparent',
+        }}
       >
-        <div
-          className="relative mx-auto flex h-16 w-[calc(100%-16px)] max-w-[1400px] items-center justify-between gap-4 overflow-hidden rounded-[22px] px-4 md:w-[calc(100%-32px)] md:px-8"
-          style={{
-            background: solid
-              ? 'linear-gradient(115deg, hsl(var(--ink) / .97), hsl(var(--surface) / .94))'
-              : 'linear-gradient(115deg, hsl(var(--ink) / .80), hsl(var(--surface) / .52))',
-            border: '1px solid rgba(255,255,255,.12)',
-            boxShadow: solid
-              ? '0 18px 38px -27px rgba(0,0,0,.92), inset 0 1px 0 rgba(255,255,255,.11)'
-              : '0 16px 34px -24px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.16)',
-            backdropFilter: 'blur(18px) saturate(1.35)',
-            WebkitBackdropFilter: 'blur(18px) saturate(1.35)',
-          }}
-        >
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 opacity-90"
-            style={{
-              background: 'radial-gradient(30% 150% at 0% 50%, hsl(var(--neon-lime) / .20), transparent 75%), radial-gradient(28% 150% at 100% 0%, hsl(var(--neon-cyan) / .17), transparent 72%)',
-            }}
-          />
-          <Link to="/" aria-label="Stelli home" className="relative z-[1] shrink-0 rounded-lg transition-transform duration-300 hover:-rotate-2">
+        <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-4 px-4 md:px-8">
+          <Link to="/" aria-label="Stelli home" className="shrink-0 rounded-lg">
             <StelliWordmark />
           </Link>
 
           {/* With room to spare, the main doors sit in the bar itself. */}
-          <nav aria-label="Primary" className="relative z-[1] hidden items-center gap-1 lg:flex">
+          <nav aria-label="Primary" className="hidden items-center gap-1 lg:flex">
             {LINKS.map((link) => (
               <NavLink
                 key={link.to}
                 to={link.to}
                 className={({ isActive }) =>
-                  `inline-flex min-h-[40px] items-center rounded-full px-4 text-[14px] font-semibold transition-[background-color,color,transform] ${
-                    isActive
-                      ? 'bg-neon-lime text-ink shadow-lg'
-                      : 'text-fg-2 hover:bg-white/10 hover:text-fg hover:-translate-y-px'
+                  `inline-flex min-h-[40px] items-center rounded-full px-4 text-[14px] font-semibold transition-colors ${
+                    isActive ? 'bg-fill text-fg' : 'text-fg-2 hover:bg-fill-2 hover:text-fg'
                   }`
                 }
               >
@@ -102,7 +86,7 @@ export default function Navbar({ inFlow = false }) {
             ))}
           </nav>
 
-          <div className="relative z-[1] flex items-center gap-2">
+          <div className="flex items-center gap-2">
             {user ? (
               <>
                 <Btn to="/messages" variant="ghost" size="sm" className="hidden md:inline-flex">
