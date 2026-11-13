@@ -217,7 +217,7 @@ export default function HeroVideo() {
             </span>
           </h1>
 
-          <div className="mx-auto mt-14 flex w-full max-w-[430px] flex-col items-center justify-center gap-2.5 sm:mt-[100px] sm:flex-row sm:gap-2.5">
+          <div className="mx-auto mt-10 flex w-full max-w-[430px] flex-col items-center justify-center gap-2.5 sm:mt-[62px] sm:flex-row sm:gap-2.5">
             {HERO_PATHS.map((path) => (
               <Link
                 key={path.to}
