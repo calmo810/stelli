@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { Aperture, ArrowUpRight, Sparkles } from 'lucide-react';
 import SmoothImage from '@/components/shared/SmoothImage';
 
 // Full-bleed hero still: Elon University. Served at 4K wide, with smaller
@@ -31,6 +32,31 @@ const GAP_MS = 250;
 const START_MS = 600;
 
 const EMPTY_TYPER = { index: 0, text: '', deleting: false, started: false };
+
+const HERO_PATHS = [
+  {
+    to: '/creators',
+    kicker: 'FOR YOUR MOMENT',
+    title: 'Book a creator',
+    note: 'Find the right eye for it.',
+    Icon: Aperture,
+    color: 'hsl(var(--ink))',
+    surface: 'linear-gradient(135deg, hsl(75 100% 75%) 0%, hsl(var(--neon-lime)) 56%, hsl(70 92% 48%) 100%)',
+    shadow: '0 20px 42px -20px hsl(var(--neon-lime) / .72)',
+    orb: 'hsl(var(--ink))',
+  },
+  {
+    to: '/register?role=creator',
+    kicker: 'FOR THE ONES WHO SHOOT',
+    title: 'Shoot with Stelli',
+    note: 'Make work. Get booked.',
+    Icon: Sparkles,
+    color: 'white',
+    surface: 'radial-gradient(105% 130% at 100% 0%, hsl(var(--neon-cyan) / .38), transparent 54%), linear-gradient(135deg, hsl(226 47% 22%), hsl(var(--ink)))',
+    shadow: '0 20px 42px -20px hsl(var(--neon-cyan) / .55)',
+    orb: 'hsl(var(--neon-cyan))',
+  },
+];
 
 const HIGHLIGHT = {
   display: 'inline',
@@ -196,20 +222,45 @@ export default function HeroVideo() {
             </span>
           </h1>
 
-          <div className="mx-auto mt-10 flex w-full max-w-[460px] flex-col justify-center gap-3 sm:max-w-none sm:flex-row">
-            <Link
-              to="/creators"
-              className="st-btn st-btn--lime st-btn--lg w-full justify-center sm:w-[232px]"
-            >
-              Book a creator
-            </Link>
-            <Link
-              to="/register?role=creator"
-              className="st-btn st-btn--lg st-btn--outline w-full justify-center !text-white backdrop-blur-md sm:w-[232px]"
-              style={{ background: 'rgba(10, 18, 38, 0.35)', boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,.35)' }}
-            >
-              Shoot with Stelli
-            </Link>
+          <div className="mx-auto mt-8 grid w-full max-w-[690px] gap-3 sm:grid-cols-2">
+            {HERO_PATHS.map((path, index) => {
+              const PathIcon = path.Icon;
+              return (
+                <Link
+                  key={path.to}
+                  to={path.to}
+                  className="group relative isolate min-h-[116px] overflow-hidden rounded-[26px] px-5 py-4 text-left transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-1.5"
+                  style={{ background: path.surface, color: path.color, boxShadow: path.shadow }}
+                >
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -right-5 -bottom-7 opacity-25 transition-transform duration-700 group-hover:rotate-12 group-hover:scale-110"
+                  >
+                    <PathIcon className="h-32 w-32" strokeWidth={1.1} />
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute left-5 right-5 top-[38px] border-t border-current opacity-20"
+                  />
+                  <div className="relative z-[1] flex min-h-[84px] flex-col justify-between pr-12">
+                    <span className="text-[10px] font-extrabold tracking-[0.16em] opacity-70">
+                      0{index + 1} / {path.kicker}
+                    </span>
+                    <span className="font-display text-[clamp(25px,3.1vw,38px)] font-medium leading-[.95] tracking-[-0.035em]">
+                      {path.title}
+                    </span>
+                    <span className="text-[13px] font-medium opacity-70">{path.note}</span>
+                  </div>
+                  <span
+                    aria-hidden="true"
+                    className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1"
+                    style={{ background: path.orb, color: index === 0 ? 'hsl(var(--neon-lime))' : 'hsl(var(--ink))' }}
+                  >
+                    <ArrowUpRight className="h-[19px] w-[19px]" strokeWidth={2.6} />
+                  </span>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </div>
