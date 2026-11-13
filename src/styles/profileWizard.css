@@ -12,12 +12,12 @@
   --line-2:#2f3856;
   --text:#ffffff;
   --dim:#9aa3b8;
-  --faint:#6b7389;
+  --faint:#8b94a9;
   --lime:#C4F82A;
   --cyan:#2AE8F8;
   --magenta:#F82AC4;
   --accent:var(--lime);
-  --ink:#0a0f1e;
+  --pw-ink:#0a0f1e;
   --danger:#ff8a8a;
   --r:14px;
   --r-sm:12px;
@@ -90,7 +90,7 @@
   transition:opacity .15s,transform .1s,background .2s,border-color .2s;
 }
 .btn:active{transform:scale(.98)}
-.btn-primary{background:var(--lime);color:var(--ink)}
+.btn-primary{background:var(--lime);color:var(--pw-ink)}
 .btn-primary:hover{opacity:.9}
 .btn-primary:disabled{opacity:.35;cursor:not-allowed;transform:none}
 .btn-ghost{border:1px solid var(--line-2);color:var(--text)}
@@ -154,7 +154,7 @@
 .foot .hint{flex:1;text-align:right;font-size:13px;color:var(--faint);margin:0}
 .go{
   flex:none;padding:14px 28px;border-radius:999px;
-  background:var(--lime);color:var(--ink);font-weight:600;font-size:15px;
+  background:var(--lime);color:var(--pw-ink);font-weight:600;font-size:15px;
   transition:opacity .15s,transform .1s;
 }
 .go:hover{opacity:.9}
@@ -270,7 +270,7 @@
 .pf-ctrl button:disabled{opacity:.3;cursor:default}
 .pf-cover-flag{
   position:absolute;right:6px;bottom:6px;border-radius:999px;padding:3px 8px;
-  background:var(--lime);color:var(--ink);
+  background:var(--lime);color:var(--pw-ink);
   font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
 }
 .pf-add{
@@ -387,7 +387,7 @@
 .check{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);font-size:14px}
 .check:first-child{border-top:none}
 .check .ic{width:22px;height:22px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
-.check.ok .ic{background:var(--lime);color:var(--ink)}
+.check.ok .ic{background:var(--lime);color:var(--pw-ink)}
 .check.no .ic{border:1.5px dashed var(--faint)}
 .check.ok .t{color:var(--dim)}
 .check .t{flex:1}
@@ -409,7 +409,7 @@
 /* ============ DONE / SHARE ============ */
 .share{max-width:620px;animation:pwRise .5s var(--ease) both}
 .share .big-check{
-  width:64px;height:64px;border-radius:50%;background:var(--lime);color:var(--ink);
+  width:64px;height:64px;border-radius:50%;background:var(--lime);color:var(--pw-ink);
   display:flex;align-items:center;justify-content:center;
   animation:pwPop .6s var(--ease) both;
 }
@@ -460,13 +460,13 @@
 .starter-art .chip-demo{
   position:absolute;left:14px;bottom:12px;border-radius:999px;padding:5px 10px;
   font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
-  color:var(--ink);background:var(--sc);
+  color:#0a1226;background:var(--sc);
 }
 .starter-body{padding:16px 18px 18px}
 .starter-name{font-weight:600;font-size:16px}
 .starter-tags{color:var(--dim);font-size:13px;margin-top:4px}
 .starter-line{font-size:13.5px;color:var(--text);opacity:.8;font-style:italic;margin-top:10px}
-.starter-use{margin-top:14px;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--sc)}
+.starter-use{margin-top:14px;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text)}
 
 /* ============ SHEET ============ */
 .sheet-back{position:fixed;inset:0;z-index:80;background:rgba(5,7,12,.6);backdrop-filter:blur(6px);animation:pwFade .25s both}
@@ -567,7 +567,7 @@
    Re-pointing the wizard's own tokens inside those sheets re-colours every
    field, chip and switch at once. On paper the accent is ink, not lime.
 ===================================================================== */
-.pw-root{--bg:#0a1226;--panel:#101a33;--raise:#18233f;--ink:#0a1226;--r:16px;--r-sm:14px;--r-lg:26px}
+.pw-root{--bg:#0a1226;--panel:#101a33;--raise:#18233f;--pw-ink:#0a1226;--r:16px;--r-sm:14px;--r-lg:26px}
 .pw-root .welcome,
 .pw-root .card,
 .pw-root .pv > div:last-child,
@@ -585,7 +585,7 @@
   --faint:#626d82;
   --lime:#0a1226;
   --accent:#0a1226;
-  --ink:#ffffff;
+  --pw-ink:#ffffff;
   --danger:#b3173f;
   color:var(--text);
 }

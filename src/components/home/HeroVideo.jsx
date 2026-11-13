@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 import SmoothImage from '@/components/shared/SmoothImage';
 
 // Full-bleed hero still: Elon University. Served at 4K wide, with smaller
@@ -61,11 +62,6 @@ const CARET = {
   verticalAlign: '-.05em',
   background: 'hsl(var(--ink))',
   animation: 'stelliCaretBlink 1s steps(1) infinite',
-};
-
-const BUTTON = {
-  borderRadius: 980,
-  padding: '15px 30px',
 };
 
 function usePrefersReducedMotion() {
@@ -201,30 +197,17 @@ export default function HeroVideo() {
             </span>
           </h1>
 
-          <div className="flex flex-wrap justify-center" style={{ marginTop: 40, gap: 12 }}>
-            <Link
-              to="/creators"
-              className="st-kicker font-semibold w-full sm:w-auto text-center transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-0.5"
-              style={{
-                ...BUTTON,
-                background: 'hsl(var(--neon-lime))',
-                color: 'hsl(var(--ink))',
-                boxShadow: 'inset 0 1px 0 var(--fg-3), 0 10px 30px -10px hsl(var(--neon-lime) / 0.55)',
-              }}
-            >
+          <div className="mt-10 flex w-full flex-col justify-center gap-2.5 sm:w-auto sm:flex-row">
+            <Link to="/creators" className="st-btn st-btn--lime st-btn--lg">
               Book a creator
+              <span className="st-btn__dot" aria-hidden>
+                <ArrowRight strokeWidth={2.4} />
+              </span>
             </Link>
             <Link
               to="/register?role=creator"
-              className="st-kicker font-semibold w-full sm:w-auto text-center transition-colors duration-300 hover:bg-fill-2"
-              style={{
-                ...BUTTON,
-                border: '1px solid var(--line-2)',
-                color: '#fff',
-                background: 'var(--fill)',
-                backdropFilter: 'blur(12px) saturate(1.4)',
-                WebkitBackdropFilter: 'blur(12px) saturate(1.4)',
-              }}
+              className="st-btn st-btn--lg st-btn--outline !text-white backdrop-blur-md"
+              style={{ background: 'rgba(10, 18, 38, 0.35)', boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,.35)' }}
             >
               Shoot with Stelli
             </Link>

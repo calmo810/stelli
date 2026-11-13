@@ -133,7 +133,10 @@
     color-scheme: dark;
   }
 
-  .st-paper {
+  .st-paper,
+  .arch-tab,
+  .wk-card,
+  .wk-list {
     --bar: rgba(255, 255, 255, 0.9);
     --chip-lime-bg: var(--tint-lime);
     --chip-lime-fg: var(--tint-lime-ink);
@@ -143,7 +146,7 @@
     --chip-magenta-fg: var(--tint-blush-ink);
     --fg: var(--st-ink);
     --fg-2: #414b61;
-    --fg-3: #626d82;
+    --fg-3: #5a6478;
     --line: rgba(10, 18, 38, 0.09);
     --line-2: rgba(10, 18, 38, 0.2);
     --fill: #f1f4f9;
@@ -368,6 +371,12 @@
     --st-primary: var(--st-lime);
     --st-on-primary: var(--st-ink);
     --field: rgba(255, 255, 255, 0.07);
+    --chip-lime-bg: hsl(var(--neon-lime) / 0.14);
+    --chip-lime-fg: hsl(var(--neon-lime));
+    --chip-cyan-bg: hsl(var(--neon-cyan) / 0.14);
+    --chip-cyan-fg: hsl(var(--neon-cyan));
+    --chip-magenta-bg: hsl(var(--neon-magenta) / 0.16);
+    --chip-magenta-fg: #ff9ad0;
     background: linear-gradient(160deg, #16223f 0%, var(--st-ink) 70%);
     color: #fff;
     box-shadow: var(--shadow-card);

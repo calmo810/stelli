@@ -1,11 +1,12 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { mediumDate } from '@/lib/format';
+import { Row, Skeleton } from '@/components/system';
 
-/** Booking contracts, folded into one compact list. `light` draws it on a bright card. */
-export default function MyAgreements({ role = 'client', light = false, userId = null }) {
+/** Booking contracts, folded into one compact list. Reads right on ink or on paper. */
+export default function MyAgreements({ role = 'client', userId = null, title = 'Agreements' }) {
   const creatorScope = role === 'lensman' && userId ? { creator_user_id: userId } : null;
   const { data: allContracts = [], isLoading } = useQuery({
     queryKey: ['my-agreements', role, userId || 'current'],
@@ -23,44 +24,29 @@ export default function MyAgreements({ role = 'client', light = false, userId = 
   // Nothing signed yet means nothing to show.
   if (!isLoading && !contracts.length) return null;
 
-  const shell = light
-    ? 'overflow-hidden rounded-[24px] bg-white'
-    : 'st-card overflow-hidden rounded-3xl';
-  const row = light
-    ? 'flex items-center gap-3.5 px-[18px] py-3 transition-colors hover:bg-[#f2f4f8]'
-    : 'flex items-center gap-3.5 px-[18px] py-3 transition-colors hover:bg-fill-2';
-  const divider = light ? ' border-t border-[rgba(10,18,38,0.08)]' : ' border-t border-line';
-  const name = light ? 'text-ink' : 'text-fg';
-  const meta = light ? 'wk-mute' : 'text-fg-3';
-  const chevron = light ? 'wk-mute' : 'text-fg-3';
-
   return (
-    <section className="mt-8">
-      <div className="mb-2.5 flex items-baseline justify-between pl-1.5 pr-1.5">
-        <h3 className="text-[13px] font-semibold text-fg-3">Agreements</h3>
-        {contracts.length > 0 && <span className="text-[12px] text-fg-3">{contracts.length} signed</span>}
+    <section aria-label={title}>
+      <div className="mb-2.5 flex items-baseline justify-between px-1">
+        <h2 className="st-kicker">{title}</h2>
+        {contracts.length > 0 && <span className="st-small">{contracts.length} on record</span>}
       </div>
 
       {isLoading ? (
-        <div className={`${light ? 'bg-white' : 'st-card'} h-[58px] animate-pulse rounded-3xl`} />
+        <Skeleton className="h-[64px] !rounded-st-md" />
       ) : (
-        <div className={shell}>
-          {contracts.map((contract, i) => (
-            <Link
+        <div className="st-list">
+          {contracts.map((contract) => (
+            <Row
               key={contract.id}
               to={`/agreements/${contract.id}`}
-              className={`${row}${i ? divider : ''}`}
-            >
-              <span className="min-w-0 flex-1">
-                <b className={`block truncate text-[15px] font-medium ${name}`}>
-                  {role === 'client' ? contract.creator_name : contract.client_name}
-                </b>
-                <small className={`mt-0.5 block truncate text-[12.5px] ${meta}`}>
-                  {contract.shoot_date || 'Date pending'} · {contract.format_name}
-                </small>
-              </span>
-              <ChevronRight className={`h-4 w-4 shrink-0 ${chevron}`} strokeWidth={2.4} />
-            </Link>
+              leading={
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-tint-butter text-[var(--tint-butter-ink)]" aria-hidden>
+                  <FileText className="h-[18px] w-[18px]" />
+                </span>
+              }
+              title={role === 'client' ? contract.creator_name : contract.client_name}
+              meta={[contract.format_name, contract.shoot_date ? mediumDate(contract.shoot_date) : 'Date to be set'].filter(Boolean).join(' · ')}
+            />
           ))}
         </div>
       )}

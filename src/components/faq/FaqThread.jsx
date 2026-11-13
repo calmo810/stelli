@@ -387,7 +387,7 @@ export default function FaqThread() {
                         className={`ip-row ${m.from === 'me' ? 'me' : 'them'}${gap ? ' gap' : ''}${m.fresh ? ' fresh' : ''}${m.still ? ' still' : ''}`}
                       >
                         {m.typing ? (
-                          <div className="ip-bubble ip-typing" aria-label="Stelli is typing">
+                          <div className="ip-bubble ip-typing" role="status" aria-label="Stelli is typing">
                             <i />
                             <i />
                             <i />

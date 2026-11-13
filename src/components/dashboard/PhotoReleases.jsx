@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ImagePlus, Loader2, X } from 'lucide-react';
-import { base44 } from '@/api/base44Client';
+import { base44, errorMessage } from '@/api/base44Client';
 import { shortDate } from '@/lib/format';
 
 const MAX_PHOTOS = 6;
@@ -20,7 +20,7 @@ function statusText(r, role) {
 }
 
 /** The creator picks which photos from the shoot would be shown. */
-function PhotoPicker({ photos, setPhotos, light }) {
+function PhotoPicker({ photos, setPhotos }) {
   const input = useRef(null);
   const [busy, setBusy] = useState(false);
   const add = async (files) => {
@@ -37,9 +37,7 @@ function PhotoPicker({ photos, setPhotos, light }) {
       setBusy(false);
     }
   };
-  const addTile = light
-    ? 'border-[#0a1226]/20 text-[#667085] hover:border-[#0a1226]/40 hover:text-[#0a1226]'
-    : 'border-line-2 text-fg-3 hover:border-line-2 hover:text-fg';
+  const addTile = 'border-line-2 text-fg-3 hover:border-[var(--fg)] hover:text-fg';
   return (
     <div className="mt-3 flex flex-wrap gap-2">
       {photos.map((src) => (
@@ -49,7 +47,7 @@ function PhotoPicker({ photos, setPhotos, light }) {
             type="button"
             aria-label="Remove photo"
             onClick={() => setPhotos(photos.filter((p) => p !== src))}
-            className="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full bg-black/60 text-fg"
+            className="absolute right-1 top-1 grid h-6 w-6 place-items-center rounded-full bg-black/65 text-white"
           >
             <X className="h-3 w-3" strokeWidth={2.6} />
           </button>
@@ -71,7 +69,7 @@ function PhotoPicker({ photos, setPhotos, light }) {
   );
 }
 
-function ReleaseCard({ release: r, role, light }) {
+function ReleaseCard({ release: r, role }) {
   const queryClient = useQueryClient();
   const [photos, setPhotos] = useState(r.photos || []);
   const [saving, setSaving] = useState(null);
@@ -83,14 +81,14 @@ function ReleaseCard({ release: r, role, light }) {
   // A client can't say yes to photos that haven't been chosen.
   const waitingOnPhotos = role === 'client' && !(r.photos || []).length;
 
-  const shell = light ? 'rounded-[20px] bg-white px-4 py-3.5' : 'st-card rounded-[20px] px-4 py-3.5';
-  const heading = light ? 'text-ink' : 'text-fg';
-  const meta = light ? 'wk-grey' : 'text-fg-3';
-  const body = light ? 'wk-grey' : 'text-fg-2';
-  const fine = light ? 'wk-mute' : 'text-fg-3';
-  const quiet = light ? 'border border-[#0a1226]/15 text-ink/70 hover:bg-[#0a1226]/[0.04]' : 'border border-line-2 text-fg-2 hover:bg-fill-2';
-  const plain = light ? 'wk-mute hover:text-ink' : 'text-fg-3 hover:text-fg';
-  const yes = light ? 'wk-ink' : 'text-accent2';
+  // A question waiting on you is a colour block; a settled one is a plain card.
+  const shell = `st-card ${pending ? 'st-card--lilac' : ''} px-4 py-4 sm:px-5`;
+  const heading = 'text-fg';
+  const meta = 'text-fg-3';
+  const body = 'text-fg-2';
+  const fine = 'text-fg-3';
+  const plain = 'inline-flex min-h-[40px] items-center text-fg-3 hover:text-fg';
+  const yes = 'inline-flex min-h-[40px] items-center text-accent2 hover:underline';
 
   const answer = async (decision) => {
     setSaving(decision);
@@ -104,7 +102,7 @@ function ReleaseCard({ release: r, role, light }) {
       if (res.data?.error) throw new Error(res.data.error);
       await queryClient.invalidateQueries({ queryKey: ['photo-releases'] });
     } catch (e) {
-      setError(e?.response?.data?.error || e.message || 'Something went wrong. Try again.');
+      setError(errorMessage(e));
     } finally {
       setSaving(null);
     }
@@ -112,7 +110,7 @@ function ReleaseCard({ release: r, role, light }) {
 
   return (
     <div className={shell}>
-      <b className={`block text-[15px] font-bold capitalize ${heading}`}>
+      <b className={`block text-[15px] font-bold first-letter:uppercase ${heading}`}>
         {pending ? `Share your ${shootName(r)} on Stelli?` : `${shootName(r)} · photo release`}
       </b>
       <small className={`mt-0.5 block text-[13px] ${meta}`}>
@@ -126,7 +124,7 @@ function ReleaseCard({ release: r, role, light }) {
               ? `Can this shoot appear under Past Stelli shoots on ${other}'s page? These photos and your review would show publicly, with your first name only. If ${other} changes the photos, you are asked again.`
               : `Can this shoot appear under Past Stelli shoots on your page? Pick up to ${MAX_PHOTOS} photos to show. ${other} is asked too.`}
           </p>
-          {role === 'lensman' && <PhotoPicker photos={photos} setPhotos={setPhotos} light={light} />}
+          {role === 'lensman' && <PhotoPicker photos={photos} setPhotos={setPhotos} />}
           {/* The client says yes to these exact photos, so they are shown. */}
           {role === 'client' && (r.photos || []).length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
@@ -148,7 +146,7 @@ function ReleaseCard({ release: r, role, light }) {
               type="button"
               disabled={!!saving || (role === 'lensman' && !photos.length) || waitingOnPhotos}
               onClick={() => answer('approved')}
-              className="flex-1 rounded-full bg-neon-lime py-2.5 text-[13.5px] font-semibold text-ink transition-opacity disabled:opacity-40"
+              className="st-btn st-btn--primary st-btn--sm flex-1"
             >
               {saving === 'approved' ? 'Saving…' : 'Yes, share it'}
             </button>
@@ -156,7 +154,7 @@ function ReleaseCard({ release: r, role, light }) {
               type="button"
               disabled={!!saving}
               onClick={() => answer('declined')}
-              className={`flex-1 rounded-full py-2.5 text-[13.5px] font-semibold transition-colors disabled:opacity-40 ${quiet}`}
+              className="st-btn st-btn--outline st-btn--sm flex-1"
             >
               {saving === 'declined' ? 'Saving…' : 'Keep private'}
             </button>
@@ -191,7 +189,7 @@ function ReleaseCard({ release: r, role, light }) {
  * whether the shoot may appear on the creator's public page. Each side answers
  * from their own portal. Renders nothing when there are none.
  */
-export default function PhotoReleases({ role, user, light = false }) {
+export default function PhotoReleases({ role, user, title = 'Photo releases' }) {
   const { data: releases = [] } = useQuery({
     queryKey: ['photo-releases', role, user?.id],
     enabled: !!user?.id,
@@ -216,12 +214,10 @@ export default function PhotoReleases({ role, user, light = false }) {
 
   return (
     <section>
-      <h3 className={`mb-2.5 pl-1.5 text-[13px] font-semibold ${light ? 'wk-grey' : 'text-fg-3'}`}>
-        Photo releases
-      </h3>
+      <h2 className="st-kicker mb-2.5 pl-1">{title}</h2>
       <div className="space-y-2">
         {sorted.map((r) => (
-          <ReleaseCard key={r.id} release={r} role={role} light={light} />
+          <ReleaseCard key={r.id} release={r} role={role} />
         ))}
       </div>
     </section>

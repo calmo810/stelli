@@ -73,7 +73,7 @@ function EarlyRelease({ booking, onChanged }) {
       {done ? (
         <p className="mt-3 text-[13px] font-medium" style={{ color: 'var(--st-accent)' }}>{done}</p>
       ) : (
-        <Pill as="button" type="button" tone="st-card" onClick={() => setOpen(true)} className="mt-3">
+        <Pill as="button" type="button" tone="soft" onClick={() => setOpen(true)} className="mt-3">
           Release the payment now
         </Pill>
       )}

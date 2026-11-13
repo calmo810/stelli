@@ -142,7 +142,7 @@ export default function CreatorOverview() {
         <div className="arch-masthead__tools">
           <span className="arch-masthead__state">
             <i />
-            {upcomingShoots[0] ? 'Next up' : 'Available'}
+            {upcomingShoots[0] ? 'Next up' : myProfile?.status === 'approved' && !myProfile?.under_review ? 'Available' : 'In review'}
           </span>
           <Link to="/lensman-dashboard/calendar" className="arch-masthead__calendar">
             Calendar <CalendarDays className="h-3.5 w-3.5" strokeWidth={2.4} />

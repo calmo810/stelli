@@ -4,7 +4,8 @@ import React from 'react';
 export default function WizardPhone({ children }) {
   return (
     <div className="phone">
-      <div className="phone-screen">
+      {/* It scrolls on its own, so it can take the keyboard focus too. */}
+      <div className="phone-screen" tabIndex={0} role="region" aria-label="Preview of your page">
         <div className="phone-island" />
         {children}
       </div>

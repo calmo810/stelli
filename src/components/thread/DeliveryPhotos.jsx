@@ -249,7 +249,7 @@ export default function DeliveryPhotos({ booking, role, onChanged }) {
                     <Eye className="h-4 w-4" /> Preview album
                   </a>
                 )}
-                <Pill as="button" type="button" tone="st-card" onClick={copyAlbumLink} className="flex-1 py-3">
+                <Pill as="button" type="button" tone="soft" onClick={copyAlbumLink} className="flex-1 py-3">
                   {linkCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   {linkCopied ? 'Copied' : 'Copy link'}
                 </Pill>
