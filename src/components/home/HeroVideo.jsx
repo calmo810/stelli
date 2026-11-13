@@ -195,7 +195,7 @@ export default function HeroVideo() {
         }}
       />
 
-      <div className="absolute inset-0 flex items-end justify-center text-center px-5 md:px-10 pb-16 sm:pb-[144px]">
+      <div className="absolute inset-0 flex items-end justify-center text-center px-5 md:px-10 pb-10 sm:pb-[64px]">
         <div className="w-full max-w-[900px]">
           <h1
             className="font-display"
@@ -217,7 +217,7 @@ export default function HeroVideo() {
             </span>
           </h1>
 
-          <div className="mx-auto mt-10 flex w-full max-w-[430px] flex-col items-center justify-center gap-2.5 sm:mt-[62px] sm:flex-row sm:gap-2.5">
+          <div className="mx-auto mt-10 flex w-full max-w-[430px] flex-col items-center justify-center gap-2.5 sm:mt-[138px] sm:flex-row sm:gap-2.5">
             {HERO_PATHS.map((path) => (
               <Link
                 key={path.to}
