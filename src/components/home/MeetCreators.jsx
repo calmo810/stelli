@@ -63,7 +63,7 @@ export default function MeetCreators() {
   };
 
   return (
-    <section className="py-[44px] md:py-[60px] border-t border-line rounded-sm">
+    <section className="pt-[44px] md:pt-[60px] pb-0 border-t border-line rounded-sm">
       <div className="max-w-[1440px] mx-auto px-5 md:px-10 flex items-end justify-between gap-5">
         <h2
           className="font-display font-medium text-fg leading-[1.08] tracking-[-0.02em]"
@@ -97,7 +97,7 @@ export default function MeetCreators() {
       <div
         ref={trackRef}
         onScroll={sync}
-        className="max-w-[1440px] mx-auto px-5 md:px-10 mt-9 flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-px-5 md:scroll-px-10 no-scrollbar scroll-smooth pt-8 pb-24">
+        className="max-w-[1440px] mx-auto px-5 md:px-10 mt-9 flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-px-5 md:scroll-px-10 no-scrollbar scroll-smooth pt-8 pb-10 sm:pb-24">
         
           {shown.map((creator, i) =>
         <div key={creator.id} data-card className="shrink-0 snap-start" style={{ width: CARD_WIDTH }}>
