@@ -36,9 +36,10 @@ export default function UpcomingShoots({ shoots = [], emptyText }) {
 
         return (
           <Link key={booking.id} to={`/messages/${booking.id}`} className="wk-row">
-            <span className="wk-fill grid h-[46px] w-[44px] shrink-0 place-items-center rounded-2xl leading-none">
-              <span className="text-[9px] font-bold uppercase tracking-wide wk-mute">{top}</span>
-              <span className="mt-1 text-[17px] font-extrabold text-ink">{bottom}</span>
+            {/* The rows sit on the dark list, so the date leaf is a light tint on it. */}
+            <span className="grid h-[46px] w-[44px] shrink-0 place-items-center rounded-2xl bg-white/[0.12] leading-none" aria-hidden>
+              <span className="text-[10px] font-bold uppercase tracking-wide text-white/75">{top}</span>
+              <span className="mt-1 text-[17px] font-extrabold text-white">{bottom}</span>
             </span>
             <span className="min-w-0 flex-1">
               <b className="block truncate text-[15px] font-bold text-ink">

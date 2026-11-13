@@ -4,7 +4,7 @@
   --ps-accent: var(--cp-accent, hsl(var(--neon-cyan)));
   --ps-star: hsl(var(--neon-magenta));
   --ps-lime: hsl(var(--neon-lime));
-  --ps-dim: rgba(255, 255, 255, .45);
+  --ps-dim: rgba(255,255,255,.66);
   --ps-mid: rgba(255, 255, 255, .7);
   padding-top: 56px;
   color: #fff;
