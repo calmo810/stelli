@@ -97,7 +97,7 @@ export default function MeetCreators() {
         <div
           ref={trackRef}
           onScroll={sync}
-          className="max-w-[1440px] mx-auto px-5 md:px-10 mt-9 flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-px-5 md:scroll-px-10 no-scrollbar scroll-smooth pt-2 pb-16"
+          className="max-w-[1440px] mx-auto px-5 md:px-10 mt-9 flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-px-5 md:scroll-px-10 no-scrollbar scroll-smooth pt-8 pb-24"
         >
           {shown.map((creator, i) => (
             <div key={creator.id} data-card className="shrink-0 snap-start" style={{ width: CARD_WIDTH }}>
@@ -130,9 +130,8 @@ export default function MeetCreators() {
         </div>
       )}
 
-      {/* The rail's extra bottom room lets card shadows fade out fully; the
-          arrows tuck back up into it so the spacing reads the same. */}
-      <div className="relative z-10 -mt-10 max-w-[1440px] mx-auto px-5 md:px-10 hidden sm:flex justify-end gap-2.5">
+      {/* This gutter keeps the cards' glow inside the scroll area at every viewport size. */}
+      <div className="relative z-10 -mt-[72px] max-w-[1440px] mx-auto px-5 md:px-10 hidden sm:flex justify-end gap-2.5">
         <button
           type="button"
           onClick={() => scroll(-1)}
