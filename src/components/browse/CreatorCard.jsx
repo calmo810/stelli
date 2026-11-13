@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
-import { accentOf, cardImages, cssUrl, ratingLabel, taglineOf } from '@/lib/creatorBrowse';
+import { accentOf, cardImages, cssUrl } from '@/lib/creatorBrowse';
 import { displayNameOf } from '@/lib/creatorProfile';
 
 const CYCLE_MS = 1700;
@@ -30,7 +30,6 @@ export default function CreatorCard({ creator, index = 0, onOpen }) {
   const images = cardImages(creator);
   const accent = accentOf(creator);
   const name = displayNameOf(creator);
-  const tagline = taglineOf(creator);
   const face = creator?.profile_image;
   const initial = (String(name || '?').trim()[0] || '?').toUpperCase();
   /* Skip the badge when the card is already showing their portrait. */
@@ -98,7 +97,7 @@ export default function CreatorCard({ creator, index = 0, onOpen }) {
       ref={cardRef}
       role="button"
       tabIndex={0}
-      aria-label={`${name}, ${tagline}. Open quick view`}
+      aria-label={`${name}. Open quick view`}
       onClick={open}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
@@ -202,24 +201,23 @@ export default function CreatorCard({ creator, index = 0, onOpen }) {
           </div>
         )}
 
-        <div className="absolute bottom-5 left-5 right-5 z-[3]" style={{ transform: 'translateZ(30px)' }}>
-          <div className="flex items-baseline gap-2.5">
-            <span className="text-[28px] font-bold tracking-[-0.03em] text-fg">{name}</span>
-            <span className="text-[13px] font-medium" style={{ color: accent }}>
-              {ratingLabel(creator)}
+        <div className="absolute bottom-4 left-4 right-4 z-[3]" style={{ transform: 'translateZ(30px)' }}>
+          <div className="flex items-end gap-3">
+            <span
+              className="min-w-0 flex-1 break-words font-display font-medium leading-[.92] tracking-[-0.045em] text-fg"
+              style={{ fontSize: 'clamp(18px, 5.2vw, 28px)' }}
+            >
+              {name}
             </span>
-          </div>
-
-          <div className="mt-1 truncate text-[14px] text-fg-2">{tagline}</div>
-
-          <div
-            aria-hidden="true"
-            className={`absolute bottom-0 right-0 grid h-11 w-11 place-items-center rounded-full transition-[transform,opacity] duration-[450ms] ${
-              active ? 'rotate-0 scale-100 opacity-100' : '-rotate-45 scale-[.6] opacity-0'
-            } [@media(hover:none)]:rotate-0 [@media(hover:none)]:scale-100 [@media(hover:none)]:opacity-100`}
-            style={{ background: accent, color: 'hsl(var(--ink))' }}
-          >
-            <ArrowRight className="h-[18px] w-[18px]" />
+            <span
+              aria-hidden="true"
+              className={`grid h-10 w-10 shrink-0 place-items-center rounded-full transition-[transform,opacity] duration-[450ms] ${
+                active ? 'rotate-0 scale-100 opacity-100' : '-rotate-45 scale-[.6] opacity-0'
+              } [@media(hover:none)]:rotate-0 [@media(hover:none)]:scale-100 [@media(hover:none)]:opacity-100`}
+              style={{ background: accent, color: 'hsl(var(--ink))' }}
+            >
+              <ArrowRight className="h-[17px] w-[17px]" />
+            </span>
           </div>
         </div>
       </div>
