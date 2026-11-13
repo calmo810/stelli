@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
 import SmoothImage from '@/components/shared/SmoothImage';
 
 // Full-bleed hero still: Elon University. Served at 4K wide, with smaller
@@ -38,7 +37,7 @@ const HIGHLIGHT = {
   background: 'hsl(var(--neon-lime))',
   color: 'hsl(var(--ink))',
   padding: '.02em .22em .06em',
-  borderRadius: 16,
+  borderRadius: 6,
   WebkitBoxDecorationBreak: 'clone',
   boxDecorationBreak: 'clone',
 };
@@ -64,6 +63,11 @@ const CARET = {
   animation: 'stelliCaretBlink 1s steps(1) infinite',
 };
 
+const BUTTON = {
+  borderRadius: 980,
+  padding: '15px 30px',
+};
+
 function usePrefersReducedMotion() {
   const [reduced, setReduced] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -82,8 +86,10 @@ export default function HeroVideo() {
   const [typer, setTyper] = useState(EMPTY_TYPER);
   const heroRef = useRef(null);
   const parallaxRef = useRef(null);
+  const copyRef = useRef(null);
 
-  // The photo drifts down slightly as the page scrolls; the copy stays put.
+  // Scroll parallax: the photo sinks slower than the page and the copy lifts
+  // and fades, so the hero hands off to the next section instead of cutting.
   useEffect(() => {
     if (reduced) return undefined;
     const hero = heroRef.current;
@@ -93,8 +99,13 @@ export default function HeroVideo() {
     const update = () => {
       frame = 0;
       const heroH = hero.offsetHeight;
+      const y = Math.min(window.scrollY, heroH);
       if (parallaxRef.current) {
-        parallaxRef.current.style.transform = `translate3d(0, ${Math.min(window.scrollY, heroH) * 0.32}px, 0)`;
+        parallaxRef.current.style.transform = `translate3d(0, ${y * 0.32}px, 0)`;
+      }
+      if (copyRef.current) {
+        copyRef.current.style.transform = `translate3d(0, ${y * -0.12}px, 0)`;
+        copyRef.current.style.opacity = String(Math.max(0, 1 - (y / heroH) * 1.4));
       }
     };
     const onScroll = () => {
@@ -175,7 +186,7 @@ export default function HeroVideo() {
         }}
       />
 
-      <div className="absolute inset-0 flex items-end justify-center text-center px-5 md:px-10 pb-16 sm:pb-[88px]">
+      <div ref={copyRef} className="absolute inset-0 flex items-end justify-center text-center px-5 md:px-10 pb-16 sm:pb-[88px] will-change-transform">
         <div className="w-full max-w-[900px]">
           <h1
             className="font-display"
@@ -197,17 +208,30 @@ export default function HeroVideo() {
             </span>
           </h1>
 
-          <div className="mt-10 flex w-full flex-col justify-center gap-2.5 sm:w-auto sm:flex-row">
-            <Link to="/creators" className="st-btn st-btn--lime st-btn--lg">
+          <div className="flex flex-wrap justify-center" style={{ marginTop: 40, gap: 12 }}>
+            <Link
+              to="/creators"
+              className="label-mono text-[11px] font-semibold w-full sm:w-auto text-center transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-0.5"
+              style={{
+                ...BUTTON,
+                background: 'hsl(var(--neon-lime))',
+                color: 'hsl(var(--ink))',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,.45), 0 10px 30px -10px hsl(var(--neon-lime) / 0.55)',
+              }}
+            >
               Book a creator
-              <span className="st-btn__dot" aria-hidden>
-                <ArrowRight strokeWidth={2.4} />
-              </span>
             </Link>
             <Link
               to="/register?role=creator"
-              className="st-btn st-btn--lg st-btn--outline !text-white backdrop-blur-md"
-              style={{ background: 'rgba(10, 18, 38, 0.35)', boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,.35)' }}
+              className="label-mono text-[11px] font-semibold w-full sm:w-auto text-center transition-colors duration-300 hover:bg-white/10"
+              style={{
+                ...BUTTON,
+                border: '1px solid rgba(255,255,255,0.3)',
+                color: '#fff',
+                background: 'rgba(255,255,255,0.04)',
+                backdropFilter: 'blur(12px) saturate(1.4)',
+                WebkitBackdropFilter: 'blur(12px) saturate(1.4)',
+              }}
             >
               Shoot with Stelli
             </Link>
