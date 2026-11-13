@@ -40,6 +40,7 @@ const HERO_PATHS = [
     color: 'hsl(var(--ink))',
     border: 'hsl(var(--neon-lime))',
     shadow: '0 18px 34px -18px hsl(var(--neon-lime) / .62), inset 0 1px 0 hsl(0 0% 100% / .44)',
+    width: 330,
   },
   {
     to: '/register?role=creator',
@@ -48,6 +49,7 @@ const HERO_PATHS = [
     color: 'hsl(var(--white))',
     border: 'hsl(0 0% 100% / .44)',
     shadow: '0 16px 32px -22px hsl(var(--ink) / .9), inset 0 1px 0 hsl(0 0% 100% / .12)',
+    width: 390,
   },
 ];
 
@@ -215,13 +217,14 @@ export default function HeroVideo() {
             </span>
           </h1>
 
-          <div className="mx-auto mt-8 grid w-full max-w-[810px] gap-4 sm:grid-cols-2">
+          <div className="mx-auto mt-8 flex w-full max-w-[820px] flex-col items-center justify-center gap-4 sm:flex-row sm:gap-5">
             {HERO_PATHS.map((path) => (
               <Link
                 key={path.to}
                 to={path.to}
-                className="group relative flex min-h-[94px] items-center justify-center overflow-hidden rounded-full border px-6 text-center transition-[transform,box-shadow,filter] duration-500 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-1.5 hover:scale-[1.012] hover:brightness-105 active:translate-y-0"
+                className="group relative flex min-h-[94px] w-full max-w-[390px] items-center justify-center overflow-hidden rounded-full border px-6 text-center transition-[transform,box-shadow,filter] duration-500 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-1.5 hover:scale-[1.012] hover:brightness-105 active:translate-y-0 sm:max-w-none sm:w-[var(--cta-width)]"
                 style={{
+                  '--cta-width': `${path.width}px`,
                   background: path.background,
                   borderColor: path.border,
                   boxShadow: path.shadow,
