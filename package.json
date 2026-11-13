@@ -18,7 +18,7 @@
     "test:e2e": "node tests/e2e/profile-flow.e2e.mjs"
   },
   "dependencies": {
-    "@base44/sdk": "^0.8.60",
+    "@base44/sdk": "^0.8.61",
     "@base44/vite-plugin": "^1.0.52",
     "@radix-ui/react-checkbox": "^1.1.4",
     "@radix-ui/react-label": "^2.1.2",
