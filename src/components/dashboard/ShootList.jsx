@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
-import SegmentedTabs from '@/components/dashboard/SegmentedTabs';
+import { CalendarPlus } from 'lucide-react';
 import { CHIP_TONE, statusChip } from '@/lib/threadStatus';
-import { shortDate } from '@/lib/format';
+import { shootName, timeLabel, toDate } from '@/lib/format';
+import { Btn, Chip, EmptyState, ErrorState, Row, Segmented, Skeleton } from '@/components/system';
+
+/** The status chip's colour, in the design system's tones. */
+const TONE = { cyan: 'sky', magenta: 'blush', lime: 'lime' };
 
 function rowLink(booking, role) {
   if (role === 'client' && booking.delivered_at && ['delivered', 'completed'].includes(booking.status)) {
@@ -12,67 +14,86 @@ function rowLink(booking, role) {
   return `/messages/${booking.id}`;
 }
 
+/** The shoot's date as a little calendar leaf: "NOV / 26". */
+function DateLeaf({ value }) {
+  const date = toDate(value);
+  return (
+    <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-fill text-center leading-none" aria-hidden>
+      {date ? (
+        <span>
+          <span className="block text-[10px] font-bold uppercase tracking-[0.08em] text-fg-3">
+            {date.toLocaleDateString('en-US', { month: 'short' })}
+          </span>
+          <span className="mt-1 block text-[18px] font-extrabold tracking-[-0.03em] text-fg">{date.getDate()}</span>
+        </span>
+      ) : (
+        <span className="text-[11px] font-bold text-fg-3">TBD</span>
+      )}
+    </span>
+  );
+}
+
 /**
- * Every shoot in one list. Tapping a shoot opens its conversation,
- * which is where quotes, payment and delivery all happen.
+ * Every shoot in one list. Tapping a shoot opens its conversation, which is
+ * where quotes, payment and delivery all happen (or its album, once delivered).
  */
-export default function ShootList({ active = [], past = [], role, isLoading, emptyText }) {
+export default function ShootList({ active = [], past = [], role, isLoading, isError = false, onRetry, emptyText }) {
   const [tab, setTab] = useState('active');
   const list = tab === 'active' ? active : past;
 
   return (
-    <section>
-      <SegmentedTabs
-        value={tab}
-        onChange={setTab}
-        options={[
-          { value: 'active', label: 'Active', count: active.length },
-          { value: 'past', label: 'Past', count: past.length },
-        ]}
-      />
+    <section aria-labelledby="shoots-title">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 id="shoots-title" className="st-h2">Your shoots</h2>
+        <Segmented
+          label="Which shoots"
+          value={tab}
+          onChange={setTab}
+          options={[
+            { value: 'active', label: 'Active', count: active.length },
+            { value: 'past', label: 'Past', count: past.length },
+          ]}
+        />
+      </div>
 
-      <div className="mt-3">
-        {isLoading ? (
-          <div className="st-card h-[132px] animate-pulse rounded-3xl" />
+      <div className="mt-4" role="tabpanel" aria-label={tab === 'active' ? 'Active shoots' : 'Past shoots'}>
+        {isError ? (
+          <ErrorState title="Your shoots didn't load." onRetry={onRetry} className="st-card" />
+        ) : isLoading ? (
+          <div className="space-y-2" aria-busy="true" aria-label="Loading shoots">
+            <Skeleton className="h-[72px] !rounded-st-md" />
+            <Skeleton className="h-[72px] !rounded-st-md" />
+          </div>
         ) : list.length ? (
-          <div className="st-card overflow-hidden rounded-3xl">
-            {list.map((booking, i) => {
+          <div className="st-list">
+            {list.map((booking) => {
               const chip = statusChip(booking);
-              const tone = CHIP_TONE[chip] || 'cyan';
               const who = role === 'client' ? booking.lensman_name || 'Your creator' : booking.client_name || 'Client';
-              const meta = [
-                booking.event_type ? booking.event_type.replace(/_/g, ' ') : null,
-                shortDate(booking.event_date),
-              ]
-                .filter(Boolean)
-                .join(' · ');
-
+              const meta = [shootName(booking.event_type, ''), timeLabel(booking.event_time), booking.location].filter(Boolean).join(' · ');
               return (
-                <Link
+                <Row
                   key={booking.id}
                   to={rowLink(booking, role)}
-                  className={`flex items-center gap-3.5 px-[18px] py-3.5 transition-colors hover:bg-fill-2${
-                    i ? ' border-t border-line' : ''
-                  }`}
-                >
-                  <span className="min-w-0 flex-1">
-                    <b className="block truncate text-[15px] font-medium text-fg">{who}</b>
-                    {meta && <small className="mt-0.5 block truncate text-[13px] capitalize text-fg-3">{meta}</small>}
-                  </span>
-                  <span
-                    className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold"
-                    style={{ background: `var(--chip-${tone}-bg)`, color: `var(--chip-${tone}-fg)` }}
-                  >
-                    {chip}
-                  </span>
-                  <ChevronRight className="h-4 w-4 shrink-0 text-fg-3" strokeWidth={2.4} />
-                </Link>
+                  leading={<DateLeaf value={booking.event_date} />}
+                  title={who}
+                  meta={meta}
+                  trailing={
+                    <Chip tone={TONE[CHIP_TONE[chip]] || 'neutral'} className="hidden shrink-0 min-[380px]:inline-flex">
+                      {chip.charAt(0) + chip.slice(1).toLowerCase()}
+                    </Chip>
+                  }
+                />
               );
             })}
           </div>
         ) : (
-          <div className="st-card rounded-3xl px-[18px] py-4">
-            <p className="text-[14px] text-fg-3">{tab === 'active' ? emptyText : 'Finished shoots will show up here.'}</p>
+          <div className="st-card">
+            <EmptyState
+              icon={CalendarPlus}
+              title={tab === 'active' ? 'No shoots in motion.' : 'Nothing finished yet.'}
+              body={tab === 'active' ? emptyText : 'Finished and cancelled shoots land here.'}
+              action={tab === 'active' && role === 'client' ? <Btn to="/creators" size="sm" arrow="end">Find a creator</Btn> : null}
+            />
           </div>
         )}
       </div>

@@ -26,7 +26,7 @@ export default function CreatorPublicProfile() {
       </div>
 
       <div className="mt-3">
-        <PhotoReleases role="lensman" user={user} light />
+        <PhotoReleases role="lensman" user={user} />
       </div>
     </div>
   );

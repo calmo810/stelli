@@ -10,7 +10,8 @@ import { Loader2 } from 'lucide-react';
 const THRESHOLD = 64;
 const MAX_PULL = 108;
 
-export default function PullToRefresh({ onRefresh, children, scrollRef, className = '' }) {
+/** @param {Record<string, any>} props */
+export default function PullToRefresh({ onRefresh, children, scrollRef = null, className = "" }) {
   const [pull, setPull] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const startY = useRef(null);

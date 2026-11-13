@@ -9,7 +9,7 @@ export default function useClientDashboard() {
 
   const { user, isLoading: userLoading } = useCurrentUser();
 
-  const { data: bookings = [], isLoading } = useQuery({
+  const { data: bookings = [], isLoading, isError, refetch } = useQuery({
     queryKey: ['client-bookings', user?.id, user?.email],
     enabled: !!user?.id,
     queryFn: async () => {
@@ -46,6 +46,8 @@ export default function useClientDashboard() {
     userLoading,
     bookings,
     isLoading,
+    isError,
+    retry: refetch,
     active,
     past,
     hasCreatorProfile,

@@ -19,16 +19,28 @@ function whenLabel(eventDate) {
 
 export default function TodayShootCard({ shoot, profile }) {
   if (!shoot) {
+    // Only a live page can take bookings; until then, say where it stands.
+    const live = profile?.status === 'approved' && !profile?.under_review;
     return (
       <section className="arch-open">
         <div className="arch-open__copy">
           <div className="arch-open__top">
             <span><Sparkles className="h-3 w-3" strokeWidth={2.5} /> Availability</span>
-            <b>Open</b>
+            <b>{live ? 'Open' : 'Not live yet'}</b>
           </div>
-          <h2>You’re available for new bookings.</h2>
-          <p>Share your profile when you’re ready for new work.</p>
-          <span><CopyLinkPill creator={profile} tone="st-card" className="arch-open__link" /></span>
+          {live ? (
+            <>
+              <h2>You’re available for new bookings.</h2>
+              <p>Share your profile when you’re ready for new work.</p>
+              <span><CopyLinkPill creator={profile} tone="soft" className="arch-open__link" /></span>
+            </>
+          ) : (
+            <>
+              <h2>{profile?.under_review ? 'Your page is on hold.' : 'Your page is in review.'}</h2>
+              <p>{profile?.under_review ? 'A founder is looking at it. Clients can’t book you until it is back.' : 'Keep polishing it while you wait. Requests open the moment you’re approved.'}</p>
+              <span><Link to="/edit-profile" className="st-btn st-btn--soft st-btn--sm arch-open__link">Edit your page</Link></span>
+            </>
+          )}
         </div>
       </section>
     );

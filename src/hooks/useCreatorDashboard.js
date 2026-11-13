@@ -11,16 +11,19 @@ export default function useCreatorDashboard() {
 
   // Payout status, the Stripe account and holds are readable by founders
   // only, so the creator's own full record comes from the server.
-  const { data: myProfile, refetch: refetchProfile, isFetched: profileFetched } = useQuery({
+  const { data: myProfile, refetch: refetchProfile, isFetched: profileFetched, isError: profileError } = useQuery({
     queryKey: ['my-lensman-profile', user?.id],
     enabled: !!user?.id,
     queryFn: async () => {
       const response = await base44.functions.invoke('getMyCreatorProfile', {});
+      // A failed load is an error, never "no profile": that would offer a
+      // second application to someone who already has a page.
+      if (response.data?.error) throw new Error(response.data.error);
       return response.data?.lensman || null;
     },
   });
 
-  const { data: bookings = [], isLoading } = useQuery({
+  const { data: bookings = [], isLoading, isError: bookingsError, refetch: refetchBookings } = useQuery({
     queryKey: ['lensman-bookings', user?.id, user?.email],
     enabled: !!user?.email,
     queryFn: async () => {
@@ -68,6 +71,9 @@ export default function useCreatorDashboard() {
     userLoading,
     myProfile,
     profileFetched,
+    profileError,
+    bookingsError,
+    refetchBookings,
     refetchProfile,
     bookings,
     isLoading,

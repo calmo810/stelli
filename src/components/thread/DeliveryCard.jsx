@@ -210,7 +210,7 @@ export default function DeliveryCard({ booking, role, onChanged }) {
                   {busy && <Loader2 className="h-4 w-4 animate-spin" />}
                   Send report
                 </Pill>
-                <Pill as="button" type="button" tone="st-card" onClick={() => setReporting(false)}>
+                <Pill as="button" type="button" tone="soft" onClick={() => setReporting(false)}>
                   Cancel
                 </Pill>
               </div>
@@ -219,7 +219,7 @@ export default function DeliveryCard({ booking, role, onChanged }) {
             <Pill
               as="button"
               type="button"
-              tone="st-card"
+              tone="soft"
               onClick={() => setReporting(true)}
               className="mt-4"
             >

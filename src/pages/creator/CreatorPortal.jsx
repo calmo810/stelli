@@ -12,6 +12,7 @@ import useCreatorPortal from '@/hooks/useCreatorPortal';
 import { hasApplicationDraft } from '@/hooks/useWizard';
 import { preloadCreatorWorkspace } from '@/lib/preloadCreatorWorkspace';
 import { loginUrl } from '@/lib/requireSignIn';
+import { ErrorState, Page, Sheet } from '@/components/system';
 
 /**
  * The creator workspace: four panes — Today, Requests, Shoots, Money — plus
@@ -53,7 +54,7 @@ export default function CreatorPortal() {
       if (timeoutId !== null) window.clearTimeout(timeoutId);
     };
   }, []);
-  const { user, userLoading, myProfile, profileFetched, refetchProfile, isLoading, newRequests } = data;
+  const { user, userLoading, myProfile, profileFetched, profileError, bookingsError, refetchBookings, refetchProfile, isLoading, newRequests } = data;
 
   const refreshAll = () =>
     Promise.all([
@@ -66,10 +67,25 @@ export default function CreatorPortal() {
 
   // Wait for the profile too, or a creator sees "No creator page yet" for a
   // moment on every visit.
+  // Either half failing to load says so, with a way to try again.
+  if (user && (profileError || bookingsError)) {
+    return (
+      <Page width="narrow">
+        <Sheet>
+          <ErrorState
+            title="Your workspace didn't load."
+            body="Nothing has changed on your page or your bookings. Check your connection and try again."
+            onRetry={() => (profileError ? refetchProfile() : refetchBookings())}
+          />
+        </Sheet>
+      </Page>
+    );
+  }
+
   if (userLoading || (user && (isLoading || !profileFetched))) {
     return (
       <DashboardShell>
-        <div className="st-card h-[260px] animate-pulse rounded-[28px]" />
+        <div className="st-skeleton h-[320px] !rounded-st-xl" aria-busy="true" aria-label="Loading your workspace" />
       </DashboardShell>
     );
   }

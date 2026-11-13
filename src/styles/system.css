@@ -133,7 +133,10 @@
     color-scheme: dark;
   }
 
-  .st-paper {
+  .st-paper,
+  .arch-tab,
+  .wk-card,
+  .wk-list {
     --bar: rgba(255, 255, 255, 0.9);
     --chip-lime-bg: var(--tint-lime);
     --chip-lime-fg: var(--tint-lime-ink);
