@@ -123,12 +123,12 @@ export default function CreatorCard({ creator, index = 0, onOpen }) {
     >
       <div
         ref={innerRef}
-        className="absolute inset-0 overflow-hidden rounded-[22px] bg-[var(--st-card)] transition-[transform,box-shadow] duration-300 ease-out"
+        className="absolute inset-0 rounded-[22px] bg-[var(--st-card)] transition-[transform,box-shadow] duration-300 ease-out"
         style={{
           transformStyle: 'preserve-3d',
           boxShadow: active
-            ? `0 0 0 1px ${accent}, 0 34px 70px -28px ${accent}`
-            : 'inset 0 1px 0 var(--line), inset 0 0 0 1px var(--line), 0 24px 48px -28px rgba(0,0,0,.7)',
+            ? `0 0 0 1px ${accent}, 0 clamp(18px, 2.5vw, 28px) clamp(40px, 5vw, 64px) -28px ${accent}, 0 22px 44px -28px rgba(0,0,0,.7)`
+            : 'inset 0 1px 0 var(--line), inset 0 0 0 1px var(--line), 0 18px 38px -24px rgba(0,0,0,.7)',
         }}
       >
         {/* Photos sit in their own rounded mask so the zoom can't poke past the
