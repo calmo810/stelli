@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 import SmoothImage from '@/components/shared/SmoothImage';
 
 // Full-bleed hero still: Elon University. Served at 4K wide, with smaller
@@ -31,27 +32,6 @@ const GAP_MS = 250;
 const START_MS = 600;
 
 const EMPTY_TYPER = { index: 0, text: '', deleting: false, started: false };
-
-const HERO_PATHS = [
-  {
-    to: '/creators',
-    label: 'Book a creator',
-    background: 'linear-gradient(135deg, hsl(75 100% 72%), hsl(var(--neon-lime)) 58%, hsl(72 92% 49%))',
-    color: 'hsl(var(--ink))',
-    border: 'hsl(var(--neon-lime))',
-    shadow: '0 14px 26px -16px hsl(var(--neon-lime) / .62), inset 0 1px 0 hsl(0 0% 100% / .44)',
-    width: 190,
-  },
-  {
-    to: '/register?role=creator',
-    label: 'Shoot with Stelli',
-    background: 'linear-gradient(135deg, hsl(228 42% 16% / .92), hsl(var(--ink) / .86))',
-    color: 'hsl(var(--white))',
-    border: 'hsl(0 0% 100% / .44)',
-    shadow: '0 14px 28px -20px hsl(var(--ink) / .9), inset 0 1px 0 hsl(0 0% 100% / .12)',
-    width: 204,
-  },
-];
 
 const HIGHLIGHT = {
   display: 'inline',
@@ -195,7 +175,7 @@ export default function HeroVideo() {
         }}
       />
 
-      <div className="absolute inset-0 flex items-end justify-center px-5 text-center md:px-10 pb-10 sm:pb-[64px]">
+      <div className="absolute inset-0 flex items-end justify-center text-center px-5 md:px-10 pb-16 sm:pb-[88px]">
         <div className="w-full max-w-[900px]">
           <h1
             className="font-display"
@@ -217,31 +197,20 @@ export default function HeroVideo() {
             </span>
           </h1>
 
-          <div className="mx-auto mt-10 flex w-full max-w-[430px] flex-col items-center justify-center gap-2.5 sm:mt-[138px] sm:flex-row sm:gap-2.5">
-            {HERO_PATHS.map((path) => (
-              <Link
-                key={path.to}
-                to={path.to}
-                className="group relative flex min-h-[44px] w-full max-w-[204px] items-center justify-center overflow-hidden rounded-full border px-4 text-center transition-[transform,box-shadow,filter] duration-500 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-1 hover:scale-[1.012] hover:brightness-105 active:translate-y-0 sm:max-w-none sm:w-[var(--cta-width)]"
-                style={{
-                  '--cta-width': `${path.width}px`,
-                  background: path.background,
-                  borderColor: path.border,
-                  boxShadow: path.shadow,
-                  color: path.color,
-                  backdropFilter: 'blur(12px)',
-                }}
-              >
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                  style={{ background: 'linear-gradient(110deg, transparent 30%, hsl(0 0% 100% / .16) 50%, transparent 70%)' }}
-                />
-                <span className="relative text-[11.5px] font-bold uppercase tracking-[0.12em]">
-                  {path.label}
-                </span>
-              </Link>
-            ))}
+          <div className="mt-10 flex w-full flex-col justify-center gap-2.5 sm:w-auto sm:flex-row">
+            <Link to="/creators" className="st-btn st-btn--lime st-btn--lg">
+              Book a creator
+              <span className="st-btn__dot" aria-hidden>
+                <ArrowRight strokeWidth={2.4} />
+              </span>
+            </Link>
+            <Link
+              to="/register?role=creator"
+              className="st-btn st-btn--lg st-btn--outline !text-white backdrop-blur-md"
+              style={{ background: 'rgba(10, 18, 38, 0.35)', boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,.35)' }}
+            >
+              Shoot with Stelli
+            </Link>
           </div>
         </div>
       </div>
