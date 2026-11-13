@@ -17,7 +17,7 @@ const HIGHLIGHT = {
   padding: '.02em .22em .06em',
   borderRadius: 16,
   WebkitBoxDecorationBreak: 'clone',
-  boxDecorationBreak: 'clone',
+  boxDecorationBreak: 'clone'
 };
 
 /**
@@ -32,19 +32,19 @@ export default function MeetCreators() {
   const { data: creators = [], isLoading } = useQuery({
     queryKey: APPROVED_CREATORS_QUERY_KEY,
     // A creator on hold (under review) is not shown while a founder looks.
-    queryFn: async () => (await base44.entities.Lensman.filter({ status: 'approved' })).filter((c) => !c.under_review),
+    queryFn: async () => (await base44.entities.Lensman.filter({ status: 'approved' })).filter((c) => !c.under_review)
   });
 
-  const shown = [...creators]
-    .sort((a, b) => (b.avg_rating || 0) - (a.avg_rating || 0) || (b.review_count || 0) - (a.review_count || 0))
-    .slice(0, 8);
+  const shown = [...creators].
+  sort((a, b) => (b.avg_rating || 0) - (a.avg_rating || 0) || (b.review_count || 0) - (a.review_count || 0)).
+  slice(0, 8);
 
   const sync = () => {
     const el = trackRef.current;
     if (!el) return;
     setEdges({
       start: el.scrollLeft < 4,
-      end: el.scrollLeft + el.clientWidth >= el.scrollWidth - 4,
+      end: el.scrollLeft + el.clientWidth >= el.scrollWidth - 4
     });
   };
 
@@ -63,12 +63,12 @@ export default function MeetCreators() {
   };
 
   return (
-    <section className="py-[44px] md:py-[60px] border-t border-line">
+    <section className="py-[44px] md:py-[60px] border-t border-line rounded-sm">
       <div className="max-w-[1440px] mx-auto px-5 md:px-10 flex items-end justify-between gap-5">
         <h2
           className="font-display font-medium text-fg leading-[1.08] tracking-[-0.02em]"
-          style={{ fontSize: 'clamp(30px, 4.6vw, 64px)' }}
-        >
+          style={{ fontSize: 'clamp(30px, 4.6vw, 64px)' }}>
+          
           Meet the{' '}
           <span className="inline-block" style={{ transform: 'rotate(-1.5deg)', marginTop: '.14em' }}>
             <span style={HIGHLIGHT}>creators.</span>
@@ -77,47 +77,47 @@ export default function MeetCreators() {
         <Link
           to="/creators"
           className="shrink-0 text-[15px] font-medium whitespace-nowrap transition-colors hover:underline"
-          style={{ color: 'var(--st-accent)', textUnderlineOffset: 4 }}
-        >
+          style={{ color: 'var(--st-accent)', textUnderlineOffset: 4 }}>
+          
           See all ›
         </Link>
       </div>
 
-      {isLoading ? (
-        <div className="max-w-[1440px] mx-auto px-5 md:px-10 mt-9 flex gap-4" aria-label="Loading creators">
-          {Array(3).fill(0).map((_, i) => (
-            <Skeleton
-              key={i}
-              className="shrink-0 aspect-[4/5]"
-              style={{ width: CARD_WIDTH, borderRadius: CARD_RADIUS }}
-            />
-          ))}
-        </div>
-      ) : (
-        <div
-          ref={trackRef}
-          onScroll={sync}
-          className="max-w-[1440px] mx-auto px-5 md:px-10 mt-9 flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-px-5 md:scroll-px-10 no-scrollbar scroll-smooth pt-8 pb-24"
-        >
-          {shown.map((creator, i) => (
-            <div key={creator.id} data-card className="shrink-0 snap-start" style={{ width: CARD_WIDTH }}>
+      {isLoading ?
+      <div className="max-w-[1440px] mx-auto px-5 md:px-10 mt-9 flex gap-4" aria-label="Loading creators">
+          {Array(3).fill(0).map((_, i) =>
+        <Skeleton
+          key={i}
+          className="shrink-0 aspect-[4/5]"
+          style={{ width: CARD_WIDTH, borderRadius: CARD_RADIUS }} />
+
+        )}
+        </div> :
+
+      <div
+        ref={trackRef}
+        onScroll={sync}
+        className="max-w-[1440px] mx-auto px-5 md:px-10 mt-9 flex gap-4 overflow-x-auto snap-x snap-mandatory scroll-px-5 md:scroll-px-10 no-scrollbar scroll-smooth pt-8 pb-24">
+        
+          {shown.map((creator, i) =>
+        <div key={creator.id} data-card className="shrink-0 snap-start" style={{ width: CARD_WIDTH }}>
               <CreatorCard creator={creator} index={i} onOpen={setOpenCreator} />
             </div>
-          ))}
+        )}
 
           <Link
-            data-card
-            to="/register?role=creator"
-            className="shrink-0 snap-start relative flex flex-col justify-between aspect-[4/5] transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-1.5"
-            style={{
-              width: CARD_WIDTH,
-              borderRadius: CARD_RADIUS,
-              background: 'radial-gradient(120% 80% at 20% 0%, hsl(75 100% 72%), hsl(var(--neon-lime)) 55%, hsl(75 85% 48%))',
-              boxShadow: 'inset 0 1px 0 var(--fg-3), 0 30px 60px -30px hsl(var(--neon-lime) / 0.5)',
-              color: 'hsl(var(--ink))',
-              padding: 26,
-            }}
-          >
+          data-card
+          to="/register?role=creator"
+          className="shrink-0 snap-start relative flex flex-col justify-between aspect-[4/5] transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-1.5"
+          style={{
+            width: CARD_WIDTH,
+            borderRadius: CARD_RADIUS,
+            background: 'radial-gradient(120% 80% at 20% 0%, hsl(75 100% 72%), hsl(var(--neon-lime)) 55%, hsl(75 85% 48%))',
+            boxShadow: 'inset 0 1px 0 var(--fg-3), 0 30px 60px -30px hsl(var(--neon-lime) / 0.5)',
+            color: 'hsl(var(--ink))',
+            padding: 26
+          }}>
+          
             <p className="font-display font-medium leading-[1.05]" style={{ fontSize: 34 }}>
               Your name
               <br />
@@ -128,7 +128,7 @@ export default function MeetCreators() {
             </p>
           </Link>
         </div>
-      )}
+      }
 
       {/* This gutter keeps the cards' glow inside the scroll area at every viewport size. */}
       <div className="relative z-10 -mt-[72px] max-w-[1440px] mx-auto px-5 md:px-10 hidden sm:flex justify-end gap-2.5">
@@ -137,8 +137,8 @@ export default function MeetCreators() {
           onClick={() => scroll(-1)}
           disabled={edges.start}
           aria-label="Previous creators"
-          className="w-11 h-11 grid place-items-center rounded-full bg-fill hover:bg-fill-2 text-fg transition-colors disabled:opacity-30"
-        >
+          className="w-11 h-11 grid place-items-center rounded-full bg-fill hover:bg-fill-2 text-fg transition-colors disabled:opacity-30">
+          
           <ChevronLeft className="w-[18px] h-[18px]" />
         </button>
         <button
@@ -146,19 +146,19 @@ export default function MeetCreators() {
           onClick={() => scroll(1)}
           disabled={edges.end}
           aria-label="Next creators"
-          className="w-11 h-11 grid place-items-center rounded-full bg-fill hover:bg-fill-2 text-fg transition-colors disabled:opacity-30"
-        >
+          className="w-11 h-11 grid place-items-center rounded-full bg-fill hover:bg-fill-2 text-fg transition-colors disabled:opacity-30">
+          
           <ChevronRight className="w-[18px] h-[18px]" />
         </button>
       </div>
 
-      {openCreator && (
-        <QuickViewSheet
-          key={openCreator.id}
-          creator={openCreator}
-          onClose={() => setOpenCreator(null)}
-        />
-      )}
-    </section>
-  );
+      {openCreator &&
+      <QuickViewSheet
+        key={openCreator.id}
+        creator={openCreator}
+        onClose={() => setOpenCreator(null)} />
+
+      }
+    </section>);
+
 }
