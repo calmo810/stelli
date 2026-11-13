@@ -195,7 +195,7 @@ export default function HeroVideo() {
         }}
       />
 
-      <div className="absolute inset-0 flex items-end justify-center text-center px-5 md:px-10 pb-24 sm:pb-[240px]">
+      <div className="absolute inset-0 flex items-end justify-center text-center px-5 md:px-10 pb-16 sm:pb-[144px]">
         <div className="w-full max-w-[900px]">
           <h1
             className="font-display"
