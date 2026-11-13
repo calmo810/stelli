@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
 import SmoothImage from '@/components/shared/SmoothImage';
 
 // Full-bleed hero still: Elon University. Served at 4K wide, with smaller
@@ -197,16 +196,16 @@ export default function HeroVideo() {
             </span>
           </h1>
 
-          <div className="mt-10 flex w-full flex-col justify-center gap-2.5 sm:w-auto sm:flex-row">
-            <Link to="/creators" className="st-btn st-btn--lime st-btn--lg">
+          <div className="mx-auto mt-10 flex w-full max-w-[460px] flex-col justify-center gap-3 sm:max-w-none sm:flex-row">
+            <Link
+              to="/creators"
+              className="st-btn st-btn--lime st-btn--lg w-full justify-center sm:w-[232px]"
+            >
               Book a creator
-              <span className="st-btn__dot" aria-hidden>
-                <ArrowRight strokeWidth={2.4} />
-              </span>
             </Link>
             <Link
               to="/register?role=creator"
-              className="st-btn st-btn--lg st-btn--outline !text-white backdrop-blur-md"
+              className="st-btn st-btn--lg st-btn--outline w-full justify-center !text-white backdrop-blur-md sm:w-[232px]"
               style={{ background: 'rgba(10, 18, 38, 0.35)', boxShadow: 'inset 0 0 0 1.5px rgba(255,255,255,.35)' }}
             >
               Shoot with Stelli
