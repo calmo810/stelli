@@ -201,11 +201,11 @@ export default function CreatorCard({ creator, index = 0, onOpen }) {
           </div>
         )}
 
-        <div className="absolute bottom-4 left-4 right-4 z-[3]" style={{ transform: 'translateZ(30px)' }}>
-          <div className="flex items-end gap-3">
+        <div className="absolute bottom-5 left-5 right-5 z-[3]" style={{ transform: 'translateZ(30px)' }}>
+          <div className="flex min-h-[40px] items-end gap-3.5">
             <span
-              className="min-w-0 flex-1 break-words font-display font-medium leading-[.92] tracking-[-0.045em] text-fg"
-              style={{ fontSize: 'clamp(18px, 5.2vw, 28px)' }}
+              className="min-w-0 flex-1 break-words font-display font-medium leading-[.98] tracking-[-0.018em] text-fg"
+              style={{ fontSize: 'clamp(18px, 5.2vw, 28px)', wordSpacing: '0.045em' }}
             >
               {name}
             </span>
