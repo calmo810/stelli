@@ -195,8 +195,8 @@ export default function HeroVideo() {
         }}
       />
 
-      <div className="absolute inset-0 flex flex-col px-5 text-center md:px-10 sm:justify-end sm:pb-[64px]">
-        <div className="mx-auto flex h-full w-full max-w-[900px] items-center justify-center sm:block sm:h-auto sm:flex-none">
+      <div className="absolute inset-0 flex items-end justify-center px-5 text-center md:px-10 pb-10 sm:pb-[64px]">
+        <div className="w-full max-w-[900px]">
           <h1
             className="font-display"
             style={{ fontWeight: 500, lineHeight: 1.08, letterSpacing: '-0.015em', fontSize: 'clamp(28px, 4.8vw, 68px)' }}
@@ -216,14 +216,13 @@ export default function HeroVideo() {
               </span>
             </span>
           </h1>
-        </div>
 
-        <div className="absolute inset-x-0 bottom-[calc(var(--tabbar-h)+18px)] mx-auto flex w-full max-w-[340px] flex-col items-stretch justify-center gap-3 px-5 sm:static sm:mt-[138px] sm:max-w-none sm:flex-row sm:items-center sm:gap-2.5 sm:px-0">
+          <div className="mx-auto mt-10 flex w-full max-w-[430px] flex-col items-center justify-center gap-2.5 sm:mt-[138px] sm:flex-row sm:gap-2.5">
             {HERO_PATHS.map((path) => (
               <Link
                 key={path.to}
                 to={path.to}
-                className="group relative flex min-h-[58px] w-full items-center justify-center overflow-hidden rounded-full border px-6 text-center transition-[transform,box-shadow,filter] duration-500 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-1 hover:scale-[1.012] hover:brightness-105 active:translate-y-0 sm:min-h-[44px] sm:w-[var(--cta-width)]"
+                className="group relative flex min-h-[44px] w-full max-w-[204px] items-center justify-center overflow-hidden rounded-full border px-4 text-center transition-[transform,box-shadow,filter] duration-500 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-1 hover:scale-[1.012] hover:brightness-105 active:translate-y-0 sm:max-w-none sm:w-[var(--cta-width)]"
                 style={{
                   '--cta-width': `${path.width}px`,
                   background: path.background,
@@ -238,12 +237,13 @@ export default function HeroVideo() {
                   className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
                   style={{ background: 'linear-gradient(110deg, transparent 30%, hsl(0 0% 100% / .16) 50%, transparent 70%)' }}
                 />
-                <span className="relative text-[12.5px] font-bold uppercase tracking-[0.12em]">
+                <span className="relative text-[11.5px] font-bold uppercase tracking-[0.12em]">
                   {path.label}
                 </span>
               </Link>
             ))}
           </div>
+        </div>
       </div>
     </section>
   );
