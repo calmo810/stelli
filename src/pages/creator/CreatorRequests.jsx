@@ -30,7 +30,7 @@ export default function CreatorRequests() {
           <p className="wk-lede">Read the brief, message the client, and send your quote.</p>
         </div>
         <nav className="arch-tab__nav" aria-label="Work sections">
-          <WorkTabs requests={next.length} />
+          <WorkTabs requests={newRequests.length} />
         </nav>
       </div>
 

@@ -21,8 +21,15 @@ export default function Portal() {
 
   useEffect(() => {
     let active = true;
+    // Start fetching both portals' code now, so whichever one this account
+    // lands on is ready by the time the account check comes back.
+    void import('@/pages/ClientDashboard');
+    void import('@/pages/creator/CreatorPortal');
+
     (async () => {
-      let user = await fetchCurrentUser();
+      // The account every other screen already loaded, when there is one: a
+      // tap on "Portal" shouldn't wait on the network to ask again.
+      let user = queryClientInstance.getQueryData(CURRENT_USER_KEY) ?? (await fetchCurrentUser());
       if (!active) return;
 
       // Signed out: log in, then come straight back here.
@@ -45,8 +52,13 @@ export default function Portal() {
       // creator profile: their portal is the creator one.
       let type = user.account_type;
       if (type !== 'creator') {
-        const profiles = await base44.entities.Lensman.filter({ user_id: user.id }).catch(() => []);
-        if (profiles.length) type = 'creator';
+        // Shared with the client dashboard, which asks the same question.
+        const hasCreatorProfile = await queryClientInstance.fetchQuery({
+          queryKey: ['has-creator-profile', user.id],
+          staleTime: 60_000,
+          queryFn: async () => (await base44.entities.Lensman.filter({ user_id: user.id }).catch(() => [])).length > 0,
+        });
+        if (hasCreatorProfile) type = 'creator';
       }
       if (!active) return;
 

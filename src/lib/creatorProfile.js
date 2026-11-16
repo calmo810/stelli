@@ -424,7 +424,6 @@ export const REQS = [
   { t: 'At least 1 spot', k: 'where', ok: (s) => s.where.length > 0 },
   { t: 'At least 1 shoot type', k: 'what', ok: (s) => s.what.length > 0 },
   { t: `${MIN_SHOTS}+ portfolio shots`, k: 'pf', ok: (s) => s.portfolio.length >= MIN_SHOTS },
-  { t: '1 priced package', k: 'price', ok: (s) => activeTiers(s).length > 0 },
   { t: 'Your name and email', k: 'priv', ok: (s) => Boolean(s.fullName.trim()) && validEmail(s.email) },
 ];
 
@@ -436,15 +435,15 @@ export const EXTRAS = [
   { t: 'A prompt', k: 'prompt', ok: (s) => Boolean(s.prompt && s.promptA.trim()) },
   { t: "What you don't shoot", k: 'dont', ok: (s) => Boolean(s.dont.trim()) },
   { t: 'Instagram', k: 'priv', ok: (s) => Boolean(s.ig.trim()) },
+  { t: 'A starting package', k: 'price', ok: (s) => activeTiers(s).length > 0 },
 ];
 
 /**
- * The priced package is asked for once, when someone applies. A page that is
- * already live has to be able to fix its photos and words without one, so it
- * drops out of the list for an existing profile.
+ * What a page needs before it can be sent in or saved. Packages are an extra:
+ * they help a creator quote, but an application doesn't wait on them.
  */
-export const applicableReqs = (s, existing) => (existing ? REQS.filter((r) => r.k !== 'price') : REQS);
-export const missingReqs = (s, existing = false) => applicableReqs(s, existing).filter((r) => !r.ok(s));
+export const applicableReqs = () => REQS;
+export const missingReqs = (s) => REQS.filter((r) => !r.ok(s));
 export const strength = (s) => {
   const all = [...REQS, ...EXTRAS];
   return Math.round((all.filter((r) => r.ok(s)).length / all.length) * 100);

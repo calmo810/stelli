@@ -220,12 +220,6 @@
 .shows-as{margin-top:12px;font-size:13.5px;color:var(--faint)}
 .shows-as b{color:var(--text);font-weight:500}
 .subhead{display:block;margin:26px 0 10px;font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
-.steal{display:flex;flex-direction:column;gap:8px}
-.steal-btn{
-  text-align:left;border:1px solid var(--line);background:var(--panel);border-radius:var(--r-sm);
-  padding:12px 15px;font-size:14px;color:var(--dim);transition:border-color .15s,color .15s;
-}
-.steal-btn:hover{border-color:var(--dim);color:var(--text)}
 
 /* ============ PHOTO ============ */
 .photo-zone{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
@@ -439,34 +433,7 @@
   display:flex;justify-content:space-between;gap:12px;align-items:center;
 }
 
-/* ============ WELCOME ============ */
-.welcome{max-width:760px;animation:pwRise .5s var(--ease) both}
-.welcome h1{font-family:var(--serif);font-weight:600;font-size:clamp(34px,4.4vw,52px);letter-spacing:-.02em;line-height:1.04}
-.welcome h1 em{font-style:normal;color:var(--lime)}
-.welcome .sub{color:var(--dim);margin-top:14px;max-width:520px;font-size:17px;line-height:1.55}
-.need{display:flex;flex-wrap:wrap;gap:8px;margin-top:26px}
-.need span{font-size:13px;color:var(--dim);border:1px solid var(--line);border-radius:999px;padding:8px 14px;background:var(--panel)}
-.need span b{color:var(--text);font-weight:500}
-.welcome-actions{margin-top:30px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
 
-.starters{margin-top:64px}
-.starters-head h2{font-family:var(--serif);font-weight:600;font-size:24px;letter-spacing:-.01em}
-.starters-head p{color:var(--faint);font-size:14px;margin-top:4px}
-.starter-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;margin-top:20px}
-.starter{text-align:left;border-radius:var(--r);overflow:hidden;background:var(--panel);border:1px solid var(--line);transition:transform .2s var(--ease),border-color .2s}
-.starter:hover{transform:translateY(-2px);border-color:var(--line-2)}
-.starter-art{height:110px;position:relative}
-.starter-art .glow{position:absolute;inset:0}
-.starter-art .chip-demo{
-  position:absolute;left:14px;bottom:12px;border-radius:999px;padding:5px 10px;
-  font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
-  color:#0a1226;background:var(--sc);
-}
-.starter-body{padding:16px 18px 18px}
-.starter-name{font-weight:600;font-size:16px}
-.starter-tags{color:var(--dim);font-size:13px;margin-top:4px}
-.starter-line{font-size:13.5px;color:var(--text);opacity:.8;font-style:italic;margin-top:10px}
-.starter-use{margin-top:14px;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text)}
 
 /* ============ SHEET ============ */
 .sheet-back{position:fixed;inset:0;z-index:80;background:rgba(5,7,12,.6);backdrop-filter:blur(6px);animation:pwFade .25s both}
@@ -563,12 +530,11 @@
    PAPER ON INK
    The wizard follows the design system (src/styles/system.css): the bar, the
    live preview and the action bar stay on the ink; the step being filled in,
-   the welcome, the review and the "you're in" screen are sheets of paper.
+   the review and the "you're in" screen are sheets of paper.
    Re-pointing the wizard's own tokens inside those sheets re-colours every
    field, chip and switch at once. On paper the accent is ink, not lime.
 ===================================================================== */
 .pw-root{--bg:#0a1226;--panel:#101a33;--raise:#18233f;--pw-ink:#0a1226;--r:16px;--r-sm:14px;--r-lg:26px}
-.pw-root .welcome,
 .pw-root .card,
 .pw-root .pv > div:last-child,
 .pw-root .share,
@@ -589,7 +555,6 @@
   --danger:#b3173f;
   color:var(--text);
 }
-.pw-root .welcome,
 .pw-root .card,
 .pw-root .pv > div:last-child,
 .pw-root .share{
@@ -599,8 +564,7 @@
   box-shadow:0 30px 80px -40px rgba(0,0,0,.85), inset 0 1px 0 rgba(255,255,255,.8);
 }
 @media(min-width:640px){
-  .pw-root .welcome,
-  .pw-root .card,
+    .pw-root .card,
   .pw-root .pv > div:last-child,
   .pw-root .share{border-radius:34px;padding:38px 36px 40px}
 }
@@ -611,10 +575,9 @@
 @media(min-width:640px){.pw-root .stage{padding:32px 24px 160px}}
 
 /* Headlines: the heavy, tight sans; one phrase in the serif italic. */
-.pw-root .step-title,.pw-root .pv-head h1,.pw-root .share h1,.pw-root .welcome h1,.pw-root .starters-head h2{
+.pw-root .step-title,.pw-root .pv-head h1,.pw-root .share h1{
   font-family:var(--font-heading);font-weight:800;letter-spacing:-.04em;line-height:1.02;
 }
-.pw-root .welcome h1 em{font-family:var(--font-display);font-style:italic;font-weight:500;letter-spacing:-.02em;color:inherit}
 .pw-root .lbl,.pw-root .kicker{font-weight:700;letter-spacing:.13em}
 
 /* Buttons and fields take the system's shapes. */
@@ -625,5 +588,4 @@
 .pw-root .check.ok .ic{background:hsl(var(--neon-lime));color:#0a1226}
 .pw-root .bar i,.pw-root .meter i.on{background:#0a1226}
 .pw-root .switch.on{background:#0a1226}
-.pw-root .starter{border-radius:22px;overflow:hidden}
 .pw-root .toast{border-radius:999px}

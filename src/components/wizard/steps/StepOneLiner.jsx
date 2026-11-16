@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { STARTERS } from '@/lib/wizardData';
 import { LIMITS, TAG_IDEAS } from '@/lib/creatorProfile';
 
 export default function StepOneLiner({ w }) {
@@ -88,15 +87,6 @@ export default function StepOneLiner({ w }) {
         <div className="shows-as">
           Shows as <b>{s.tags.join(' · ') || 'your · style · tags'}</b>
         </div>
-      </div>
-
-      <span className="lbl subhead">Need a nudge? Tap one to start from it</span>
-      <div className="steal">
-        {STARTERS.map((starter) => (
-          <button key={starter.key} type="button" className="steal-btn" onClick={() => w.patch({ oneLiner: starter.oneLiner })}>
-            “{starter.oneLiner}”
-          </button>
-        ))}
       </div>
     </>
   );
