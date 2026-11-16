@@ -154,7 +154,7 @@ export default async function (req) {
       // A creator walking away always puts them in front of a founder. It does
       // not hide them by itself: putting a creator on hold is the founder's call
       // (one tap from the queue). Only a client's no-show report holds a
-      // creator automatically. See REVIEW.md, decision D12.
+      // creator automatically. See docs/reviews/2026-11-money-and-access.md, decision D12.
       if (!isClient) {
         const lensman = await base44.asServiceRole.entities.Lensman.get(booking.lensman_id).catch(() => null);
         if (lensman) {

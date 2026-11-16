@@ -1,7 +1,7 @@
 /**
  * The booking's money path, run through the real backend functions against a
  * fake database and a fake Stripe (tests/helpers). These are the scenarios the
- * review found broken; each test is the "how it happens" from REVIEW.md.
+ * review found broken; each test is the "how it happens" from docs/reviews/2026-11-money-and-access.md.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';

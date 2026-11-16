@@ -14,7 +14,7 @@ import useNoIndex from '@/lib/useNoIndex';
  * This is the door, not the lock. The lock is on the server: every piece of
  * admin data is read through rules that allow admins only, and every admin
  * action runs in a backend function that checks the role itself (see
- * REVIEW.md, "Is /admin really locked?"). Someone who forced this component to
+ * docs/reviews/2026-11-money-and-access.md, "Is /admin really locked?"). Someone who forced this component to
  * render would see an empty page and buttons that answer "Forbidden".
  */
 export default function AdminRoute({ children }) {

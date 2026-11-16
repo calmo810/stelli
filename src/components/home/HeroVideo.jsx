@@ -211,7 +211,7 @@ export default function HeroVideo() {
           <div className="flex flex-wrap justify-center" style={{ marginTop: 40, gap: 12 }}>
             <Link
               to="/creators"
-              className="label-mono text-[11px] font-semibold w-full sm:w-auto text-center transition-[transform,box-shadow] duration-500 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-0.5"
+              className="label-mono text-[11px] font-semibold w-full sm:w-auto text-center transition-[transform,box-shadow] duration-500 ease-st hover:-translate-y-0.5"
               style={{
                 ...BUTTON,
                 background: 'hsl(var(--neon-lime))',

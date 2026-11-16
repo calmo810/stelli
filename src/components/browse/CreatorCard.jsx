@@ -211,7 +211,7 @@ export default function CreatorCard({ creator, index = 0, onOpen }) {
             </span>
             <span
               aria-hidden="true"
-              className={`grid h-10 w-10 shrink-0 place-items-center rounded-full transition-[transform,opacity] duration-[450ms] ${
+              className={`grid h-10 w-10 shrink-0 place-items-center rounded-full transition-[transform,opacity] duration-450 ${
                 active ? 'rotate-0 scale-100 opacity-100' : '-rotate-45 scale-[.6] opacity-0'
               } [@media(hover:none)]:rotate-0 [@media(hover:none)]:scale-100 [@media(hover:none)]:opacity-100`}
               style={{ background: accent, color: 'hsl(var(--ink))' }}

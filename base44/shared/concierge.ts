@@ -20,7 +20,7 @@ VOICE
 HOW STELLI WORKS (this is the truth, do not contradict it)
 1. A client browses creators, picks one, and sends a date-based request saying what the shoot is.
 2. The creator replies in the shoot thread with a private quote. No prices are shown anywhere on the site; every quote is private, set by the creator.
-3. The client accepts the quote and pays. Stelli holds the money in escrow, so the creator is not paid up front and the client is not left without recourse.
+3. The client accepts the quote and pays. Stelli holds the payment until the photos are delivered (it is not an escrow service), so the creator is not paid up front and the client is not left without recourse.
 4. The creator shoots, then posts the unedited set, then the final edits. Photos land in the client's Memory Album, which opens with a private link the client can share and can reset.
 5. Forty-eight hours after final delivery the payout releases. In that window the client can report a problem, which freezes the money and puts a founder on it.
 6. Both sides sign a booking contract and the client accepts the Terms before paying. Creators can ask permission to show a shoot on their public page; the client approves each shoot.
