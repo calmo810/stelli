@@ -10,7 +10,7 @@ export default function WizardReview({ w }) {
   const { s } = w;
   const missing = w.missing;
   // A live page updates without a priced package; only an application needs one.
-  const reqList = applicableReqs(s, w.existing);
+  const reqList = applicableReqs();
   const extrasMissing = EXTRAS.filter((extra) => !extra.ok(s));
 
   const rows = [
@@ -154,7 +154,7 @@ export default function WizardReview({ w }) {
               </button>
             )
           ) : (
-            <button type="button" className="btn btn-ghost" onClick={() => w.goStep(w.maxStep, { jump: true })}>
+            <button type="button" className="btn btn-ghost" onClick={() => w.goStep(w.resumeStep, { jump: true })}>
               Keep editing
             </button>
           )}

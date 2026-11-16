@@ -238,11 +238,9 @@ export default function CreatorOverview() {
               scheduleItems.map((item) => (
                 <Link
                   key={item.id}
-                  to={
-                    scheduleView === 'upcoming'
-                      ? '/lensman-dashboard/requests/' + item.id
-                      : '/messages/' + item.id
-                  }
+                  // Booked and finished shoots both live in their shoot thread,
+                  // the same place the calendar and the Shoots list open.
+                  to={'/messages/' + item.id}
                   className="arch-agenda__item"
                 >
                   <span className="arch-agenda__time">{timeLabel(item.event_time, 'Time TBD')}</span>

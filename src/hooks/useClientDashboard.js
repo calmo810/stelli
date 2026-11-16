@@ -19,7 +19,7 @@ export default function useClientDashboard() {
   });
 
   const { data: quotes = [] } = useQuery({
-    queryKey: ['client-quotes'],
+    queryKey: ['client-quotes', user?.id],
     enabled: !!user?.email,
     queryFn: () => base44.entities.Quote.list('-created_date'),
   });

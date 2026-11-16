@@ -4,9 +4,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44, errorMessage } from '@/api/base44Client';
 import useCurrentUser from '@/hooks/useCurrentUser';
 import { loginUrl } from '@/lib/requireSignIn';
-import { STEPS, stepIdx } from '@/lib/wizardData';
+import { APPLY_FLOW, STEPS, stepIdx } from '@/lib/wizardData';
 import {
-  FIELD_STEP, LIMITS, MARKET, MAX_SHOTS, MIN_SHOTS,
+  FIELD_STEP, LIMITS, MARKET, MAX_SHOTS, MIN_SHOTS, REQS,
   activeTiers, applicableReqs, contactProblems, formToPayload, formToProfile, freshForm,
   missingReqs, normalizeForm, profileToForm, profileUrl, profileUrlLabel, strength, validEmail,
 } from '@/lib/creatorProfile';
@@ -64,9 +64,11 @@ export default function useWizard() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [s, setS] = useState(freshForm);
-  const [view, setView] = useState('welcome');
+  const [view, setView] = useState('wizard');
   const [step, setStep] = useState(0);
   const [maxStep, setMaxStep] = useState(0);
+  // How far along the route (below) someone has been, so its dots can take them back.
+  const [maxPos, setMaxPos] = useState(0);
   const [dir, setDir] = useState(1);
   const [ready, setReady] = useState(false);
   const [errMsg, setErrMsg] = useState('');
@@ -108,6 +110,14 @@ export default function useWizard() {
   const contact = own?.contact || null;
   const existing = Boolean(lensman);
 
+  // Editing a live page opens every step, in order. Applying takes the short
+  // route: only what Stelli needs to review the application, then the review
+  // page, where every extra is one tap away.
+  const flow = useMemo(
+    () => (existing ? STEPS.map((_, index) => index) : APPLY_FLOW.map(stepIdx)),
+    [existing]
+  );
+
   // A creator profile belongs to an account, so building one starts at sign-in.
   useEffect(() => {
     if (!userLoading && !user) window.location.replace(loginUrl());
@@ -132,6 +142,7 @@ export default function useWizard() {
       setS(resumed || saved);
       setPublished(base);
       setMaxStep(STEPS.length - 1);
+      setMaxPos(STEPS.length - 1);
       if (wanted >= 0) {
         setStep(wanted);
         setView('wizard');
@@ -148,6 +159,19 @@ export default function useWizard() {
         setStep(wanted);
         setMaxStep(wanted);
         setView('wizard');
+      } else {
+        // No front page to click past: straight to the first thing still
+        // missing, or to the review if a saved draft already has it all.
+        const route = APPLY_FLOW.map(stepIdx);
+        const open = route.findIndex((index) => {
+          const req = REQS.find((r) => r.k === STEPS[index].key);
+          return req && !req.ok(form);
+        });
+        const pos = open < 0 ? route.length - 1 : open;
+        setStep(route[pos]);
+        setMaxStep(route[pos]);
+        setMaxPos(pos);
+        setView(open < 0 ? 'preview' : 'wizard');
       }
     }
     // The step in the address is a one-time way in, not a place to live.
@@ -210,11 +234,13 @@ export default function useWizard() {
     setView('wizard');
     setStep(next);
     setMaxStep((prev) => Math.max(prev, next));
+    const pos = flow.indexOf(next);
+    if (pos >= 0) setMaxPos((prev) => Math.max(prev, pos));
     setErrMsg('');
     setSheetOpen(false);
     if (!jump) window.scrollTo({ top: 0, behavior: 'smooth' });
     else window.scrollTo(0, 0);
-  }, [step]);
+  }, [step, flow]);
 
   /** What is wrong with the step on screen, in the words shown under it. */
   const validate = useCallback((key = STEPS[step].key) => {
@@ -236,24 +262,33 @@ export default function useWizard() {
       setErrMsg(problem);
       return;
     }
-    if (step === STEPS.length - 1) {
+    const pos = flow.indexOf(step);
+    // The end of the route, or an extra opened from the review: back to the review.
+    if (pos < 0 || pos === flow.length - 1) {
       setView('preview');
       setSheetOpen(false);
       window.scrollTo(0, 0);
       return;
     }
-    goStep(step + 1);
-  }, [validate, step, goStep]);
+    goStep(flow[pos + 1]);
+  }, [validate, step, flow, goStep]);
 
   const goBack = useCallback(() => {
-    if (step === 0) {
-      // A profile that exists has no "welcome": its home is the review page.
-      setView(existing ? 'preview' : 'welcome');
+    const pos = flow.indexOf(step);
+    if (pos > 0) {
+      goStep(flow[pos - 1]);
+      return;
+    }
+    // A live page's home, and an extra's, is the review page.
+    if (existing || pos < 0) {
+      setView('preview');
       window.scrollTo(0, 0);
       return;
     }
-    goStep(step - 1);
-  }, [step, goStep, existing]);
+    // Back from the first step of an application: keep the draft and leave.
+    store.write(APPLICATION_DRAFT_KEY, s);
+    navigate('/lensman-dashboard');
+  }, [step, flow, goStep, existing, s, navigate]);
 
   const openReview = useCallback(() => {
     setView('preview');
@@ -262,42 +297,15 @@ export default function useWizard() {
     window.scrollTo(0, 0);
   }, []);
 
-  const applyStarter = useCallback((starter) => {
-    if (!starter) return;
-    const run = () => {
-      setConfirm(null);
-      setS((prev) => ({
-        ...prev,
-        tags: [...starter.tags],
-        oneLiner: starter.oneLiner,
-        theme: starter.theme,
-        accent: starter.accent,
-        gallery: starter.gallery,
-        layout: starter.layout,
-        curve: starter.curve,
-        frame: starter.frame,
-        mat: starter.mat,
-        captions: starter.captions,
-        what: [...new Set([...prev.what, ...starter.what])],
-        bio: starter.bio,
-        prompt: starter.prompt,
-        promptA: starter.promptA,
-        dont: starter.dont,
-      }));
-      goStep(0);
-      showToast(`Started from ${starter.name}. Every word is editable.`);
-    };
-    if (s.oneLiner || s.bio || s.tags.length || s.dont) {
-      setConfirm({
-        title: 'Use this starter style?',
-        text: 'It will replace your one-liner, tags, bio, prompt and look.',
-        yes: 'Replace',
-        onYes: run,
-      });
-    } else {
-      run();
+  /** "Skip" and "Add later": on along the route without checking this step. */
+  const skip = useCallback(() => {
+    const pos = flow.indexOf(step);
+    if (pos < 0 || pos === flow.length - 1) {
+      openReview();
+      return;
     }
-  }, [s, goStep, showToast]);
+    goStep(flow[pos + 1]);
+  }, [step, flow, goStep, openReview]);
 
   const uploadPhoto = useCallback(async (file) => {
     if (!file) return;
@@ -349,7 +357,7 @@ export default function useWizard() {
 
   const publish = useCallback(async () => {
     if (publishing) return;
-    const missing = missingReqs(s, existing);
+    const missing = missingReqs(s);
     if (missing.length) {
       showToast(`Still needed: ${missing[0].t.toLowerCase()}.`);
       return;
@@ -438,14 +446,15 @@ export default function useWizard() {
     store.clear(APPLICATION_DRAFT_KEY);
     setConfirm(null);
     setS({ ...freshForm(), email: user?.email || '' });
-    setView('welcome');
-    setStep(0);
-    setMaxStep(0);
+    setView('wizard');
+    setStep(stepIdx(APPLY_FLOW[0]));
+    setMaxStep(stepIdx(APPLY_FLOW[0]));
+    setMaxPos(0);
     setErrMsg('');
   }, [user]);
 
-  const reqs = missingReqs(s, existing);
-  const reqTotal = applicableReqs(s, existing).length;
+  const reqs = missingReqs(s);
+  const reqTotal = applicableReqs().length;
   const pct = Math.round(((reqTotal - reqs.length) / reqTotal) * 100);
   // The form as a profile record, for the preview. Drawn by the same component as the public page.
   const profile = useMemo(() => formToProfile(s, lensman), [s, lensman]);
@@ -455,9 +464,10 @@ export default function useWizard() {
     loadFailed: !userLoading && !!user && ownFetched && ownFailed,
     retryLoad: refetchOwn,
     s, patch, profile, view, setView, step, maxStep, dir,
+    flow, pos: flow.indexOf(step), maxPos, resumeStep: flow[Math.min(maxPos, flow.length - 1)],
     errMsg, setErrMsg, toast, showToast, confirm, setConfirm,
     sheetOpen, setSheetOpen, uploading, publishing, flash, saveState,
-    goStep, goNext, goBack, openReview, applyStarter, validate,
+    goStep, goNext, goBack, skip, openReview, validate,
     uploadPhoto, uploadPortfolio, publish, exit, copy, reset, discardChanges,
     missing: reqs, pct, strength: strength(s), readyToPublish: reqs.length === 0,
     existing, dirty,

@@ -19,6 +19,9 @@ const SIGNED_IN = [
   { label: 'Account', to: '/account-settings' },
 ];
 
+// Founders only: the admin page had no way in except typing its address.
+const FOUNDER = [{ label: 'Founder dashboard', to: '/admin' }];
+
 const EVERYONE = [
   { label: 'Browse creators', to: '/creators' },
   { label: 'For creators', to: '/for-creators' },
@@ -77,7 +80,11 @@ export default function MenuOverlay({ onClose }) {
     logout('/');
   };
 
-  const links = [...(user ? SIGNED_IN : SIGNED_OUT), ...EVERYONE];
+  const links = [
+    ...(user ? SIGNED_IN : SIGNED_OUT),
+    ...(user?.role === 'admin' ? FOUNDER : []),
+    ...EVERYONE,
+  ];
   const enter = (i) =>
     reduced
       ? {}

@@ -1,5 +1,5 @@
 import React, { Suspense, useEffect, useRef } from 'react';
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Camera } from 'lucide-react';
 import DashboardShell from '@/components/dashboard/DashboardShell';
@@ -31,6 +31,7 @@ function WorkspaceTabLoading() {
 
 export default function CreatorPortal() {
   const data = useCreatorPortal();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const todayEnteredRef = useRef(false);
 
@@ -90,21 +91,9 @@ export default function CreatorPortal() {
     );
   }
 
+  // Signed out: straight to sign-in, then back here, the same as every other portal page.
   if (!user) {
-    return (
-      <DashboardShell>
-        <EmptyPanel
-          icon={Camera}
-          title="Sign in to continue"
-          body="Your workspace holds your requests, shoots and payouts."
-          cta={
-            <Pill as={Link} to={loginUrl('/lensman-dashboard')} tone="lime">
-              Sign in
-            </Pill>
-          }
-        />
-      </DashboardShell>
-    );
+    return <Navigate to={loginUrl(location.pathname + location.search)} replace />;
   }
 
   if (!myProfile) {

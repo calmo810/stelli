@@ -11,11 +11,15 @@ import useRequireSignIn from '@/lib/requireSignIn';
 import { fullDate, shortDate } from '@/lib/format';
 import { Avatar, Btn, Card, EmptyState, ErrorState, Page, Row, Sheet, Skeleton, Stat } from '@/components/system';
 
-/** Each kind of next step gets its own colour block and icon, so the list reads at a glance. */
+/**
+ * Each kind of next step gets its own icon. The cards themselves stay one
+ * quiet colour, like the creator portal's action list: the one thing that
+ * needs money gets the lime, everything else is ink.
+ */
 const STEP_LOOK = {
-  pay: { tone: 'lime', icon: CreditCard },
-  quote: { tone: 'sky', icon: FileSearch },
-  photos: { tone: 'lilac', icon: Images },
+  pay: { icon: CreditCard, accent: true },
+  quote: { icon: FileSearch },
+  photos: { icon: Images },
 };
 
 const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
@@ -126,7 +130,7 @@ export default function ClientDashboard() {
         <div className="grid items-start gap-3 lg:grid-cols-[minmax(0,1fr)_380px]">
           <div className="min-w-0 space-y-3">
             {/* The greeting: one sentence on where things stand, and the numbers behind it. */}
-            <Sheet className="st-aurora st-aurora--dusk st-rise">
+            <Sheet className="st-aurora st-aurora--sky st-rise">
               <p className="st-kicker">{fullDate(new Date())}</p>
               <h1 className="st-display mt-3">
                 Hey, <span className="st-serif">{firstName}.</span>
@@ -164,12 +168,15 @@ export default function ClientDashboard() {
                 ) : needs.length ? (
                   <ul className="grid gap-2.5 sm:grid-cols-2">
                     {needs.map((item, i) => {
-                      const look = STEP_LOOK[item.key] || { tone: 'sky', icon: Sparkles };
+                      const look = STEP_LOOK[item.key] || { icon: Sparkles };
                       const Icon = look.icon;
                       return (
                         <li key={item.id} className="st-rise" style={/** @type {React.CSSProperties} */ ({ '--i': i })}>
-                          <Card tone={look.tone} hover className="flex h-full flex-col">
-                            <span className="grid h-10 w-10 place-items-center rounded-full bg-ink text-white" aria-hidden>
+                          <Card tone="soft" hover className="flex h-full flex-col">
+                            <span
+                              className={`grid h-10 w-10 place-items-center rounded-full ${look.accent ? 'bg-[hsl(var(--neon-lime))] text-ink' : 'bg-ink text-white'}`}
+                              aria-hidden
+                            >
                               <Icon className="h-[18px] w-[18px]" />
                             </span>
                             <p className="mt-4 text-[17px] font-extrabold leading-snug tracking-[-0.025em]">{item.title}</p>

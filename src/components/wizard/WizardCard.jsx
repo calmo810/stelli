@@ -12,7 +12,7 @@ export default function WizardCard({ w, children }) {
     <section key={w.step} className={`card ${w.dir > 0 ? 'enter' : 'enter-back'}`} aria-labelledby="stepTitle">
       <div className="step-head">
         <span className="kicker">
-          {String(w.step + 1).padStart(2, '0')} · {CHAPTERS[meta.ch]}
+          {w.pos >= 0 ? `${String(w.pos + 1).padStart(2, '0')} · ` : 'Extra · '}{CHAPTERS[meta.ch]}
         </span>
         {(meta.need || meta.required) && req && (
           <span className={`badge ${met ? 'met' : ''}`}>{met ? 'Done' : 'Needed to publish'}</span>

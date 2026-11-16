@@ -99,7 +99,8 @@ const api = async (path, userId, init = {}) => {
 // Start from the seed data, whatever an earlier run left behind.
 await fetch(`${MOCK}/__mock/reset`, { method: 'POST' });
 
-const browser = await chromium.launch();
+// CHROME_PATH: use an installed Chrome instead of Playwright's own download.
+const browser = await chromium.launch(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : {});
 const allErrors = [];
 try {
   console.log('Create a profile (sam@example.com, a creator with no page yet)');
@@ -107,17 +108,12 @@ try {
   const { page } = sam;
   const next = () => page.getByRole('button', { name: 'Continue', exact: true }).click();
 
-  await step('the portal offers the application', async () => {
+  await step('the portal offers the application, which opens straight on step 1', async () => {
     await page.goto(`${BASE}/portal`);
     await page.getByRole('link', { name: /Apply to shoot/ }).click();
     await page.waitForURL('**/apply');
-    await page.getByRole('button', { name: 'Start building' }).click();
-  });
-
-  await step('photo', async () => {
-    await page.locator('input[type=file]').setInputFiles(file('me.png', [200, 120, 90]));
-    await page.getByRole('img', { name: 'Your profile photo' }).waitFor();
-    await next();
+    await page.getByText('Step 1 of 6').waitFor();
+    assert.equal(await page.getByText(/starter style/i).count(), 0, 'no starter styles');
   });
 
   await step('name cannot be blank, and writes the link', async () => {
@@ -128,20 +124,11 @@ try {
     await next();
   });
 
-  await step('one-liner refuses contact details', async () => {
-    await page.getByLabel('One-liner').fill('dm me @samshoots');
-    await next();
-    await page.getByRole('alert').filter({ hasText: 'Contact details stay private' }).waitFor();
-    await page.getByLabel('One-liner').fill('Flash on, hands up.');
-    await page.getByRole('button', { name: '+ candid' }).click();
-    await next();
-  });
-
-  await step('where and what', async () => {
-    await page.getByRole('button', { name: /Fonville Fountain/ }).click();
-    await next();
+  await step('what and where', async () => {
     await page.getByRole('button', { name: 'Portraits', exact: true }).click();
     await page.getByRole('button', { name: 'Events', exact: true }).click();
+    await next();
+    await page.getByRole('button', { name: /Fonville Fountain/ }).click();
     await next();
   });
 
@@ -156,35 +143,39 @@ try {
     await next();
   });
 
-  await step('packages', async () => {
-    await page.getByPlaceholder('0').first().fill('75');
+  await step('photo', async () => {
+    await page.locator('input[type=file]').setInputFiles(file('me.png', [200, 120, 90]));
+    await page.getByRole('img', { name: 'Your profile photo' }).waitFor();
     await next();
   });
 
-  await step('bio, kit, prompt, don\'t shoot', async () => {
-    await page.getByLabel('Bio').fill('I keep sessions relaxed and quick.');
-    await next();
-    await page.getByLabel('Equipment').fill('Sony A7IV, 35mm');
-    await page.getByLabel('Years shooting').fill('3');
-    await next();
-    await page.getByRole('radio', { name: 'Clients always tell me…' }).click();
-    await page.getByLabel('Finish the sentence').fill('it felt easy.');
-    await next();
-    await page.getByLabel("What I don't shoot").fill('No weddings.');
-    await next();
-  });
-
-  await step('the look changes the live preview', async () => {
-    await page.getByRole('radio', { name: 'Grid' }).click();
-    await page.getByRole('radio', { name: 'Cyan' }).click();
-    await next();
-  });
-
-  await step('private details: the name is required', async () => {
+  await step('private details: the name is required, then the review', async () => {
+    await page.getByText('Step 6 of 6').waitFor();
     await page.getByRole('button', { name: 'Review my page' }).click();
     await page.getByRole('alert').filter({ hasText: 'Add your full name' }).waitFor();
     await page.getByLabel('Full name').fill('Sam Rivera');
     await page.getByRole('button', { name: 'Review my page' }).click();
+    await page.getByRole('heading', { name: 'This is your page.' }).waitFor();
+  });
+
+  await step('extras from the review: one-liner refuses contact details', async () => {
+    await page.getByRole('button', { name: '+ One-liner' }).click();
+    await page.getByLabel('One-liner').fill('dm me @samshoots');
+    await page.getByRole('button', { name: 'Done', exact: true }).click();
+    await page.getByRole('alert').filter({ hasText: 'Contact details stay private' }).waitFor();
+    await page.getByLabel('One-liner').fill('Flash on, hands up.');
+    await page.getByRole('button', { name: '+ candid' }).click();
+    await page.getByRole('button', { name: 'Done', exact: true }).click();
+    await page.getByRole('heading', { name: 'This is your page.' }).waitFor();
+  });
+
+  await step('extras from the review: bio and a package', async () => {
+    await page.getByRole('button', { name: '+ Bio' }).click();
+    await page.getByLabel('Bio').fill('I keep sessions relaxed and quick.');
+    await page.getByRole('button', { name: 'Done', exact: true }).click();
+    await page.getByRole('button', { name: '+ A starting package' }).click();
+    await page.getByPlaceholder('0').first().fill('75');
+    await page.getByRole('button', { name: 'Done', exact: true }).click();
     await page.getByRole('heading', { name: 'This is your page.' }).waitFor();
   });
 

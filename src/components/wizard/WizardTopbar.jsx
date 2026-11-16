@@ -2,7 +2,6 @@ import React from 'react';
 import { Eye } from 'lucide-react';
 import { LOGO_URL } from '@/components/shared/StelliWordmark';
 import WizardChapters from '@/components/wizard/WizardChapters';
-import { STEPS } from '@/lib/wizardData';
 
 /** The wizard's own bar: the wordmark, where you are, and the way out. */
 export default function WizardTopbar({ w }) {
@@ -17,7 +16,7 @@ export default function WizardTopbar({ w }) {
           {w.existing ? 'Edit profile' : 'Creator profile'} · Elon
           {w.view === 'wizard' && (
             <>
-              &nbsp;—&nbsp; <b>Step {w.step + 1} of {STEPS.length}</b>
+              &nbsp;—&nbsp; <b>{w.pos >= 0 ? `Step ${w.pos + 1} of ${w.flow.length}` : 'Extras'}</b>
             </>
           )}
         </span>
@@ -56,7 +55,8 @@ export default function WizardTopbar({ w }) {
         <div className="top-progress">
           <WizardChapters
             step={w.step}
-            maxStep={w.maxStep}
+            flow={w.flow}
+            maxPos={w.maxPos}
             onJump={(index) => w.goStep(index, { jump: true })}
           />
         </div>

@@ -6,7 +6,6 @@ import WizardTopbar from '@/components/wizard/WizardTopbar';
 import WizardCard from '@/components/wizard/WizardCard';
 import WizardFooter from '@/components/wizard/WizardFooter';
 import WizardSide from '@/components/wizard/WizardSide';
-import WizardWelcome from '@/components/wizard/WizardWelcome';
 import WizardReview from '@/components/wizard/WizardReview';
 import WizardShare from '@/components/wizard/WizardShare';
 import WizardAlert from '@/components/wizard/WizardAlert';
@@ -14,9 +13,9 @@ import WizardSheet from '@/components/wizard/WizardSheet';
 import { STEP_BODIES } from '@/components/wizard/steps';
 
 /**
- * The creator profile wizard: thirteen steps, a live preview the whole way,
- * and one publish that files the profile with Stelli. /apply and /edit-profile
- * both land here; a creator who already has a page opens on its review.
+ * The creator profile wizard, with a live preview the whole way and one
+ * publish that files the profile with Stelli. /apply opens straight on the
+ * short application route; /edit-profile opens a live page on its review.
  */
 export default function ProfileWizard() {
   const w = useWizard();
@@ -78,8 +77,6 @@ export default function ProfileWizard() {
       <WizardTopbar w={w} />
 
       <div className="stage">
-        {w.view === 'welcome' && <WizardWelcome w={w} />}
-
         {w.view === 'wizard' && (
           <div className="wiz">
             <main>

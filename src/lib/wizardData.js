@@ -1,9 +1,10 @@
 /**
- * The profile wizard's own furniture: its chapters, its thirteen steps and the
- * starter styles. Everything about the profile itself (the choices, the
- * limits, the form and how it saves) lives in lib/creatorProfile.js.
+ * The profile wizard's own furniture: its chapters, its steps and the short
+ * route an application takes through them. Everything about the profile
+ * itself (the choices, the limits, the form and how it saves) lives in
+ * lib/creatorProfile.js.
  */
-import { MIN_SHOTS, PROMPTS } from '@/lib/creatorProfile';
+import { MIN_SHOTS } from '@/lib/creatorProfile';
 
 /** Faded placeholder frames, shown in the preview until real photos land. */
 export const PH = [
@@ -32,33 +33,9 @@ export const STEPS = [
 
 export const stepIdx = (key) => STEPS.findIndex((s) => s.key === key);
 
-/** Starter styles: they fill the creator's own fields, which they then rewrite. */
-export const STARTERS = [
-  {
-    key: 'flash', name: 'Night Flash', color: '#d6f344',
-    art: 'radial-gradient(circle at 30% 40%,#d6f34455,transparent 55%),radial-gradient(circle at 80% 70%,#4fd8e033,transparent 50%),#10141f',
-    tags: ['direct flash', 'nightlife', 'candid'], oneLiner: "Flash on, hands up, we'll fix it in the blur.",
-    theme: 'night', accent: 'lime', gallery: 'hero', what: ['Nightlife', 'Events', 'Portraits'],
-    layout: 'wall', curve: 'full', frame: 'mat', mat: 'ink', captions: true,
-    bio: 'I shoot mostly at night and keep it relaxed. Show up, be yourself, I\'ll handle the rest.',
-    prompt: PROMPTS[4], promptA: 'you want photos that look like the night actually felt.', dont: 'No weddings or newborns.',
-  },
-  {
-    key: 'golden', name: 'Golden Hour', color: '#4fd8e0',
-    art: 'radial-gradient(circle at 70% 30%,#f5c26b55,transparent 55%),radial-gradient(circle at 20% 80%,#4fd8e033,transparent 50%),#f6f6f2',
-    tags: ['golden hour', 'candid', 'bright & airy'], oneLiner: 'Golden hour believer. Your mom will cry (good tears).',
-    theme: 'clean', accent: 'cyan', gallery: 'ordered', what: ['Graduation', 'Couples', 'Portraits'],
-    layout: 'wall', curve: 'soft', frame: 'mat', mat: 'paper', captions: true,
-    bio: 'Warm, easy sessions built around real moments. I direct just enough that you never feel stiff.',
-    prompt: PROMPTS[1], promptA: 'the photos felt like us, not a photoshoot.', dont: 'No late-night events.',
-  },
-  {
-    key: 'film', name: 'Film Editorial', color: '#e356c4',
-    art: 'radial-gradient(circle at 25% 30%,#e356c455,transparent 55%),radial-gradient(circle at 80% 80%,#7b3ff244,transparent 50%),#10141f',
-    tags: ['film', 'editorial', 'moody'], oneLiner: 'Film first. Digital when the brief calls for it.',
-    theme: 'night', accent: 'magenta', gallery: 'contact', what: ['Editorial', 'Music Videos', 'Commercial'],
-    layout: 'strip', curve: 'flat', frame: 'bleed', mat: 'mixed', captions: false,
-    bio: 'Editorial eye, run-and-gun energy. I plan the shot list so your shoot day is pure execution.',
-    prompt: PROMPTS[0], promptA: 'a rooftop at blue hour with a smoke machine.', dont: 'Nothing corporate-stiff.',
-  },
-];
+/**
+ * The quickest way to a page, for someone applying: the six things Stelli needs
+ * to review an application, easiest first. Every other step is an extra,
+ * reached from the review page, and the whole list is open when editing.
+ */
+export const APPLY_FLOW = ['name', 'what', 'where', 'pf', 'photo', 'priv'];
