@@ -2,7 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
 import { logAdminAction, requireAdmin } from '../../shared/audit.ts';
 
 /**
- * One-off data move for account-based access (REVIEW.md, decision D5).
+ * One-off data move for account-based access (docs/reviews/2026-11-money-and-access.md, decision D5).
  * Founders only. Safe to run more than once: a record already right is left
  * alone. Run with { dryRun: true } first — it is the default — to see the
  * counts without writing anything.

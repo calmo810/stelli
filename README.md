@@ -1,63 +1,94 @@
-**Welcome to your Base44 project** 
+# Stelli
 
-**About**
+Stelli is a curated marketplace for booking vetted photographers and filmmakers,
+live at **[getstelli.com](https://getstelli.com)**, piloting at Elon University
+(NC) with New York City next. A client picks a creator and sends a date, the
+creator replies with a private quote, the client pays through Stripe, and the
+money is held until the photos are delivered.
 
-View and Edit  your app on [Base44.com](http://Base44.com) 
+The app is built on [Base44](https://base44.com). This repo and the Base44
+builder are two views of the same code: a change merged to `main` shows up in
+the builder, and a change made in the builder is committed to `main` by
+`base44-builder[bot]`.
 
-This project contains everything you need to run your app locally.
-
-**Edit the code in your local development environment**
-
-Any change pushed to the repo will also be reflected in the Base44 Builder.
-
-**Prerequisites:** 
-
-1. Clone the repository using the project's Git URL 
-2. Navigate to the project directory
-3. Install dependencies: `npm install`
-4. Create an `.env.local` file and set the right environment variables
+## What's where
 
 ```
-VITE_BASE44_APP_ID=your_app_id
-VITE_BASE44_APP_BASE_URL=your_backend_url
+src/                     The website (React 18, Vite, Tailwind, TanStack Query)
+  App.jsx                Every route in one place
+  pages/                 One file per page; creator portal pages in pages/creator/
+  components/
+    system/              Shared building blocks (see "Design system" below)
+    shared/              Layout, navbar, footer, menus
+    home/ browse/ profile/   Public pages: home, creator list, creator profiles
+    thread/              The shoot thread: messages, quotes, delivery, payment
+    wizard/              The creator profile wizard (/apply, /edit-profile)
+    dashboard/ creator/  Client and creator portals
+    admin/               The founder dashboard (/admin)
+    ui/                  Low-level inputs (shadcn/Radix)
+  hooks/                 Data hooks for each portal
+  lib/                   Helpers: formatting, auth, booking status, legal text
+  styles/                system.css plus page-specific stylesheets
 
-e.g.
-VITE_BASE44_APP_ID=cbef744a8545c389ef439ea6
-VITE_BASE44_APP_BASE_URL=https://my-to-do-list-81bfaad7.base44.app
+base44/                  The backend, deployed by Base44
+  entities/              Data models (Booking, Lensman = creator, Quote, ...)
+  functions/<name>/entry.ts   One backend function per folder
+  shared/                Code the functions share: money math, refunds, payouts,
+                         booking rules, access checks, Stripe
+  workflows/             Scheduled jobs (hourly payout release, status emails)
+  agents/                The FAQ concierge's instructions
+
+tests/                   Backend flows run against a fake Base44 and fake Stripe
+  e2e/                   Browser test and the local mock backend
+  live-stripe/           Optional: real Stripe test-mode runs (npm run test:stripe)
+
+docs/reviews/            Written reviews of the code (money and access, Nov 2026)
+ci/                      Type-check config and the GitHub ruleset for main
 ```
 
-Run the app: `npm run dev`
+Naming: the backend calls a creator a **Lensman**; the website says
+**creator**. They are the same thing.
 
-**Run it without the live backend**
+## Run it
 
-`npm run dev:mock` starts a local stand-in backend and the app together. It runs
-the real backend functions from `base44/functions` against an in-memory
-database and a fake Stripe, seeded with clients, creators and bookings at every
-stage, so nothing touches the live app or moves money. Restart it (or
-`POST /__mock/reset`) to get the seed data back. No `.env.local` is needed.
+```bash
+npm install
+npm run dev:mock      # the site plus a local fake backend, no live data touched
+```
 
-Sign in with any of these and any password:
+Sign in with any password as `jordan@example.com` (client), `maya@example.com`
+(creator), `sam@example.com` (new creator), `priya@example.com` (creator in
+review) or `founder@example.com` (opens `/admin`).
 
-- `jordan@example.com`: a client with shoots at every stage
-- `maya@example.com`: an approved creator with a full page
-- `sam@example.com`: a creator account with no page yet (to try the wizard)
-- `priya@example.com`: a creator whose page is in review
-- `founder@example.com`: a founder (opens `/admin`)
+To point at the live backend instead, create `.env.local` with
+`VITE_BASE44_APP_ID` and `VITE_BASE44_APP_BASE_URL`, then `npm run dev`.
+Be careful: the live app takes real payments.
 
-`npm run test:e2e` clicks through creating, approving and editing a creator
-profile in a real browser; it needs `npm run dev:mock` running.
+## Checks
 
-**Design system**
+Every pull request runs four checks (`.github/workflows/ci.yml`). Run them
+locally with:
+
+```bash
+npm test              # backend flows: payments, refunds, payouts, access
+npm run lint
+npm run typecheck     # backend must be clean; frontend can't add new errors
+npm run build
+```
+
+Commits from the Base44 builder land on `main` directly and skip these gates,
+so a builder edit can break a check. Look at the Actions tab after a builder
+session.
+
+## Design system
 
 Every screen is built from `src/styles/system.css` and the components in
 `src/components/system`. The top of `system.css` lists every class and token.
+Brand: dark navy `#0a0f1e` base; lime `#C4F82A` for actions, cyan `#2AE8F8`
+for creator-side UI, magenta `#F82AC4` for ratings; Fraunces for headlines,
+Inter for body text.
 
-**Publish your changes**
+## Publishing
 
-Open [Base44.com](http://Base44.com) and click on Publish.
-
-**Docs & Support**
-
-Documentation: [https://docs.base44.com/Integrations/Using-GitHub](https://docs.base44.com/Integrations/Using-GitHub)
-
-Support: [https://app.base44.com/support](https://app.base44.com/support)
+Merging to `main` updates the code in Base44. Publish from the Base44 editor
+to put it live.

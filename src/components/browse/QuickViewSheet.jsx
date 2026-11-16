@@ -76,7 +76,7 @@ export default function QuickViewSheet({ creator, onClose }) {
   return createPortal(
     <>
       <div
-        className={`fixed inset-0 z-[60] bg-[rgba(5,8,18,0.6)] backdrop-blur-[6px] transition-opacity duration-[450ms] ${
+        className={`fixed inset-0 z-[60] bg-[rgba(5,8,18,0.6)] backdrop-blur-[6px] transition-opacity duration-450 ${
           open ? 'opacity-100' : 'pointer-events-none opacity-0'
         }`}
         onClick={onClose}
@@ -87,7 +87,7 @@ export default function QuickViewSheet({ creator, onClose }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="quickview-title"
-        className={`fixed inset-x-0 bottom-0 z-[61] flex max-h-[92vh] flex-col overflow-hidden rounded-t-[26px] border border-line bg-[var(--st-card)] transition-transform duration-[600ms] ease-[cubic-bezier(.6,0,.2,1)] sm:inset-x-auto sm:bottom-4 sm:right-4 sm:top-4 sm:max-h-none sm:w-[min(560px,calc(100%-32px))] sm:rounded-[26px] ${
+        className={`fixed inset-x-0 bottom-0 z-[61] flex max-h-[92vh] flex-col overflow-hidden rounded-t-[26px] border border-line bg-[var(--st-card)] transition-transform duration-600 ease-st-inout sm:inset-x-auto sm:bottom-4 sm:right-4 sm:top-4 sm:max-h-none sm:w-[min(560px,calc(100%-32px))] sm:rounded-[26px] ${
           open ? 'translate-y-0' : 'translate-y-full sm:translate-x-[calc(100%+40px)] sm:translate-y-0'
         }`}
         style={{ '--acc': accent }}

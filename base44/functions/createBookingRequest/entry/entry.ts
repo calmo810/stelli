@@ -8,7 +8,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
  * Nothing in the app calls this one, but it was deployed (as
  * "createBookingRequest/entry") and anyone signed in could call it directly,
  * skipping all of those checks. It now refuses every call. It is kept, not
- * deleted, until you say so (REVIEW.md, decision D14).
+ * deleted, until you say so (docs/reviews/2026-11-money-and-access.md, decision D14).
  */
 export default async function (req) {
   createClientFromRequest(req);

@@ -127,8 +127,16 @@ module.exports = {
   			'st-card': 'var(--shadow-card)',
   			'st-float': 'var(--shadow-float)'
   		},
+  		// Named tokens, not arbitrary values: tailwindcss-animate also reads
+  		// duration-* and ease-*, so `duration-[450ms]` was ambiguous and
+  		// Tailwind generated no CSS for it at all.
+  		transitionDuration: {
+  			450: '450ms',
+  			600: '600ms'
+  		},
   		transitionTimingFunction: {
-  			st: 'cubic-bezier(0.16, 1, 0.3, 1)'
+  			st: 'cubic-bezier(0.16, 1, 0.3, 1)',
+  			'st-inout': 'cubic-bezier(0.6, 0, 0.2, 1)'
   		},
   		fontFamily: {
   			heading: ['var(--font-heading)'],

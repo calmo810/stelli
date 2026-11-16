@@ -108,7 +108,7 @@ export default function MeetCreators() {
           <Link
           data-card
           to="/register?role=creator"
-          className="shrink-0 snap-start relative flex flex-col justify-between aspect-[4/5] transition-transform duration-700 ease-[cubic-bezier(.16,1,.3,1)] hover:-translate-y-1.5"
+          className="shrink-0 snap-start relative flex flex-col justify-between aspect-[4/5] transition-transform duration-700 ease-st hover:-translate-y-1.5"
           style={{
             width: CARD_WIDTH,
             borderRadius: CARD_RADIUS,

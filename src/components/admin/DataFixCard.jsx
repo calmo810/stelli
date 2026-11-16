@@ -20,7 +20,7 @@ const LINES = [
 ];
 
 /**
- * The one-time backfill for account-based access (REVIEW.md, D5). "Check"
+ * The one-time backfill for account-based access (docs/reviews/2026-11-money-and-access.md, D5). "Check"
  * changes nothing and shows what would be filled in; "Run it" writes it and is
  * logged below. Safe to run twice.
  */
