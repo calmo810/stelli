@@ -1,5 +1,6 @@
 {
   "name": "LegalDocument",
+  "description": "Legal · Published versions of the Terms and Privacy Policy.",
   "type": "object",
   "properties": {
     "type": {

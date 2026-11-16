@@ -1,5 +1,6 @@
 {
   "name": "PhotoRelease",
+  "description": "Photos · Client and creator permission to show a shoot's photos on a creator's page.",
   "type": "object",
   "properties": {
     "booking_id": {

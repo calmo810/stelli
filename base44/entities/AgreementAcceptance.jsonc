@@ -1,5 +1,6 @@
 {
   "name": "AgreementAcceptance",
+  "description": "Legal · Who accepted the Terms, Privacy Policy or a booking contract, and when. Don't edit.",
   "type": "object",
   "properties": {
     "description": {

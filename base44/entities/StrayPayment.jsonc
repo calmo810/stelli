@@ -1,5 +1,6 @@
 {
   "name": "StrayPayment",
+  "description": "Money · Safety net: payments Stripe took that match no booking. Empty is good.",
   "type": "object",
   "properties": {
     "payment_intent_id": {

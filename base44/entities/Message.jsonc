@@ -1,5 +1,6 @@
 {
   "name": "Message",
+  "description": "Everyday · Messages in each booking's thread.",
   "type": "object",
   "properties": {
     "booking_id": {

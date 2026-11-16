@@ -1,5 +1,6 @@
 {
   "name": "BookingContract",
+  "description": "Legal · The client and creator contract for each booking. Don't edit.",
   "type": "object",
   "properties": {
     "description": {

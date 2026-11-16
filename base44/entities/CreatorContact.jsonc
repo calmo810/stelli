@@ -1,5 +1,6 @@
 {
   "name": "CreatorContact",
+  "description": "Private · Creators' real names, emails and phones, kept apart from public profiles.",
   "type": "object",
   "properties": {
     "description": {

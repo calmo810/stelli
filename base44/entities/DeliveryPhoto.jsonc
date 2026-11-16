@@ -1,5 +1,6 @@
 {
   "name": "DeliveryPhoto",
+  "description": "Photos · Photos a creator delivered for a booking (the client's album).",
   "type": "object",
   "properties": {
     "booking_id": {

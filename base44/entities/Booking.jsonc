@@ -1,5 +1,6 @@
 {
   "name": "Booking",
+  "description": "Everyday · Bookings: one row per shoot, from request through payment, delivery and payout.",
   "type": "object",
   "properties": {
     "description": {
