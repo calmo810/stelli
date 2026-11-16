@@ -1,5 +1,6 @@
 {
   "name": "Quote",
+  "description": "Everyday · Private price quotes creators send in a booking's thread.",
   "type": "object",
   "properties": {
     "description": {

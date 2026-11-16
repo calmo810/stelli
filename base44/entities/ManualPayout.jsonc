@@ -1,5 +1,6 @@
 {
   "name": "ManualPayout",
+  "description": "Money · Payouts a founder sends a creator from /admin, outside a booking's normal payout.",
   "properties": {
     "amount": {
       "description": "Amount in US dollars",

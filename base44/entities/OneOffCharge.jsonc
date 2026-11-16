@@ -1,5 +1,6 @@
 {
   "name": "OneOffCharge",
+  "description": "Money · Extra charges a founder sends a client from /admin. Empty until used.",
   "properties": {
     "amount": {
       "description": "Amount in US dollars",

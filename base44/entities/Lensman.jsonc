@@ -1,5 +1,6 @@
 {
   "name": "Lensman",
+  "description": "Everyday · Creators: one row per creator profile. Approve or reject applications from /admin.",
   "type": "object",
   "properties": {
     "user_id": {

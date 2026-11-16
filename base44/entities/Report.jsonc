@@ -1,5 +1,6 @@
 {
   "name": "Report",
+  "description": "Safety · Reports about a creator or client, like no-shows or off-platform booking. Empty until filed.",
   "type": "object",
   "properties": {
     "reporter_id": {

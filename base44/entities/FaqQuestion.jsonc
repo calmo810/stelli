@@ -1,5 +1,6 @@
 {
   "name": "FaqQuestion",
+  "description": "Site · Questions visitors asked the FAQ assistant, with its answers.",
   "type": "object",
   "properties": {
     "session_id": {

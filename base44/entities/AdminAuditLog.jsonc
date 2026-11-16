@@ -1,5 +1,6 @@
 {
   "name": "AdminAuditLog",
+  "description": "Safety · Log of founder actions: approvals, payouts, refunds and data fixes. Don't edit.",
   "type": "object",
   "properties": {
     "actor_id": {

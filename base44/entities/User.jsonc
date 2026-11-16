@@ -1,5 +1,6 @@
 {
   "name": "User",
+  "description": "Everyday · Accounts: clients, creators and founders.",
   "type": "object",
   "properties": {
     "role": {
