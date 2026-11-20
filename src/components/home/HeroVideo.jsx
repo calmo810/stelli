@@ -69,6 +69,10 @@ const CARET = {
   animation: 'stelliCaretBlink 1s steps(1) infinite',
 };
 
+// Room kept clear at the top and bottom of the hero: the tab bar's height plus
+// some air on phones, a fixed margin on desktop where there is no tab bar.
+const HERO_EDGE = 'max(88px, calc(var(--tabbar-h) + 20px))';
+
 const BUTTON = {
   borderRadius: 980,
   padding: '15px 30px',
@@ -201,7 +205,15 @@ export default function HeroVideo() {
         Photo: Elon University, CC BY 2.0
       </a>
 
-      <div ref={copyRef} className="absolute inset-0 flex items-end justify-center text-center px-5 md:px-10 pb-16 sm:pb-[88px] will-change-transform">
+      {/* Equal padding top and bottom keeps the headline at the exact middle of
+          the screen. The bottom padding clears the floating phone tab bar, so
+          both buttons always sit fully above it. */}
+      <div
+        ref={copyRef}
+        className="absolute inset-0 flex flex-col items-center text-center px-5 md:px-10 will-change-transform"
+        style={{ paddingTop: HERO_EDGE, paddingBottom: HERO_EDGE }}
+      >
+        <div className="flex-1" aria-hidden />
         <div className="w-full max-w-[900px]">
           <h1
             className="font-display"
@@ -222,8 +234,10 @@ export default function HeroVideo() {
               </span>
             </span>
           </h1>
+        </div>
 
-          <div className="flex flex-wrap justify-center" style={{ marginTop: 40, gap: 12 }}>
+        <div className="flex-1 w-full max-w-[900px] flex flex-col justify-end md:justify-start">
+          <div className="flex flex-wrap justify-center pt-8 md:pt-10" style={{ gap: 12 }}>
             <Link
               to="/creators"
               className="label-mono text-[11px] font-semibold w-full sm:w-auto text-center transition-[transform,box-shadow] duration-500 ease-st hover:-translate-y-0.5"
