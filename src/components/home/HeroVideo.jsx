@@ -2,11 +2,17 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import SmoothImage from '@/components/shared/SmoothImage';
 
-// Full-bleed hero still: Elon University. Served at 4K wide, with smaller
-// renditions for phones so they stay fast without going soft.
-const POSTER_BASE = 'https://commons.wikimedia.org/wiki/Special:FilePath/Alamance_Building,_Elon_University.jpg';
-const POSTER = `${POSTER_BASE}?width=3840`;
-const POSTER_SRCSET = [1280, 1920, 2560, 3840].map((w) => `${POSTER_BASE}?width=${w} ${w}w`).join(', ');
+// Full-bleed hero still: Moseley Center and Young Commons, Elon University.
+// Self-hosted from a 4185×2743 original ("2012 at Elon University 64",
+// Elon University on Flickr, CC BY 2.0 via Wikimedia Commons).
+const POSTER_WIDTHS = [1280, 1920, 2560, 3840, 4185];
+const POSTER = '/hero/elon-young-commons-3840.webp';
+const POSTER_SRCSET = POSTER_WIDTHS.map((w) => `/hero/elon-young-commons-${w}.webp ${w}w`).join(', ');
+// The hero is object-cover at full screen height, so on a portrait phone the
+// photo renders far wider than the viewport (height × 1.53, plus the Ken Burns
+// zoom). Telling the browser that keeps phones from picking a tiny rendition
+// and stretching it, which is what made the old hero look grainy.
+const POSTER_SIZES = '(max-aspect-ratio: 3/2) 175vh, 115vw';
 
 // Every phrase reads on from "Need a photographer for".
 const PHRASES = [
@@ -166,8 +172,8 @@ export default function HeroVideo() {
             priority
             src={POSTER}
             srcSet={POSTER_SRCSET}
-            sizes="100vw"
-            alt="Elon University campus"
+            sizes={POSTER_SIZES}
+            alt="Moseley Center on Young Commons, Elon University"
             className="absolute inset-0 w-full h-full object-cover"
           />
         </div>
@@ -185,6 +191,15 @@ export default function HeroVideo() {
           ].join(', '),
         }}
       />
+
+      <a
+        href="https://commons.wikimedia.org/wiki/File:2012_at_Elon_University_64.jpg"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="hidden sm:block absolute bottom-3 right-4 z-10 text-[10px] text-white/35 hover:text-white/70 transition-colors"
+      >
+        Photo: Elon University, CC BY 2.0
+      </a>
 
       <div ref={copyRef} className="absolute inset-0 flex items-end justify-center text-center px-5 md:px-10 pb-16 sm:pb-[88px] will-change-transform">
         <div className="w-full max-w-[900px]">
