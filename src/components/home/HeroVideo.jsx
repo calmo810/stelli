@@ -197,6 +197,16 @@ export default function HeroVideo() {
         }}
       />
 
+      {/* Photographer credit, linking to the original photo and its license. */}
+      <a
+        href="https://www.flickr.com/photos/22121135@N00/3310919534"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="hidden sm:block absolute bottom-3 right-4 z-10 text-[10px] text-white/35 hover:text-white/70 transition-colors"
+      >
+        Shot by bobbsled · Canon PowerShot A620
+      </a>
+
       {/* Equal padding top and bottom keeps the headline at the exact middle of
           the screen. The bottom padding clears the floating phone tab bar, so
           both buttons always sit fully above it. */}
