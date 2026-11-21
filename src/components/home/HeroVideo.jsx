@@ -2,17 +2,18 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import SmoothImage from '@/components/shared/SmoothImage';
 
-// Full-bleed hero still: Moseley Center and Young Commons, Elon University.
-// Self-hosted from a 4185×2743 original ("2012 at Elon University 64",
-// Elon University on Flickr, CC BY 2.0 via Wikimedia Commons).
-const POSTER_WIDTHS = [1280, 1920, 2560, 3840, 4185];
-const POSTER = '/hero/elon-young-commons-3840.webp';
-const POSTER_SRCSET = POSTER_WIDTHS.map((w) => `/hero/elon-young-commons-${w}.webp ${w}w`).join(', ');
+// Full-bleed hero still: Alamance Building, Elon University. The original is
+// only 1600×1200 (MPD01605 on Flickr, CC BY-SA 2.0 via Wikimedia Commons), so
+// it was AI-upscaled 4× (Real-ESRGAN) and self-hosted up to 4800px wide. As an
+// adaptation it stays under CC BY-SA 2.0.
+const POSTER_WIDTHS = [1280, 1920, 2560, 3840, 4800];
+const POSTER = '/hero/alamance-3840.webp';
+const POSTER_SRCSET = POSTER_WIDTHS.map((w) => `/hero/alamance-${w}.webp ${w}w`).join(', ');
 // The hero is object-cover at full screen height, so on a portrait phone the
-// photo renders far wider than the viewport (height × 1.53, plus the Ken Burns
-// zoom). Telling the browser that keeps phones from picking a tiny rendition
-// and stretching it, which is what made the old hero look grainy.
-const POSTER_SIZES = '(max-aspect-ratio: 3/2) 175vh, 115vw';
+// 4:3 photo renders far wider than the viewport (height × 1.33, plus the Ken
+// Burns zoom). Telling the browser that keeps phones from picking a small
+// rendition and stretching it, which is what made the old hero look grainy.
+const POSTER_SIZES = '(max-aspect-ratio: 4/3) 155vh, 115vw';
 
 // Every phrase reads on from "Need a photographer for".
 const PHRASES = [
@@ -177,7 +178,7 @@ export default function HeroVideo() {
             src={POSTER}
             srcSet={POSTER_SRCSET}
             sizes={POSTER_SIZES}
-            alt="Moseley Center on Young Commons, Elon University"
+            alt="Alamance Building, Elon University"
             className="absolute inset-0 w-full h-full object-cover"
           />
         </div>
@@ -197,12 +198,12 @@ export default function HeroVideo() {
       />
 
       <a
-        href="https://commons.wikimedia.org/wiki/File:2012_at_Elon_University_64.jpg"
+        href="https://commons.wikimedia.org/wiki/File:Alamance_Building,_Elon_University.jpg"
         target="_blank"
         rel="noopener noreferrer"
         className="hidden sm:block absolute bottom-3 right-4 z-10 text-[10px] text-white/35 hover:text-white/70 transition-colors"
       >
-        Photo: Elon University, CC BY 2.0
+        Photo: MPD01605, CC BY-SA 2.0 (upscaled)
       </a>
 
       {/* Equal padding top and bottom keeps the headline at the exact middle of
