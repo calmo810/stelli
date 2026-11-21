@@ -197,15 +197,6 @@ export default function HeroVideo() {
         }}
       />
 
-      <a
-        href="https://commons.wikimedia.org/wiki/File:Alamance_Building,_Elon_University.jpg"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="hidden sm:block absolute bottom-3 right-4 z-10 text-[10px] text-white/35 hover:text-white/70 transition-colors"
-      >
-        Photo: MPD01605, CC BY-SA 2.0 (upscaled)
-      </a>
-
       {/* Equal padding top and bottom keeps the headline at the exact middle of
           the screen. The bottom padding clears the floating phone tab bar, so
           both buttons always sit fully above it. */}
